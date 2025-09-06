@@ -127,6 +127,47 @@ export type Database = {
         }
         Relationships: []
       }
+      creator_earnings: {
+        Row: {
+          amount: number
+          created_at: string
+          creator_id: string
+          currency: string
+          earning_type: string
+          guide_id: string
+          id: string
+          processed_at: string | null
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          creator_id: string
+          currency?: string
+          earning_type: string
+          guide_id: string
+          id?: string
+          processed_at?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          creator_id?: string
+          currency?: string
+          earning_type?: string
+          guide_id?: string
+          id?: string
+          processed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_earnings_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "audio_guides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guide_reviews: {
         Row: {
           comment: string | null
@@ -221,6 +262,107 @@ export type Database = {
           verified_at?: string | null
         }
         Relationships: []
+      }
+      trending_locations: {
+        Row: {
+          coordinates: unknown | null
+          country: string
+          created_at: string
+          growth_percentage: number | null
+          guides_count: number | null
+          id: string
+          last_updated: string
+          name: string
+          total_views: number | null
+          trending_rank: number | null
+        }
+        Insert: {
+          coordinates?: unknown | null
+          country: string
+          created_at?: string
+          growth_percentage?: number | null
+          guides_count?: number | null
+          id?: string
+          last_updated?: string
+          name: string
+          total_views?: number | null
+          trending_rank?: number | null
+        }
+        Update: {
+          coordinates?: unknown | null
+          country?: string
+          created_at?: string
+          growth_percentage?: number | null
+          guides_count?: number | null
+          id?: string
+          last_updated?: string
+          name?: string
+          total_views?: number | null
+          trending_rank?: number | null
+        }
+        Relationships: []
+      }
+      user_achievements: {
+        Row: {
+          achievement_name: string
+          achievement_type: string
+          description: string | null
+          id: string
+          metadata: Json | null
+          points: number | null
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          achievement_name: string
+          achievement_type: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          points?: number | null
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          achievement_name?: string
+          achievement_type?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          points?: number | null
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_bookmarks: {
+        Row: {
+          created_at: string
+          guide_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          guide_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          guide_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_bookmarks_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "audio_guides"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_purchases: {
         Row: {
@@ -329,6 +471,88 @@ export type Database = {
           },
         ]
       }
+      viral_metrics: {
+        Row: {
+          completion_rate: number | null
+          date: string
+          downloads_count: number | null
+          guide_id: string
+          id: string
+          shares_count: number | null
+          trending_rank: number | null
+          updated_at: string
+          views_count: number | null
+          viral_score: number | null
+        }
+        Insert: {
+          completion_rate?: number | null
+          date?: string
+          downloads_count?: number | null
+          guide_id: string
+          id?: string
+          shares_count?: number | null
+          trending_rank?: number | null
+          updated_at?: string
+          views_count?: number | null
+          viral_score?: number | null
+        }
+        Update: {
+          completion_rate?: number | null
+          date?: string
+          downloads_count?: number | null
+          guide_id?: string
+          id?: string
+          shares_count?: number | null
+          trending_rank?: number | null
+          updated_at?: string
+          views_count?: number | null
+          viral_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "viral_metrics_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "audio_guides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      viral_shares: {
+        Row: {
+          created_at: string
+          guide_id: string
+          id: string
+          location: string | null
+          platform: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          guide_id: string
+          id?: string
+          location?: string | null
+          platform: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          guide_id?: string
+          id?: string
+          location?: string | null
+          platform?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "viral_shares_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "audio_guides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -349,6 +573,14 @@ export type Database = {
           request_id: string
         }
         Returns: boolean
+      }
+      track_guide_view: {
+        Args: { p_guide_id: string }
+        Returns: undefined
+      }
+      track_viral_share: {
+        Args: { p_guide_id: string; p_location?: string; p_platform: string }
+        Returns: undefined
       }
     }
     Enums: {
