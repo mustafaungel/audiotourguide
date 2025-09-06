@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { HeroSection } from '@/components/HeroSection';
 import { AudioPlayer } from '@/components/AudioPlayer';
 import { GuideCard } from '@/components/GuideCard';
+import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { Headphones, Search, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -25,6 +26,10 @@ const Index = () => {
       location: "Cappadocia, Turkey",
       rating: 4.9,
       category: "UNESCO Heritage",
+      price: "$12",
+      difficulty: "Moderate",
+      languages: ["English", "Turkish", "German"],
+      bestTime: "April-June, Sept-Oct",
       imageUrl: cappadociaImage,
     },
     {
@@ -35,6 +40,10 @@ const Index = () => {
       location: "Istanbul, Turkey",
       rating: 4.8,
       category: "Cultural Heritage",
+      price: "$15",
+      difficulty: "Easy",
+      languages: ["English", "Turkish", "Arabic", "Russian"],
+      bestTime: "April-May, Sept-Nov",
       imageUrl: istanbulImage,
     },
     {
@@ -45,6 +54,10 @@ const Index = () => {
       location: "Cusco, Peru",
       rating: 4.9,
       category: "Archaeological Site",
+      price: "$18",
+      difficulty: "Challenging",
+      languages: ["English", "Spanish", "Quechua"],
+      bestTime: "May-September",
       imageUrl: machupichuImage,
     },
     {
@@ -55,6 +68,10 @@ const Index = () => {
       location: "Kyoto, Japan",
       rating: 4.7,
       category: "Cultural Heritage",
+      price: "$14",
+      difficulty: "Easy",
+      languages: ["English", "Japanese", "Chinese"],
+      bestTime: "March-May, October-Nov",
       imageUrl: kyotoImage,
     },
     {
@@ -65,6 +82,10 @@ const Index = () => {
       location: "Paris, France",
       rating: 4.8,
       category: "Art & Museums",
+      price: "Free",
+      difficulty: "Easy",
+      languages: ["English", "French", "Spanish", "Italian"],
+      bestTime: "Year-round",
       imageUrl: parisImage,
     },
     {
@@ -75,6 +96,10 @@ const Index = () => {
       location: "Santorini, Greece",
       rating: 4.6,
       category: "Island Heritage",
+      price: "$10",
+      difficulty: "Easy",
+      languages: ["English", "Greek", "German"],
+      bestTime: "April-June, September",
       imageUrl: santoriniImage,
     },
   ];
@@ -91,7 +116,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section */}
+      <Navigation />
       <HeroSection />
 
       {/* Audio Player Section */}
@@ -155,6 +180,10 @@ const Index = () => {
                 location={guide.location}
                 rating={guide.rating}
                 category={guide.category}
+                price={guide.price}
+                difficulty={guide.difficulty}
+                languages={guide.languages}
+                bestTime={guide.bestTime}
                 imageUrl={guide.imageUrl}
                 onPlay={() => handlePlayGuide(guide)}
               />

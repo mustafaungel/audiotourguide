@@ -11,6 +11,10 @@ interface GuideCardProps {
   location: string;
   rating: number;
   category: string;
+  price?: string;
+  difficulty?: string;
+  languages?: string[];
+  bestTime?: string;
   imageUrl?: string;
   onPlay?: () => void;
 }
@@ -22,6 +26,10 @@ export const GuideCard: React.FC<GuideCardProps> = ({
   location,
   rating,
   category,
+  price = "Free",
+  difficulty = "Easy",
+  languages = ["English"],
+  bestTime,
   imageUrl,
   onPlay,
 }) => {
@@ -69,29 +77,49 @@ export const GuideCard: React.FC<GuideCardProps> = ({
         </div>
 
         {/* Meta Information */}
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <Clock className="h-4 w-4" />
-            <span>{duration}</span>
+        <div className="space-y-3">
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <Clock className="h-4 w-4" />
+              <span>{duration}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <MapPin className="h-4 w-4" />
+              <span className="truncate">{location}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Star className="h-4 w-4 fill-current text-yellow-400" />
+              <span>{rating}</span>
+            </div>
           </div>
-          <div className="flex items-center gap-1">
-            <MapPin className="h-4 w-4" />
-            <span className="truncate">{location}</span>
+          
+          {/* Tourism Details */}
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="text-xs">{price}</Badge>
+              <Badge variant="outline" className="text-xs">{difficulty}</Badge>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {languages.slice(0, 2).join(", ")}
+              {languages.length > 2 && ` +${languages.length - 2}`}
+            </div>
           </div>
-          <div className="flex items-center gap-1">
-            <Star className="h-4 w-4 fill-current text-yellow-400" />
-            <span>{rating}</span>
-          </div>
+          
+          {bestTime && (
+            <div className="text-xs text-muted-foreground">
+              Best time: {bestTime}
+            </div>
+          )}
         </div>
 
         {/* Action Button */}
         <Button 
-          variant="outline" 
-          className="w-full"
+          variant="default" 
+          className="w-full bg-gradient-tourism hover:shadow-tourism"
           onClick={onPlay}
         >
           <Play className="h-4 w-4 mr-2" />
-          Start Audio Guide
+          Start Audio Tour
         </Button>
       </div>
     </Card>

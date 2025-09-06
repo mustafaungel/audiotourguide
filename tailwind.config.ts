@@ -13,6 +13,10 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        inter: ['Inter', 'sans-serif'],
+        playfair: ['Playfair Display', 'serif'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -59,11 +63,11 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        audio: {
-          primary: "hsl(var(--audio-primary))",
-          secondary: "hsl(var(--audio-secondary))",
-          waveform: "hsl(var(--waveform))",
-          progress: "hsl(var(--progress))",
+        tourism: {
+          warm: "hsl(var(--tourism-warm))",
+          earth: "hsl(var(--tourism-earth))",
+          sky: "hsl(var(--tourism-sky))",
+          sunset: "hsl(var(--tourism-sunset))",
         },
       },
       backgroundImage: {
@@ -71,11 +75,13 @@ export default {
         "gradient-primary": "var(--gradient-primary)",
         "gradient-accent": "var(--gradient-accent)",
         "gradient-card": "var(--gradient-card)",
+        "gradient-tourism": "var(--gradient-tourism)",
       },
       boxShadow: {
         glow: "var(--shadow-glow)",
         "accent-glow": "var(--shadow-accent-glow)",
         card: "var(--shadow-card)",
+        tourism: "var(--shadow-tourism)",
       },
       transitionTimingFunction: {
         smooth: "var(--transition-smooth)",
