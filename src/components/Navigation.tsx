@@ -80,10 +80,10 @@ export const Navigation = () => {
                     <span>Profile</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <Link to="/admin" className="w-full">Create Guide</Link>
+                    <Link to="/library" className="w-full">My Library</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <span>My Tours</span>
+                    <Link to="/admin" className="w-full">Create Guide</Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut}>

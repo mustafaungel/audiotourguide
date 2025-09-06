@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { HeroSection } from '@/components/HeroSection';
 import { AudioPlayer } from '@/components/AudioPlayer';
 import { GuideCard } from '@/components/GuideCard';
@@ -6,6 +6,9 @@ import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { Headphones, Search, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 import cappadociaImage from '@/assets/cappadocia-goreme.jpg';
 import istanbulImage from '@/assets/istanbul-hagia-sophia.jpg';
 import machupichuImage from '@/assets/machu-picchu.jpg';
@@ -16,93 +19,88 @@ import santoriniImage from '@/assets/santorini-greece.jpg';
 const Index = () => {
   const [selectedGuide, setSelectedGuide] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [guides, setGuides] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [userPurchases, setUserPurchases] = useState<string[]>([]);
+  const { user } = useAuth();
+  const { toast } = useToast();
 
-  const guides = [
-    {
-      id: 1,
-      title: "Cappadocia: Göreme Open Air Museum",
-      description: "Soar above ancient cave churches and fairy chimneys while learning about Byzantine history and Cappadocia's unique geology from local storytellers.",
-      duration: "50 min",
-      location: "Cappadocia, Turkey",
-      rating: 4.9,
-      category: "UNESCO Heritage",
-      price: "$12",
-      difficulty: "Moderate",
-      languages: ["English", "Turkish", "German"],
-      bestTime: "April-June, Sept-Oct",
-      imageUrl: cappadociaImage,
-    },
-    {
-      id: 2,
-      title: "Istanbul: Whirling Dervish & Hagia Sophia",
-      description: "Experience the mystical Sufi traditions and explore the architectural marvel that bridges Europe and Asia, with stories spanning Byzantine and Ottoman empires.",
-      duration: "65 min",
-      location: "Istanbul, Turkey",
-      rating: 4.8,
-      category: "Cultural Heritage",
-      price: "$15",
-      difficulty: "Easy",
-      languages: ["English", "Turkish", "Arabic", "Russian"],
-      bestTime: "April-May, Sept-Nov",
-      imageUrl: istanbulImage,
-    },
-    {
-      id: 3,
-      title: "Machu Picchu: Lost City of the Incas",
-      description: "Uncover the mysteries of this ancient Inca citadel perched high in the Andes, with indigenous wisdom and archaeological discoveries.",
-      duration: "75 min",
-      location: "Cusco, Peru",
-      rating: 4.9,
-      category: "Archaeological Site",
-      price: "$18",
-      difficulty: "Challenging",
-      languages: ["English", "Spanish", "Quechua"],
-      bestTime: "May-September",
-      imageUrl: machupichuImage,
-    },
-    {
-      id: 4,
-      title: "Kyoto: Temples & Bamboo Forests",
-      description: "Journey through Japan's cultural heart, discovering Zen philosophy, traditional arts, and the serene beauty of ancient temples.",
-      duration: "55 min",
-      location: "Kyoto, Japan",
-      rating: 4.7,
-      category: "Cultural Heritage",
-      price: "$14",
-      difficulty: "Easy",
-      languages: ["English", "Japanese", "Chinese"],
-      bestTime: "March-May, October-Nov",
-      imageUrl: kyotoImage,
-    },
-    {
-      id: 5,
-      title: "Paris: Louvre & Artistic Treasures",
-      description: "Navigate the world's largest art museum with expert insights into masterpieces from da Vinci to Napoleon's collections.",
-      duration: "45 min",
-      location: "Paris, France",
-      rating: 4.8,
-      category: "Art & Museums",
-      price: "Free",
-      difficulty: "Easy",
-      languages: ["English", "French", "Spanish", "Italian"],
-      bestTime: "Year-round",
-      imageUrl: parisImage,
-    },
-    {
-      id: 6,
-      title: "Santorini: Aegean Island Paradise",
-      description: "Explore the volcanic island's iconic blue-domed churches, ancient Minoan ruins, and traditional Greek island culture.",
-      duration: "40 min",
-      location: "Santorini, Greece",
-      rating: 4.6,
-      category: "Island Heritage",
-      price: "$10",
-      difficulty: "Easy",
-      languages: ["English", "Greek", "German"],
-      bestTime: "April-June, September",
-      imageUrl: santoriniImage,
-    },
-  ];
+  useEffect(() => {
+    fetchGuides();
+    if (user) {
+      fetchUserPurchases();
+    }
+  }, [user]);
+
+  const fetchGuides = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('audio_guides')
+        .select('*')
+        .eq('is_published', true)
+        .eq('is_approved', true)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      setGuides(data || []);
+    } catch (error) {
+      console.error('Error fetching guides:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load guides",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchUserPurchases = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('user_purchases')
+        .select('guide_id')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      
+      setUserPurchases(data?.map(p => p.guide_id) || []);
+    } catch (error) {
+      console.error('Error fetching purchases:', error);
+    }
+  };
+
+  const handlePurchaseGuide = async (guideId: string) => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to purchase guides",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke('create-payment', {
+        body: { guideId },
+      });
+
+      if (error) throw error;
+
+      // Open Stripe checkout in a new tab
+      window.open(data.url, '_blank');
+    } catch (error: any) {
+      console.error('Payment error:', error);
+      toast({
+        title: "Payment Error",
+        description: error.message || "Failed to initiate payment",
+        variant: "destructive",
+      });
+    }
+  };
 
   const filteredGuides = guides.filter(guide =>
     guide.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -169,29 +167,58 @@ const Index = () => {
             </Button>
           </div>
 
+          {/* Loading State */}
+          {loading && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="bg-card rounded-lg p-6 animate-pulse">
+                  <div className="h-48 bg-muted rounded-lg mb-4"></div>
+                  <div className="h-4 bg-muted rounded mb-2"></div>
+                  <div className="h-4 bg-muted rounded w-3/4"></div>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Guides Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredGuides.map((guide) => (
-              <GuideCard
-                key={guide.id}
-                title={guide.title}
-                description={guide.description}
-                duration={guide.duration}
-                location={guide.location}
-                rating={guide.rating}
-                category={guide.category}
-                price={guide.price}
-                difficulty={guide.difficulty}
-                languages={guide.languages}
-                bestTime={guide.bestTime}
-                imageUrl={guide.imageUrl}
-                onPlay={() => handlePlayGuide(guide)}
-              />
-            ))}
-          </div>
+          {!loading && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredGuides.map((guide) => {
+                const isPurchased = userPurchases.includes(guide.id);
+                const formattedPrice = guide.price_usd === 0 ? "Free" : `$${guide.price_usd}`;
+                const formattedDuration = `${Math.floor(guide.duration / 60)} min`;
+                
+                return (
+                  <GuideCard
+                    key={guide.id}
+                    title={guide.title}
+                    description={guide.description}
+                    duration={formattedDuration}
+                    location={guide.location}
+                    rating={guide.rating || 0}
+                    category={guide.category}
+                    price={formattedPrice}
+                    difficulty={guide.difficulty}
+                    languages={guide.languages || ["English"]}
+                    bestTime={guide.best_time}
+                    imageUrl={guide.image_url}
+                    onPlay={() => {
+                      if (isPurchased || guide.price_usd === 0) {
+                        handlePlayGuide(guide);
+                      } else {
+                        handlePurchaseGuide(guide.id);
+                      }
+                    }}
+                    isPurchased={isPurchased}
+                    onPurchase={() => handlePurchaseGuide(guide.id)}
+                  />
+                );
+              })}
+            </div>
+          )}
 
           {/* No Results */}
-          {filteredGuides.length === 0 && (
+          {!loading && filteredGuides.length === 0 && (
             <div className="text-center py-16">
               <div className="text-6xl mb-4">🔍</div>
               <h3 className="text-xl font-semibold text-foreground mb-2">No destinations found</h3>

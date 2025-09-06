@@ -17,6 +17,8 @@ interface GuideCardProps {
   bestTime?: string;
   imageUrl?: string;
   onPlay?: () => void;
+  isPurchased?: boolean;
+  onPurchase?: () => void;
 }
 
 export const GuideCard: React.FC<GuideCardProps> = ({
@@ -32,6 +34,8 @@ export const GuideCard: React.FC<GuideCardProps> = ({
   bestTime,
   imageUrl,
   onPlay,
+  isPurchased = false,
+  onPurchase,
 }) => {
   return (
     <Card className="bg-gradient-card border-border/50 shadow-card overflow-hidden group hover:shadow-glow transition-all duration-300 hover:scale-[1.02]">
@@ -112,14 +116,29 @@ export const GuideCard: React.FC<GuideCardProps> = ({
           )}
         </div>
 
+        {/* Purchase Status & Action */}
+        {isPurchased && (
+          <div className="flex items-center gap-2 mb-2">
+            <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 border-green-300">
+              ✓ Purchased
+            </Badge>
+          </div>
+        )}
+
         {/* Action Button */}
         <Button 
           variant="default" 
           className="w-full bg-gradient-tourism hover:shadow-tourism"
-          onClick={onPlay}
+          onClick={() => {
+            if (isPurchased || price === "Free") {
+              onPlay?.();
+            } else {
+              onPurchase?.();
+            }
+          }}
         >
           <Play className="h-4 w-4 mr-2" />
-          Start Audio Tour
+          {isPurchased || price === "Free" ? "Start Audio Tour" : `Buy for ${price}`}
         </Button>
       </div>
     </Card>
