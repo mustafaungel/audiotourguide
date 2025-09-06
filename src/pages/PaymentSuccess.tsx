@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { CheckCircle, Download, Play, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function PaymentSuccess() {
   const [searchParams] = useSearchParams();
@@ -15,12 +16,64 @@ export default function PaymentSuccess() {
   const [purchaseData, setPurchaseData] = useState<any>(null);
   const [guide, setGuide] = useState<any>(null);
   const { toast } = useToast();
+  const { user, userProfile } = useAuth();
+
+  // Check if user is admin and handle demo mode
+  const isAdmin = userProfile?.role === 'admin';
+  const isDemoMode = !sessionId || !guideId;
 
   useEffect(() => {
     if (sessionId && guideId) {
       verifyPayment();
+    } else if (isDemoMode && isAdmin) {
+      // Admin demo mode - skip verification and show demo success
+      handleDemoMode();
+    } else if (isDemoMode) {
+      // Regular user without proper params - redirect to home
+      toast({
+        title: "Invalid Payment Link",
+        description: "Please complete the payment process first.",
+        variant: "destructive",
+      });
+      setTimeout(() => window.location.href = '/', 2000);
     }
-  }, [sessionId, guideId]);
+  }, [sessionId, guideId, isAdmin, isDemoMode]);
+
+  const handleDemoMode = async () => {
+    try {
+      // Demo mode for admin - show sample guide
+      const { data: sampleGuide, error } = await supabase
+        .from('audio_guides')
+        .select('*')
+        .limit(1)
+        .single();
+
+      if (!error && sampleGuide) {
+        setGuide(sampleGuide);
+        setPurchaseData({ accessCode: 'DEMO-ACCESS-CODE' });
+      } else {
+        // Create a demo guide if none exists
+        setGuide({
+          id: 'demo-guide',
+          title: 'Demo Audio Guide',
+          description: 'This is a demo guide for testing purposes',
+          location: 'Demo Location',
+          duration: 30,
+          image_url: null
+        });
+        setPurchaseData({ accessCode: 'DEMO-ACCESS-CODE' });
+      }
+
+      toast({
+        title: "Demo Mode Active",
+        description: "You're viewing the payment success page in demo mode.",
+      });
+    } catch (error) {
+      console.error('Demo mode error:', error);
+    } finally {
+      setVerifying(false);
+    }
+  };
 
   const verifyPayment = async () => {
     try {

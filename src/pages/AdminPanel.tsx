@@ -14,7 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
 const AdminPanel = () => {
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentStep, setCurrentStep] = useState<'script' | 'audio' | 'image' | 'complete' | null>(null);
   const [generatedContent, setGeneratedContent] = useState({
@@ -198,6 +198,18 @@ const AdminPanel = () => {
         <div className="container mx-auto px-4 py-16 text-center">
           <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
           <p className="text-muted-foreground">Please sign in to access the admin panel.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (userProfile?.role !== 'admin') {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="container mx-auto px-4 py-16 text-center">
+          <h1 className="text-2xl font-bold mb-4">Admin Access Required</h1>
+          <p className="text-muted-foreground">You need admin privileges to access this panel.</p>
         </div>
       </div>
     );
