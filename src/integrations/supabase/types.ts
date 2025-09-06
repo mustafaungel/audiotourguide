@@ -14,16 +14,240 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      admin_approvals: {
+        Row: {
+          admin_id: string
+          feedback: string | null
+          guide_id: string
+          id: string
+          reviewed_at: string
+          status: string
+        }
+        Insert: {
+          admin_id: string
+          feedback?: string | null
+          guide_id: string
+          id?: string
+          reviewed_at?: string
+          status: string
+        }
+        Update: {
+          admin_id?: string
+          feedback?: string | null
+          guide_id?: string
+          id?: string
+          reviewed_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_approvals_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "audio_guides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audio_guides: {
+        Row: {
+          audio_url: string | null
+          best_time: string | null
+          category: string
+          created_at: string
+          creator_id: string
+          currency: string
+          description: string
+          difficulty: string
+          duration: number
+          id: string
+          image_url: string | null
+          is_approved: boolean
+          is_published: boolean
+          languages: string[]
+          location: string
+          preview_url: string | null
+          price_usd: number
+          rating: number | null
+          title: string
+          total_purchases: number | null
+          total_reviews: number | null
+          transcript: string | null
+          updated_at: string
+        }
+        Insert: {
+          audio_url?: string | null
+          best_time?: string | null
+          category: string
+          created_at?: string
+          creator_id: string
+          currency?: string
+          description: string
+          difficulty: string
+          duration: number
+          id?: string
+          image_url?: string | null
+          is_approved?: boolean
+          is_published?: boolean
+          languages?: string[]
+          location: string
+          preview_url?: string | null
+          price_usd: number
+          rating?: number | null
+          title: string
+          total_purchases?: number | null
+          total_reviews?: number | null
+          transcript?: string | null
+          updated_at?: string
+        }
+        Update: {
+          audio_url?: string | null
+          best_time?: string | null
+          category?: string
+          created_at?: string
+          creator_id?: string
+          currency?: string
+          description?: string
+          difficulty?: string
+          duration?: number
+          id?: string
+          image_url?: string | null
+          is_approved?: boolean
+          is_published?: boolean
+          languages?: string[]
+          location?: string
+          preview_url?: string | null
+          price_usd?: number
+          rating?: number | null
+          title?: string
+          total_purchases?: number | null
+          total_reviews?: number | null
+          transcript?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      guide_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          guide_id: string
+          id: string
+          rating: number
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          guide_id: string
+          id?: string
+          rating: number
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          guide_id?: string
+          id?: string
+          rating?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guide_reviews_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "audio_guides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_purchases: {
+        Row: {
+          access_code: string
+          currency: string
+          guide_id: string
+          id: string
+          price_paid: number
+          purchase_date: string
+          stripe_payment_id: string
+          user_id: string
+        }
+        Insert: {
+          access_code: string
+          currency?: string
+          guide_id: string
+          id?: string
+          price_paid: number
+          purchase_date?: string
+          stripe_payment_id: string
+          user_id: string
+        }
+        Update: {
+          access_code?: string
+          currency?: string
+          guide_id?: string
+          id?: string
+          price_paid?: number
+          purchase_date?: string
+          stripe_payment_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_purchases_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "audio_guides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_access_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
-      [_ in never]: never
+      user_role: "traveler" | "admin" | "content_creator"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +374,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["traveler", "admin", "content_creator"],
+    },
   },
 } as const
