@@ -75,16 +75,28 @@ export const Navigation = () => {
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/profile')}>
                     <User className="mr-2 h-4 w-4" />
                     <span>Profile</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Link to="/library" className="w-full">My Library</Link>
+                  <DropdownMenuItem onClick={() => navigate('/library')}>
+                    <span>My Library</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Link to="/admin" className="w-full">Create Guide</Link>
-                  </DropdownMenuItem>
+                  {userProfile?.role === 'admin' && (
+                    <DropdownMenuItem onClick={() => navigate('/admin')}>
+                      <span>Admin Panel</span>
+                    </DropdownMenuItem>
+                  )}
+                  {(userProfile?.role === 'content_creator' || userProfile?.verification_status === 'verified') && (
+                    <DropdownMenuItem onClick={() => navigate('/creator-dashboard')}>
+                      <span>Creator Dashboard</span>
+                    </DropdownMenuItem>
+                  )}
+                  {userProfile?.role === 'traveler' && (
+                    <DropdownMenuItem onClick={() => navigate('/profile')}>
+                      <span>Become a Creator</span>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut}>
                     <LogOut className="mr-2 h-4 w-4" />
