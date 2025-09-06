@@ -165,33 +165,60 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
           created_at: string
+          creator_badge: boolean | null
           email: string
+          experience_years: number | null
           full_name: string | null
           id: string
+          rejection_reason: string | null
           role: Database["public"]["Enums"]["user_role"]
+          social_profiles: Json | null
+          specialties: string[] | null
           updated_at: string
           user_id: string
+          verification_documents: Json | null
+          verification_status: string | null
+          verified_at: string | null
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
+          creator_badge?: boolean | null
           email: string
+          experience_years?: number | null
           full_name?: string | null
           id?: string
+          rejection_reason?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          social_profiles?: Json | null
+          specialties?: string[] | null
           updated_at?: string
           user_id: string
+          verification_documents?: Json | null
+          verification_status?: string | null
+          verified_at?: string | null
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
+          creator_badge?: boolean | null
           email?: string
+          experience_years?: number | null
           full_name?: string | null
           id?: string
+          rejection_reason?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          social_profiles?: Json | null
+          specialties?: string[] | null
           updated_at?: string
           user_id?: string
+          verification_documents?: Json | null
+          verification_status?: string | null
+          verified_at?: string | null
         }
         Relationships: []
       }
@@ -236,14 +263,92 @@ export type Database = {
           },
         ]
       }
+      verification_requests: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          experience_description: string | null
+          full_name: string
+          id: string
+          id_document_url: string | null
+          portfolio_url: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          social_media_links: Json | null
+          status: string
+          submitted_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          experience_description?: string | null
+          full_name: string
+          id?: string
+          id_document_url?: string | null
+          portfolio_url?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          social_media_links?: Json | null
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          experience_description?: string | null
+          full_name?: string
+          id?: string
+          id_document_url?: string | null
+          portfolio_url?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          social_media_links?: Json | null
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "verification_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "verification_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      approve_creator_verification: {
+        Args: { admin_notes_param?: string; request_id: string }
+        Returns: boolean
+      }
       generate_access_code: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      reject_creator_verification: {
+        Args: {
+          admin_notes_param?: string
+          rejection_reason_param: string
+          request_id: string
+        }
+        Returns: boolean
       }
     }
     Enums: {
