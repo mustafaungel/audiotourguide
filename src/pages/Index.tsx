@@ -3,6 +3,7 @@ import { HeroSection } from '@/components/HeroSection';
 import { AudioPlayer } from '@/components/AudioPlayer';
 import { GuideCard } from '@/components/GuideCard';
 import { Navigation } from '@/components/Navigation';
+import { ViralDashboard } from '@/components/ViralDashboard';
 import { Button } from '@/components/ui/button';
 import { Headphones, Search, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -116,6 +117,9 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       <HeroSection />
+      
+      {/* Viral Dashboard Section */}
+      <ViralDashboard />
 
       {/* Audio Player Section */}
       {selectedGuide && (
