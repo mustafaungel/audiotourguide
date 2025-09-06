@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TrendingContent } from './TrendingContent';
 import { CreatorSpotlight } from './CreatorSpotlight';
 import { ViralGamification } from './ViralGamification';
+import { ViralContentGenerator } from './ViralContentGenerator';
 import { SocialShare } from './SocialShare';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

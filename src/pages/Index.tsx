@@ -109,8 +109,20 @@ const Index = () => {
     guide.location.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handlePlayGuide = (guide: any) => {
+  const handlePlayGuide = async (guide: any) => {
     setSelectedGuide(guide);
+    
+    // Track guide view for viral metrics
+    try {
+      await supabase.functions.invoke('track-viral-engagement', {
+        body: {
+          action: 'view',
+          guide_id: guide.id
+        }
+      });
+    } catch (error) {
+      console.error('Error tracking guide view:', error);
+    }
   };
 
   return (

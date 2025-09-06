@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Share2, Facebook, Twitter, Instagram, MessageCircle, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SocialShareProps {
   title: string;
@@ -89,10 +90,18 @@ export const SocialShare: React.FC<SocialShareProps> = ({
 
   const trackViralShare = async (guideId: string, platform: string) => {
     try {
-      // This could be connected to analytics service
-      console.log(`Viral share: Guide ${guideId} shared on ${platform}`);
+      await supabase.functions.invoke('track-viral-engagement', {
+        body: {
+          action: 'share',
+          guide_id: guideId,
+          platform: platform,
+          metadata: { 
+            location: window.location.href,
+            timestamp: new Date().toISOString()
+          }
+        }
+      });
       
-      // Show viral messages to encourage more sharing
       const viralMessages = [
         "🔥 You're helping this destination go viral!",
         "🌟 Your share might inspire someone's next adventure!",
