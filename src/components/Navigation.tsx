@@ -80,6 +80,9 @@ export const Navigation = () => {
                     <span>Profile</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
+                    <Link to="/admin" className="w-full">Create Guide</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
                     <span>My Tours</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
