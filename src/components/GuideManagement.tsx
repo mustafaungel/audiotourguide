@@ -1,0 +1,190 @@
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { CheckCircle, XCircle, Eye, Clock } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
+
+interface Guide {
+  id: string;
+  title: string;
+  description: string;
+  location: string;
+  category: string;
+  price_usd: number;
+  is_approved: boolean;
+  is_published: boolean;
+  created_at: string;
+  creator_id: string;
+  profiles?: {
+    full_name: string;
+    email: string;
+  } | null;
+}
+
+export const GuideManagement = () => {
+  const { user } = useAuth();
+  const [guides, setGuides] = useState<Guide[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchGuides();
+  }, []);
+
+  const fetchGuides = async () => {
+    try {
+      const { data: guidesData, error } = await supabase
+        .from('audio_guides')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      // Fetch profile data separately to avoid TypeScript issues
+      const guidesWithProfiles = await Promise.all(
+        (guidesData || []).map(async (guide) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name, email')
+            .eq('user_id', guide.creator_id)
+            .single();
+          
+          return {
+            ...guide,
+            profiles: profile
+          };
+        })
+      );
+      
+      setGuides(guidesWithProfiles);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to fetch guides"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateGuideStatus = async (guideId: string, isApproved: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('audio_guides')
+        .update({ is_approved: isApproved })
+        .eq('id', guideId);
+
+      if (error) throw error;
+
+      setGuides(prev => prev.map(guide => 
+        guide.id === guideId ? { ...guide, is_approved: isApproved } : guide
+      ));
+
+      toast({
+        title: isApproved ? "Guide Approved" : "Guide Rejected",
+        description: `Guide has been ${isApproved ? 'approved' : 'rejected'} successfully.`
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update guide status"
+      });
+    }
+  };
+
+  const getStatusBadge = (guide: Guide) => {
+    if (!guide.is_approved) {
+      return <Badge variant="destructive">Pending Approval</Badge>;
+    }
+    if (!guide.is_published) {
+      return <Badge variant="secondary">Approved</Badge>;
+    }
+    return <Badge variant="default">Published</Badge>;
+  };
+
+  if (loading) {
+    return <div className="p-8 text-center">Loading guides...</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold">Guide Management</h2>
+          <p className="text-muted-foreground">Review and approve audio guides from creators</p>
+        </div>
+      </div>
+
+      <div className="grid gap-4">
+        {guides.length === 0 ? (
+          <Card>
+            <CardContent className="text-center py-8">
+              <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">No guides submitted yet</p>
+            </CardContent>
+          </Card>
+        ) : (
+          guides.map((guide) => (
+            <Card key={guide.id}>
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      {guide.title}
+                      {getStatusBadge(guide)}
+                    </CardTitle>
+                    <CardDescription>
+                      By {guide.profiles?.full_name || guide.profiles?.email || 'Unknown Creator'} • 
+                      {guide.location} • {guide.category}
+                    </CardDescription>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-semibold">${(guide.price_usd / 100).toFixed(2)}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {new Date(guide.created_at).toLocaleDateString()}
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">{guide.description}</p>
+                
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm">
+                    <Eye className="h-4 w-4 mr-1" />
+                    Preview
+                  </Button>
+                  
+                  {!guide.is_approved && (
+                    <>
+                      <Button 
+                        size="sm" 
+                        onClick={() => updateGuideStatus(guide.id, true)}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        <CheckCircle className="h-4 w-4 mr-1" />
+                        Approve
+                      </Button>
+                      <Button 
+                        variant="destructive" 
+                        size="sm"
+                        onClick={() => updateGuideStatus(guide.id, false)}
+                      >
+                        <XCircle className="h-4 w-4 mr-1" />
+                        Reject
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+    </div>
+  );
+};

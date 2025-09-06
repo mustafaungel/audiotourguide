@@ -12,6 +12,7 @@ import Library from "./pages/Library";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancelled from "./pages/PaymentCancelled";
 import Profile from "./pages/Profile";
+import CreatorDashboard from "./pages/CreatorDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
               <Route path="/admin" element={<AdminPanel />} />
               <Route path="/library" element={<Library />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/creator-dashboard" element={<CreatorDashboard />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/payment-cancelled" element={<PaymentCancelled />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

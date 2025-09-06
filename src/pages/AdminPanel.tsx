@@ -8,10 +8,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Wand2, Volume2, Image, FileText, CheckCircle } from 'lucide-react';
+import { Loader2, Wand2, Volume2, Image, FileText, CheckCircle, BarChart3, Users, Settings } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { AdminDashboard } from '@/components/AdminDashboard';
+import { GuideManagement } from '@/components/GuideManagement';
+import { UserManagement } from '@/components/UserManagement';
 
 const AdminPanel = () => {
   const { user, userProfile } = useAuth();
@@ -221,13 +224,50 @@ const AdminPanel = () => {
       
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">AI Audio Guide Creator</h1>
-          <p className="text-muted-foreground">Generate professional audio guides with AI-powered content creation</p>
+          <h1 className="text-3xl font-bold mb-2">Admin Panel</h1>
+          <p className="text-muted-foreground">Comprehensive platform management and content creation</p>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Form Section */}
-          <div className="lg:col-span-2 space-y-6">
+        <Tabs defaultValue="dashboard" className="space-y-6">
+          <TabsList className="grid grid-cols-5 w-full max-w-2xl">
+            <TabsTrigger value="dashboard" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Dashboard
+            </TabsTrigger>
+            <TabsTrigger value="guides" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Guides
+            </TabsTrigger>
+            <TabsTrigger value="users" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Users
+            </TabsTrigger>
+            <TabsTrigger value="create" className="flex items-center gap-2">
+              <Wand2 className="h-4 w-4" />
+              Create
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Analytics
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="dashboard">
+            <AdminDashboard />
+          </TabsContent>
+
+          <TabsContent value="guides">
+            <GuideManagement />
+          </TabsContent>
+
+          <TabsContent value="users">
+            <UserManagement />
+          </TabsContent>
+
+          <TabsContent value="create">
+            <div className="grid lg:grid-cols-3 gap-8">
+              {/* Form Section */}
+              <div className="lg:col-span-2 space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Guide Information</CardTitle>
@@ -458,8 +498,17 @@ const AdminPanel = () => {
                 </CardContent>
               </Card>
             )}
-          </div>
-        </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="analytics">
+            <div className="text-center py-8">
+              <h3 className="text-lg font-semibold mb-2">Analytics Dashboard</h3>
+              <p className="text-muted-foreground">Coming soon - Advanced analytics and reporting</p>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
