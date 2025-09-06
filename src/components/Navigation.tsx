@@ -3,7 +3,7 @@ import { MapPin, Menu, Search, User, LogOut } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export const Navigation = () => {
-  const { user, signOut } = useAuth();
+  const { user, userProfile, signOut } = useAuth();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
