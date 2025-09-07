@@ -309,7 +309,7 @@ export function CreatorGuideCreation() {
               {loadingImage ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Generating...
+                  Generating (15-30s)...
                 </>
               ) : (
                 'Generate AI Image'

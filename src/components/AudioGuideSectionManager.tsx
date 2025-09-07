@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -44,6 +44,8 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId }
   const [newSectionTitle, setNewSectionTitle] = useState('');
   const [uploadingSection, setUploadingSection] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
+  const [playingSection, setPlayingSection] = useState<string | null>(null);
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
   const addSection = () => {
@@ -209,13 +211,47 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId }
     }
   };
 
-  const playAudio = (audioUrl: string) => {
+  const playAudio = (audioUrl: string, sectionId: string) => {
+    // Stop current audio if playing
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+      setCurrentAudio(null);
+      setPlayingSection(null);
+    }
+
+    // If clicking the same section, just stop (toggle behavior)
+    if (playingSection === sectionId) {
+      return;
+    }
+
+    // Create new audio and play
     const audio = new Audio(audioUrl);
-    audio.play().catch(error => {
+    audio.addEventListener('ended', () => {
+      setCurrentAudio(null);
+      setPlayingSection(null);
+    });
+    
+    audio.play().then(() => {
+      setCurrentAudio(audio);
+      setPlayingSection(sectionId);
+    }).catch(error => {
       console.error('Error playing audio:', error);
       toast.error('Could not play audio file');
+      setCurrentAudio(null);
+      setPlayingSection(null);
     });
   };
+
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      if (currentAudio) {
+        currentAudio.pause();
+        setCurrentAudio(null);
+      }
+    };
+  }, [currentAudio]);
 
   return (
     <div className="space-y-6">
@@ -386,9 +422,10 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId }
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => playAudio(section.audio_url!)}
+                              onClick={() => playAudio(section.audio_url!, section.id)}
                             >
                               <Play className="h-4 w-4" />
+                              {playingSection === section.id ? 'Pause' : 'Play'}
                             </Button>
                             <Button
                               variant="outline"

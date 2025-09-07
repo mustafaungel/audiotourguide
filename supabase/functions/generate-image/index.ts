@@ -46,12 +46,12 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-image-1',
+        model: 'dall-e-3',
         prompt: imagePrompt,
         n: 1,
         size: '1024x1024',
-        quality: 'high',
-        output_format: 'webp'
+        quality: 'hd',
+        response_format: 'b64_json'
       }),
     });
 
@@ -64,20 +64,11 @@ serve(async (req) => {
     const data = await response.json();
     console.log('OpenAI response structure:', { dataKeys: Object.keys(data), hasData: !!data.data });
     
-    // Handle different response formats for gpt-image-1
-    let imageBase64;
-    if (data.data && data.data[0]) {
-      // Standard format
-      imageBase64 = data.data[0].b64_json || data.data[0].revised_prompt;
-    } else if (data.b64_json) {
-      // Direct format
-      imageBase64 = data.b64_json;
-    } else if (data.image) {
-      // Alternative format
-      imageBase64 = data.image;
-    } else {
-      console.error('Unexpected response format:', data);
-      throw new Error('Unexpected response format from OpenAI');
+    // Handle dall-e-3 response format
+    const imageBase64 = data.data[0].b64_json;
+    if (!imageBase64) {
+      console.error('No image data received:', data);
+      throw new Error('No image data received from OpenAI');
     }
 
     console.log('Successfully generated image');
