@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GuideCard } from '@/components/GuideCard';
 import { VerificationBadge } from '@/components/VerificationBadge';
+import { CreatorMessaging } from '@/components/CreatorMessaging';
 import { 
   Star, 
   MapPin, 
@@ -67,6 +68,7 @@ interface Guide {
 
 const CreatorProfile = () => {
   const { creatorId } = useParams<{ creatorId: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -75,7 +77,7 @@ const CreatorProfile = () => {
   const [guides, setGuides] = useState<Guide[]>([]);
   const [loading, setLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
-  const [activeTab, setActiveTab] = useState('guides');
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'guides');
 
   useEffect(() => {
     if (creatorId) {
@@ -390,9 +392,10 @@ const CreatorProfile = () => {
       {/* Content Tabs */}
       <div className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
+          <TabsList className="grid w-full grid-cols-4 lg:w-[500px]">
             <TabsTrigger value="guides">Audio Guides</TabsTrigger>
             <TabsTrigger value="about">About</TabsTrigger>
+            <TabsTrigger value="message">Message</TabsTrigger>
             <TabsTrigger value="achievements">Achievements</TabsTrigger>
           </TabsList>
           
@@ -487,6 +490,14 @@ const CreatorProfile = () => {
             </Card>
           </TabsContent>
           
+          <TabsContent value="message" className="mt-8">
+            <CreatorMessaging
+              creatorId={creatorId!}
+              creatorName={creator.full_name}
+              creatorAvatar={creator.avatar_url}
+            />
+          </TabsContent>
+
           <TabsContent value="achievements" className="mt-8">
             <Card>
               <CardHeader>

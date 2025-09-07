@@ -7,6 +7,8 @@ import { CheckCircle, Download, Play, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { MeetYourCreatorModal } from '@/components/MeetYourCreatorModal';
+import { CreatorRecommendations } from '@/components/CreatorRecommendations';
 
 export default function PaymentSuccess() {
   const [searchParams] = useSearchParams();
@@ -15,6 +17,7 @@ export default function PaymentSuccess() {
   const [verifying, setVerifying] = useState(true);
   const [purchaseData, setPurchaseData] = useState<any>(null);
   const [guide, setGuide] = useState<any>(null);
+  const [showCreatorModal, setShowCreatorModal] = useState(false);
   const { toast } = useToast();
   const { user, userProfile } = useAuth();
 
@@ -100,6 +103,13 @@ export default function PaymentSuccess() {
         title: "Payment Successful!",
         description: "Your audio guide is now available in your library.",
       });
+
+      // Show "Meet Your Creator" modal after successful purchase
+      if (user && guideData.creator_id) {
+        setTimeout(() => {
+          setShowCreatorModal(true);
+        }, 1500); // Show after success message
+      }
     } catch (error: any) {
       console.error('Payment verification error:', error);
       toast({
@@ -199,6 +209,29 @@ export default function PaymentSuccess() {
             <li>• Share your favorite moments with friends</li>
           </ul>
         </div>
+
+        {/* Creator Recommendations */}
+        {guide && (
+          <div className="mt-8">
+            <CreatorRecommendations
+              basedOnGuideId={guide.id}
+              location={guide.location}
+              category={guide.category}
+              title="Discover More Local Creators"
+              limit={4}
+            />
+          </div>
+        )}
+
+        {/* Meet Your Creator Modal */}
+        {guide && guide.creator_id && (
+          <MeetYourCreatorModal
+            isOpen={showCreatorModal}
+            onClose={() => setShowCreatorModal(false)}
+            guideId={guide.id}
+            creatorId={guide.creator_id}
+          />
+        )}
       </div>
     </div>
   );
