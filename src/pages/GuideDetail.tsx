@@ -149,15 +149,6 @@ const GuideDetail = () => {
   });
 
   const handlePurchase = () => {
-    if (!user) {
-      showToast({
-        title: "Sign in required",
-        description: "Please sign in to purchase audio guides."
-      });
-      navigate('/auth');
-      return;
-    }
-    
     setShowPaymentModal(true);
   };
 
