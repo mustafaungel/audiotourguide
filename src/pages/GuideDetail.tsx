@@ -10,11 +10,12 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Star, MapPin, Clock, Users, Play, Download, Share2, Bookmark, ChevronLeft, Lock } from "lucide-react";
+import { Star, MapPin, Clock, Users, Play, Download, Share2, Bookmark, ChevronLeft, Lock, Copy, QrCode } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useViralTracking } from "@/hooks/useViralTracking";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 // Demo guide data
 const guideData = {
@@ -124,14 +125,14 @@ const GuideDetail = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [realGuideData, setRealGuideData] = useState<any>(null);
-  const { toast } = useToast();
+  const { toast: showToast } = useToast();
 
   // Check if we have real guide data or use demo data
   const guide = realGuideData || guideData[guideId as keyof typeof guideData] || guideData["machu-picchu-complete"];
 
   const handlePurchase = () => {
     if (!user) {
-      toast({
+      showToast({
         title: "Sign in required",
         description: "Please sign in to purchase audio guides."
       });
@@ -140,6 +141,15 @@ const GuideDetail = () => {
     }
     
     setShowPaymentModal(true);
+  };
+
+  const copyToClipboard = async (text: string, type: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success(`${type} copied to clipboard!`);
+    } catch (err) {
+      toast.error(`Failed to copy ${type.toLowerCase()}`);
+    }
   };
 
   const handlePaymentSuccess = () => {
@@ -203,7 +213,7 @@ const GuideDetail = () => {
         metadata: { location: guide.location }
       });
     }
-    toast({
+    showToast({
       title: isBookmarked ? "Removed from Library" : "Added to Library",
       description: isBookmarked ? "Guide removed from your bookmarks" : "Guide saved to your bookmarks",
     });
@@ -232,7 +242,7 @@ const GuideDetail = () => {
       });
     } else {
       navigator.clipboard.writeText(window.location.href);
-      toast({
+      showToast({
         title: "Link Copied",
         description: "Guide link copied to clipboard",
       });
@@ -437,6 +447,55 @@ const GuideDetail = () => {
                 )}
               </CardContent>
             </Card>
+
+            {/* QR Code & Share Section */}
+            {(guide.qr_code_url || guide.share_url) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <QrCode className="w-5 h-5" />
+                    Share This Guide
+                  </CardTitle>
+                  <CardDescription>
+                    Easy sharing options for this audio guide
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {guide.qr_code_url && (
+                    <div className="text-center">
+                      <div className="inline-block p-4 bg-white rounded-lg border-2 border-border">
+                        <img 
+                          src={guide.qr_code_url} 
+                          alt="QR Code for guide"
+                          className="w-32 h-32 mx-auto"
+                        />
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Scan to share this guide
+                      </p>
+                    </div>
+                  )}
+                  
+                  {guide.share_url && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Share Link</label>
+                      <div className="flex gap-2">
+                        <div className="flex-1 p-2 bg-muted rounded-md text-sm font-mono truncate">
+                          {guide.share_url}
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => copyToClipboard(guide.share_url, 'Share link')}
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Social Share */}
             <SocialShare
