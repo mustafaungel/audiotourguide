@@ -20,9 +20,14 @@ import { AdminAIGuideGenerator } from '@/components/AdminAIGuideGenerator';
 import { AudioUploader } from '@/components/AudioUploader';
 import { AdminUserCreation } from '@/components/AdminUserCreation';
 import { AdminCreatorCreation } from '@/components/AdminCreatorCreation';
+import { AdminMobileNavigation } from '@/components/AdminMobileNavigation';
+import { CountrySelector } from '@/components/CountrySelector';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const AdminPanel = () => {
   const { user, userProfile } = useAuth();
+  const isMobile = useIsMobile();
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentStep, setCurrentStep] = useState<'script' | 'audio' | 'image' | 'complete' | null>(null);
   const [generatedContent, setGeneratedContent] = useState({
@@ -36,6 +41,8 @@ const AdminPanel = () => {
     description: '',
     destination: '',
     location: '',
+    country: '',
+    city: '',
     category: 'Cultural Heritage',
     duration: 45,
     difficulty: 'Easy',
@@ -227,45 +234,47 @@ const AdminPanel = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Admin Panel</h1>
-          <p className="text-muted-foreground">Comprehensive platform management and content creation</p>
+      <div className="container mx-auto px-4 py-6 md:py-8">
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold mb-2">Admin Panel</h1>
+          <p className="text-muted-foreground text-sm md:text-base">Comprehensive platform management and content creation</p>
         </div>
 
-        <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid grid-cols-4 lg:grid-cols-8 w-full max-w-6xl gap-2">
+        <AdminMobileNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="hidden md:grid grid-cols-4 lg:grid-cols-8 w-full max-w-6xl gap-2">
             <TabsTrigger value="dashboard" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
               <BarChart3 className="h-3 w-3 lg:h-4 lg:w-4" />
-              <span className="hidden sm:inline">Dashboard</span>
+              <span className="hidden lg:inline">Dashboard</span>
             </TabsTrigger>
             <TabsTrigger value="user-management" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
               <Users className="h-3 w-3 lg:h-4 lg:w-4" />
-              <span className="hidden sm:inline">User Mgmt</span>
+              <span className="hidden lg:inline">User Mgmt</span>
             </TabsTrigger>
             <TabsTrigger value="creator-management" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
               <UserCheck className="h-3 w-3 lg:h-4 lg:w-4" />
-              <span className="hidden sm:inline">Creator Mgmt</span>
+              <span className="hidden lg:inline">Creator Mgmt</span>
             </TabsTrigger>
             <TabsTrigger value="content-management" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
               <FileText className="h-3 w-3 lg:h-4 lg:w-4" />
-              <span className="hidden sm:inline">Content</span>
+              <span className="hidden lg:inline">Content</span>
             </TabsTrigger>
             <TabsTrigger value="ai-tools" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
               <Wand2 className="h-3 w-3 lg:h-4 lg:w-4" />
-              <span className="hidden sm:inline">AI Tools</span>
+              <span className="hidden lg:inline">AI Tools</span>
             </TabsTrigger>
             <TabsTrigger value="create-guide" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
               <Plus className="h-3 w-3 lg:h-4 lg:w-4" />
-              <span className="hidden sm:inline">Create</span>
+              <span className="hidden lg:inline">Create</span>
             </TabsTrigger>
             <TabsTrigger value="analytics" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
               <Settings className="h-3 w-3 lg:h-4 lg:w-4" />
-              <span className="hidden sm:inline">Analytics</span>
+              <span className="hidden lg:inline">Analytics</span>
             </TabsTrigger>
             <TabsTrigger value="audio-setup" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
               <Volume2 className="h-3 w-3 lg:h-4 lg:w-4" />
-              <span className="hidden sm:inline">Audio</span>
+              <span className="hidden lg:inline">Audio</span>
             </TabsTrigger>
           </TabsList>
 
@@ -348,52 +357,67 @@ const AdminPanel = () => {
           </TabsContent>
 
           <TabsContent value="create-guide">
-            <div className="grid lg:grid-cols-3 gap-8">
+            <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
               {/* Form Section */}
               <div className="lg:col-span-2 space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Guide Information</CardTitle>
+                <CardTitle className="text-lg md:text-xl">Guide Information</CardTitle>
                 <CardDescription>Basic details about your audio guide</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
                   <div>
-                    <Label htmlFor="title">Guide Title</Label>
+                    <Label htmlFor="title" className="text-sm font-medium">Guide Title</Label>
                     <Input
                       id="title"
                       value={formData.title}
                       onChange={(e) => handleInputChange('title', e.target.value)}
                       placeholder="e.g., Ancient Rome: Colosseum & Forum"
+                      className="mt-1 h-12"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="destination">Destination</Label>
-                    <Input
-                      id="destination"
-                      value={formData.destination}
-                      onChange={(e) => handleInputChange('destination', e.target.value)}
-                      placeholder="e.g., Rome, Italy"
-                    />
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="country" className="text-sm font-medium">Country</Label>
+                      <CountrySelector
+                        value={formData.country}
+                        onValueChange={(value) => handleInputChange('country', value)}
+                        placeholder="Select country"
+                        className="mt-1 h-12"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="city" className="text-sm font-medium">City</Label>
+                      <Input
+                        id="city"
+                        value={formData.city}
+                        onChange={(e) => handleInputChange('city', e.target.value)}
+                        placeholder="e.g., Rome"
+                        className="mt-1 h-12"
+                      />
+                    </div>
                   </div>
                 </div>
 
                 <div>
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description" className="text-sm font-medium">Description</Label>
                   <Textarea
                     id="description"
                     value={formData.description}
                     onChange={(e) => handleInputChange('description', e.target.value)}
                     placeholder="Brief description of the audio guide experience..."
-                    rows={3}
+                    rows={4}
+                    className="mt-1 min-h-[100px]"
                   />
                 </div>
 
-                <div className="grid md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="category">Category</Label>
+                    <Label htmlFor="category" className="text-sm font-medium">Category</Label>
                     <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
-                      <SelectTrigger>
+                      <SelectTrigger className="mt-1 h-12">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -407,7 +431,7 @@ const AdminPanel = () => {
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="duration">Duration (minutes)</Label>
+                    <Label htmlFor="duration" className="text-sm font-medium">Duration (minutes)</Label>
                     <Input
                       id="duration"
                       type="number"
@@ -415,10 +439,11 @@ const AdminPanel = () => {
                       onChange={(e) => handleInputChange('duration', parseInt(e.target.value))}
                       min="15"
                       max="120"
+                      className="mt-1 h-12"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="price">Price (USD)</Label>
+                    <Label htmlFor="price" className="text-sm font-medium">Price (USD)</Label>
                     <Input
                       id="price"
                       type="number"
@@ -426,6 +451,7 @@ const AdminPanel = () => {
                       value={formData.price}
                       onChange={(e) => handleInputChange('price', parseFloat(e.target.value))}
                       min="0"
+                      className="mt-1 h-12"
                     />
                   </div>
                 </div>
@@ -434,15 +460,15 @@ const AdminPanel = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>AI Generation Pipeline</CardTitle>
+                <CardTitle className="text-lg md:text-xl">AI Generation Pipeline</CardTitle>
                 <CardDescription>Generate content with AI assistance</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4">
                   <Button 
                     onClick={generateScript} 
-                    disabled={isGenerating || !formData.destination}
-                    className="w-full"
+                    disabled={isGenerating || !formData.country || !formData.city}
+                    className="w-full h-12 text-base"
                   >
                     {currentStep === 'script' ? (
                       <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Generating Script...</>
@@ -455,7 +481,7 @@ const AdminPanel = () => {
                     onClick={generateAudio} 
                     disabled={isGenerating || !generatedContent.script}
                     variant="outline"
-                    className="w-full"
+                    className="w-full h-12 text-base"
                   >
                     {currentStep === 'audio' ? (
                       <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Generating Audio...</>
@@ -468,7 +494,7 @@ const AdminPanel = () => {
                     onClick={generateImage} 
                     disabled={isGenerating}
                     variant="outline"
-                    className="w-full"
+                    className="w-full h-12 text-base"
                   >
                     {currentStep === 'image' ? (
                       <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Generating Image...</>
@@ -480,8 +506,8 @@ const AdminPanel = () => {
                   <div className="border-t pt-4">
                     <Button 
                       onClick={generateAll} 
-                      disabled={isGenerating || !formData.title || !formData.destination}
-                      className="w-full"
+                      disabled={isGenerating || !formData.title || !formData.country || !formData.city}
+                      className="w-full h-14 text-base"
                       size="lg"
                     >
                       {isGenerating ? (

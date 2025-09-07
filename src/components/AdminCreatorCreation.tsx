@@ -11,6 +11,7 @@ import { Loader2, Users, UserPlus, Camera, Globe, Award, MapPin, FileText } from
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { TextareaWithCounter } from '@/components/ui/character-counter';
+import { CountrySelector } from '@/components/CountrySelector';
 
 export const AdminCreatorCreation = () => {
   const [isCreating, setIsCreating] = useState(false);
@@ -414,23 +415,23 @@ export const AdminCreatorCreation = () => {
               Location & Licensing
             </h3>
             
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="guideCountry">Guide Country</Label>
-                <Input
-                  id="guideCountry"
+                <CountrySelector
                   value={formData.guideCountry}
-                  onChange={(e) => handleInputChange('guideCountry', e.target.value)}
-                  placeholder="Spain"
+                  onValueChange={(value) => handleInputChange('guideCountry', value)}
+                  placeholder="Select guide country"
+                  className="mt-1"
                 />
               </div>
               <div>
                 <Label htmlFor="licenseCountry">License Country</Label>
-                <Input
-                  id="licenseCountry"
+                <CountrySelector
                   value={formData.licenseCountry}
-                  onChange={(e) => handleInputChange('licenseCountry', e.target.value)}
-                  placeholder="Spain"
+                  onValueChange={(value) => handleInputChange('licenseCountry', value)}
+                  placeholder="Select license country"
+                  className="mt-1"
                 />
               </div>
             </div>

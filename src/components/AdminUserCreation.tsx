@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { TextareaWithCounter } from '@/components/ui/character-counter';
 import { MultiSelect } from '@/components/ui/multi-select';
+import { CountrySelector } from '@/components/CountrySelector';
 import { LANGUAGES, COUNTRIES } from '@/data/constants';
 
 export const AdminUserCreation = () => {
@@ -237,11 +238,11 @@ export const AdminUserCreation = () => {
               </div>
               <div>
                 <Label htmlFor="guideCountry">Guide Country</Label>
-                <Input
-                  id="guideCountry"
+                <CountrySelector
                   value={formData.guideCountry}
-                  onChange={(e) => handleInputChange('guideCountry', e.target.value)}
-                  placeholder="e.g., United States"
+                  onValueChange={(value) => handleInputChange('guideCountry', value)}
+                  placeholder="Select country"
+                  className="mt-1"
                 />
               </div>
             </div>
