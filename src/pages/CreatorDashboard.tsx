@@ -3,7 +3,8 @@ import { Navigation } from '@/components/Navigation';
 import { CreatorDashboard as CreatorDashboardComponent } from '@/components/CreatorDashboard';
 import { CreatorEarningsDashboard } from '@/components/CreatorEarningsDashboard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart3, DollarSign, Users, TrendingUp } from 'lucide-react';
+import { BarChart3, DollarSign, Users, TrendingUp, Plus } from 'lucide-react';
+import { CreatorGuideCreation } from '@/components/CreatorGuideCreation';
 import { useAuth } from '@/contexts/AuthContext';
 
 const CreatorDashboard = () => {
@@ -35,10 +36,14 @@ const CreatorDashboard = () => {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Overview
+            </TabsTrigger>
+            <TabsTrigger value="create" className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Create Guide
             </TabsTrigger>
             <TabsTrigger value="earnings" className="flex items-center gap-2">
               <DollarSign className="h-4 w-4" />
@@ -56,6 +61,10 @@ const CreatorDashboard = () => {
 
           <TabsContent value="overview">
             <CreatorDashboardComponent />
+          </TabsContent>
+
+          <TabsContent value="create">
+            <CreatorGuideCreation />
           </TabsContent>
 
           <TabsContent value="earnings">

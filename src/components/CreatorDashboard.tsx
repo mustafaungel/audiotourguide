@@ -231,7 +231,11 @@ export const CreatorDashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="mobile-spacing">
-              <Button variant="outline" className="w-full justify-start touch-target" onClick={() => window.location.href = '/admin'}>
+              <Button variant="outline" className="w-full justify-start touch-target" onClick={() => {
+                const tabs = document.querySelector('[role="tablist"]');
+                const createTab = tabs?.querySelector('[value="create"]') as HTMLButtonElement;
+                createTab?.click();
+              }}>
                 <Edit className="w-4 h-4 mr-2" />
                 Create New Guide
               </Button>
