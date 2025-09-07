@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TextareaWithCounter, InputWithCounter } from '@/components/ui/character-counter';
-import { Badge } from '@/components/ui/badge';
-import { X, Plus, Upload } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { InputWithCounter } from "@/components/ui/character-counter";
+import { toast } from "sonner";
+import { supabase } from '@/integrations/supabase/client';
+import { Sparkles, X, Plus } from 'lucide-react';
 
 interface GuideCreationFormProps {
   onSubmit: (data: GuideFormData) => Promise<void>;
@@ -15,7 +19,7 @@ interface GuideCreationFormProps {
 export interface GuideFormData {
   title: string;
   description: string;
-  location: string;
+  destination_id: string;
   category: string;
   difficulty: string;
   price: number;
@@ -24,9 +28,16 @@ export interface GuideFormData {
   bestTime: string;
 }
 
+interface Destination {
+  id: string;
+  name: string;
+  city: string;
+  country: string;
+}
+
 const CATEGORIES = [
   'Historical Sites',
-  'Museums & Galleries',
+  'Museums & Galleries', 
   'Cultural Tours',
   'Nature & Wildlife',
   'Food & Cuisine',
@@ -53,96 +64,168 @@ export const GuideCreationForm: React.FC<GuideCreationFormProps> = ({
   onSubmit,
   isSubmitting = false
 }) => {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [location, setLocation] = useState('');
-  const [category, setCategory] = useState('');
-  const [difficulty, setDifficulty] = useState('');
-  const [price, setPrice] = useState('');
-  const [duration, setDuration] = useState('');
-  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(['English']);
-  const [bestTime, setBestTime] = useState('');
-  const [newLanguage, setNewLanguage] = useState('');
-  
-  const { toast } = useToast();
+  const [formData, setFormData] = useState<GuideFormData>({
+    title: "",
+    description: "",
+    destination_id: "",
+    category: "",
+    difficulty: "",
+    price: 0,
+    duration: 0,
+    languages: ['English'],
+    bestTime: "",
+  });
+  const [newLanguage, setNewLanguage] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [destinations, setDestinations] = useState<Destination[]>([]);
+  const [loadingDestinations, setLoadingDestinations] = useState(true);
+  const [generatingDescription, setGeneratingDescription] = useState(false);
+
+  // Fetch destinations on component mount
+  useEffect(() => {
+    fetchDestinations();
+  }, []);
+
+  const fetchDestinations = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('destinations')
+        .select('id, name, city, country')
+        .eq('is_approved', true)
+        .order('name');
+
+      if (error) throw error;
+      setDestinations(data || []);
+    } catch (error) {
+      console.error('Error fetching destinations:', error);
+      toast.error('Failed to load destinations');
+    } finally {
+      setLoadingDestinations(false);
+    }
+  };
+
+  const generateDescription = async () => {
+    if (!formData.destination_id || !formData.title || !formData.category) {
+      toast.error('Please select destination, enter title, and choose category before generating description');
+      return;
+    }
+
+    const selectedDestination = destinations.find(d => d.id === formData.destination_id);
+    if (!selectedDestination) {
+      toast.error('Please select a valid destination');
+      return;
+    }
+
+    setGeneratingDescription(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-description', {
+        body: {
+          type: 'guide',
+          data: {
+            title: formData.title,
+            destination: selectedDestination,
+            category: formData.category,
+            duration: formData.duration,
+            audience: 'general travelers'
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      setFormData(prev => ({
+        ...prev,
+        description: data.description
+      }));
+
+      toast.success('Description generated successfully!');
+    } catch (error) {
+      console.error('Error generating description:', error);
+      toast.error('Failed to generate description');
+    } finally {
+      setGeneratingDescription(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validation
-    if (!title.trim() || !description.trim() || !location.trim() || !category || !difficulty) {
-      toast({
-        title: "Missing required fields",
-        description: "Please fill in all required fields",
-        variant: "destructive",
-      });
+    const newErrors: Record<string, string> = {};
+
+    // Basic validation
+    if (!formData.title.trim()) {
+      newErrors.title = "Title is required";
+    } else if (formData.title.length < 5) {
+      newErrors.title = "Title must be at least 5 characters";
+    } else if (formData.title.length > 100) {
+      newErrors.title = "Title must be less than 100 characters";
+    }
+
+    if (!formData.description.trim()) {
+      newErrors.description = "Description is required";
+    } else if (formData.description.length < 20) {
+      newErrors.description = "Description must be at least 20 characters";
+    } else if (formData.description.length > 1000) {
+      newErrors.description = "Description must be less than 1000 characters";
+    }
+
+    if (!formData.destination_id) {
+      newErrors.destination_id = "Destination is required";
+    }
+
+    if (!formData.category) {
+      newErrors.category = "Category is required";
+    }
+
+    if (!formData.difficulty) {
+      newErrors.difficulty = "Difficulty is required";
+    }
+
+    if (formData.price < 1) {
+      newErrors.price = "Price must be at least $1";
+    }
+
+    if (formData.duration < 5) {
+      newErrors.duration = "Duration must be at least 5 minutes";
+    }
+
+    if (formData.languages.length === 0) {
+      newErrors.languages = "At least one language must be selected";
+    }
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      toast.error("Please fix the validation errors");
       return;
     }
 
-    if (title.length > 80) {
-      toast({
-        title: "Title too long",
-        description: "Title must be 80 characters or less",
-        variant: "destructive",
-      });
-      return;
+    // Submit the form
+    try {
+      await onSubmit(formData);
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast.error("Failed to create guide");
     }
-
-    if (description.length > 500) {
-      toast({
-        title: "Description too long", 
-        description: "Description must be 500 characters or less",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const priceNum = parseInt(price);
-    const durationNum = parseInt(duration);
-
-    if (isNaN(priceNum) || priceNum < 1) {
-      toast({
-        title: "Invalid price",
-        description: "Price must be at least $1",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (isNaN(durationNum) || durationNum < 5) {
-      toast({
-        title: "Invalid duration",
-        description: "Duration must be at least 5 minutes",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const formData: GuideFormData = {
-      title: title.trim(),
-      description: description.trim(),
-      location: location.trim(),
-      category,
-      difficulty,
-      price: priceNum * 100, // Convert to cents
-      duration: durationNum,
-      languages: selectedLanguages,
-      bestTime: bestTime.trim()
-    };
-
-    await onSubmit(formData);
   };
 
   const addLanguage = () => {
-    if (newLanguage && !selectedLanguages.includes(newLanguage)) {
-      setSelectedLanguages([...selectedLanguages, newLanguage]);
+    if (newLanguage && !formData.languages.includes(newLanguage)) {
+      setFormData(prev => ({
+        ...prev,
+        languages: [...prev.languages, newLanguage]
+      }));
       setNewLanguage('');
     }
   };
 
   const removeLanguage = (language: string) => {
     if (language !== 'English') { // Keep English as default
-      setSelectedLanguages(selectedLanguages.filter(l => l !== language));
+      setFormData(prev => ({
+        ...prev,
+        languages: prev.languages.filter(l => l !== language)
+      }));
     }
   };
 
@@ -156,32 +239,46 @@ export const GuideCreationForm: React.FC<GuideCreationFormProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Title */}
             <div className="md:col-span-2">
-              <InputWithCounter
-                maxLength={80}
-                label="Guide Title *"
+              <Label htmlFor="title">Guide Title *</Label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                 placeholder="Enter an engaging title for your guide"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                helpText="Make it descriptive and engaging"
-                showProgress
+                className={errors.title ? "border-red-500" : ""}
               />
+              {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
             </div>
 
-            {/* Location */}
-            <InputWithCounter
-              maxLength={100}
-              label="Location *"
-              placeholder="City, Country or specific venue"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              helpText="Be specific about the location"
-            />
+            {/* Destination */}
+            <div>
+              <Label htmlFor="destination">Destination *</Label>
+              <Select
+                value={formData.destination_id}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, destination_id: value }))}
+              >
+                <SelectTrigger className={errors.destination_id ? "border-red-500" : ""}>
+                  <SelectValue placeholder={loadingDestinations ? "Loading destinations..." : "Select destination"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {destinations.map((destination) => (
+                    <SelectItem key={destination.id} value={destination.id}>
+                      {destination.name} - {destination.city}, {destination.country}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.destination_id && <p className="text-red-500 text-sm mt-1">{errors.destination_id}</p>}
+            </div>
 
             {/* Category */}
             <div>
-              <label className="text-sm font-medium mb-2 block">Category *</label>
-              <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger>
+              <Label htmlFor="category">Category *</Label>
+              <Select
+                value={formData.category}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+              >
+                <SelectTrigger className={errors.category ? "border-red-500" : ""}>
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -192,20 +289,24 @@ export const GuideCreationForm: React.FC<GuideCreationFormProps> = ({
                   ))}
                 </SelectContent>
               </Select>
+              {errors.category && <p className="text-red-500 text-sm mt-1">{errors.category}</p>}
             </div>
 
             {/* Price */}
             <div>
-              <label className="text-sm font-medium mb-2 block">Price (USD) *</label>
-              <input
+              <Label htmlFor="price">Price (USD) *</Label>
+              <Input
+                id="price"
                 type="number"
                 min="1"
                 max="999"
+                step="0.01"
+                value={formData.price}
+                onChange={(e) => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
                 placeholder="9.99"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                className={errors.price ? "border-red-500" : ""}
               />
+              {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}
               <p className="text-xs text-muted-foreground mt-1">
                 Recommended: $3-15 for most guides
               </p>
@@ -213,16 +314,18 @@ export const GuideCreationForm: React.FC<GuideCreationFormProps> = ({
 
             {/* Duration */}
             <div>
-              <label className="text-sm font-medium mb-2 block">Duration (minutes) *</label>
-              <input
+              <Label htmlFor="duration">Duration (minutes) *</Label>
+              <Input
+                id="duration"
                 type="number"
                 min="5"
                 max="180"
+                value={formData.duration}
+                onChange={(e) => setFormData(prev => ({ ...prev, duration: parseInt(e.target.value) || 0 }))}
                 placeholder="45"
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                className={errors.duration ? "border-red-500" : ""}
               />
+              {errors.duration && <p className="text-red-500 text-sm mt-1">{errors.duration}</p>}
               <p className="text-xs text-muted-foreground mt-1">
                 Typical guides are 30-60 minutes
               </p>
@@ -230,9 +333,12 @@ export const GuideCreationForm: React.FC<GuideCreationFormProps> = ({
 
             {/* Difficulty */}
             <div className="md:col-span-2">
-              <label className="text-sm font-medium mb-2 block">Difficulty Level *</label>
-              <Select value={difficulty} onValueChange={setDifficulty}>
-                <SelectTrigger>
+              <Label htmlFor="difficulty">Difficulty Level *</Label>
+              <Select
+                value={formData.difficulty}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, difficulty: value }))}
+              >
+                <SelectTrigger className={errors.difficulty ? "border-red-500" : ""}>
                   <SelectValue placeholder="Select difficulty" />
                 </SelectTrigger>
                 <SelectContent>
@@ -243,27 +349,46 @@ export const GuideCreationForm: React.FC<GuideCreationFormProps> = ({
                   ))}
                 </SelectContent>
               </Select>
+              {errors.difficulty && <p className="text-red-500 text-sm mt-1">{errors.difficulty}</p>}
             </div>
           </div>
 
           {/* Description */}
-          <TextareaWithCounter
-            maxLength={500}
-            label="Description *"
-            placeholder="Describe what travelers will experience and learn..."
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="min-h-[120px]"
-            helpText="Highlight unique insights and experiences you'll share"
-            showProgress
-          />
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Label htmlFor="description">Description *</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={generateDescription}
+                disabled={generatingDescription}
+              >
+                <Sparkles className="h-4 w-4 mr-1" />
+                {generatingDescription ? 'Generating...' : 'AI Generate'}
+              </Button>
+            </div>
+            <Textarea
+              id="description"
+              value={formData.description}
+              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              placeholder="Describe what travelers will experience and learn..."
+              className={`min-h-[120px] ${errors.description ? "border-red-500" : ""}`}
+            />
+            <div className="flex justify-between items-center mt-1">
+              {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
+              <span className="text-sm text-gray-500 ml-auto">
+                {formData.description.length}/1000 characters
+              </span>
+            </div>
+          </div>
 
           {/* Languages */}
           <div>
-            <label className="text-sm font-medium mb-2 block">Languages Available</label>
+            <Label htmlFor="languages">Languages Available</Label>
             <div className="space-y-3">
               <div className="flex flex-wrap gap-2">
-                {selectedLanguages.map((language) => (
+                {formData.languages.map((language) => (
                   <Badge
                     key={language}
                     variant="secondary"
@@ -289,7 +414,7 @@ export const GuideCreationForm: React.FC<GuideCreationFormProps> = ({
                     <SelectValue placeholder="Add language" />
                   </SelectTrigger>
                   <SelectContent>
-                    {LANGUAGES.filter(lang => !selectedLanguages.includes(lang)).map((lang) => (
+                    {LANGUAGES.filter(lang => !formData.languages.includes(lang)).map((lang) => (
                       <SelectItem key={lang} value={lang}>
                         {lang}
                       </SelectItem>
@@ -307,19 +432,24 @@ export const GuideCreationForm: React.FC<GuideCreationFormProps> = ({
                   Add
                 </Button>
               </div>
+              {errors.languages && <p className="text-red-500 text-sm mt-1">{errors.languages}</p>}
             </div>
           </div>
 
           {/* Best Time to Visit */}
-          <TextareaWithCounter
-            maxLength={200}
-            label="Best Time to Visit (Optional)"
-            placeholder="When is the best time to experience this location?"
-            value={bestTime}
-            onChange={(e) => setBestTime(e.target.value)}
-            className="min-h-[80px]"
-            helpText="Share seasonal tips or optimal visiting times"
-          />
+          <div>
+            <Label htmlFor="bestTime">Best Time to Visit (Optional)</Label>
+            <Textarea
+              id="bestTime"
+              value={formData.bestTime}
+              onChange={(e) => setFormData(prev => ({ ...prev, bestTime: e.target.value }))}
+              placeholder="When is the best time to experience this location?"
+              className="min-h-[80px]"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Share seasonal tips or optimal visiting times
+            </p>
+          </div>
 
           <Button
             type="submit"
