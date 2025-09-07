@@ -126,6 +126,8 @@ const GuideDetail = () => {
   const [isPurchased, setIsPurchased] = useState(false);
   const [hasAccessCode, setHasAccessCode] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showQRCode, setShowQRCode] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [realGuideData, setRealGuideData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -155,16 +157,25 @@ const GuideDetail = () => {
     }
   };
 
-  const handlePaymentSuccess = () => {
+  const handlePaymentSuccess = (sessionId?: string) => {
     setIsPurchased(true);
     setShowPaymentModal(false);
+    setPaymentSuccess(true);
+    setShowQRCode(true); // Auto-open QR code
+    
     checkPurchaseStatus();
     fetchGuideDetails(); // Refresh guide data
     
-    // Force a page refresh after a short delay to ensure all data is updated
-    setTimeout(() => {
-      window.location.reload();
-    }, 1000);
+    showToast({
+      title: "Payment Successful!",
+      description: "Your audio guide has been purchased. Check your email for confirmation.",
+    });
+
+    // Clean up URL parameters if coming from redirect
+    if (sessionId) {
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
   };
 
   const fetchGuideDetails = async () => {
@@ -319,7 +330,16 @@ const GuideDetail = () => {
   useEffect(() => {
     fetchGuideDetails();
     checkPurchaseStatus();
+    
+    // Check for payment success parameters
+    const paymentSuccessParam = searchParams.get('payment_success');
+    const sessionId = searchParams.get('session_id');
+    
+    if (paymentSuccessParam === 'true' && sessionId) {
+      handlePaymentSuccess(sessionId);
+    }
   }, [guideId, user, searchParams]);
+
 
   const handleShare = () => {
     if (navigator.share) {
@@ -600,7 +620,7 @@ const GuideDetail = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {isPurchased ? (
+                  {isPurchased || showQRCode ? (
                     <>
                       {guide.qr_code_url && (
                         <div className="text-center">
@@ -617,23 +637,48 @@ const GuideDetail = () => {
                         </div>
                       )}
                       
-                      {guide.share_url && (
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">Share Link</label>
-                          <div className="flex gap-2">
-                            <div className="flex-1 p-2 bg-muted rounded-md text-sm font-mono truncate">
-                              {guide.share_url}
-                            </div>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => copyToClipboard(guide.share_url, 'Share link')}
-                            >
-                              <Copy className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      )}
+                       {paymentSuccess && (
+                         <div className="space-y-2 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                           <div className="flex items-center gap-2">
+                             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                             <label className="text-sm font-medium text-green-700 dark:text-green-300">Your Access Code</label>
+                           </div>
+                           <div className="flex gap-2">
+                             <div className="flex-1 p-3 bg-white dark:bg-gray-800 rounded-md border border-green-200 dark:border-green-700 text-lg font-mono text-center">
+                               {searchParams.get('access_code') || 'Loading...'}
+                             </div>
+                             <Button
+                               variant="outline"
+                               size="sm"
+                               onClick={() => copyToClipboard(searchParams.get('access_code') || '', 'Access code')}
+                               className="border-green-200 dark:border-green-700"
+                             >
+                               <Copy className="w-4 h-4" />
+                             </Button>
+                           </div>
+                           <p className="text-sm text-green-600 dark:text-green-400">
+                             Save this code - you'll need it to access your audio guide
+                           </p>
+                         </div>
+                       )}
+
+                       {guide.share_url && (
+                         <div className="space-y-2">
+                           <label className="text-sm font-medium">Share Link</label>
+                           <div className="flex gap-2">
+                             <div className="flex-1 p-2 bg-muted rounded-md text-sm font-mono truncate">
+                               {guide.share_url}
+                             </div>
+                             <Button
+                               variant="outline"
+                               size="sm"
+                               onClick={() => copyToClipboard(guide.share_url, 'Share link')}
+                             >
+                               <Copy className="w-4 h-4" />
+                             </Button>
+                           </div>
+                         </div>
+                       )}
                     </>
                   ) : (
                     <div className="text-center space-y-4">

@@ -107,6 +107,27 @@ serve(async (req) => {
       accessCode: purchase.access_code 
     });
 
+    // Send confirmation email
+    try {
+      const emailResponse = await supabaseService.functions.invoke('send-confirmation-email', {
+        body: {
+          email: guestEmail || 'placeholder@example.com', // Use guest email or placeholder
+          guideId: guide_id,
+          guideTitle: 'Audio Guide Purchase', // This will be fetched in the email function
+          accessCode: purchase.access_code
+        }
+      });
+      
+      if (emailResponse.error) {
+        logStep("Email sending failed", { error: emailResponse.error });
+      } else {
+        logStep("Confirmation email sent successfully");
+      }
+    } catch (emailError) {
+      logStep("Email error", { error: emailError });
+      // Don't fail the whole process if email fails
+    }
+
     return new Response(JSON.stringify({ 
       success: true, 
       purchaseId: purchase.id,
