@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import * as CarouselComponents from '@/components/ui/carousel';
 import { GuideCard } from '@/components/GuideCard';
 import { VerificationBadge } from '@/components/VerificationBadge';
 import { CreatorMessaging } from '@/components/CreatorMessaging';
@@ -725,16 +725,16 @@ const CreatorProfile = () => {
             </div>
             
             {guides.length > 0 ? (
-              <Carousel
+              <CarouselComponents.Carousel
                 opts={{
                   align: "start",
                   loop: false,
                 }}
                 className="w-full"
               >
-                <CarouselContent className="-ml-2 md:-ml-4">
+                <CarouselComponents.CarouselContent className="-ml-2 md:-ml-4">
                   {guides.map((guide) => (
-                    <CarouselItem key={guide.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
+                    <CarouselComponents.CarouselItem key={guide.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
                       <GuideCard
                         id={guide.id}
                         title={guide.title}
@@ -756,12 +756,12 @@ const CreatorProfile = () => {
                           });
                         }}
                       />
-                    </CarouselItem>
+                    </CarouselComponents.CarouselItem>
                   ))}
-                </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
-              </Carousel>
+                </CarouselComponents.CarouselContent>
+                <CarouselComponents.CarouselPrevious />
+                <CarouselComponents.CarouselNext />
+              </CarouselComponents.Carousel>
             ) : (
               <div className="text-center py-12">
                 <Play className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
