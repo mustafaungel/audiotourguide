@@ -125,10 +125,11 @@ const GuideDetail = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [realGuideData, setRealGuideData] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
   const { toast: showToast } = useToast();
 
-  // Check if we have real guide data or use demo data
-  const guide = realGuideData || guideData[guideId as keyof typeof guideData] || guideData["machu-picchu-complete"];
+  // Use real guide data if available
+  const guide = realGuideData;
 
   const handlePurchase = () => {
     if (!user) {
@@ -161,42 +162,57 @@ const GuideDetail = () => {
   const fetchGuideDetails = async () => {
     if (!guideId) return;
     
+    setIsLoading(true);
+    console.log('Fetching guide details for:', guideId);
+    
     try {
-      // Check if user is admin or creator first
+      // First, get the guide data
+      const { data: guideData, error: guideError } = await supabase
+        .from('audio_guides')
+        .select('*')
+        .eq('id', guideId)
+        .maybeSingle();
+
+      if (guideError) {
+        console.error('Error fetching guide:', guideError);
+        throw guideError;
+      }
+
+      if (!guideData) {
+        console.error('Guide not found with ID:', guideId);
+        setError('Guide not found');
+        return;
+      }
+
+      // Check if user is admin or creator
       const { data: profile } = await supabase
         .from('profiles')
         .select('role')
         .eq('user_id', user?.id)
-        .single();
+        .maybeSingle();
 
-      let query = supabase
-        .from('audio_guides')
-        .select(`
-          *,
-          profiles!creator_id (
-            full_name,
-            avatar_url,
-            bio
-          )
-        `)
-        .eq('id', guideId);
-
-      // Only apply publication filters for non-admin/non-creator users
-      if (profile?.role !== 'admin' && user?.id !== realGuideData?.creator_id) {
-        query = query.eq('is_published', true).eq('is_approved', true);
+      // Apply publication filters for non-admin/non-creator users
+      const isAdminOrCreator = profile?.role === 'admin' || user?.id === guideData.creator_id;
+      if (!isAdminOrCreator && (!guideData.is_published || !guideData.is_approved)) {
+        console.error('Guide is not published or approved');
+        setError('This guide is not available');
+        return;
       }
 
-      const { data, error } = await query.single();
+      // Get creator profile separately for better reliability
+      const { data: creatorProfile } = await supabase
+        .from('profiles')
+        .select('full_name, avatar_url, bio')
+        .eq('user_id', guideData.creator_id)
+        .maybeSingle();
 
-      if (error) throw error;
-      
       // Transform data to match expected format
       const transformedData = {
-        ...data,
-        creator: (data as any).profiles ? {
-          name: (data as any).profiles.full_name || 'Anonymous Creator',
-          avatar: (data as any).profiles.avatar_url || '',
-          bio: (data as any).profiles.bio || ''
+        ...guideData,
+        creator: creatorProfile ? {
+          name: creatorProfile.full_name || 'Anonymous Creator',
+          avatar: creatorProfile.avatar_url || '',
+          bio: creatorProfile.bio || ''
         } : {
           name: 'Anonymous Creator',
           avatar: '',
@@ -208,15 +224,28 @@ const GuideDetail = () => {
           'Offline access',
           'Multiple languages available'
         ],
-        duration: `${Math.floor(data.duration / 60)} min`,
-        price: `$${(data.price_usd / 100).toFixed(2)}`,
-        sections: data.sections ? JSON.parse(data.sections as string) : []
+        duration: `${Math.floor(guideData.duration / 60)} min`,
+        price: `$${(guideData.price_usd / 100).toFixed(2)}`,
+        sections: guideData.sections ? (typeof guideData.sections === 'string' ? JSON.parse(guideData.sections) : guideData.sections) : []
       };
       
+      console.log('Successfully fetched guide data:', transformedData);
       setRealGuideData(transformedData);
+      setError(null);
+      
+      // Track guide view once data is loaded
+      if (guideId) {
+        try {
+          trackEngagement('view', guideId, {
+            metadata: { location: transformedData.location }
+          });
+        } catch (trackError) {
+          console.warn('Failed to track engagement:', trackError);
+        }
+      }
     } catch (error) {
-      console.error('Error fetching guide:', error);
-      // Fall back to demo data for development
+      console.error('Error fetching guide details:', error);
+      setError('Failed to load guide. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -259,13 +288,6 @@ const GuideDetail = () => {
     if (user) {
       checkPurchaseStatus();
     }
-    
-    // Track guide view
-    if (guideId) {
-      trackEngagement('view', guideId, {
-        metadata: { location: guide.location }
-      });
-    }
   }, [guideId, user]);
 
   const handleShare = () => {
@@ -283,6 +305,51 @@ const GuideDetail = () => {
       });
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="container mx-auto px-4 py-6">
+          <Button variant="ghost" size="sm" className="mb-4" onClick={() => window.history.back()}>
+            <ChevronLeft className="w-4 h-4 mr-2" />
+            Back to Guides
+          </Button>
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading guide details...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !guide) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="container mx-auto px-4 py-6">
+          <Button variant="ghost" size="sm" className="mb-4" onClick={() => window.history.back()}>
+            <ChevronLeft className="w-4 h-4 mr-2" />
+            Back to Guides
+          </Button>
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <h1 className="text-2xl font-bold mb-4">Guide Not Found</h1>
+              <p className="text-muted-foreground mb-4">
+                {error || "The guide you're looking for doesn't exist or is not available."}
+              </p>
+              <Button onClick={() => navigate('/search')}>
+                Browse Other Guides
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
