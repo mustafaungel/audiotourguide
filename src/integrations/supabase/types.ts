@@ -127,6 +127,36 @@ export type Database = {
         }
         Relationships: []
       }
+      creator_connections: {
+        Row: {
+          connected_at: string
+          connection_source: string
+          creator_id: string
+          guide_id: string | null
+          id: string
+          is_active: boolean
+          user_id: string
+        }
+        Insert: {
+          connected_at?: string
+          connection_source?: string
+          creator_id: string
+          guide_id?: string | null
+          id?: string
+          is_active?: boolean
+          user_id: string
+        }
+        Update: {
+          connected_at?: string
+          connection_source?: string
+          creator_id?: string
+          guide_id?: string | null
+          id?: string
+          is_active?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       creator_earnings: {
         Row: {
           amount: number
@@ -167,6 +197,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      creator_messages: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          message_text: string
+          message_type: string
+          read_at: string | null
+          recipient_id: string
+          related_guide_id: string | null
+          sender_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          message_text: string
+          message_type?: string
+          read_at?: string | null
+          recipient_id: string
+          related_guide_id?: string | null
+          sender_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          message_text?: string
+          message_type?: string
+          read_at?: string | null
+          recipient_id?: string
+          related_guide_id?: string | null
+          sender_id?: string
+        }
+        Relationships: []
       }
       guide_reviews: {
         Row: {
