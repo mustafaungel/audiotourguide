@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Star, Clock, MapPin, Users, Heart, Share2, Bookmark, Play } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useViralTracking } from "@/hooks/useViralTracking";
+import { useNavigate } from "react-router-dom";
 
 interface GuideCardProps {
   id: string;
@@ -20,6 +21,7 @@ interface GuideCardProps {
   totalPurchases?: number;
   creatorName?: string;
   creatorAvatar?: string;
+  creatorId?: string;
   onViewGuide?: () => void;
 }
 
@@ -37,10 +39,12 @@ export function GuideCard({
   totalPurchases = 0,
   creatorName = "Guide Creator",
   creatorAvatar,
+  creatorId,
   onViewGuide
 }: GuideCardProps) {
   const { toast } = useToast();
   const { trackEngagement } = useViralTracking();
+  const navigate = useNavigate();
 
   const handleShare = async () => {
     await trackEngagement('share', id, { platform: 'native' });
@@ -188,14 +192,24 @@ export function GuideCard({
           </div>
 
           <div className="flex items-center justify-between pt-2">
-            <div className="flex items-center gap-2">
+            <div 
+              className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (creatorId) {
+                  navigate(`/creator/${creatorId}`);
+                }
+              }}
+            >
               <Avatar className="h-6 w-6">
                 <AvatarImage src={creatorAvatar} />
                 <AvatarFallback className="text-xs">
                   {creatorName.charAt(0)}
                 </AvatarFallback>
               </Avatar>
-              <span className="text-sm text-muted-foreground">{creatorName}</span>
+              <span className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                {creatorName}
+              </span>
             </div>
             <div className="text-right">
               <div className="text-lg font-bold">${(price / 100).toFixed(2)}</div>

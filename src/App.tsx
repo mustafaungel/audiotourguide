@@ -13,6 +13,8 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancelled from "./pages/PaymentCancelled";
 import Profile from "./pages/Profile";
 import CreatorDashboard from "./pages/CreatorDashboard";
+import CreatorProfile from "./pages/CreatorProfile";
+import Creators from "./pages/Creators";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +34,8 @@ const App = () => (
               <Route path="/library" element={<Library />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/creator-dashboard" element={<CreatorDashboard />} />
+              <Route path="/creators" element={<Creators />} />
+              <Route path="/creator/:creatorId" element={<CreatorProfile />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/payment-cancelled" element={<PaymentCancelled />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

@@ -44,14 +44,14 @@ export const Navigation = () => {
             <Link to="/library" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
               Destinations
             </Link>
+            <Link to="/creators" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+              Creators
+            </Link>
             <Link to="/library" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
               UNESCO Sites
             </Link>
             <Link to="/library" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
               Cultural Experiences
-            </Link>
-            <Link to="/library" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
-              Museums
             </Link>
           </nav>
 
