@@ -31,7 +31,9 @@ import { MobileNavigation } from "@/components/MobileNavigation";
 
 const queryClient = new QueryClient();
 
-const App = () => (
+const App = () => {
+  try {
+    return (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
       <AuthProvider>
@@ -70,6 +72,17 @@ const App = () => (
       </AuthProvider>
     </ThemeProvider>
   </QueryClientProvider>
-);
+  );
+  } catch (error) {
+    console.error('App render error:', error);
+    return (
+      <div style={{ padding: '20px', textAlign: 'center' }}>
+        <h1>Something went wrong</h1>
+        <p>Please refresh the page</p>
+        <pre>{error instanceof Error ? error.message : 'Unknown error'}</pre>
+      </div>
+    );
+  }
+};
 
 export default App;
