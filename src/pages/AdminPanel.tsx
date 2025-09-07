@@ -17,6 +17,7 @@ import { GuideManagement } from '@/components/GuideManagement';
 import { UserManagement } from '@/components/UserManagement';
 import { AdminCreatorManagement } from '@/components/AdminCreatorManagement';
 import { AdminAIGuideGenerator } from '@/components/AdminAIGuideGenerator';
+import { AudioUploader } from '@/components/AudioUploader';
 
 const AdminPanel = () => {
   const { user, userProfile } = useAuth();
@@ -231,7 +232,7 @@ const AdminPanel = () => {
         </div>
 
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid grid-cols-7 w-full max-w-4xl">
+          <TabsList className="grid grid-cols-8 w-full max-w-5xl">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Dashboard
@@ -259,6 +260,10 @@ const AdminPanel = () => {
             <TabsTrigger value="analytics" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
               Analytics
+            </TabsTrigger>
+            <TabsTrigger value="audio-setup" className="flex items-center gap-2">
+              <Volume2 className="h-4 w-4" />
+              Audio Setup
             </TabsTrigger>
           </TabsList>
 
@@ -525,6 +530,10 @@ const AdminPanel = () => {
               <h3 className="text-lg font-semibold mb-2">Analytics Dashboard</h3>
               <p className="text-muted-foreground">Coming soon - Advanced analytics and reporting</p>
             </div>
+          </TabsContent>
+
+          <TabsContent value="audio-setup">
+            <AudioUploader />
           </TabsContent>
         </Tabs>
       </div>
