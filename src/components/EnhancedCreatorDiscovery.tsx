@@ -533,49 +533,53 @@ export const EnhancedCreatorDiscovery = () => {
 
       {/* Enhanced Filters */}
       <div className="space-y-4">
-        <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search creators by name, specialty, or location..."
+              placeholder="Search creators..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              className="pl-10 text-sm lg:text-base"
             />
           </div>
-          <Button variant="outline" className="md:w-auto">
+          <Button variant="outline" className="sm:w-auto text-sm">
             <Filter className="h-4 w-4 mr-2" />
-            Advanced Filters
+            <span className="hidden sm:inline">Advanced </span>Filters
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
           <Select value={locationFilter} onValueChange={setLocationFilter}>
-            <SelectTrigger>
+            <SelectTrigger className="text-xs lg:text-sm">
               <SelectValue placeholder="Location" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Locations</SelectItem>
               {getUniqueLocations().map((location) => (
-                <SelectItem key={location} value={location}>{location}</SelectItem>
+                <SelectItem key={location} value={location}>
+                  <span className="truncate">{location}</span>
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
 
           <Select value={specialtyFilter} onValueChange={setSpecialtyFilter}>
-            <SelectTrigger>
+            <SelectTrigger className="text-xs lg:text-sm">
               <SelectValue placeholder="Specialty" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Specialties</SelectItem>
               {getUniqueSpecialties().map((specialty) => (
-                <SelectItem key={specialty} value={specialty}>{specialty}</SelectItem>
+                <SelectItem key={specialty} value={specialty}>
+                  <span className="truncate">{specialty}</span>
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
 
           <Select value={tierFilter} onValueChange={setTierFilter}>
-            <SelectTrigger>
+            <SelectTrigger className="text-xs lg:text-sm">
               <SelectValue placeholder="Tier" />
             </SelectTrigger>
             <SelectContent>
@@ -588,8 +592,8 @@ export const EnhancedCreatorDiscovery = () => {
           </Select>
 
           <Select value={creatorTypeFilter} onValueChange={setCreatorTypeFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="Creator Type" />
+            <SelectTrigger className="text-xs lg:text-sm">
+              <SelectValue placeholder="Type" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
@@ -600,8 +604,8 @@ export const EnhancedCreatorDiscovery = () => {
           </Select>
 
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger>
-              <SelectValue />
+            <SelectTrigger className="text-xs lg:text-sm">
+              <SelectValue placeholder="Sort" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="tier_weighted">Best Match</SelectItem>
@@ -612,97 +616,155 @@ export const EnhancedCreatorDiscovery = () => {
             </SelectContent>
           </Select>
 
-          <div className="col-span-2 md:col-span-1">
-            <Badge variant="outline" className="w-full justify-center">
+          <div className="col-span-2 lg:col-span-1">
+            <Badge variant="outline" className="w-full justify-center text-xs lg:text-sm h-9">
               {filteredCreators.length} creator{filteredCreators.length !== 1 ? 's' : ''}
             </Badge>
           </div>
         </div>
 
-        {searchQuery && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Searching for:</span>
-            <Badge variant="secondary" className="gap-1">
-              {searchQuery}
-              <button onClick={() => setSearchQuery('')} className="ml-1 hover:text-destructive">×</button>
-            </Badge>
+        {(searchQuery || locationFilter || specialtyFilter || tierFilter || creatorTypeFilter) && (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs lg:text-sm text-muted-foreground">Active filters:</span>
+            {searchQuery && (
+              <Badge variant="secondary" className="gap-1 text-xs">
+                <span className="truncate max-w-20">"{searchQuery}"</span>
+                <button onClick={() => setSearchQuery('')} className="ml-1 hover:text-destructive">×</button>
+              </Badge>
+            )}
+            {locationFilter && locationFilter !== 'all' && (
+              <Badge variant="secondary" className="gap-1 text-xs">
+                <span className="truncate max-w-16">{locationFilter}</span>
+                <button onClick={() => setLocationFilter('')} className="ml-1 hover:text-destructive">×</button>
+              </Badge>
+            )}
+            {specialtyFilter && specialtyFilter !== 'all' && (
+              <Badge variant="secondary" className="gap-1 text-xs">
+                <span className="truncate max-w-20">{specialtyFilter}</span>
+                <button onClick={() => setSpecialtyFilter('')} className="ml-1 hover:text-destructive">×</button>
+              </Badge>
+            )}
+            {tierFilter && tierFilter !== 'all' && (
+              <Badge variant="secondary" className="gap-1 text-xs">
+                <span className="truncate max-w-16">{tierFilter}</span>
+                <button onClick={() => setTierFilter('')} className="ml-1 hover:text-destructive">×</button>
+              </Badge>
+            )}
+            {creatorTypeFilter && creatorTypeFilter !== 'all' && (
+              <Badge variant="secondary" className="gap-1 text-xs">
+                <span className="truncate max-w-16">{creatorTypeFilter}</span>
+                <button onClick={() => setCreatorTypeFilter('')} className="ml-1 hover:text-destructive">×</button>
+              </Badge>
+            )}
           </div>
         )}
       </div>
 
       {/* Creator Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
         {filteredCreators.map((creator) => (
-          <Card key={creator.id} className="group hover:shadow-lg transition-all duration-300 cursor-pointer">
-            <CardContent className="p-6" onClick={() => navigate(`/creator/${creator.id}`)}>
+          <Card key={creator.id} className="group hover:shadow-lg transition-all duration-300 cursor-pointer bg-gradient-card border-tourism-warm/20">
+            <CardContent className="p-4 lg:p-6" onClick={() => navigate(`/creator/${creator.id}`)}>
               {/* Header */}
-              <div className="flex items-start gap-4 mb-4">
-                <Avatar className="h-16 w-16">
-                  <AvatarImage src={creator.avatar_url} />
-                  <AvatarFallback>{creator.full_name.charAt(0)}</AvatarFallback>
-                </Avatar>
+              <div className="flex items-start gap-3 lg:gap-4 mb-4">
+                <div className="relative flex-shrink-0">
+                  <Avatar className="h-12 w-12 lg:h-16 lg:w-16 border-2 border-tourism-warm/20">
+                    <AvatarImage src={creator.avatar_url} />
+                    <AvatarFallback className="bg-tourism-warm/10 text-tourism-warm font-semibold text-sm lg:text-lg">
+                      {creator.full_name.split(' ').map(n => n[0]).join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="absolute -bottom-1 -right-1">
+                    <TierBadge tier={creator.current_tier} size="sm" />
+                  </div>
+                </div>
                 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold truncate">{creator.full_name}</h3>
+                    <h3 className="font-semibold truncate text-sm lg:text-base">{creator.full_name}</h3>
                     {creator.verification_status === 'verified' && (
-                      <VerificationBadge type="blue_tick" size="sm" showText={false} />
+                      <VerificationBadge 
+                        type="blue_tick" 
+                        size="sm"
+                        showText={false}
+                      />
                     )}
                   </div>
                   
-                  <div className="flex items-center gap-2 mb-2">
-                    <TierBadge tier={creator.current_tier} size="sm" />
-                    <CreatorTypeBadge type={creator.creator_type} variant="compact" />
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-2">
+                    <CreatorTypeBadge type={creator.creator_type} variant="compact" className="self-start" />
                   </div>
                   
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <MapPin className="h-3 w-3" />
-                    {creator.location}
+                  <div className="flex items-center gap-1 text-xs lg:text-sm text-muted-foreground">
+                    <MapPin className="h-3 w-3 flex-shrink-0" />
+                    <span className="truncate">{creator.location}</span>
                   </div>
                 </div>
               </div>
 
               {/* Bio */}
-              <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+              <p className="text-xs lg:text-sm text-muted-foreground mb-4 line-clamp-2 leading-relaxed">
                 {creator.bio}
               </p>
 
+              {/* Languages */}
+              {creator.languages_spoken && creator.languages_spoken.length > 0 && (
+                <div className="mb-3">
+                  <div className="flex flex-wrap gap-1">
+                    {creator.languages_spoken.slice(0, 3).map((language, index) => (
+                      <Badge 
+                        key={index} 
+                        variant="outline" 
+                        className="text-xs px-2 py-0.5 bg-accent/10 text-accent border-accent/20"
+                      >
+                        {language}
+                      </Badge>
+                    ))}
+                    {creator.languages_spoken.length > 3 && (
+                      <Badge variant="outline" className="text-xs px-2 py-0.5 bg-muted/50 text-muted-foreground border-muted">
+                        +{creator.languages_spoken.length - 3}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Specialties */}
               <div className="flex flex-wrap gap-1 mb-4">
-                {creator.specialties.slice(0, 3).map((specialty, index) => (
-                  <Badge key={index} variant="outline" className="text-xs">
-                    {specialty}
+                {creator.specialties.slice(0, 2).map((specialty, index) => (
+                  <Badge key={index} variant="outline" className="text-xs px-2 py-0.5 bg-tourism-warm/10 text-tourism-warm border-tourism-warm/20">
+                    <span className="truncate max-w-20">{specialty}</span>
                   </Badge>
                 ))}
-                {creator.specialties.length > 3 && (
-                  <Badge variant="outline" className="text-xs">
-                    +{creator.specialties.length - 3}
+                {creator.specialties.length > 2 && (
+                  <Badge variant="outline" className="text-xs px-2 py-0.5 bg-muted/50 text-muted-foreground">
+                    +{creator.specialties.length - 2}
                   </Badge>
                 )}
               </div>
 
               {/* Stats */}
-              <div className="grid grid-cols-3 gap-4 mb-4 text-center">
-                <div>
+              <div className="grid grid-cols-3 gap-2 lg:gap-3 mb-4 text-center">
+                <div className="p-2 bg-background/50 rounded-lg">
                   <div className="flex items-center justify-center gap-1">
                     <Users className="h-3 w-3 text-muted-foreground" />
-                    <span className="text-sm font-medium">{formatNumber(creator.followers_count)}</span>
+                    <span className="text-xs lg:text-sm font-medium">{formatNumber(creator.followers_count)}</span>
                   </div>
                   <div className="text-xs text-muted-foreground">Followers</div>
                 </div>
                 
-                <div>
+                <div className="p-2 bg-background/50 rounded-lg">
                   <div className="flex items-center justify-center gap-1">
-                    <span className="text-sm font-medium">{creator.total_guides}</span>
+                    <span className="text-xs lg:text-sm font-medium">{creator.total_guides}</span>
                   </div>
                   <div className="text-xs text-muted-foreground">Guides</div>
                 </div>
                 
-                <div>
+                <div className="p-2 bg-background/50 rounded-lg">
                   <div className="flex items-center justify-center gap-1">
                     <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                    <span className="text-sm font-medium">
-                      {creator.avg_rating > 0 ? creator.avg_rating : 'New'}
+                    <span className="text-xs lg:text-sm font-medium">
+                      {creator.avg_rating > 0 ? creator.avg_rating.toFixed(1) : 'New'}
                     </span>
                   </div>
                   <div className="text-xs text-muted-foreground">Rating</div>
@@ -714,19 +776,20 @@ export const EnhancedCreatorDiscovery = () => {
                 <Button
                   variant={followedCreators.has(creator.id) ? "default" : "outline"}
                   size="sm"
-                  className="flex-1"
+                  className="flex-1 text-xs lg:text-sm h-8 lg:h-9"
                   onClick={() => toggleFollow(creator.id)}
                 >
-                  <Heart className={`h-4 w-4 mr-2 ${followedCreators.has(creator.id) ? 'fill-current' : ''}`} />
-                  {followedCreators.has(creator.id) ? 'Following' : 'Follow'}
+                  <Heart className={`h-3 w-3 mr-1 ${followedCreators.has(creator.id) ? 'fill-current' : ''}`} />
+                  <span className="truncate">{followedCreators.has(creator.id) ? 'Following' : 'Follow'}</span>
                 </Button>
                 
                 <Button
                   variant="outline"
                   size="sm"
+                  className="flex-shrink-0 text-xs lg:text-sm h-8 lg:h-9 px-3"
                   onClick={() => handleMessage(creator.id)}
                 >
-                  <MessageCircle className="h-4 w-4" />
+                  <MessageCircle className="h-3 w-3" />
                 </Button>
               </div>
             </CardContent>
