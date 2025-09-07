@@ -242,10 +242,10 @@ export function CreatorRecommendations({
         {
           id: 'demo-elena',
           full_name: 'Elena Rossi',
-          bio: 'Art historian specializing in Renaissance masterpieces',
+          bio: 'Art historian specializing in Renaissance masterpieces. Author of "Hidden Stories of the Louvre" with 15 years guiding experience.',
           avatar_url: 'https://images.unsplash.com/photo-1494790108755-2616c819e3f5?w=400&h=400&fit=crop&crop=face',
           verification_status: 'verified',
-          specialties: ['Art History', 'Museums'],
+          specialties: ['Art History', 'Museums', 'Renaissance'],
           location: 'Italy',
           totalGuides: 8,
           avgRating: 4.9,
@@ -255,14 +255,40 @@ export function CreatorRecommendations({
         {
           id: 'demo-kenji',
           full_name: 'Kenji Tanaka',
-          bio: 'Local Kyoto guide and cultural expert',
+          bio: 'Local Kyoto guide born and raised in the ancient capital. Expert in traditional Japanese culture, temples, and authentic experiences.',
           avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face',
           verification_status: 'verified',
-          specialties: ['Japanese Culture', 'Temples'],
+          specialties: ['Japanese Culture', 'Temples', 'Traditional Arts'],
           location: 'Japan',
           totalGuides: 6,
           avgRating: 4.8,
           totalPurchases: 184,
+          isConnected: false
+        },
+        {
+          id: 'demo-maria',
+          full_name: 'Dr. Maria Garcia',
+          bio: 'Archaeological researcher and Machu Picchu expert. PhD in Andean Studies with exclusive access to archaeological sites.',
+          avatar_url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face',
+          verification_status: 'verified',
+          specialties: ['Archaeology', 'Inca History', 'Adventure'],
+          location: 'Peru',
+          totalGuides: 4,
+          avgRating: 4.9,
+          totalPurchases: 290,
+          isConnected: false
+        },
+        {
+          id: 'demo-ahmed',
+          full_name: 'Ahmed Hassan',
+          bio: 'Street art enthusiast and cultural anthropologist showcasing Istanbul\'s vibrant underground scene.',
+          avatar_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face',
+          verification_status: 'verified',
+          specialties: ['Street Art', 'Ottoman History', 'Urban Culture'],
+          location: 'Turkey',
+          totalGuides: 4,
+          avgRating: 4.6,
+          totalPurchases: 75,
           isConnected: false
         }
       ]);

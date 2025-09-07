@@ -15,6 +15,7 @@ import Profile from "./pages/Profile";
 import CreatorDashboard from "./pages/CreatorDashboard";
 import CreatorProfile from "./pages/CreatorProfile";
 import Creators from "./pages/Creators";
+import UserProfile from "./pages/UserProfile";
 import Experiences from "./pages/Experiences";
 import NotFound from "./pages/NotFound";
 
@@ -37,6 +38,7 @@ const App = () => (
               <Route path="/creator-dashboard" element={<CreatorDashboard />} />
               <Route path="/creators" element={<Creators />} />
               <Route path="/creator/:creatorId" element={<CreatorProfile />} />
+              <Route path="/user/:userId" element={<UserProfile />} />
               <Route path="/experiences" element={<Experiences />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/payment-cancelled" element={<PaymentCancelled />} />
