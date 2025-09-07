@@ -27,16 +27,16 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    const { sessionId, guideId } = await req.json();
-    if (!sessionId || !guideId) throw new Error("Session ID and Guide ID are required");
+    const { session_id, guide_id } = await req.json();
+    if (!session_id || !guide_id) throw new Error("Session ID and Guide ID are required");
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2023-10-16",
     });
 
     // Retrieve the checkout session
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
-    logStep("Session retrieved", { sessionId, status: session.payment_status });
+    const session = await stripe.checkout.sessions.retrieve(session_id);
+    logStep("Session retrieved", { sessionId: session_id, status: session.payment_status });
 
     if (session.payment_status !== "paid") {
       throw new Error("Payment not completed");
@@ -57,8 +57,8 @@ serve(async (req) => {
         .from("user_purchases")
         .select("id")
         .eq("user_id", userId)
-        .eq("guide_id", guideId)
-        .eq("stripe_payment_id", sessionId)
+        .eq("guide_id", guide_id)
+        .eq("stripe_payment_id", session_id)
         .single();
       existingPurchase = data;
     } else {
@@ -66,8 +66,8 @@ serve(async (req) => {
         .from("user_purchases")
         .select("id")
         .eq("guest_email", guestEmail)
-        .eq("guide_id", guideId)
-        .eq("stripe_payment_id", sessionId)
+        .eq("guide_id", guide_id)
+        .eq("stripe_payment_id", session_id)
         .single();
       existingPurchase = data;
     }
@@ -91,8 +91,8 @@ serve(async (req) => {
       .insert({
         user_id: userId || null,
         guest_email: guestEmail || null,
-        guide_id: guideId,
-        stripe_payment_id: sessionId,
+        guide_id: guide_id,
+        stripe_payment_id: session_id,
         price_paid: session.amount_total || 0,
         currency: session.currency || "usd",
         access_code: accessCodeData,

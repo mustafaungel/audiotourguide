@@ -31,14 +31,14 @@ serve(async (req) => {
     const origin = req.headers.get("origin") || req.headers.get("referer") || "http://localhost:3000";
     logStep("Origin header", { origin, referer: req.headers.get("referer") });
 
-    const { guideId, guestEmail, isGuest } = await req.json();
-    if (!guideId) throw new Error("Guide ID is required");
+    const { guide_id, guest_email, is_guest } = await req.json();
+    if (!guide_id) throw new Error("Guide ID is required");
 
     let user = null;
-    let userEmail = guestEmail;
+    let userEmail = guest_email;
 
     // Handle authentication for registered users
-    if (!isGuest) {
+    if (!is_guest) {
       const authHeader = req.headers.get("Authorization");
       if (!authHeader) throw new Error("No authorization header provided");
       
@@ -50,21 +50,21 @@ serve(async (req) => {
       userEmail = user.email;
       logStep("User authenticated", { userId: user.id, email: user.email });
     } else {
-      if (!guestEmail) throw new Error("Guest email is required");
-      logStep("Guest checkout", { email: guestEmail });
+      if (!guest_email) throw new Error("Guest email is required");
+      logStep("Guest checkout", { email: guest_email });
     }
 
     // Fetch guide details
     const { data: guide, error: guideError } = await supabaseService
       .from("audio_guides")
       .select("*")
-      .eq("id", guideId)
+      .eq("id", guide_id)
       .eq("is_published", true)
       .eq("is_approved", true)
       .single();
 
     if (guideError || !guide) throw new Error("Guide not found or not available for purchase");
-    logStep("Guide found", { guideId, title: guide.title, price: guide.price_usd });
+    logStep("Guide found", { guideId: guide_id, title: guide.title, price: guide.price_usd });
 
     // Check if user/guest has already purchased this guide
     let existingPurchase = null;
@@ -73,15 +73,15 @@ serve(async (req) => {
         .from("user_purchases")
         .select("id")
         .eq("user_id", user.id)
-        .eq("guide_id", guideId)
+        .eq("guide_id", guide_id)
         .single();
       existingPurchase = data;
     } else {
       const { data } = await supabaseService
         .from("user_purchases")
         .select("id")
-        .eq("guest_email", guestEmail)
-        .eq("guide_id", guideId)
+        .eq("guest_email", guest_email)
+        .eq("guide_id", guide_id)
         .single();
       existingPurchase = data;
     }
@@ -109,7 +109,7 @@ serve(async (req) => {
     }
 
     // Construct URLs with proper validation
-    const successUrl = `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&guide_id=${guideId}`;
+    const successUrl = `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&guide_id=${guide_id}`;
     const cancelUrl = `${origin}/payment-cancelled`;
     logStep("Constructed URLs", { successUrl, cancelUrl });
 
@@ -179,9 +179,9 @@ serve(async (req) => {
       cancel_url: cancelUrl,
       metadata: {
         user_id: user?.id || "",
-        guest_email: isGuest ? guestEmail : "",
-        is_guest: isGuest ? "true" : "false",
-        guide_id: guideId,
+        guest_email: is_guest ? guest_email : "",
+        is_guest: is_guest ? "true" : "false",
+        guide_id: guide_id,
       },
     };
     
