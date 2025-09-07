@@ -36,7 +36,9 @@ export const ExperienceBracketBadge: React.FC<ExperienceBracketBadgeProps> = ({
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          {badge}
+          <div>
+            {badge}
+          </div>
         </TooltipTrigger>
         <TooltipContent>
           <div className="text-center">

@@ -656,8 +656,8 @@ const CreatorProfile = () => {
                   </CardContent>
                 </Card>
                 
-                <Card className="bg-primary-foreground/10 border-primary-foreground/20 min-h-[70px] md:min-h-[80px]">
-                  <CardContent className="p-2 md:p-4">
+                <Card className="bg-primary-foreground/10 border-primary-foreground/20 col-span-2 md:col-span-2 lg:col-span-1 min-h-[100px] md:min-h-[120px]">
+                  <CardContent className="p-3 md:p-4 h-full flex flex-col justify-center">
                      <DualRatingDisplay
                        serviceRating={creator.service_rating}
                        serviceRatingCount={creator.service_rating_count || 0}
@@ -739,33 +739,45 @@ const CreatorProfile = () => {
             </div>
             
             {guides.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {guides.map((guide) => (
-                  <div key={guide.id} className="h-full">
-                    <GuideCard
-                      id={guide.id}
-                      title={guide.title}
-                      description={guide.description}
-                      location={guide.location}
-                      price={guide.price_usd}
-                      rating={guide.rating || 0}
-                      duration={guide.duration}
-                      category={guide.category}
-                      difficulty={guide.difficulty}
-                      imageUrl={guide.image_url}
-                      totalPurchases={guide.total_purchases}
-                      creatorName={creator.full_name}
-                      creatorAvatar={creator.avatar_url}
-                      onViewGuide={() => {
-                        toast({
-                          title: "Guide Preview",
-                          description: "Guide player coming soon!",
-                        });
-                      }}
-                    />
-                  </div>
-                ))}
-              </div>
+              <CarouselComponents.Carousel
+                opts={{
+                  align: "start",
+                  loop: false,
+                }}
+                className="w-full"
+              >
+                <CarouselComponents.CarouselContent className="-ml-2 md:-ml-4">
+                  {guides.map((guide) => (
+                    <CarouselComponents.CarouselItem key={guide.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3">
+                      <div className="h-full">
+                        <GuideCard
+                          id={guide.id}
+                          title={guide.title}
+                          description={guide.description}
+                          location={guide.location}
+                          price={guide.price_usd}
+                          rating={guide.rating || 0}
+                          duration={guide.duration}
+                          category={guide.category}
+                          difficulty={guide.difficulty}
+                          imageUrl={guide.image_url}
+                          totalPurchases={guide.total_purchases}
+                          creatorName={creator.full_name}
+                          creatorAvatar={creator.avatar_url}
+                          onViewGuide={() => {
+                            toast({
+                              title: "Guide Preview",
+                              description: "Guide player coming soon!",
+                            });
+                          }}
+                        />
+                      </div>
+                    </CarouselComponents.CarouselItem>
+                  ))}
+                </CarouselComponents.CarouselContent>
+                <CarouselComponents.CarouselPrevious className="-left-4 md:-left-12" />
+                <CarouselComponents.CarouselNext className="-right-4 md:-right-12" />
+              </CarouselComponents.Carousel>
             ) : (
               <div className="text-center py-8 md:py-12">
                 <Play className="h-8 w-8 md:h-12 md:w-12 text-muted-foreground mx-auto mb-3 md:mb-4" />
