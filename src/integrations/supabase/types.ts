@@ -70,6 +70,7 @@ export type Database = {
           preview_url: string | null
           price_usd: number
           rating: number | null
+          sections: Json | null
           title: string
           total_purchases: number | null
           total_reviews: number | null
@@ -96,6 +97,7 @@ export type Database = {
           preview_url?: string | null
           price_usd: number
           rating?: number | null
+          sections?: Json | null
           title: string
           total_purchases?: number | null
           total_reviews?: number | null
@@ -122,6 +124,7 @@ export type Database = {
           preview_url?: string | null
           price_usd?: number
           rating?: number | null
+          sections?: Json | null
           title?: string
           total_purchases?: number | null
           total_reviews?: number | null
@@ -651,6 +654,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      guide_sections: {
+        Row: {
+          audio_url: string | null
+          created_at: string
+          description: string | null
+          duration_seconds: number | null
+          guide_id: string
+          id: string
+          language: string
+          order_index: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          audio_url?: string | null
+          created_at?: string
+          description?: string | null
+          duration_seconds?: number | null
+          guide_id: string
+          id?: string
+          language?: string
+          order_index?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          audio_url?: string | null
+          created_at?: string
+          description?: string | null
+          duration_seconds?: number | null
+          guide_id?: string
+          id?: string
+          language?: string
+          order_index?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       live_experiences: {
         Row: {

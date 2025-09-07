@@ -28,16 +28,16 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    const { prompt, destination, style } = await req.json();
+    const { title, city, country, category } = await req.json();
 
-    if (!prompt && !destination) {
-      throw new Error('Either prompt or destination is required');
+    if (!title || !city || !country) {
+      throw new Error('Title, city, and country are required');
     }
 
-    console.log('Generating image with OpenAI:', { prompt, destination, style });
+    console.log('Generating image for:', { title, city, country, category });
 
     // Create optimized prompt for travel destinations
-    const imagePrompt = prompt || `Professional travel photography of ${destination}, ${style || 'cinematic lighting, vibrant colors, tourist perspective'}, ultra high resolution, award-winning photography`;
+    const imagePrompt = `Professional travel photography of ${title} in ${city}, ${country}, ${category ? `${category} attraction, ` : ''}scenic view, high quality, award-winning photography, vibrant colors, tourist perspective, ultra high resolution`;
 
     const response = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
@@ -51,8 +51,7 @@ serve(async (req) => {
         n: 1,
         size: '1024x1024',
         quality: 'high',
-        output_format: 'webp',
-        background: 'auto'
+        output_format: 'webp'
       }),
     });
 
