@@ -6,6 +6,13 @@ import { Card } from '@/components/ui/card';
 import { XCircle, ArrowLeft, CreditCard } from 'lucide-react';
 
 export default function PaymentCancelled() {
+  // Add debugging for payment cancellation
+  React.useEffect(() => {
+    console.log('[PAYMENT-CANCELLED] Payment was cancelled');
+    console.log('[PAYMENT-CANCELLED] Current URL:', window.location.href);
+    console.log('[PAYMENT-CANCELLED] URL params:', window.location.search);
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />

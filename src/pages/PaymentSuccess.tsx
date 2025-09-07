@@ -83,6 +83,18 @@ export default function PaymentSuccess() {
       console.log('[PAYMENT-SUCCESS] Verifying payment with sessionId:', sessionId, 'guideId:', guideId);
       console.log('[PAYMENT-SUCCESS] Current URL:', window.location.href);
       console.log('[PAYMENT-SUCCESS] URL params:', window.location.search);
+      console.log('[PAYMENT-SUCCESS] User:', user?.email || 'No user');
+      
+      // Add detailed error logging for Stripe checkout issues
+      if (!sessionId) {
+        console.error('[PAYMENT-SUCCESS] Missing session_id - this indicates Stripe checkout did not complete properly');
+        throw new Error('Payment session not found. This may indicate a Stripe configuration issue.');
+      }
+      
+      if (!guideId) {
+        console.error('[PAYMENT-SUCCESS] Missing guide_id - this should not happen');
+        throw new Error('Guide ID missing from payment callback.');
+      }
       
       // Verify payment and create purchase record
       const { data: verifyData, error: verifyError } = await supabase.functions.invoke('verify-payment', {
