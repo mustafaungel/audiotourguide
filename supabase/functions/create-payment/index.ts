@@ -37,8 +37,8 @@ serve(async (req) => {
     logStep("User authenticated", { userId: user.id, email: user.email });
 
     // Get and validate origin for URL construction
-    const origin = req.headers.get("origin") || "https://dsaqlgxajdnwoqvtsrqd.supabase.co";
-    logStep("Origin header", { origin });
+    const origin = req.headers.get("origin") || req.headers.get("referer") || "http://localhost:3000";
+    logStep("Origin header", { origin, referer: req.headers.get("referer") });
 
     const { guideId } = await req.json();
     if (!guideId) throw new Error("Guide ID is required");
@@ -67,7 +67,13 @@ serve(async (req) => {
       throw new Error("You have already purchased this guide");
     }
 
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeKey) {
+      throw new Error("STRIPE_SECRET_KEY environment variable is not set");
+    }
+    logStep("Stripe key retrieved", { keyExists: !!stripeKey, keyLength: stripeKey.length });
+
+    const stripe = new Stripe(stripeKey, {
       apiVersion: "2023-10-16",
     });
 
@@ -79,8 +85,23 @@ serve(async (req) => {
       logStep("Existing customer found", { customerId });
     }
 
+    // Construct URLs with proper validation
+    const successUrl = `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&guide_id=${guideId}`;
+    const cancelUrl = `${origin}/payment-cancelled`;
+    logStep("Constructed URLs", { successUrl, cancelUrl });
+
+    try {
+      // Validate URLs
+      new URL(successUrl.replace('{CHECKOUT_SESSION_ID}', 'test'));
+      new URL(cancelUrl);
+      logStep("URL validation passed");
+    } catch (urlError) {
+      logStep("URL validation failed", { error: urlError.message, origin });
+      throw new Error(`Invalid URL construction: ${urlError.message}`);
+    }
+
     // Create checkout session
-    const session = await stripe.checkout.sessions.create({
+    const sessionData = {
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       line_items: [
@@ -97,14 +118,17 @@ serve(async (req) => {
           quantity: 1,
         },
       ],
-      mode: "payment",
-      success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&guide_id=${guideId}`,
-      cancel_url: `${origin}/payment-cancelled`,
+      mode: "payment" as const,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       metadata: {
         user_id: user.id,
         guide_id: guideId,
       },
-    });
+    };
+    
+    logStep("Creating Stripe session", { sessionData: { ...sessionData, line_items: "..." } });
+    const session = await stripe.checkout.sessions.create(sessionData);
 
     logStep("Checkout session created", { sessionId: session.id, url: session.url });
 
