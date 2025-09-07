@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Award, Save, Trash2 } from 'lucide-react';
+import { Award, Save, Trash2, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ExperienceBracketBadge } from '@/components/ExperienceBracketBadge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { getExperienceBracket } from '@/types/creator';
 
 interface PlatformRating {
   id: string;
@@ -20,6 +23,7 @@ interface PlatformRating {
 
 interface PlatformRatingManagerProps {
   creatorId: string;
+  creatorExperienceYears?: number;
   onUpdate?: () => void;
 }
 
@@ -32,6 +36,7 @@ const RATING_CATEGORIES = [
 
 export const PlatformRatingManager: React.FC<PlatformRatingManagerProps> = ({
   creatorId,
+  creatorExperienceYears = 0,
   onUpdate,
 }) => {
   const { user, userProfile } = useAuth();
@@ -43,6 +48,8 @@ export const PlatformRatingManager: React.FC<PlatformRatingManagerProps> = ({
   const [isSaving, setIsSaving] = useState(false);
 
   const isAdmin = userProfile?.role === 'admin';
+  const experienceBracket = getExperienceBracket(creatorExperienceYears);
+  const maxAllowedRating = experienceBracket.maxRating;
 
   useEffect(() => {
     if (isAdmin) {
@@ -80,11 +87,11 @@ export const PlatformRatingManager: React.FC<PlatformRatingManagerProps> = ({
     }
 
     const rating = parseFloat(ratingValue);
-    if (rating < 1 || rating > 5) {
+    if (rating < 1 || rating > maxAllowedRating) {
       toast({
         variant: "destructive",
         title: "Invalid rating",
-        description: "Rating must be between 1.0 and 5.0.",
+        description: `Rating must be between 1.0 and ${maxAllowedRating} for ${experienceBracket.label} creators.`,
       });
       return;
     }
@@ -165,10 +172,25 @@ export const PlatformRatingManager: React.FC<PlatformRatingManagerProps> = ({
 
   return (
     <Card className="p-6">
-      <div className="flex items-center gap-2 mb-4">
-        <Award className="h-5 w-5 text-accent" />
-        <h3 className="text-lg font-semibold">Platform Rating Management</h3>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Award className="h-5 w-5 text-accent" />
+          <h3 className="text-lg font-semibold">Platform Rating Management</h3>
+        </div>
+        <ExperienceBracketBadge 
+          experienceYears={creatorExperienceYears} 
+          variant="minimal"
+        />
       </div>
+
+      <Alert className="mb-4">
+        <Info className="h-4 w-4" />
+        <AlertDescription>
+          Maximum rating for {experienceBracket.label} creators: {maxAllowedRating}/5.0
+          <br />
+          Platform ratings are based on expertise level and experience years.
+        </AlertDescription>
+      </Alert>
 
       {/* Add/Edit Rating Form */}
       <form onSubmit={handleSubmit} className="space-y-4 mb-6">
@@ -190,16 +212,21 @@ export const PlatformRatingManager: React.FC<PlatformRatingManagerProps> = ({
           </div>
 
           <div>
-            <Label htmlFor="rating">Rating (1.0 - 5.0)</Label>
+            <Label htmlFor="rating">
+              Rating (1.0 - {maxAllowedRating})
+              <span className="text-xs text-muted-foreground ml-1">
+                Max for {experienceBracket.label}
+              </span>
+            </Label>
             <Input
               id="rating"
               type="number"
               min="1"
-              max="5"
+              max={maxAllowedRating}
               step="0.1"
               value={ratingValue}
               onChange={(e) => setRatingValue(e.target.value)}
-              placeholder="4.5"
+              placeholder={maxAllowedRating.toString()}
             />
           </div>
         </div>

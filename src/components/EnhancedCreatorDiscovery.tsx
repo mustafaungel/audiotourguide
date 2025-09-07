@@ -532,6 +532,7 @@ export const EnhancedCreatorDiscovery = () => {
                           platformRating={creator.platform_rating}
                           platformRatingCount={creator.platform_rating_count}
                           combinedRating={creator.combined_rating || creator.avg_rating}
+                          experienceYears={creator.experience_years}
                           variant="inline"
                         />
                         <div className="flex items-center gap-1">
@@ -811,6 +812,7 @@ export const EnhancedCreatorDiscovery = () => {
                               platformRating={creator.platform_rating}
                               platformRatingCount={creator.platform_rating_count}
                               combinedRating={creator.combined_rating || creator.avg_rating}
+                              experienceYears={creator.experience_years}
                               variant="inline"
                             />
                             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">

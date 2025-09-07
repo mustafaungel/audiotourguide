@@ -12,6 +12,8 @@ import { CreatorMessaging } from '@/components/CreatorMessaging';
 import { DualRatingDisplay } from '@/components/DualRatingDisplay';
 import { ServiceRatingForm } from '@/components/ServiceRatingForm';
 import { PlatformRatingManager } from '@/components/PlatformRatingManager';
+import { ExperienceBracketBadge } from '@/components/ExperienceBracketBadge';
+import { CreatorProfile as CreatorProfileType } from '@/types/creator';
 import { 
   Star, 
   MapPin, 
@@ -34,30 +36,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-interface CreatorProfile {
-  id: string;
-  user_id: string;
-  full_name: string;
-  bio: string;
-  avatar_url?: string;
-  specialties: string[];
-  experience_years?: number;
-  verification_status: string;
-  verification_badge_type: string;
-  social_profiles?: any;
-  created_at: string;
-  location?: string;
-  followers_count?: number;
-  total_guides?: number;
-  total_plays?: number;
-  avg_rating?: number;
-  service_rating?: number;
-  service_rating_count?: number;
-  platform_rating?: number;
-  platform_rating_count?: number;
-  combined_rating?: number;
-  achievements?: any[];
-}
+// Use the imported type instead of redefining
 
 interface Guide {
   id: string;
@@ -81,7 +60,7 @@ const CreatorProfile = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   
-  const [creator, setCreator] = useState<CreatorProfile | null>(null);
+  const [creator, setCreator] = useState<CreatorProfileType | null>(null);
   const [guides, setGuides] = useState<Guide[]>([]);
   const [loading, setLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -115,7 +94,11 @@ const CreatorProfile = () => {
             total_guides: 8,
             followers_count: 2340,
             total_plays: 12400,
-            avg_rating: 4.9
+            service_rating: 4.7,
+            service_rating_count: 234,
+            platform_rating: 4.5,
+            platform_rating_count: 12,
+            combined_rating: 4.6
           },
           'demo-2': {
             id: 'demo-2',
@@ -133,7 +116,11 @@ const CreatorProfile = () => {
             total_guides: 6,
             followers_count: 1890,
             total_plays: 9800,
-            avg_rating: 4.8
+            service_rating: 4.6,
+            service_rating_count: 189,
+            platform_rating: 4.0,
+            platform_rating_count: 8,
+            combined_rating: 4.4
           },
           'demo-3': {
             id: 'demo-3',
@@ -151,7 +138,11 @@ const CreatorProfile = () => {
             total_guides: 4,
             followers_count: 3200,
             total_plays: 15600,
-            avg_rating: 4.9
+            service_rating: 4.8,
+            service_rating_count: 320,
+            platform_rating: 4.5,
+            platform_rating_count: 15,
+            combined_rating: 4.7
           },
           'demo-4': {
             id: 'demo-4',
@@ -169,7 +160,11 @@ const CreatorProfile = () => {
             total_guides: 5,
             followers_count: 2850,
             total_plays: 11200,
-            avg_rating: 4.8
+            service_rating: 4.7,
+            service_rating_count: 285,
+            platform_rating: 4.0,
+            platform_rating_count: 10,
+            combined_rating: 4.5
           },
           'demo-5': {
             id: 'demo-5',
@@ -187,7 +182,11 @@ const CreatorProfile = () => {
             total_guides: 7,
             followers_count: 1650,
             total_plays: 8900,
-            avg_rating: 4.7
+            service_rating: 4.5,
+            service_rating_count: 165,
+            platform_rating: 3.5,
+            platform_rating_count: 6,
+            combined_rating: 4.2
           },
           'demo-6': {
             id: 'demo-6',
@@ -205,7 +204,11 @@ const CreatorProfile = () => {
             total_guides: 9,
             followers_count: 2950,
             total_plays: 13400,
-            avg_rating: 4.9
+            service_rating: 4.8,
+            service_rating_count: 295,
+            platform_rating: 4.5,
+            platform_rating_count: 14,
+            combined_rating: 4.7
           }
         };
 
@@ -457,12 +460,16 @@ const CreatorProfile = () => {
         ? avgRatingData.reduce((sum, g) => sum + (g.rating || 0), 0) / avgRatingData.length
         : 0;
 
-      return {
-        total_guides: totalGuides || 0,
-        followers_count: (totalPurchases || 0) * 3, // Rough follower estimation
-        total_plays: (totalPurchases || 0) * 12, // Rough play estimation
-        avg_rating: Math.round(avgRating * 10) / 10
-      };
+       return {
+         total_guides: totalGuides || 0,
+         followers_count: (totalPurchases || 0) * 3, // Rough follower estimation
+         total_plays: (totalPurchases || 0) * 12, // Rough play estimation
+         service_rating: Math.round(avgRating * 10) / 10,
+         service_rating_count: totalPurchases || 0,
+         platform_rating: 0,
+         platform_rating_count: 0,
+         combined_rating: Math.round(avgRating * 10) / 10
+       };
     } catch (error) {
       console.error('Error calculating stats:', error);
       return {};
@@ -576,6 +583,12 @@ const CreatorProfile = () => {
                       Verified Creator
                     </Badge>
                   )}
+                  {creator.experience_years && (
+                    <ExperienceBracketBadge 
+                      experienceYears={creator.experience_years}
+                      showTooltip={true}
+                    />
+                  )}
                 </div>
                 
                 <p className="text-primary-foreground/90 text-lg mb-4 max-w-2xl">
@@ -641,14 +654,15 @@ const CreatorProfile = () => {
                 
                 <Card className="bg-primary-foreground/10 border-primary-foreground/20">
                   <CardContent className="p-4">
-                    <DualRatingDisplay
-                      serviceRating={creator.service_rating || creator.avg_rating}
-                      serviceRatingCount={creator.service_rating_count || 0}
-                      platformRating={creator.platform_rating}
-                      platformRatingCount={creator.platform_rating_count}
-                      combinedRating={creator.combined_rating || creator.avg_rating}
-                      variant="card"
-                    />
+                     <DualRatingDisplay
+                       serviceRating={creator.service_rating}
+                       serviceRatingCount={creator.service_rating_count || 0}
+                       platformRating={creator.platform_rating}
+                       platformRatingCount={creator.platform_rating_count}
+                       combinedRating={creator.combined_rating}
+                       experienceYears={creator.experience_years}
+                       variant="card"
+                     />
                   </CardContent>
                 </Card>
               </div>
@@ -817,6 +831,7 @@ const CreatorProfile = () => {
               
               <PlatformRatingManager
                 creatorId={creator?.user_id || ''}
+                creatorExperienceYears={creator?.experience_years || 0}
                 onUpdate={() => {
                   // Refresh creator data after platform rating update
                   fetchCreatorProfile();

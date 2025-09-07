@@ -3,6 +3,7 @@ import { Star, Users, Award } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { ExperienceBracketBadge } from '@/components/ExperienceBracketBadge';
 
 interface DualRatingDisplayProps {
   serviceRating?: number;
@@ -10,6 +11,7 @@ interface DualRatingDisplayProps {
   platformRating?: number;
   platformRatingCount?: number;
   combinedRating?: number;
+  experienceYears?: number;
   variant?: 'card' | 'inline' | 'detailed';
   showLabels?: boolean;
 }
@@ -20,6 +22,7 @@ export const DualRatingDisplay: React.FC<DualRatingDisplayProps> = ({
   platformRating = 0,
   platformRatingCount = 0,
   combinedRating = 0,
+  experienceYears = 0,
   variant = 'inline',
   showLabels = true,
 }) => {
@@ -101,9 +104,13 @@ export const DualRatingDisplay: React.FC<DualRatingDisplayProps> = ({
                           {platformRating > 0 ? platformRating.toFixed(1) : 'N/A'}
                         </span>
                       </div>
-                      <Badge variant="outline" className="text-xs">
-                        Expert
-                      </Badge>
+                      {experienceYears > 0 && (
+                        <ExperienceBracketBadge 
+                          experienceYears={experienceYears} 
+                          variant="minimal"
+                          showTooltip={false}
+                        />
+                      )}
                     </div>
                   </div>
                 </TooltipTrigger>
@@ -155,7 +162,13 @@ export const DualRatingDisplay: React.FC<DualRatingDisplayProps> = ({
               <span className="text-sm font-medium">
                 {platformRating > 0 ? platformRating.toFixed(1) : 'N/A'}
               </span>
-              <Badge variant="outline" className="text-xs">Expert</Badge>
+              {experienceYears > 0 && (
+                <ExperienceBracketBadge 
+                  experienceYears={experienceYears} 
+                  variant="minimal"
+                  showTooltip={false}
+                />
+              )}
             </div>
           </div>
         </div>
