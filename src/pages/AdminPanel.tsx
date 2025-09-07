@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Wand2, Volume2, Image, FileText, CheckCircle, BarChart3, Users, Settings, UserPlus } from 'lucide-react';
+import { Loader2, Wand2, Volume2, Image, FileText, CheckCircle, BarChart3, Users, Settings, UserPlus, UserCheck, Plus } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -234,46 +234,38 @@ const AdminPanel = () => {
         </div>
 
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid grid-cols-10 w-full max-w-6xl">
-            <TabsTrigger value="dashboard" className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Dashboard
+          <TabsList className="grid grid-cols-4 lg:grid-cols-8 w-full max-w-6xl gap-2">
+            <TabsTrigger value="dashboard" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
+              <BarChart3 className="h-3 w-3 lg:h-4 lg:w-4" />
+              <span className="hidden sm:inline">Dashboard</span>
             </TabsTrigger>
-            <TabsTrigger value="guides" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Guides
+            <TabsTrigger value="user-management" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
+              <Users className="h-3 w-3 lg:h-4 lg:w-4" />
+              <span className="hidden sm:inline">User Mgmt</span>
             </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Users
+            <TabsTrigger value="creator-management" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
+              <UserCheck className="h-3 w-3 lg:h-4 lg:w-4" />
+              <span className="hidden sm:inline">Creator Mgmt</span>
             </TabsTrigger>
-            <TabsTrigger value="creators" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Creators
+            <TabsTrigger value="content-management" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
+              <FileText className="h-3 w-3 lg:h-4 lg:w-4" />
+              <span className="hidden sm:inline">Content</span>
             </TabsTrigger>
-            <TabsTrigger value="create-user" className="flex items-center gap-2">
-              <UserPlus className="h-4 w-4" />
-              Create User
+            <TabsTrigger value="ai-tools" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
+              <Wand2 className="h-3 w-3 lg:h-4 lg:w-4" />
+              <span className="hidden sm:inline">AI Tools</span>
             </TabsTrigger>
-            <TabsTrigger value="create-creator" className="flex items-center gap-2">
-              <UserPlus className="h-4 w-4" />
-              Create Creator
+            <TabsTrigger value="create-guide" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
+              <Plus className="h-3 w-3 lg:h-4 lg:w-4" />
+              <span className="hidden sm:inline">Create</span>
             </TabsTrigger>
-            <TabsTrigger value="ai-guides" className="flex items-center gap-2">
-              <Wand2 className="h-4 w-4" />
-              AI Guides
+            <TabsTrigger value="analytics" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
+              <Settings className="h-3 w-3 lg:h-4 lg:w-4" />
+              <span className="hidden sm:inline">Analytics</span>
             </TabsTrigger>
-            <TabsTrigger value="create" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Create
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              Analytics
-            </TabsTrigger>
-            <TabsTrigger value="audio-setup" className="flex items-center gap-2">
-              <Volume2 className="h-4 w-4" />
-              Audio Setup
+            <TabsTrigger value="audio-setup" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
+              <Volume2 className="h-3 w-3 lg:h-4 lg:w-4" />
+              <span className="hidden sm:inline">Audio</span>
             </TabsTrigger>
           </TabsList>
 
@@ -281,31 +273,81 @@ const AdminPanel = () => {
             <AdminDashboard />
           </TabsContent>
 
-          <TabsContent value="guides">
-            <GuideManagement />
+          <TabsContent value="user-management">
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold">User Management</h2>
+                <Button onClick={() => document.getElementById('create-user-tab')?.click()}>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Create New User
+                </Button>
+              </div>
+              <div className="grid gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Existing Users</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <UserManagement />
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Create New User</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <AdminUserCreation />
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
           </TabsContent>
 
-          <TabsContent value="users">
-            <UserManagement />
+          <TabsContent value="creator-management">
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold">Creator Management</h2>
+                <Button onClick={() => document.getElementById('create-creator-tab')?.click()}>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Create New Creator
+                </Button>
+              </div>
+              <div className="grid gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Existing Creators</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <AdminCreatorManagement />
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Create New Creator</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <AdminCreatorCreation />
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
           </TabsContent>
 
-          <TabsContent value="creators">
-            <AdminCreatorManagement />
+          <TabsContent value="content-management">
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold">Content Management</h2>
+              <GuideManagement />
+            </div>
           </TabsContent>
 
-          <TabsContent value="create-user">
-            <AdminUserCreation />
+          <TabsContent value="ai-tools">
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold">AI Content Generation</h2>
+              <AdminAIGuideGenerator />
+            </div>
           </TabsContent>
 
-          <TabsContent value="create-creator">
-            <AdminCreatorCreation />
-          </TabsContent>
-
-          <TabsContent value="ai-guides">
-            <AdminAIGuideGenerator />
-          </TabsContent>
-
-          <TabsContent value="create">
+          <TabsContent value="create-guide">
             <div className="grid lg:grid-cols-3 gap-8">
               {/* Form Section */}
               <div className="lg:col-span-2 space-y-6">

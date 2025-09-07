@@ -10,6 +10,8 @@ import { Loader2, User, UserPlus, Mail, Shield, UserCheck } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { TextareaWithCounter } from '@/components/ui/character-counter';
+import { MultiSelect } from '@/components/ui/multi-select';
+import { LANGUAGES, COUNTRIES } from '@/data/constants';
 
 export const AdminUserCreation = () => {
   const [isCreating, setIsCreating] = useState(false);

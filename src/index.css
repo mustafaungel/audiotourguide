@@ -73,7 +73,7 @@ All colors MUST be HSL.
     --audio-secondary: 205 88% 48%;
 
     /* Rich Gradient System - Better image overlays */
-    --gradient-hero: linear-gradient(135deg, hsl(22 88% 52% / 0.8), hsl(205 88% 48% / 0.9));
+    --gradient-hero: linear-gradient(135deg, hsl(22 88% 52% / 0.4), hsl(205 88% 48% / 0.3));
     --gradient-primary: linear-gradient(135deg, hsl(22 88% 52%), hsl(22 88% 62%));
     --gradient-accent: linear-gradient(135deg, hsl(205 88% 48%), hsl(205 88% 58%));
     --gradient-card: linear-gradient(145deg, hsl(25 15% 99%), hsl(25 20% 96%));
@@ -81,7 +81,7 @@ All colors MUST be HSL.
     --gradient-sunset: linear-gradient(135deg, hsl(18 85% 62%), hsl(12 90% 68%));
     --gradient-ocean: linear-gradient(135deg, hsl(205 88% 48%), hsl(195 85% 52%));
     --gradient-earth: linear-gradient(135deg, hsl(28 75% 58%), hsl(15 75% 55%));
-    --gradient-overlay: linear-gradient(180deg, transparent 0%, hsl(0 0% 0% / 0.6) 100%);
+    --gradient-overlay: linear-gradient(180deg, transparent 0%, hsl(0 0% 0% / 0.3) 100%);
 
     /* Enhanced Shadow System */
     --shadow-glow: 0 0 40px hsl(22 88% 52% / 0.25);

@@ -80,7 +80,8 @@ export function GuideCard({
 
   const handleView = async () => {
     await trackEngagement('view', id);
-    onViewGuide?.();
+    // Check if user has purchased this guide
+    navigate(`/guide/${id}`);
   };
 
   const getCategoryColor = (cat: string) => {

@@ -1,17 +1,20 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { SocialShare } from "@/components/SocialShare";
+import { PaymentModal } from "@/components/PaymentModal";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Star, MapPin, Clock, Users, Play, Download, Share2, Bookmark, ChevronLeft } from "lucide-react";
+import { Star, MapPin, Clock, Users, Play, Download, Share2, Bookmark, ChevronLeft, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useViralTracking } from "@/hooks/useViralTracking";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 // Demo guide data
 const guideData = {
@@ -112,20 +115,85 @@ const relatedGuides = [
 
 const GuideDetail = () => {
   const { guideId } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const { trackEngagement } = useViralTracking();
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [playingGuide, setPlayingGuide] = useState(false);
-  const [isPurchased] = useState(false); // Demo: set to true to show purchased state
+  const [isPurchased, setIsPurchased] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [realGuideData, setRealGuideData] = useState<any>(null);
   const { toast } = useToast();
 
-  // Get guide data - fallback to demo data if not found
-  const guide = guideData[guideId as keyof typeof guideData] || guideData["machu-picchu-complete"];
+  // Check if we have real guide data or use demo data
+  const guide = realGuideData || guideData[guideId as keyof typeof guideData] || guideData["machu-picchu-complete"];
 
   const handlePurchase = () => {
-    toast({
-      title: "Purchase Initiated",
-      description: "Redirecting to secure checkout...",
-    });
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to purchase audio guides."
+      });
+      navigate('/auth');
+      return;
+    }
+    
+    setShowPaymentModal(true);
+  };
+
+  const handlePaymentSuccess = () => {
+    setIsPurchased(true);
+    setShowPaymentModal(false);
+    checkPurchaseStatus();
+  };
+
+  const fetchGuideDetails = async () => {
+    if (!guideId) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('audio_guides')
+        .select(`
+          *,
+          profiles:creator_id (
+            full_name,
+            avatar_url,
+            bio
+          )
+        `)
+        .eq('id', guideId)
+        .eq('is_published', true)
+        .eq('is_approved', true)
+        .single();
+
+      if (error) throw error;
+      setRealGuideData(data);
+    } catch (error) {
+      console.error('Error fetching guide:', error);
+      // Fall back to demo data
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const checkPurchaseStatus = async () => {
+    if (!user || !guideId) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('user_purchases')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('guide_id', guideId)
+        .single();
+
+      if (data) {
+        setIsPurchased(true);
+      }
+    } catch (error) {
+      setIsPurchased(false);
+    }
   };
 
   const handleBookmark = () => {
@@ -142,13 +210,18 @@ const GuideDetail = () => {
   };
 
   useEffect(() => {
+    fetchGuideDetails();
+    if (user) {
+      checkPurchaseStatus();
+    }
+    
     // Track guide view
     if (guideId) {
       trackEngagement('view', guideId, {
         metadata: { location: guide.location }
       });
     }
-  }, [guideId, trackEngagement, guide.location]);
+  }, [guideId, user]);
 
   const handleShare = () => {
     if (navigator.share) {
@@ -348,9 +421,19 @@ const GuideDetail = () => {
                     </Button>
                   </>
                 ) : (
-                  <Button className="w-full" onClick={handlePurchase}>
-                    Purchase Guide
-                  </Button>
+                  <>
+                    <Button className="w-full" onClick={handlePurchase}>
+                      Purchase Guide
+                    </Button>
+                    {!user && (
+                      <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
+                        <Lock className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">
+                          Sign in to purchase and access guides
+                        </span>
+                      </div>
+                    )}
+                  </>
                 )}
               </CardContent>
             </Card>
@@ -447,6 +530,16 @@ const GuideDetail = () => {
           </div>
         </div>
       )}
+
+      {/* Payment Modal */}
+      <PaymentModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        guideId={realGuideData?.id || guideId || ''}
+        guideTitle={realGuideData?.title || guide.title}
+        price={realGuideData?.price_usd || (guide.price * 100)}
+        onSuccess={handlePaymentSuccess}
+      />
     </div>
   );
 };
