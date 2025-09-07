@@ -1,6 +1,6 @@
 import React from 'react';
 import { Navigation } from '@/components/Navigation';
-import { CreatorDiscovery } from '@/components/CreatorDiscovery';
+import { EnhancedCreatorDiscovery } from '@/components/EnhancedCreatorDiscovery';
 
 const Creators = () => {
   return (
@@ -15,7 +15,7 @@ const Creators = () => {
           </p>
         </div>
 
-        <CreatorDiscovery />
+        <EnhancedCreatorDiscovery />
       </div>
     </div>
   );

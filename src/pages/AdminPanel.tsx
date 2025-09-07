@@ -15,6 +15,7 @@ import { toast } from '@/hooks/use-toast';
 import { AdminDashboard } from '@/components/AdminDashboard';
 import { GuideManagement } from '@/components/GuideManagement';
 import { UserManagement } from '@/components/UserManagement';
+import { AdminCreatorManagement } from '@/components/AdminCreatorManagement';
 
 const AdminPanel = () => {
   const { user, userProfile } = useAuth();
@@ -229,7 +230,7 @@ const AdminPanel = () => {
         </div>
 
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid grid-cols-5 w-full max-w-2xl">
+          <TabsList className="grid grid-cols-6 w-full max-w-3xl">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Dashboard
@@ -241,6 +242,10 @@ const AdminPanel = () => {
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Users
+            </TabsTrigger>
+            <TabsTrigger value="creators" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Creators
             </TabsTrigger>
             <TabsTrigger value="create" className="flex items-center gap-2">
               <Wand2 className="h-4 w-4" />
@@ -262,6 +267,10 @@ const AdminPanel = () => {
 
           <TabsContent value="users">
             <UserManagement />
+          </TabsContent>
+
+          <TabsContent value="creators">
+            <AdminCreatorManagement />
           </TabsContent>
 
           <TabsContent value="create">

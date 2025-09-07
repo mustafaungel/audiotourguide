@@ -4,6 +4,7 @@ import { AudioPlayer } from '@/components/AudioPlayer';
 import { GuideCard } from '@/components/GuideCard';
 import { Navigation } from '@/components/Navigation';
 import { ViralDashboard } from '@/components/ViralDashboard';
+import { CreatorRecommendations } from '@/components/CreatorRecommendations';
 import { Button } from '@/components/ui/button';
 import { Headphones, Search, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -240,6 +241,16 @@ const Index = () => {
               <p className="text-muted-foreground">Try searching for UNESCO sites, cultural experiences, or specific countries</p>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Featured Creators Section */}
+      <section className="py-16 px-6 bg-muted/30">
+        <div className="max-w-7xl mx-auto">
+          <CreatorRecommendations 
+            title="Featured Creators" 
+            limit={6}
+          />
         </div>
       </section>
 
