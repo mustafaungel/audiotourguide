@@ -6,6 +6,13 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { 
+  Carousel, 
+  CarouselContent, 
+  CarouselItem, 
+  CarouselNext, 
+  CarouselPrevious 
+} from '@/components/ui/carousel';
 import { VerificationBadge } from './VerificationBadge';
 import { TierBadge } from './TierBadge';
 import { CreatorTypeBadge } from './CreatorTypeBadge';
@@ -467,24 +474,36 @@ export const EnhancedCreatorDiscovery = () => {
   if (loading) {
     return (
       <div className="space-y-8">
-        {/* Loading Skeletons */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Loading Skeletons */}
+      <Carousel
+        opts={{
+          align: "start",
+          loop: false,
+        }}
+        className="w-full"
+      >
+        <CarouselContent className="-ml-4">
           {Array.from({ length: 6 }).map((_, index) => (
-            <Card key={index} className="overflow-hidden">
-              <CardContent className="p-6">
-                <div className="flex items-start gap-4">
-                  <Skeleton className="w-16 h-16 rounded-full" />
-                  <div className="flex-1 space-y-2">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-3 w-24" />
-                    <Skeleton className="h-3 w-full" />
-                    <Skeleton className="h-3 w-3/4" />
+            <CarouselItem key={index} className="pl-4 md:basis-1/2 lg:basis-1/3">
+              <Card className="overflow-hidden h-full">
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4">
+                    <Skeleton className="w-16 h-16 rounded-full" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-3 w-24" />
+                      <Skeleton className="h-3 w-full" />
+                      <Skeleton className="h-3 w-3/4" />
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </CarouselItem>
           ))}
-        </div>
+        </CarouselContent>
+        <CarouselPrevious className="left-2" />
+        <CarouselNext className="right-2" />
+      </Carousel>
       </div>
     );
   }
@@ -698,165 +717,176 @@ export const EnhancedCreatorDiscovery = () => {
             )}
           </div>
 
-          {/* Creators Grid */}
+          {/* Creators Carousel */}
           {filteredCreators.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredCreators.map((creator) => (
-                <Card 
-                  key={creator.id} 
-                  className="overflow-hidden hover:shadow-lg transition-all duration-200 cursor-pointer group border-border/50 hover:border-tourism-warm/30"
-                  onClick={() => navigate(`/creator/${creator.id}`)}
-                >
-                  <CardContent className="p-0">
-                    <div className="p-6">
-                      <div className="flex items-start gap-4 mb-4">
-                        <Avatar className="w-16 h-16 ring-2 ring-tourism-warm/20 group-hover:ring-tourism-warm/40 transition-all">
-                          <AvatarImage src={creator.avatar_url} />
-                          <AvatarFallback className="bg-tourism-warm/10 text-tourism-warm text-lg">
-                            {creator.full_name.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                        
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2 mb-2">
-                            <div>
-                              <h3 className="font-semibold text-foreground group-hover:text-tourism-warm transition-colors truncate">
-                                {creator.full_name}
-                              </h3>
-                              <div className="flex items-center gap-2 mt-1">
-                                {creator.verification_status === 'verified' && (
-                                  <VerificationBadge type="blue_tick" size="sm" />
-                                )}
-                                <TierBadge tier={creator.current_tier} size="sm" />
-                                <CreatorTypeBadge type={creator.creator_type as any} />
+            <Carousel
+              opts={{
+                align: "start",
+                loop: false,
+              }}
+              className="w-full"
+            >
+              <CarouselContent className="-ml-4">
+                {filteredCreators.map((creator) => (
+                  <CarouselItem key={creator.id} className="pl-4 md:basis-1/2 lg:basis-1/3">
+                    <Card 
+                      className="overflow-hidden hover:shadow-lg transition-all duration-200 cursor-pointer group border-border/50 hover:border-tourism-warm/30 h-full"
+                      onClick={() => navigate(`/creator/${creator.id}`)}
+                    >
+                      <CardContent className="p-0">
+                        <div className="p-6">
+                          <div className="flex items-start gap-4 mb-4">
+                            <Avatar className="w-16 h-16 ring-2 ring-tourism-warm/20 group-hover:ring-tourism-warm/40 transition-all">
+                              <AvatarImage src={creator.avatar_url} />
+                              <AvatarFallback className="bg-tourism-warm/10 text-tourism-warm text-lg">
+                                {creator.full_name.charAt(0)}
+                              </AvatarFallback>
+                            </Avatar>
+                            
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2 mb-2">
+                                <div>
+                                  <h3 className="font-semibold text-foreground group-hover:text-tourism-warm transition-colors truncate">
+                                    {creator.full_name}
+                                  </h3>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    {creator.verification_status === 'verified' && (
+                                      <VerificationBadge type="blue_tick" size="sm" />
+                                    )}
+                                    <TierBadge tier={creator.current_tier} size="sm" />
+                                    <CreatorTypeBadge type={creator.creator_type as any} />
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
+                                <MapPin className="w-3 h-3" />
+                                <span className="truncate">{creator.location}</span>
                               </div>
                             </div>
                           </div>
-                          
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
-                            <MapPin className="w-3 h-3" />
-                            <span className="truncate">{creator.location}</span>
-                          </div>
-                        </div>
-                      </div>
 
-                      <div className="space-y-3">
-                        <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
-                          {creator.bio || "Passionate cultural guide sharing authentic local experiences and hidden gems."}
-                        </p>
+                          <div className="space-y-3">
+                            <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
+                              {creator.bio || "Passionate cultural guide sharing authentic local experiences and hidden gems."}
+                            </p>
 
-                        {/* Languages - More Prominent */}
-                        {creator.languages_spoken && creator.languages_spoken.length > 0 && (
-                          <div className="space-y-1">
-                            <div className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                              <Languages className="w-3 h-3" />
-                              Languages Spoken
-                            </div>
-                            <div className="flex flex-wrap gap-1">
-                              {creator.languages_spoken.slice(0, 4).map((language, index) => (
-                                <Badge 
-                                  key={index} 
-                                  className="text-xs bg-tourism-earth/10 text-tourism-earth border-tourism-earth/20 hover:bg-tourism-earth/20"
-                                >
-                                  {language}
-                                </Badge>
-                              ))}
-                              {creator.languages_spoken.length > 4 && (
-                                <Badge variant="outline" className="text-xs">
-                                  +{creator.languages_spoken.length - 4} more
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        )}
+                            {/* Languages - More Prominent */}
+                            {creator.languages_spoken && creator.languages_spoken.length > 0 && (
+                              <div className="space-y-1">
+                                <div className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                                  <Languages className="w-3 h-3" />
+                                  Languages Spoken
+                                </div>
+                                <div className="flex flex-wrap gap-1">
+                                  {creator.languages_spoken.slice(0, 4).map((language, index) => (
+                                    <Badge 
+                                      key={index} 
+                                      className="text-xs bg-tourism-earth/10 text-tourism-earth border-tourism-earth/20 hover:bg-tourism-earth/20"
+                                    >
+                                      {language}
+                                    </Badge>
+                                  ))}
+                                  {creator.languages_spoken.length > 4 && (
+                                    <Badge variant="outline" className="text-xs">
+                                      +{creator.languages_spoken.length - 4} more
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            )}
 
-                        {/* Specialties */}
-                        {creator.specialties && creator.specialties.length > 0 && (
-                          <div className="space-y-1">
-                            <div className="text-xs font-medium text-muted-foreground">Specialties</div>
-                            <div className="flex flex-wrap gap-1">
-                              {creator.specialties.slice(0, 2).map((specialty, index) => (
-                                <Badge 
-                                  key={index} 
-                                  variant="secondary" 
-                                  className="text-xs bg-tourism-warm/10 text-tourism-warm border-tourism-warm/20"
-                                >
-                                  {specialty}
-                                </Badge>
-                              ))}
-                              {creator.specialties.length > 2 && (
-                                <Badge variant="outline" className="text-xs">
-                                  +{creator.specialties.length - 2} more
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        )}
+                            {/* Specialties */}
+                            {creator.specialties && creator.specialties.length > 0 && (
+                              <div className="space-y-1">
+                                <div className="text-xs font-medium text-muted-foreground">Specialties</div>
+                                <div className="flex flex-wrap gap-1">
+                                  {creator.specialties.slice(0, 2).map((specialty, index) => (
+                                    <Badge 
+                                      key={index} 
+                                      variant="secondary" 
+                                      className="text-xs bg-tourism-warm/10 text-tourism-warm border-tourism-warm/20"
+                                    >
+                                      {specialty}
+                                    </Badge>
+                                  ))}
+                                  {creator.specialties.length > 2 && (
+                                    <Badge variant="outline" className="text-xs">
+                                      +{creator.specialties.length - 2} more
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            )}
 
-                        {/* Stats Grid */}
-                        <div className="grid grid-cols-2 gap-3 pt-2">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                              <Users className="w-3 h-3" />
-                              <span>{formatNumber(creator.followers_count)} followers</span>
-                            </div>
-                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                              <BookOpen className="w-3 h-3" />
-                              <span>{creator.total_guides} guides</span>
-                            </div>
-                          </div>
-                          <div className="space-y-1">
-                            <DualRatingDisplay
-                              serviceRating={creator.service_rating || creator.avg_rating}
-                              serviceRatingCount={creator.service_rating_count || 0}
-                              platformRating={creator.platform_rating}
-                              platformRatingCount={creator.platform_rating_count}
-                              combinedRating={creator.combined_rating || creator.avg_rating}
-                              experienceYears={creator.experience_years}
-                              variant="inline"
-                            />
-                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                              <Play className="w-3 h-3" />
-                              <span>{formatNumber(creator.total_plays)} plays</span>
+                            {/* Stats Grid */}
+                            <div className="grid grid-cols-2 gap-3 pt-2">
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                  <Users className="w-3 h-3" />
+                                  <span>{formatNumber(creator.followers_count)} followers</span>
+                                </div>
+                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                  <BookOpen className="w-3 h-3" />
+                                  <span>{creator.total_guides} guides</span>
+                                </div>
+                              </div>
+                              <div className="space-y-1">
+                                <DualRatingDisplay
+                                  serviceRating={creator.service_rating || creator.avg_rating}
+                                  serviceRatingCount={creator.service_rating_count || 0}
+                                  platformRating={creator.platform_rating}
+                                  platformRatingCount={creator.platform_rating_count}
+                                  combinedRating={creator.combined_rating || creator.avg_rating}
+                                  experienceYears={creator.experience_years}
+                                  variant="inline"
+                                />
+                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                  <Play className="w-3 h-3" />
+                                  <span>{formatNumber(creator.total_plays)} plays</span>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
 
-                    {/* Action Buttons */}
-                    <div className="px-6 pb-4">
-                      <div className="flex gap-2">
-                        <Button
-                          variant={followedCreators.has(creator.id) ? "default" : "outline"}
-                          size="sm"
-                          className="flex-1 gap-1.5"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleFollow(creator.id);
-                          }}
-                        >
-                          <Heart className={`w-3 h-3 ${followedCreators.has(creator.id) ? 'fill-current' : ''}`} />
-                          {followedCreators.has(creator.id) ? 'Following' : 'Follow'}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="gap-1.5"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleMessage();
-                          }}
-                        >
-                          <MessageCircle className="w-3 h-3" />
-                          Message
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                        {/* Action Buttons */}
+                        <div className="px-6 pb-4">
+                          <div className="flex gap-2">
+                            <Button
+                              variant={followedCreators.has(creator.id) ? "default" : "outline"}
+                              size="sm"
+                              className="flex-1 gap-1.5"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleFollow(creator.id);
+                              }}
+                            >
+                              <Heart className={`w-3 h-3 ${followedCreators.has(creator.id) ? 'fill-current' : ''}`} />
+                              {followedCreators.has(creator.id) ? 'Following' : 'Follow'}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="gap-1.5"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleMessage();
+                              }}
+                            >
+                              <MessageCircle className="w-3 h-3" />
+                              Message
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="left-2" />
+              <CarouselNext className="right-2" />
+            </Carousel>
           ) : (
             <div className="text-center py-16">
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
