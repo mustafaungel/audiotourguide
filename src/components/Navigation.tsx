@@ -64,7 +64,7 @@ export const Navigation = () => {
             <Link to="/creators" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
               Creators
             </Link>
-            <Link to="/library" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+            <Link to="/unesco-sites" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
               UNESCO Sites
             </Link>
           </nav>
@@ -178,7 +178,7 @@ export const Navigation = () => {
                       Creators
                     </Link>
                     <Link 
-                      to="/library" 
+                      to="/unesco-sites" 
                       onClick={closeMobileMenu}
                       className="flex items-center py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
                     >
