@@ -34,7 +34,15 @@ export const CreatorTypeBadge: React.FC<CreatorTypeBadgeProps> = ({
     }
   };
 
-  const { icon: Icon, label, description, className: badgeClassName } = config[type];
+  // Handle unknown creator types with fallback
+  const typeConfig = config[type] || {
+    icon: MapPin,
+    label: 'Creator',
+    description: 'Content creator',
+    className: 'bg-muted text-muted-foreground border-border hover:bg-muted/90'
+  };
+
+  const { icon: Icon, label, description, className: badgeClassName } = typeConfig;
 
   if (variant === 'compact') {
     return (

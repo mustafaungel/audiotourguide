@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { CreatorTypeBadge } from '@/components/CreatorTypeBadge';
 import { CreatorRecommendations } from '@/components/CreatorRecommendations';
+import { useNavigate } from 'react-router-dom';
 import { 
   Star, 
   MapPin, 
@@ -43,9 +44,11 @@ interface FeaturedCreator {
 }
 
 export const CreatorSpotlight: React.FC = () => {
+  const navigate = useNavigate();
+  
   const [featuredCreators] = useState<FeaturedCreator[]>([
     {
-      id: '1',
+      id: 'demo-1',
       name: 'Elena Rodriguez',
       title: 'UNESCO Heritage Expert',
       location: 'Machu Picchu, Peru',
@@ -67,7 +70,7 @@ export const CreatorSpotlight: React.FC = () => {
       }
     },
     {
-      id: '2',
+      id: 'demo-2',
       name: 'Marco Rossi',
       title: 'Renaissance Art Historian',
       location: 'Florence, Italy',
@@ -89,7 +92,7 @@ export const CreatorSpotlight: React.FC = () => {
       }
     },
     {
-      id: '3',
+      id: 'demo-3',
       name: 'Yuki Tanaka',
       title: 'Cultural Immersion Guide',
       location: 'Kyoto, Japan',
@@ -150,7 +153,11 @@ export const CreatorSpotlight: React.FC = () => {
       {/* Featured Creators */}
       <div className="space-y-6">
         {featuredCreators.map((creator) => (
-          <Card key={creator.id} className="bg-gradient-card border-tourism-warm/20 shadow-card overflow-hidden">
+          <Card 
+            key={creator.id} 
+            className="bg-gradient-card border-tourism-warm/20 shadow-card overflow-hidden cursor-pointer hover:shadow-tourism transition-all"
+            onClick={() => navigate(`/creator/${creator.id}`)}
+          >
             <CardContent className="p-6">
               <div className="flex flex-col lg:flex-row gap-6">
                 {/* Creator Profile */}
