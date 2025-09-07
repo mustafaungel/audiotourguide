@@ -145,6 +145,8 @@ const Index = () => {
             <AudioPlayer 
               title={selectedGuide.title}
               description={selectedGuide.description}
+              guideId={selectedGuide.id}
+              transcript={selectedGuide.transcript}
             />
           </div>
         </section>

@@ -45,6 +45,12 @@ All colors MUST be HSL.
     --tourism-sky: 200 95% 45%;
     --tourism-sunset: 15 90% 65%;
 
+    /* Audio Player Colors */
+    --audio-primary: 25 95% 53%;
+    --audio-waveform: 25 75% 65%;
+    --audio-progress: 25 95% 53%;
+    --audio-background: 45 20% 98%;
+
     /* Gradients */
     --gradient-hero: linear-gradient(135deg, hsl(25 95% 53% / 0.1), hsl(200 95% 45% / 0.1));
     --gradient-primary: linear-gradient(135deg, hsl(25 95% 53%), hsl(25 95% 63%));
@@ -118,6 +124,12 @@ All colors MUST be HSL.
     --tourism-earth: 30 85% 70%;
     --tourism-sky: 200 95% 55%;
     --tourism-sunset: 15 90% 75%;
+
+    /* Audio Player Colors */
+    --audio-primary: 25 95% 63%;
+    --audio-waveform: 25 75% 75%;
+    --audio-progress: 25 95% 63%;
+    --audio-background: 25 15% 12%;
 
     /* Gradients */
     --gradient-hero: linear-gradient(135deg, hsl(25 95% 63% / 0.15), hsl(200 95% 55% / 0.15));

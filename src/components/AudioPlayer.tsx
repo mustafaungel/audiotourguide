@@ -1,53 +1,155 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Play, Pause, SkipBack, SkipForward, Volume2 } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AudioPlayerProps {
   title?: string;
   description?: string;
   audioSrc?: string;
+  guideId?: string;
+  transcript?: string;
 }
 
 export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   title = "Sample Audio Guide",
   description = "Discover the fascinating history behind this location",
   audioSrc,
+  guideId,
+  transcript,
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
+  const [volume, setVolume] = useState(1);
+  const [isMuted, setIsMuted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [actualAudioSrc, setActualAudioSrc] = useState<string | null>(null);
+  const [showTranscript, setShowTranscript] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  const togglePlayPause = () => {
-    if (audioRef.current) {
+  // Load audio from storage bucket
+  useEffect(() => {
+    const loadAudio = async () => {
+      if (audioSrc) {
+        setActualAudioSrc(audioSrc);
+        return;
+      }
+
+      if (guideId) {
+        setLoading(true);
+        try {
+          // Try to get audio file from storage bucket
+          const { data } = supabase.storage
+            .from('guide-audio')
+            .getPublicUrl(`${guideId}.mp3`);
+          
+          if (data?.publicUrl) {
+            setActualAudioSrc(data.publicUrl);
+          } else {
+            setError("Audio file not found");
+          }
+        } catch (err) {
+          console.error('Error loading audio:', err);
+          setError("Failed to load audio");
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadAudio();
+  }, [audioSrc, guideId]);
+
+  const togglePlayPause = useCallback(async () => {
+    if (!audioRef.current || !actualAudioSrc) return;
+
+    try {
       if (isPlaying) {
         audioRef.current.pause();
       } else {
-        audioRef.current.play();
+        await audioRef.current.play();
       }
-      setIsPlaying(!isPlaying);
+    } catch (err) {
+      console.error('Error playing audio:', err);
+      setError("Failed to play audio");
     }
-  };
+  }, [isPlaying, actualAudioSrc]);
 
-  const handleTimeUpdate = () => {
+  const toggleMute = useCallback(() => {
+    if (audioRef.current) {
+      const newMuted = !isMuted;
+      audioRef.current.muted = newMuted;
+      setIsMuted(newMuted);
+    }
+  }, [isMuted]);
+
+  const handleVolumeChange = useCallback((newVolume: number) => {
+    if (audioRef.current) {
+      audioRef.current.volume = newVolume;
+      setVolume(newVolume);
+      if (newVolume === 0) {
+        setIsMuted(true);
+      } else if (isMuted) {
+        setIsMuted(false);
+      }
+    }
+  }, [isMuted]);
+
+  const skipForward = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = Math.min(
+        audioRef.current.currentTime + 10,
+        audioRef.current.duration
+      );
+    }
+  }, []);
+
+  const skipBackward = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = Math.max(
+        audioRef.current.currentTime - 10,
+        0
+      );
+    }
+  }, []);
+
+  const handleTimeUpdate = useCallback(() => {
     if (audioRef.current) {
       const current = audioRef.current.currentTime;
       const total = audioRef.current.duration;
       setCurrentTime(current);
       setProgress((current / total) * 100);
     }
-  };
+  }, []);
 
-  const handleLoadedMetadata = () => {
+  const handlePlay = useCallback(() => {
+    setIsPlaying(true);
+    setError(null);
+  }, []);
+
+  const handlePause = useCallback(() => {
+    setIsPlaying(false);
+  }, []);
+
+  const handleEnded = useCallback(() => {
+    setIsPlaying(false);
+    setProgress(0);
+    setCurrentTime(0);
+  }, []);
+
+  const handleLoadedMetadata = useCallback(() => {
     if (audioRef.current) {
       setDuration(audioRef.current.duration);
+      audioRef.current.volume = volume;
     }
-  };
+  }, [volume]);
 
-  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (audioRef.current) {
+  const handleProgressClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (audioRef.current && duration > 0) {
       const rect = e.currentTarget.getBoundingClientRect();
       const clickX = e.clientX - rect.left;
       const width = rect.width;
@@ -55,7 +157,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
       audioRef.current.currentTime = newTime;
       setCurrentTime(newTime);
     }
-  };
+  }, [duration]);
 
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
@@ -109,9 +211,21 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
           </div>
         </div>
 
+        {/* Error Message */}
+        {error && (
+          <div className="text-center text-destructive text-sm bg-destructive/10 p-3 rounded-md">
+            {error}
+          </div>
+        )}
+
         {/* Controls */}
         <div className="flex items-center justify-center gap-4">
-          <Button variant="ghost" size="icon">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={skipBackward}
+            disabled={!actualAudioSrc || loading}
+          >
             <SkipBack className="h-5 w-5" />
           </Button>
           
@@ -119,37 +233,95 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
             variant="audio" 
             size="lg"
             onClick={togglePlayPause}
+            disabled={!actualAudioSrc || loading}
             className="h-14 w-14 rounded-full"
           >
-            {isPlaying ? (
+            {loading ? (
+              <div className="animate-spin h-6 w-6 border-2 border-current border-t-transparent rounded-full" />
+            ) : isPlaying ? (
               <Pause className="h-6 w-6" />
             ) : (
               <Play className="h-6 w-6 ml-1" />
             )}
           </Button>
           
-          <Button variant="ghost" size="icon">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={skipForward}
+            disabled={!actualAudioSrc || loading}
+          >
             <SkipForward className="h-5 w-5" />
           </Button>
         </div>
 
         {/* Volume Control */}
-        <div className="flex items-center justify-center gap-2 pt-2">
-          <Volume2 className="h-4 w-4 text-muted-foreground" />
-          <div className="w-24 h-1 bg-muted rounded-full">
-            <div className="w-3/4 h-full bg-gradient-primary rounded-full" />
+        <div className="flex items-center justify-center gap-3 pt-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleMute}
+            className="h-8 w-8"
+          >
+            {isMuted || volume === 0 ? (
+              <VolumeX className="h-4 w-4 text-muted-foreground" />
+            ) : (
+              <Volume2 className="h-4 w-4 text-muted-foreground" />
+            )}
+          </Button>
+          <div 
+            className="w-24 h-2 bg-muted rounded-full cursor-pointer"
+            onClick={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              const clickX = e.clientX - rect.left;
+              const newVolume = clickX / rect.width;
+              handleVolumeChange(Math.max(0, Math.min(1, newVolume)));
+            }}
+          >
+            <div 
+              className="h-full bg-gradient-primary rounded-full transition-all duration-300"
+              style={{ width: `${isMuted ? 0 : volume * 100}%` }}
+            />
           </div>
         </div>
+
+        {/* Transcript Toggle */}
+        {transcript && (
+          <div className="flex justify-center pt-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowTranscript(!showTranscript)}
+              className="text-xs"
+            >
+              {showTranscript ? 'Hide' : 'Show'} Transcript
+            </Button>
+          </div>
+        )}
+
+        {/* Transcript Content */}
+        {showTranscript && transcript && (
+          <div className="mt-4 p-4 bg-muted/50 rounded-md">
+            <h4 className="text-sm font-medium mb-2">Transcript</h4>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {transcript}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Hidden Audio Element */}
-      {audioSrc && (
+      {actualAudioSrc && (
         <audio
           ref={audioRef}
-          src={audioSrc}
+          src={actualAudioSrc}
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
-          onEnded={() => setIsPlaying(false)}
+          onPlay={handlePlay}
+          onPause={handlePause}
+          onEnded={handleEnded}
+          onError={() => setError("Failed to load audio file")}
+          preload="metadata"
         />
       )}
     </Card>
