@@ -125,8 +125,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ children }) => {
 
   const handleGuideClick = (guide: Guide) => {
     setIsOpen(false);
-    // Navigate to guide detail or trigger purchase flow
-    navigate(`/?guide=${guide.id}`);
+    navigate(`/guide/${guide.id}`);
   };
 
   const formatPrice = (price: number) => {

@@ -11,6 +11,7 @@ import AdminPanel from "./pages/AdminPanel";
 import Library from "./pages/Library";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancelled from "./pages/PaymentCancelled";
+import Search from "./pages/Search";
 import Profile from "./pages/Profile";
 import CreatorDashboard from "./pages/CreatorDashboard";
 import CreatorProfile from "./pages/CreatorProfile";
@@ -46,6 +47,7 @@ const App = () => (
               <Route path="/unesco-sites" element={<UnescoSites />} />
               <Route path="/guide/:guideId" element={<GuideDetail />} />
               <Route path="/destination/:location" element={<DestinationDetail />} />
+              <Route path="/search" element={<Search />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/payment-cancelled" element={<PaymentCancelled />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

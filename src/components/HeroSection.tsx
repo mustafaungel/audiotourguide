@@ -1,9 +1,12 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Play, Headphones, Sparkles } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import heroImage from '@/assets/hero-world-travel.jpg';
 
 export const HeroSection: React.FC = () => {
+  const navigate = useNavigate();
+  
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background */}
@@ -41,6 +44,7 @@ export const HeroSection: React.FC = () => {
               variant="hero" 
               size="lg" 
               className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg h-auto min-h-[44px]"
+              onClick={() => navigate('/search')}
             >
               <Play className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
               Explore Destinations
@@ -49,6 +53,7 @@ export const HeroSection: React.FC = () => {
               variant="glass" 
               size="lg" 
               className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg h-auto min-h-[44px]"
+              onClick={() => navigate('/unesco-sites')}
             >
               <Headphones className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
               World Heritage Sites

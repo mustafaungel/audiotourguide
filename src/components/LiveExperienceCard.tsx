@@ -62,7 +62,7 @@ export const LiveExperienceCard: React.FC<LiveExperienceCardProps> = ({
     if (onBook) {
       onBook(experience.id);
     } else {
-      navigate(`/experiences/${experience.id}/book`);
+      navigate(`/experience/${experience.id}`);
     }
   };
 
