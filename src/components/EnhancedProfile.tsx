@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { TierBadge } from '@/components/TierBadge';
 import { VerificationBadge } from '@/components/VerificationBadge';
 import { LanguagePreferences } from '@/components/LanguagePreferences';
+import { TextareaWithCounter } from '@/components/ui/character-counter';
 import { 
   User, 
   Mail, 

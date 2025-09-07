@@ -10,6 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Image, Pin, MapPin, Upload, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { TextareaWithCounter, InputWithCounter } from '@/components/ui/character-counter';
 
 interface ContentCreationProps {
   onContentCreated?: () => void;
@@ -180,26 +181,27 @@ export const ContentCreation: React.FC<ContentCreationProps> = ({ onContentCreat
 
         {/* Title (optional for regular posts) */}
         <div>
-          <Label htmlFor="title">
-            Title {updateType !== 'post' && <span className="text-red-500">*</span>}
-          </Label>
-          <Input
-            id="title"
+          <InputWithCounter
+            maxLength={80}
+            label={`Title ${updateType !== 'post' ? '*' : ''}`}
             placeholder={updateType === 'post' ? 'Optional title...' : 'Enter a title...'}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            helpText="Keep it concise and engaging"
           />
         </div>
 
         {/* Content */}
         <div>
-          <Label htmlFor="content">Content *</Label>
-          <Textarea
-            id="content"
+          <TextareaWithCounter
+            maxLength={2000}
+            label="Content *"
             placeholder="Share what's happening..."
             value={content}
             onChange={(e) => setContent(e.target.value)}
             className="min-h-[120px]"
+            helpText="Share updates, announcements, or guide information"
+            showProgress
           />
         </div>
 

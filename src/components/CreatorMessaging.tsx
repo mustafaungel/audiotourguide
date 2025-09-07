@@ -9,6 +9,7 @@ import { MessageCircle, Send, Clock, CheckCheck } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { TextareaWithCounter } from '@/components/ui/character-counter';
 
 interface Message {
   id: string;
@@ -280,27 +281,28 @@ export function CreatorMessaging({ creatorId, creatorName, creatorAvatar }: Crea
         </ScrollArea>
 
         <div className="p-6 pt-3 border-t">
-          <div className="flex gap-2">
-            <Textarea
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyDown={handleKeyPress}
-              placeholder={`Ask ${creatorName} about their cultural insights...`}
-              className="flex-1 min-h-[44px] max-h-[120px] resize-none"
-              disabled={sending}
-            />
+          <div className="flex gap-2 items-end">
+            <div className="flex-1">
+              <TextareaWithCounter
+                maxLength={1000}
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyDown={handleKeyPress}
+                placeholder={`Ask ${creatorName} about their cultural insights...`}
+                className="min-h-[44px] max-h-[120px] resize-none"
+                disabled={sending}
+                helpText="Press Enter to send, Shift+Enter for new line"
+              />
+            </div>
             <Button
               onClick={sendMessage}
-              disabled={!newMessage.trim() || sending}
+              disabled={!newMessage.trim() || sending || newMessage.length > 1000}
               size="sm"
-              className="px-3"
+              className="px-3 mb-7"
             >
               <Send className="h-4 w-4" />
             </Button>
           </div>
-          <p className="text-xs text-muted-foreground mt-2">
-            Press Enter to send, Shift+Enter for new line
-          </p>
         </div>
       </CardContent>
     </Card>
