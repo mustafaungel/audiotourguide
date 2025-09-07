@@ -8,8 +8,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { CreditCard, ShoppingCart, User, Mail, Lock, Loader2 } from 'lucide-react';
-import { StripeTestHelper } from './StripeTestHelper';
-import { StripeDebugPanel } from './StripeDebugPanel';
 
 interface EmbeddedCheckoutProps {
   guide: {
@@ -32,12 +30,6 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
   const handlePayment = async (isGuest: boolean = false) => {
     const targetEmail = user?.email || email;
     
-    console.log('[CHECKOUT] Starting payment flow');
-    console.log('[CHECKOUT] Guide ID:', guide.id);
-    console.log('[CHECKOUT] User:', user ? 'authenticated' : 'guest');
-    console.log('[CHECKOUT] Target email:', targetEmail);
-    console.log('[CHECKOUT] Is guest:', isGuest);
-    
     if (!targetEmail) {
       toast({
         variant: "destructive",
@@ -50,29 +42,20 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
     setLoading(true);
 
     try {
-      const requestBody = {
-        guide_id: guide.id,
-        guest_email: isGuest ? email : undefined,
-        is_guest: isGuest,
-      };
-      
-      console.log('[CHECKOUT] Request body:', requestBody);
-      
       const { data, error } = await supabase.functions.invoke('create-payment', {
-        body: requestBody,
+        body: {
+          guide_id: guide.id,
+          guest_email: isGuest ? email : undefined,
+          is_guest: isGuest,
+        },
       });
-
-      console.log('[CHECKOUT] Response data:', data);
-      console.log('[CHECKOUT] Response error:', error);
 
       if (error) throw error;
       if (!data?.url) throw new Error('Failed to create payment session');
 
-      console.log('[CHECKOUT] Redirecting to Stripe URL:', data.url);
       // Redirect to Stripe Checkout in the same tab
       window.location.href = data.url;
     } catch (err: any) {
-      console.error('[CHECKOUT] Payment error:', err);
       toast({
         title: "Payment Error",
         description: err.message || 'Failed to start payment process.',
@@ -133,8 +116,6 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
   // Guest checkout and account creation options
   return (
     <div className="w-full max-w-md space-y-4">
-      <StripeDebugPanel />
-      <StripeTestHelper />
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
