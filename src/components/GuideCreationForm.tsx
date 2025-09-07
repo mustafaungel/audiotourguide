@@ -230,34 +230,34 @@ export const GuideCreationForm: React.FC<GuideCreationFormProps> = ({
   };
 
   return (
-    <Card className="max-w-4xl mx-auto">
+    <Card className="mobile-container mobile-card">
       <CardHeader>
-        <CardTitle>Create New Audio Guide</CardTitle>
+        <CardTitle className="mobile-heading">Create New Audio Guide</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form onSubmit={handleSubmit} className="mobile-spacing">{/* Mobile-first form */}
+          <div className="mobile-grid gap-6">
             {/* Title */}
             <div className="md:col-span-2">
-              <Label htmlFor="title">Guide Title *</Label>
+              <Label htmlFor="title" className="mobile-caption font-medium">Guide Title *</Label>
               <Input
                 id="title"
                 value={formData.title}
                 onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                 placeholder="Enter an engaging title for your guide"
-                className={errors.title ? "border-red-500" : ""}
+                className={`touch-target mobile-text ${errors.title ? "border-red-500" : ""}`}
               />
-              {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
+              {errors.title && <p className="text-red-500 mobile-caption mt-1">{errors.title}</p>}
             </div>
 
             {/* Destination */}
             <div>
-              <Label htmlFor="destination">Destination *</Label>
+              <Label htmlFor="destination" className="mobile-caption font-medium">Destination *</Label>
               <Select
                 value={formData.destination_id}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, destination_id: value }))}
               >
-                <SelectTrigger className={errors.destination_id ? "border-red-500" : ""}>
+                <SelectTrigger className={`touch-target ${errors.destination_id ? "border-red-500" : ""}`}>
                   <SelectValue placeholder={loadingDestinations ? "Loading destinations..." : "Select destination"} />
                 </SelectTrigger>
                 <SelectContent>
@@ -268,17 +268,17 @@ export const GuideCreationForm: React.FC<GuideCreationFormProps> = ({
                   ))}
                 </SelectContent>
               </Select>
-              {errors.destination_id && <p className="text-red-500 text-sm mt-1">{errors.destination_id}</p>}
+              {errors.destination_id && <p className="text-red-500 mobile-caption mt-1">{errors.destination_id}</p>}
             </div>
 
             {/* Category */}
             <div>
-              <Label htmlFor="category">Category *</Label>
+              <Label htmlFor="category" className="mobile-caption font-medium">Category *</Label>
               <Select
                 value={formData.category}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
               >
-                <SelectTrigger className={errors.category ? "border-red-500" : ""}>
+                <SelectTrigger className={`touch-target ${errors.category ? "border-red-500" : ""}`}>
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -289,7 +289,7 @@ export const GuideCreationForm: React.FC<GuideCreationFormProps> = ({
                   ))}
                 </SelectContent>
               </Select>
-              {errors.category && <p className="text-red-500 text-sm mt-1">{errors.category}</p>}
+              {errors.category && <p className="text-red-500 mobile-caption mt-1">{errors.category}</p>}
             </div>
 
             {/* Price */}
@@ -454,7 +454,7 @@ export const GuideCreationForm: React.FC<GuideCreationFormProps> = ({
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="w-full"
+            className="w-full mobile-button touch-target"
             size="lg"
           >
             {isSubmitting ? 'Creating Guide...' : 'Create Audio Guide'}
