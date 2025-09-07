@@ -10,8 +10,9 @@ export function getBaseUrl(): string {
     return window.location.origin;
   }
   
-  // Fallback for server-side or edge functions
-  return 'https://dsaqlgxajdnwoqvtsrqd.supabase.co';
+  // This should only be used in browser environments
+  // Edge functions should use the SITE_URL environment variable
+  throw new Error('getBaseUrl() should only be called in browser environments');
 }
 
 /**
