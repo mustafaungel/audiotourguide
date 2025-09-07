@@ -95,6 +95,11 @@ All colors MUST be HSL.
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     --transition-spring: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    
+    /* Mobile-first typography */
+    --mobile-text-scale: 1;
+    --mobile-line-height: 1.6;
+    --mobile-spacing: 1rem;
 
     --radius: 0.75rem;
 
@@ -221,14 +226,26 @@ All colors MUST be HSL.
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Responsive typography */
+  /* Mobile-first responsive typography */
   html {
-    font-size: 16px; /* Base font size for accessibility */
+    font-size: 14px; /* Start mobile-first */
   }
 
-  @media (max-width: 768px) {
+  @media (min-width: 375px) {
     html {
-      font-size: 15px; /* Slightly smaller on mobile for better fitting */
+      font-size: 15px;
+    }
+  }
+
+  @media (min-width: 768px) {
+    html {
+      font-size: 16px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    html {
+      font-size: 17px;
     }
   }
 }
@@ -291,5 +308,72 @@ All colors MUST be HSL.
     background: hsl(var(--background) / 0.9);
     backdrop-filter: blur(8px);
     border: 1px solid hsl(var(--border) / 0.2);
+  }
+  
+  /* Mobile-first utilities */
+  .mobile-container {
+    @apply px-mobile-padding mx-auto w-full max-w-screen-xl;
+  }
+  
+  .mobile-grid {
+    @apply grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3;
+  }
+  
+  .mobile-stack {
+    @apply flex flex-col gap-mobile-padding;
+  }
+  
+  .touch-target {
+    @apply min-h-touch min-w-touch touch-manipulation;
+  }
+  
+  .mobile-text {
+    @apply text-mobile-base leading-relaxed;
+  }
+  
+  .mobile-heading {
+    @apply text-mobile-2xl font-semibold leading-tight;
+  }
+  
+  .mobile-subheading {
+    @apply text-mobile-lg font-medium leading-snug;
+  }
+  
+  .mobile-caption {
+    @apply text-mobile-sm text-muted-foreground leading-relaxed;
+  }
+  
+  .mobile-card {
+    @apply rounded-lg bg-card border border-border p-mobile-padding shadow-sm;
+  }
+  
+  .mobile-button {
+    @apply touch-target rounded-lg px-6 py-3 font-medium transition-all;
+  }
+  
+  .mobile-safe-area {
+    @apply pb-safe-bottom;
+  }
+  
+  /* 9:16 aspect ratio helpers */
+  .aspect-mobile {
+    @apply aspect-9/16;
+  }
+  
+  .mobile-viewport {
+    @apply min-h-mobile-safe;
+  }
+  
+  /* Touch-friendly spacing */
+  .mobile-spacing {
+    @apply space-y-mobile-padding;
+  }
+  
+  .mobile-padding {
+    @apply p-mobile-padding;
+  }
+  
+  .mobile-margin {
+    @apply m-mobile-padding;
   }
 }

@@ -13,9 +13,43 @@ export default {
       },
     },
     extend: {
+      screens: {
+        'xs': '375px',
+        'mobile-safe': '390px',
+        'touch': '768px',
+      },
+      aspectRatio: {
+        '9/16': '9 / 16',
+        'mobile': '9 / 16',
+        'portrait': '3 / 4',
+      },
+      spacing: {
+        'touch': '44px',
+        'touch-sm': '32px',
+        'mobile-safe': '20px',
+        'mobile-padding': '16px',
+      },
+      minHeight: {
+        'touch': '44px',
+        'touch-lg': '56px',
+        'mobile-safe': '100dvh',
+      },
+      minWidth: {
+        'touch': '44px',
+      },
       fontFamily: {
         inter: ['Inter', 'sans-serif'],
         playfair: ['Playfair Display', 'serif'],
+      },
+      fontSize: {
+        'mobile-xs': ['0.75rem', { lineHeight: '1.5' }],
+        'mobile-sm': ['0.875rem', { lineHeight: '1.5' }],
+        'mobile-base': ['1rem', { lineHeight: '1.6' }],
+        'mobile-lg': ['1.125rem', { lineHeight: '1.6' }],
+        'mobile-xl': ['1.25rem', { lineHeight: '1.5' }],
+        'mobile-2xl': ['1.5rem', { lineHeight: '1.4' }],
+        'mobile-3xl': ['1.875rem', { lineHeight: '1.3' }],
+        'mobile-4xl': ['2.25rem', { lineHeight: '1.2' }],
       },
       colors: {
         border: "hsl(var(--border))",

@@ -6,13 +6,17 @@ interface ResponsiveContainerProps {
   className?: string;
   as?: keyof JSX.IntrinsicElements;
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
+  mobilePadding?: boolean;
+  mobileStack?: boolean;
 }
 
 export const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({
   children,
   className,
   as: Component = 'div',
-  maxWidth = 'lg'
+  maxWidth = 'lg',
+  mobilePadding = true,
+  mobileStack = false
 }) => {
   const maxWidthClasses = {
     sm: 'max-w-sm',
@@ -26,7 +30,11 @@ export const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({
   return (
     <Component 
       className={cn(
-        'mx-auto px-4 sm:px-6 lg:px-8',
+        'mx-auto',
+        // Mobile-first padding
+        mobilePadding ? 'px-mobile-padding sm:px-6 lg:px-8' : 'px-4 sm:px-6 lg:px-8',
+        // Mobile stacking
+        mobileStack && 'mobile-stack',
         maxWidthClasses[maxWidth],
         className
       )}
