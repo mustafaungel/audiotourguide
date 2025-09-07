@@ -205,12 +205,12 @@ export const EnhancedCreatorDiscovery = () => {
     }
 
     // Apply location filter
-    if (selectedLocation) {
+    if (selectedLocation && selectedLocation !== 'all-locations') {
       filtered = filtered.filter(creator => creator.location === selectedLocation);
     }
 
     // Apply specialty filter
-    if (selectedSpecialty) {
+    if (selectedSpecialty && selectedSpecialty !== 'all-specialties') {
       filtered = filtered.filter(creator => 
         creator.specialties?.includes(selectedSpecialty)
       );
@@ -224,12 +224,12 @@ export const EnhancedCreatorDiscovery = () => {
     }
 
     // Apply tier filter
-    if (selectedTier) {
+    if (selectedTier && selectedTier !== 'all-tiers') {
       filtered = filtered.filter(creator => creator.current_tier === selectedTier);
     }
 
     // Apply creator type filter
-    if (selectedCreatorType) {
+    if (selectedCreatorType && selectedCreatorType !== 'all-types') {
       filtered = filtered.filter(creator => creator.creator_type === selectedCreatorType);
     }
 
@@ -579,7 +579,7 @@ export const EnhancedCreatorDiscovery = () => {
                   <SelectValue placeholder="Location" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Locations</SelectItem>
+                  <SelectItem value="all-locations">All Locations</SelectItem>
                   {getUniqueLocations().map(location => (
                     <SelectItem key={location} value={location}>{location}</SelectItem>
                   ))}
@@ -591,7 +591,7 @@ export const EnhancedCreatorDiscovery = () => {
                   <SelectValue placeholder="Specialty" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Specialties</SelectItem>
+                  <SelectItem value="all-specialties">All Specialties</SelectItem>
                   {getUniqueSpecialties().map(specialty => (
                     <SelectItem key={specialty} value={specialty}>{specialty}</SelectItem>
                   ))}
@@ -613,7 +613,7 @@ export const EnhancedCreatorDiscovery = () => {
                   <SelectValue placeholder="Tier" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Tiers</SelectItem>
+                  <SelectItem value="all-tiers">All Tiers</SelectItem>
                   <SelectItem value="bronze">Bronze</SelectItem>
                   <SelectItem value="silver">Silver</SelectItem>
                   <SelectItem value="gold">Gold</SelectItem>
@@ -627,7 +627,7 @@ export const EnhancedCreatorDiscovery = () => {
                   <SelectValue placeholder="Creator Type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Types</SelectItem>
+                  <SelectItem value="all-types">All Types</SelectItem>
                   <SelectItem value="local_guide">Local Guide</SelectItem>
                   <SelectItem value="cultural_expert">Cultural Expert</SelectItem>
                   <SelectItem value="historian">Historian</SelectItem>
@@ -660,19 +660,19 @@ export const EnhancedCreatorDiscovery = () => {
             </div>
             
             {/* Active Filters */}
-            {(searchQuery || selectedLocation || selectedSpecialty || selectedLanguages.length > 0 || selectedTier || selectedCreatorType) && (
+            {(searchQuery || (selectedLocation && selectedLocation !== 'all-locations') || (selectedSpecialty && selectedSpecialty !== 'all-specialties') || selectedLanguages.length > 0 || (selectedTier && selectedTier !== 'all-tiers') || (selectedCreatorType && selectedCreatorType !== 'all-types')) && (
               <div className="flex flex-wrap gap-2">
                 {searchQuery && (
                   <Badge variant="secondary" className="bg-tourism-warm/10 text-tourism-warm border-tourism-warm/20">
                     Search: "{searchQuery}"
                   </Badge>
                 )}
-                {selectedLocation && (
+                {selectedLocation && selectedLocation !== 'all-locations' && (
                   <Badge variant="secondary" className="bg-accent/10 text-accent border-accent/20">
                     Location: {selectedLocation}
                   </Badge>
                 )}
-                {selectedSpecialty && (
+                {selectedSpecialty && selectedSpecialty !== 'all-specialties' && (
                   <Badge variant="secondary" className="bg-tourism-earth/10 text-tourism-earth border-tourism-earth/20">
                     Specialty: {selectedSpecialty}
                   </Badge>
@@ -683,12 +683,12 @@ export const EnhancedCreatorDiscovery = () => {
                     {selectedLanguages.length} language{selectedLanguages.length > 1 ? 's' : ''}
                   </Badge>
                 )}
-                {selectedTier && (
+                {selectedTier && selectedTier !== 'all-tiers' && (
                   <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
                     Tier: {selectedTier}
                   </Badge>
                 )}
-                {selectedCreatorType && (
+                {selectedCreatorType && selectedCreatorType !== 'all-types' && (
                   <Badge variant="secondary" className="bg-secondary/20 text-secondary-foreground border-secondary/30">
                     Type: {selectedCreatorType.replace('_', ' ')}
                   </Badge>
