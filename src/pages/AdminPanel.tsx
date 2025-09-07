@@ -3,11 +3,10 @@ import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, FileText, ScrollText, AudioLines, Zap, Upload, BarChart3, Users, UserCheck, UserPlus, Plus } from 'lucide-react';
+import { Loader2, FileText, BarChart3, Users, UserCheck, UserPlus, Plus, ImageIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -20,6 +19,7 @@ import { AdminUserCreation } from '@/components/AdminUserCreation';
 import { AdminCreatorCreation } from '@/components/AdminCreatorCreation';
 import { AdminMobileNavigation } from '@/components/AdminMobileNavigation';
 import { CountrySelector } from '@/components/CountrySelector';
+import { AudioGuideSectionManager } from '@/components/AudioGuideSectionManager';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const AdminPanel = () => {
@@ -33,164 +33,78 @@ const AdminPanel = () => {
     city: '',
     country: '',
     category: 'Cultural Heritage',
-    duration: '45',
     price: '12'
   });
 
+  // Section management
+  const [sections, setSections] = useState<any[]>([]);
+
   // Generation states
-  const [descriptionLoading, setDescriptionLoading] = useState(false);
-  const [scriptLoading, setScriptLoading] = useState(false);
-  const [audioLoading, setAudioLoading] = useState(false);
+  const [imageLoading, setImageLoading] = useState(false);
   const [publishLoading, setPublishLoading] = useState(false);
   
   // Generated content
-  const [generatedDescription, setGeneratedDescription] = useState('');
-  const [generatedScript, setGeneratedScript] = useState('');
-  const [generatedAudio, setGeneratedAudio] = useState('');
-  
-  // Error states
-  const [descriptionError, setDescriptionError] = useState<string | null>(null);
-  const [scriptError, setScriptError] = useState<string | null>(null);
-  const [audioError, setAudioError] = useState<string | null>(null);
+  const [generatedImage, setGeneratedImage] = useState('');
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const generateDescription = async () => {
-    if (!formData.title || !formData.city || !formData.country || !formData.category || !formData.duration) {
+  const generateImage = async () => {
+    if (!formData.title || !formData.city || !formData.country) {
       toast({
         title: "Error",
-        description: "Please fill in all required fields first.",
+        description: "Please fill in title, city, and country first.",
         variant: "destructive"
       });
       return;
     }
 
-    setDescriptionLoading(true);
-    setDescriptionError(null);
+    setImageLoading(true);
     
     try {
-      const { data, error } = await supabase.functions.invoke('generate-description', {
+      const { data, error } = await supabase.functions.invoke('generate-image', {
         body: {
           title: formData.title,
-          country: formData.country,
           city: formData.city,
-          category: formData.category,
-          duration: parseInt(formData.duration)
+          country: formData.country,
+          category: formData.category
         }
       });
 
       if (error) throw error;
       
-      setGeneratedDescription(data.description);
+      setGeneratedImage(data.image);
       toast({
-        title: "Description Generated",
-        description: "AI has created your guide description successfully.",
+        title: "Image Generated",
+        description: "AI has created your guide image successfully.",
       });
     } catch (error: any) {
-      console.error('Error generating description:', error);
-      setDescriptionError(error.message || 'Failed to generate description');
+      console.error('Error generating image:', error);
       toast({
         title: "Error",
-        description: "Failed to generate description. Please try again.",
+        description: "Failed to generate image. Please try again.",
         variant: "destructive"
       });
     } finally {
-      setDescriptionLoading(false);
+      setImageLoading(false);
     }
   };
 
-  const generateScript = async () => {
-    if (!generatedDescription) {
+  const createGuide = async () => {
+    if (!formData.title || !formData.city || !formData.country || !formData.category || !formData.price) {
       toast({
         title: "Error",
-        description: "Please generate description first.",
+        description: "Please fill in all required fields.",
         variant: "destructive"
       });
       return;
     }
 
-    setScriptLoading(true);
-    setScriptError(null);
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-script', {
-        body: {
-          destination: `${formData.city}, ${formData.country}`,
-          category: formData.category,
-          duration: parseInt(formData.duration),
-          tone: 'professional',
-          language: 'English'
-        }
-      });
-
-      if (error) throw error;
-      
-      setGeneratedScript(data.script);
-      toast({
-        title: "Script Generated",
-        description: "Audio guide script has been generated successfully.",
-      });
-    } catch (error: any) {
-      console.error('Error generating script:', error);
-      setScriptError(error.message || 'Failed to generate script');
+    if (sections.length === 0) {
       toast({
         title: "Error",
-        description: "Failed to generate script. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setScriptLoading(false);
-    }
-  };
-
-  const generateAudio = async () => {
-    if (!generatedScript) {
-      toast({
-        title: "Error",
-        description: "Please generate script first.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setAudioLoading(true);
-    setAudioError(null);
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-audio', {
-        body: {
-          text: generatedScript,
-          voice: 'alloy'
-        }
-      });
-
-      if (error) throw error;
-      
-      setGeneratedAudio(data.audioUrl);
-      toast({
-        title: "Audio Generated",
-        description: "Audio file has been generated successfully.",
-      });
-    } catch (error: any) {
-      console.error('Error generating audio:', error);
-      setAudioError(error.message || 'Failed to generate audio');
-      toast({
-        title: "Error",
-        description: "Failed to generate audio. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setAudioLoading(false);
-    }
-  };
-
-  const publishGuide = async () => {
-    if (!generatedDescription || !generatedScript || !generatedAudio) {
-      toast({
-        title: "Error",
-        description: "Please complete all generation steps first.",
+        description: "Please add at least one section to your guide.",
         variant: "destructive"
       });
       return;
@@ -199,85 +113,67 @@ const AdminPanel = () => {
     setPublishLoading(true);
     
     try {
-      const { data, error } = await supabase.functions.invoke('create-guide', {
-        body: {
+      // Insert the guide
+      const { data: guideData, error: guideError } = await supabase
+        .from('audio_guides')
+        .insert({
           title: formData.title,
           location: `${formData.city}, ${formData.country}`,
-          description: generatedDescription,
+          description: `Explore ${formData.title} in ${formData.city}, ${formData.country}`,
           category: formData.category,
-          duration: parseInt(formData.duration),
           price_usd: parseInt(formData.price),
-          script: generatedScript,
-          audio_url: generatedAudio,
-          image_url: null
-        }
-      });
+          creator_id: user?.id,
+          currency: 'usd',
+          languages: ['English'],
+          difficulty: 'beginner',
+          duration: sections.reduce((total, section) => total + (section.duration_seconds || 0), 0),
+          is_published: true,
+          is_approved: true, // Admin privilege
+          image_url: generatedImage || null,
+          sections: JSON.stringify(sections)
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (guideError) throw guideError;
+
+      // Insert sections
+      if (sections.length > 0) {
+        const sectionsToInsert = sections.map(section => ({
+          guide_id: guideData.id,
+          title: section.title,
+          description: section.description,
+          audio_url: section.audio_url,
+          duration_seconds: section.duration_seconds,
+          language: section.language,
+          order_index: section.order_index
+        }));
+
+        const { error: sectionsError } = await supabase
+          .from('guide_sections')
+          .insert(sectionsToInsert);
+
+        if (sectionsError) throw sectionsError;
+      }
       
       toast({
-        title: "Guide Published",
-        description: "Audio guide has been submitted for approval.",
+        title: "Guide Created",
+        description: "Audio guide has been published successfully.",
       });
       
       // Reset form
-      setFormData({ title: '', city: '', country: 'Cultural Heritage', category: 'Cultural Heritage', duration: '45', price: '12' });
-      setGeneratedDescription('');
-      setGeneratedScript('');
-      setGeneratedAudio('');
+      setFormData({ title: '', city: '', country: '', category: 'Cultural Heritage', price: '12' });
+      setSections([]);
+      setGeneratedImage('');
     } catch (error: any) {
-      console.error('Error publishing guide:', error);
+      console.error('Error creating guide:', error);
       toast({
         title: "Error",
-        description: "Failed to publish guide. Please try again.",
+        description: "Failed to create guide. Please try again.",
         variant: "destructive"
       });
     } finally {
       setPublishLoading(false);
-    }
-  };
-
-  const generateAll = async () => {
-    // Validate form first
-    if (!formData.title || !formData.city || !formData.country || !formData.category || !formData.duration || !formData.price) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields first.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      // Step 1: Generate description
-      if (!generatedDescription) {
-        await generateDescription();
-        await new Promise(resolve => setTimeout(resolve, 2000));
-      }
-      
-      // Step 2: Generate script
-      if (generatedDescription && !generatedScript) {
-        await generateScript();
-        await new Promise(resolve => setTimeout(resolve, 2000));
-      }
-      
-      // Step 3: Generate audio
-      if (generatedScript && !generatedAudio) {
-        await generateAudio();
-        await new Promise(resolve => setTimeout(resolve, 2000));
-      }
-      
-      // Step 4: Publish
-      if (generatedAudio) {
-        await publishGuide();
-      }
-    } catch (error) {
-      console.error('Error in generate all:', error);
-      toast({
-        title: "Error",
-        description: "Failed to complete generation pipeline.",
-        variant: "destructive"
-      });
     }
   };
 
@@ -420,230 +316,129 @@ const AdminPanel = () => {
             <div className="space-y-6">
               <h2 className="text-xl sm:text-2xl font-bold">Create Audio Guide</h2>
 
-              <div className="grid lg:grid-cols-2 gap-6">
-                {/* Form Section */}
-                <div className="space-y-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg">Guide Information</CardTitle>
-                      <CardDescription>Fill in the basic details for your audio guide</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div>
-                        <Label htmlFor="title">Guide Title</Label>
-                        <Input
-                          id="title"
-                          value={formData.title}
-                          onChange={(e) => handleInputChange('title', e.target.value)}
-                          placeholder="e.g., Goreme Open Air Museum"
-                          className="mt-1"
-                        />
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <Label htmlFor="country">Country</Label>
-                          <CountrySelector
-                            value={formData.country}
-                            onValueChange={(value) => handleInputChange('country', value)}
-                            placeholder="Select country"
-                            className="mt-1"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="city">City</Label>
-                          <Input
-                            id="city"
-                            value={formData.city}
-                            onChange={(e) => handleInputChange('city', e.target.value)}
-                            placeholder="e.g., Cappadocia"
-                            className="mt-1"
-                          />
-                        </div>
-                      </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Guide Information</CardTitle>
+                  <CardDescription>Create a new audio guide with sections</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="title">Guide Title</Label>
+                      <Input
+                        id="title"
+                        value={formData.title}
+                        onChange={(e) => handleInputChange('title', e.target.value)}
+                        placeholder="e.g., Goreme Open Air Museum"
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="category">Category</Label>
+                      <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Cultural Heritage">Cultural Heritage</SelectItem>
+                          <SelectItem value="Natural Wonder">Natural Wonder</SelectItem>
+                          <SelectItem value="Historical">Historical</SelectItem>
+                          <SelectItem value="Art & Culture">Art & Culture</SelectItem>
+                          <SelectItem value="Architecture">Architecture</SelectItem>
+                          <SelectItem value="Religious">Religious</SelectItem>
+                          <SelectItem value="Modern Attraction">Modern Attraction</SelectItem>
+                          <SelectItem value="Local Experience">Local Experience</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
 
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <Label htmlFor="category">Category</Label>
-                          <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
-                            <SelectTrigger className="mt-1">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Cultural Heritage">Cultural Heritage</SelectItem>
-                              <SelectItem value="UNESCO Heritage">UNESCO Heritage</SelectItem>
-                              <SelectItem value="Art & Museums">Art & Museums</SelectItem>
-                              <SelectItem value="Archaeological Site">Archaeological Site</SelectItem>
-                              <SelectItem value="Natural Wonders">Natural Wonders</SelectItem>
-                              <SelectItem value="Island Heritage">Island Heritage</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label htmlFor="duration">Duration (min)</Label>
-                          <Input
-                            id="duration"
-                            type="number"
-                            value={formData.duration}
-                            onChange={(e) => handleInputChange('duration', e.target.value)}
-                            min="15"
-                            max="120"
-                            className="mt-1"
-                          />
-                        </div>
-                      </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="country">Country</Label>
+                      <CountrySelector
+                        value={formData.country}
+                        onValueChange={(value) => handleInputChange('country', value)}
+                        placeholder="Select country"
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="city">City</Label>
+                      <Input
+                        id="city"
+                        value={formData.city}
+                        onChange={(e) => handleInputChange('city', e.target.value)}
+                        placeholder="e.g., Cappadocia"
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
 
-                      <div>
-                        <Label htmlFor="price">Price (USD)</Label>
-                        <Input
-                          id="price"
-                          type="number"
-                          step="0.01"
-                          value={formData.price}
-                          onChange={(e) => handleInputChange('price', e.target.value)}
-                          min="0"
-                          className="mt-1"
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
+                  <div>
+                    <Label htmlFor="price">Price (USD)</Label>
+                    <Input
+                      id="price"
+                      type="number"
+                      value={formData.price}
+                      onChange={(e) => handleInputChange('price', e.target.value)}
+                      placeholder="12"
+                      className="mt-1"
+                    />
+                  </div>
 
-                {/* Generation Section */}
-                <div className="space-y-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg">AI Generation Pipeline</CardTitle>
-                      <CardDescription>Generate content with AI assistance</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        <Button 
-                          onClick={generateDescription}
-                          disabled={!formData.title || !formData.city || !formData.country || !formData.category || !formData.duration || descriptionLoading}
-                          className="w-full"
-                        >
-                          {descriptionLoading ? (
-                            <>
-                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                              Generating...
-                            </>
-                          ) : (
-                            <>
-                              <FileText className="w-4 h-4 mr-2" />
-                              1. Generate Description
-                            </>
-                          )}
-                        </Button>
+                  <div className="flex gap-4">
+                    <Button
+                      onClick={generateImage}
+                      disabled={imageLoading || !formData.title || !formData.city || !formData.country}
+                      variant="outline"
+                    >
+                      {imageLoading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <ImageIcon className="w-4 h-4 mr-2" />
+                          Generate AI Image
+                        </>
+                      )}
+                    </Button>
+                  </div>
 
-                        <Button 
-                          onClick={generateScript}
-                          disabled={!generatedDescription || scriptLoading}
-                          className="w-full"
-                          variant={generatedDescription ? "default" : "secondary"}
-                        >
-                          {scriptLoading ? (
-                            <>
-                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                              Generating...
-                            </>
-                          ) : (
-                            <>
-                              <ScrollText className="w-4 h-4 mr-2" />
-                              2. Generate Script
-                            </>
-                          )}
-                        </Button>
-
-                        <Button 
-                          onClick={generateAudio}
-                          disabled={!generatedScript || audioLoading}
-                          className="w-full"
-                          variant={generatedScript ? "default" : "secondary"}
-                        >
-                          {audioLoading ? (
-                            <>
-                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                              Generating...
-                            </>
-                          ) : (
-                            <>
-                              <AudioLines className="w-4 h-4 mr-2" />
-                              3. Generate Audio
-                            </>
-                          )}
-                        </Button>
-
-                        <div className="border-t pt-3 space-y-2">
-                          <Button 
-                            onClick={generateAll}
-                            disabled={!formData.title || !formData.city || !formData.country || !formData.category || !formData.duration || descriptionLoading || scriptLoading || audioLoading}
-                            className="w-full"
-                            variant="destructive"
-                          >
-                            <Zap className="w-4 h-4 mr-2" />
-                            Generate All & Publish
-                          </Button>
-
-                          <Button 
-                            onClick={publishGuide}
-                            disabled={!generatedDescription || !generatedScript || !generatedAudio || publishLoading}
-                            className="w-full"
-                            variant="outline"
-                          >
-                            {publishLoading ? (
-                              <>
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                Publishing...
-                              </>
-                            ) : (
-                              <>
-                                <Upload className="w-4 h-4 mr-2" />
-                                Publish Guide
-                              </>
-                            )}
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Generated Content Previews */}
-                  {generatedDescription && (
-                    <div className="space-y-3">
-                      <div className="border rounded-lg p-3">
-                        <h4 className="font-medium mb-2 flex items-center text-sm">
-                          <FileText className="w-4 h-4 mr-2" />
-                          Description ✓
-                        </h4>
-                        <p className="text-xs text-muted-foreground line-clamp-3">{generatedDescription}</p>
-                      </div>
+                  {generatedImage && (
+                    <div className="space-y-2">
+                      <Label>Generated Image</Label>
+                      <img src={generatedImage} alt="Generated guide image" className="w-full h-48 object-cover rounded-lg" />
                     </div>
                   )}
 
-                  {generatedScript && (
-                    <div className="border rounded-lg p-3">
-                      <h4 className="font-medium mb-2 flex items-center text-sm">
-                        <ScrollText className="w-4 h-4 mr-2" />
-                        Script ✓
-                      </h4>
-                      <p className="text-xs text-muted-foreground line-clamp-2">{generatedScript.substring(0, 100)}...</p>
-                    </div>
-                  )}
+                  <AudioGuideSectionManager
+                    sections={sections}
+                    onSectionsChange={setSections}
+                  />
 
-                  {generatedAudio && (
-                    <div className="border rounded-lg p-3">
-                      <h4 className="font-medium mb-2 flex items-center text-sm">
-                        <AudioLines className="w-4 h-4 mr-2" />
-                        Audio ✓
-                      </h4>
-                      <audio controls className="w-full h-8">
-                        <source src={generatedAudio} type="audio/mpeg" />
-                      </audio>
-                    </div>
-                  )}
-                </div>
-              </div>
+                  <Button
+                    onClick={createGuide}
+                    disabled={publishLoading}
+                    className="w-full"
+                    size="lg"
+                  >
+                    {publishLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Creating Guide...
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create Guide (Admin)
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 
