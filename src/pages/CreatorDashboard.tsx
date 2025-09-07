@@ -19,6 +19,14 @@ const CreatorDashboard = () => {
       setEditMode(true);
       sessionStorage.removeItem('editMode'); // Clean up
     }
+
+    // Listen for edit mode events from CreatorDashboard
+    const handleEditMode = (event: CustomEvent) => {
+      setEditMode(true);
+    };
+
+    window.addEventListener('creator-edit-mode', handleEditMode as EventListener);
+    return () => window.removeEventListener('creator-edit-mode', handleEditMode as EventListener);
   }, []);
 
   const handleBackFromEdit = () => {

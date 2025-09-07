@@ -19,7 +19,9 @@ import {
   Download,
   MessageSquare,
   Award,
-  Target
+  Target,
+  Copy,
+  QrCode
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
@@ -36,6 +38,8 @@ interface Guide {
   total_reviews: number;
   total_purchases: number;
   created_at: string;
+  qr_code_url?: string;
+  share_url?: string;
 }
 
 export const CreatorDashboard = () => {
@@ -136,6 +140,49 @@ export const CreatorDashboard = () => {
       ]);
     } catch (error) {
       console.error('Failed to fetch recent activity:', error);
+    }
+  };
+
+  const copyToClipboard = async (text: string, type: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({
+        title: "Copied!",
+        description: `${type} copied to clipboard.`
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to copy to clipboard"
+      });
+    }
+  };
+
+  const generateQRCode = async (guideId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('create-guide', {
+        body: {
+          guideId: guideId,
+          generateQROnly: true
+        }
+      });
+
+      if (error) throw error;
+
+      // Refresh the guides list to show the new QR code
+      fetchGuides();
+      
+      toast({
+        title: "QR Code Generated",
+        description: "QR code and share link have been created for this guide."
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to generate QR code"
+      });
     }
   };
 
@@ -305,50 +352,102 @@ export const CreatorDashboard = () => {
             ) : (
               <div className="space-y-4">
                 {guides.map((guide) => (
-                  <div key={guide.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-semibold">{guide.title}</h3>
-                        {getStatusBadge(guide)}
+                  <div key={guide.id} className="border rounded-lg hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center justify-between p-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="font-semibold">{guide.title}</h3>
+                          {getStatusBadge(guide)}
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-2">{guide.location} • {guide.category}</p>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <DollarSign className="w-3 h-3" />
+                            ${(guide.price_usd / 100).toFixed(2)}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Download className="w-3 h-3" />
+                            {guide.total_purchases} purchases
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Star className="w-3 h-3" />
+                            {guide.rating || 0} ({guide.total_reviews} reviews)
+                          </span>
+                        </div>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-2">{guide.location} • {guide.category}</p>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <DollarSign className="w-3 h-3" />
-                          ${(guide.price_usd / 100).toFixed(2)}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Download className="w-3 h-3" />
-                          {guide.total_purchases} purchases
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Star className="w-3 h-3" />
-                          {guide.rating || 0} ({guide.total_reviews} reviews)
-                        </span>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            const baseUrl = window.location.origin;
+                            window.open(`${baseUrl}/guide/${guide.id}`, '_blank');
+                          }}
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          Preview
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            sessionStorage.setItem('selectedGuideForEdit', JSON.stringify(guide));
+                            sessionStorage.setItem('editMode', 'true');
+                            // Use proper navigation instead of reload
+                            const event = new CustomEvent('creator-edit-mode', { detail: guide });
+                            window.dispatchEvent(event);
+                          }}
+                        >
+                          <Edit className="h-4 w-4 mr-1" />
+                          Edit
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => window.open(`/guide/${guide.id}`, '_blank')}
-                      >
-                        <Eye className="h-4 w-4 mr-1" />
-                        Preview
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => {
-                          sessionStorage.setItem('selectedGuideForEdit', JSON.stringify(guide));
-                          sessionStorage.setItem('editMode', 'true');
-                          window.location.reload();
-                        }}
-                      >
-                        <Edit className="h-4 w-4 mr-1" />
-                        Edit
-                      </Button>
-                    </div>
+                    
+                    {/* QR Code and Share Link Section */}
+                    {(guide.qr_code_url || guide.share_url) && (
+                      <div className="px-4 pb-4">
+                        <div className="p-3 border-t bg-muted/30 rounded-b-lg">
+                          <h4 className="text-sm font-medium mb-2">Share & Access</h4>
+                          <div className="flex flex-col sm:flex-row gap-2">
+                            {guide.qr_code_url && (
+                              <div className="flex items-center gap-2">
+                                <img src={guide.qr_code_url} alt="QR Code" className="w-12 h-12 rounded border" />
+                                <span className="text-xs text-muted-foreground">QR Code</span>
+                              </div>
+                            )}
+                            {guide.share_url && (
+                              <div className="flex-1">
+                                <div className="flex items-center gap-1">
+                                  <input 
+                                    readOnly 
+                                    value={guide.share_url} 
+                                    className="text-xs bg-background border rounded px-2 py-1 flex-1 min-w-0"
+                                  />
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    onClick={() => copyToClipboard(guide.share_url!, 'Share link')}
+                                  >
+                                    <Copy className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                            {!guide.qr_code_url && (
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => generateQRCode(guide.id)}
+                              >
+                                <QrCode className="h-4 w-4 mr-1" />
+                                Generate QR
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,6 +30,16 @@ const AdminPanel = () => {
   const { user, userProfile } = useAuth();
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState('dashboard');
+
+  // Listen for tab change events from GuideManagement
+  useEffect(() => {
+    const handleTabChange = (event: CustomEvent) => {
+      setActiveTab(event.detail);
+    };
+
+    window.addEventListener('admin-tab-change', handleTabChange as EventListener);
+    return () => window.removeEventListener('admin-tab-change', handleTabChange as EventListener);
+  }, []);
 
   // Form data state
   const [tempGuideId] = useState(() => crypto.randomUUID());

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { CheckCircle, XCircle, Eye, Clock, Trash2, Edit } from 'lucide-react';
+import { CheckCircle, XCircle, Eye, Clock, Trash2, Edit, Copy, QrCode } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface Guide {
@@ -18,6 +18,8 @@ interface Guide {
   is_published: boolean;
   created_at: string;
   creator_id: string;
+  qr_code_url?: string;
+  share_url?: string;
   profiles?: {
     full_name: string;
     email: string;
@@ -125,17 +127,60 @@ export const GuideManagement = () => {
   };
 
   const previewGuide = (guideId: string) => {
-    // Open guide detail page in new tab
-    window.open(`/guide/${guideId}`, '_blank');
+    // Open guide detail page in new tab with absolute URL
+    const baseUrl = window.location.origin;
+    const previewUrl = `${baseUrl}/guide/${guideId}`;
+    window.open(previewUrl, '_blank');
   };
 
   const editGuide = (guide: Guide) => {
     // Store the guide data in sessionStorage for editing
     sessionStorage.setItem('editingGuide', JSON.stringify(guide));
-    // Navigate to edit tab in current admin panel
-    const editTab = document.querySelector('[data-tab="edit-guide"]') as HTMLElement;
-    if (editTab) {
-      editTab.click();
+    // Directly set the active tab state instead of DOM manipulation
+    const event = new CustomEvent('admin-tab-change', { detail: 'edit-guide' });
+    window.dispatchEvent(event);
+  };
+
+  const copyToClipboard = async (text: string, type: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({
+        title: "Copied!",
+        description: `${type} copied to clipboard.`
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to copy to clipboard"
+      });
+    }
+  };
+
+  const generateQRCode = async (guideId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('create-guide', {
+        body: {
+          guideId: guideId,
+          generateQROnly: true
+        }
+      });
+
+      if (error) throw error;
+
+      // Refresh the guides list to show the new QR code
+      fetchGuides();
+      
+      toast({
+        title: "QR Code Generated",
+        description: "QR code and share link have been created for this guide."
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to generate QR code"
+      });
     }
   };
 
@@ -196,6 +241,39 @@ export const GuideManagement = () => {
               <CardContent>
                 <p className="text-muted-foreground mb-4">{guide.description}</p>
                 
+                {/* QR Code and Share Link Section */}
+                {(guide.qr_code_url || guide.share_url) && (
+                  <div className="mb-4 p-3 border rounded-lg bg-muted/50">
+                    <h4 className="text-sm font-medium mb-2">Share & Access</h4>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      {guide.qr_code_url && (
+                        <div className="flex items-center gap-2">
+                          <img src={guide.qr_code_url} alt="QR Code" className="w-12 h-12 rounded border" />
+                          <span className="text-xs text-muted-foreground">QR Code</span>
+                        </div>
+                      )}
+                      {guide.share_url && (
+                        <div className="flex-1">
+                          <div className="flex items-center gap-1">
+                            <input 
+                              readOnly 
+                              value={guide.share_url} 
+                              className="text-xs bg-background border rounded px-2 py-1 flex-1 min-w-0"
+                            />
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => copyToClipboard(guide.share_url!, 'Share link')}
+                            >
+                              <Copy className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
                 <div className="flex flex-wrap gap-2">
                   <Button 
                     variant="outline" 
@@ -214,6 +292,17 @@ export const GuideManagement = () => {
                     <Edit className="h-4 w-4 mr-1" />
                     Edit
                   </Button>
+                  
+                  {!guide.qr_code_url && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => generateQRCode(guide.id)}
+                    >
+                      <QrCode className="h-4 w-4 mr-1" />
+                      Generate QR
+                    </Button>
+                  )}
                   
                   {!guide.is_approved && (
                     <>
