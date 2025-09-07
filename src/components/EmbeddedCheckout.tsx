@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { loadStripe } from '@stripe/stripe-js';
+import { loadStripe, Stripe } from '@stripe/stripe-js';
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,18 +25,150 @@ interface EmbeddedCheckoutProps {
 
 const stripePromise = loadStripe('pk_live_51QP4VvGslELtkkDqODTnNpN1YJsP5dw5gQGQBESSBIy2q2TCg1C4AzHNrzjkGwJ1jSJL4Dc7sHxjy3Sf5WX3ZnPf00WaTGBH7Y');
 
+// Payment form component that uses Stripe Elements
+const PaymentForm: React.FC<{
+  guide: any;
+  guestEmail: string;
+  isGuest: boolean;
+  onSuccess?: () => void;
+  onCancel?: () => void;
+}> = ({ guide, guestEmail, isGuest, onSuccess, onCancel }) => {
+  const stripe = useStripe();
+  const elements = useElements();
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!stripe || !elements) {
+      setError('Stripe has not loaded properly');
+      return;
+    }
+
+    const cardElement = elements.getElement(CardElement);
+    if (!cardElement) {
+      setError('Card element not found');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Create payment intent
+      const { data, error: functionError } = await supabase.functions.invoke('create-payment-intent', {
+        body: {
+          guide_id: guide.id,
+          guest_email: isGuest ? guestEmail : undefined,
+          is_guest: isGuest,
+        },
+      });
+
+      if (functionError) throw functionError;
+      if (!data?.client_secret) throw new Error('Failed to create payment intent');
+
+      // Confirm payment with Stripe
+      const { error: paymentError } = await stripe.confirmCardPayment(data.client_secret, {
+        payment_method: {
+          card: cardElement,
+          billing_details: {
+            email: isGuest ? guestEmail : user?.email,
+          },
+        },
+      });
+
+      if (paymentError) {
+        throw new Error(paymentError.message);
+      }
+
+      toast({
+        title: "Payment Successful!",
+        description: "Your audio guide purchase has been completed.",
+      });
+
+      onSuccess?.();
+    } catch (err: any) {
+      console.error('Payment error:', err);
+      setError(err.message || 'Payment failed');
+      toast({
+        title: "Payment Failed",
+        description: err.message || 'There was an error processing your payment.',
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="p-4 border rounded-lg">
+        <Label className="text-sm font-medium mb-2 block">Card Information</Label>
+        <div className="p-3 border rounded border-input bg-background">
+          <CardElement
+            options={{
+              style: {
+                base: {
+                  fontSize: '16px',
+                  color: 'hsl(var(--foreground))',
+                  fontFamily: 'system-ui, -apple-system, sans-serif',
+                  '::placeholder': {
+                    color: 'hsl(var(--muted-foreground))',
+                  },
+                },
+              },
+            }}
+          />
+        </div>
+      </div>
+
+      {error && (
+        <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded">
+          {error}
+        </div>
+      )}
+
+      <div className="flex gap-3">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          disabled={loading}
+          className="flex-1"
+        >
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          disabled={loading || !stripe}
+          className="flex-1"
+        >
+          {loading ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            `Pay $${(guide.price_usd / 100).toFixed(2)}`
+          )}
+        </Button>
+      </div>
+    </form>
+  );
+};
+
 export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuccess, onCancel }) => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
-  const [paymentIntent, setPaymentIntent] = useState<any>(null);
-  const [stripe, setStripe] = useState<any>(null);
-  const [elements, setElements] = useState<any>(null);
   const [showStripeForm, setShowStripeForm] = useState(false);
+  const [stripe, setStripe] = useState<Stripe | null>(null);
 
   useEffect(() => {
-    loadStripe('pk_live_51QP4VvGslELtkkDqODTnNpN1YJsP5dw5gQGQBESSBIy2q2TCg1C4AzHNrzjkGwJ1jSJL4Dc7sHxjy3Sf5WX3ZnPf00WaTGBH7Y').then(setStripe);
+    stripePromise.then(setStripe);
   }, []);
 
   const handleStartPayment = async () => {
@@ -50,133 +183,49 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
       return;
     }
 
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('create-payment-intent', {
-        body: {
-          guide_id: guide.id,
-          guest_email: !user ? email : undefined,
-          is_guest: !user
-        }
-      });
-
-      if (error) throw error;
-
-      if (data?.client_secret) {
-        setPaymentIntent(data);
-        setShowStripeForm(true);
-      }
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Payment Error",
-        description: "Failed to initialize payment. Please try again."
-      });
-    } finally {
-      setLoading(false);
-    }
+    setShowStripeForm(true);
   };
 
-  const handlePaymentSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-
-    if (!stripe || !elements || !paymentIntent) return;
-
-    setLoading(true);
-
-    const { error, paymentIntent: confirmedPayment } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        return_url: `${window.location.origin}/payment-success?guide_id=${guide.id}`,
-      },
-      redirect: 'if_required',
-    });
-
-    if (error) {
-      toast({
-        variant: "destructive",
-        title: "Payment failed",
-        description: error.message
-      });
-    } else if (confirmedPayment.status === 'succeeded') {
-      toast({
-        title: "Payment successful!",
-        description: `You now have access to "${guide.title}"`
-      });
-      onSuccess?.();
-    }
-
-    setLoading(false);
-  };
-
-  if (showStripeForm && stripe && paymentIntent) {
-    const options = {
-      clientSecret: paymentIntent.client_secret,
-      appearance: {
-        theme: 'stripe' as const,
-      },
-    };
-
+  // Stripe payment form rendering
+  if (showStripeForm && stripe) {
     return (
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-lg mx-auto">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <CreditCard className="w-5 h-5" />
+            <CreditCard className="h-5 w-5 text-primary" />
             Complete Payment
           </CardTitle>
           <CardDescription>
-            Secure payment for {guide.title}
+            Secure payment powered by Stripe
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="bg-muted/50 p-4 rounded-lg">
-            <h3 className="font-medium mb-1">{guide.title}</h3>
+        <CardContent className="space-y-6">
+          {/* Guide Summary */}
+          <div className="p-4 bg-muted/50 rounded-lg">
+            <h4 className="font-medium">{guide.title}</h4>
             {guide.creator_name && (
-              <p className="text-sm text-muted-foreground mb-2">by {guide.creator_name}</p>
+              <p className="text-sm text-muted-foreground">by {guide.creator_name}</p>
             )}
-            <div className="text-lg font-bold text-tourism-warm">
+            <p className="text-lg font-semibold mt-2">
               ${(guide.price_usd / 100).toFixed(2)}
-            </div>
+            </p>
           </div>
 
-          <form onSubmit={handlePaymentSubmit} className="space-y-4">
-            <div id="payment-element" className="p-4 border rounded-lg">
-              {/* Stripe Elements will be mounted here */}
-            </div>
-            
-            <div className="flex gap-3">
-              <Button 
-                type="button"
-                variant="outline" 
-                onClick={() => {
-                  setShowStripeForm(false);
-                  onCancel?.();
-                }}
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-              <Button 
-                type="submit"
-                disabled={loading || !stripe || !elements}
-                className="flex-1"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  `Pay $${(guide.price_usd / 100).toFixed(2)}`
-                )}
-              </Button>
-            </div>
-          </form>
+          <Elements stripe={stripe}>
+            <PaymentForm
+              guide={guide}
+              guestEmail={email}
+              isGuest={!user}
+              onSuccess={onSuccess}
+              onCancel={() => setShowStripeForm(false)}
+            />
+          </Elements>
         </CardContent>
       </Card>
     );
   }
 
+  // Logged-in user checkout
   if (user) {
     return (
       <Card className="w-full max-w-md">
@@ -195,7 +244,7 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
             {guide.creator_name && (
               <p className="text-sm text-muted-foreground mb-2">by {guide.creator_name}</p>
             )}
-            <div className="text-lg font-bold text-tourism-warm">
+            <div className="text-lg font-bold text-primary">
               ${(guide.price_usd / 100).toFixed(2)}
             </div>
           </div>
@@ -203,7 +252,7 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
           <Button 
             onClick={handleStartPayment}
             disabled={loading}
-            className="w-full bg-gradient-primary hover:opacity-90"
+            className="w-full"
             size="lg"
           >
             <CreditCard className="w-4 h-4 mr-2" />
@@ -214,6 +263,7 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
     );
   }
 
+  // Guest checkout and account creation options
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
@@ -232,7 +282,7 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
           {guide.creator_name && (
             <p className="text-sm text-muted-foreground mb-2">by {guide.creator_name}</p>
           )}
-          <div className="text-lg font-bold text-tourism-warm">
+          <div className="text-lg font-bold text-primary">
             ${(guide.price_usd / 100).toFixed(2)}
           </div>
         </div>
@@ -262,7 +312,7 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
               <Button 
                 onClick={handleStartPayment}
                 disabled={loading || !email}
-                className="w-full bg-gradient-primary hover:opacity-90"
+                className="w-full"
                 size="lg"
               >
                 <CreditCard className="w-4 h-4 mr-2" />
@@ -285,15 +335,15 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
                 <h4 className="font-medium mb-2">Create an account for:</h4>
                 <ul className="text-sm text-muted-foreground space-y-1">
                   <li className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 bg-tourism-warm rounded-full" />
+                    <div className="w-1.5 h-1.5 bg-primary rounded-full" />
                     Purchase history and easy re-downloads
                   </li>
                   <li className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 bg-tourism-warm rounded-full" />
+                    <div className="w-1.5 h-1.5 bg-primary rounded-full" />
                     Personalized recommendations
                   </li>
                   <li className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 bg-tourism-warm rounded-full" />
+                    <div className="w-1.5 h-1.5 bg-primary rounded-full" />
                     Connect with creators
                   </li>
                 </ul>
@@ -334,7 +384,7 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
                 setIsCreatingAccount(false);
               }}
               disabled={loading || !email}
-              className="w-full bg-gradient-primary hover:opacity-90"
+              className="w-full"
               size="lg"
             >
               <Lock className="w-4 h-4 mr-2" />
