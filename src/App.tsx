@@ -24,7 +24,10 @@ import DestinationDetail from "./pages/DestinationDetail";
 import ExperienceDetail from "./pages/ExperienceDetail";
 import BookingFlow from "./pages/BookingFlow";
 import Category from "./pages/Category";
+import Community from "./pages/Community";
+import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
+import { MobileNavigation } from "@/components/MobileNavigation";
 
 const queryClient = new QueryClient();
 
@@ -54,11 +57,14 @@ const App = () => (
               <Route path="/experience/:experienceId" element={<ExperienceDetail />} />
               <Route path="/booking/:experienceId" element={<BookingFlow />} />
               <Route path="/category/:categoryType" element={<Category />} />
+              <Route path="/community" element={<Community />} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/payment-cancelled" element={<PaymentCancelled />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <MobileNavigation />
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>

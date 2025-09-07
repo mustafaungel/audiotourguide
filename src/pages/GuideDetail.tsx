@@ -1,7 +1,8 @@
 import { useParams } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { AudioPlayer } from "@/components/AudioPlayer";
+import { SocialShare } from "@/components/SocialShare";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Star, MapPin, Clock, Users, Play, Download, Share2, Bookmark, ChevronLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useViralTracking } from "@/hooks/useViralTracking";
 
 // Demo guide data
 const guideData = {
@@ -110,6 +112,7 @@ const relatedGuides = [
 
 const GuideDetail = () => {
   const { guideId } = useParams();
+  const { trackEngagement } = useViralTracking();
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [playingGuide, setPlayingGuide] = useState(false);
   const [isPurchased] = useState(false); // Demo: set to true to show purchased state
@@ -127,11 +130,25 @@ const GuideDetail = () => {
 
   const handleBookmark = () => {
     setIsBookmarked(!isBookmarked);
+    if (guideId && !isBookmarked) {
+      trackEngagement('bookmark', guideId, {
+        metadata: { location: guide.location }
+      });
+    }
     toast({
       title: isBookmarked ? "Removed from Library" : "Added to Library",
       description: isBookmarked ? "Guide removed from your bookmarks" : "Guide saved to your bookmarks",
     });
   };
+
+  useEffect(() => {
+    // Track guide view
+    if (guideId) {
+      trackEngagement('view', guideId, {
+        metadata: { location: guide.location }
+      });
+    }
+  }, [guideId, trackEngagement, guide.location]);
 
   const handleShare = () => {
     if (navigator.share) {
@@ -337,6 +354,18 @@ const GuideDetail = () => {
                 )}
               </CardContent>
             </Card>
+
+            {/* Social Share */}
+            <SocialShare
+              title={`🎧 ${guide.title}`}
+              description={`Discover ${guide.location} through this amazing ${guide.duration}-minute audio guide! ${guide.description}`}
+              guide={{
+                id: guide.id,
+                title: guide.title,
+                location: guide.location,
+                image_url: guide.image
+              }}
+            />
 
             {/* Creator Card */}
             <Card>

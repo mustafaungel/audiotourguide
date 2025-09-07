@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
+import { SocialShare } from '@/components/SocialShare';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ExperienceBooking } from '@/components/ExperienceBooking';
+import { useViralTracking } from '@/hooks/useViralTracking';
 import { 
   Star, 
   MapPin, 
@@ -27,6 +29,7 @@ import { toast } from '@/hooks/use-toast';
 const ExperienceDetail = () => {
   const { experienceId } = useParams<{ experienceId: string }>();
   const navigate = useNavigate();
+  const { trackEngagement } = useViralTracking();
   const [experience, setExperience] = useState<any>(null);
   const [creator, setCreator] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -184,6 +187,12 @@ const ExperienceDetail = () => {
       });
     } finally {
       setLoading(false);
+      // Track experience view
+      if (experienceId) {
+        trackEngagement('view', experienceId, {
+          metadata: { location: experience?.location }
+        });
+      }
     }
   };
 
