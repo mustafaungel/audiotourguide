@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 interface AuthContextType {
   user: User | null;
@@ -105,16 +105,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     if (error) {
-      toast({
-        variant: "destructive",
-        title: "Sign up failed",
-        description: error.message,
-      });
+      toast.error("Sign up failed: " + error.message);
     } else if (data.user && !data.session) {
-      toast({
-        title: "Check your email",
-        description: "Please check your email for a verification link.",
-      });
+      toast.success("Check your email for a verification link.");
     }
 
     return { data, error };
@@ -127,16 +120,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     if (error) {
-      toast({
-        variant: "destructive",
-        title: "Sign in failed",
-        description: error.message,
-      });
+      toast.error("Sign in failed: " + error.message);
     } else {
-      toast({
-        title: "Welcome back!",
-        description: "You have successfully signed in.",
-      });
+      toast.success("Welcome back! You have successfully signed in.");
     }
 
     return { data, error };
@@ -146,16 +132,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { error } = await supabase.auth.signOut();
     
     if (error) {
-      toast({
-        variant: "destructive",
-        title: "Sign out failed",
-        description: error.message,
-      });
+      toast.error("Sign out failed: " + error.message);
     } else {
-      toast({
-        title: "Signed out",
-        description: "You have been successfully signed out.",
-      });
+      toast.success("You have been successfully signed out.");
     }
   };
 
