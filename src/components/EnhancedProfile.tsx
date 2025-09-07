@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { TierBadge } from '@/components/TierBadge';
 import { VerificationBadge } from '@/components/VerificationBadge';
+import { LanguagePreferences } from '@/components/LanguagePreferences';
 import { 
   User, 
   Mail, 
@@ -241,20 +242,8 @@ export const EnhancedProfile: React.FC<EnhancedProfileProps> = ({
         </CardContent>
       </Card>
 
-      {/* Travel Preferences */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Travel Preferences</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center text-muted-foreground py-4">
-            Customize your travel preferences to get personalized recommendations
-          </div>
-          <Button variant="outline" className="w-full">
-            Set Travel Preferences
-          </Button>
-        </CardContent>
-      </Card>
+      {/* Language Preferences */}
+      <LanguagePreferences />
     </div>
   );
 
