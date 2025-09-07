@@ -32,6 +32,8 @@ import {
   Zap,
   Languages
 } from 'lucide-react';
+import { MobileCreatorFilter } from './MobileCreatorFilter';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -79,6 +81,7 @@ export const EnhancedCreatorDiscovery = () => {
   
   const navigate = useNavigate();
   const { user } = useAuth();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     fetchCreators();
@@ -327,6 +330,15 @@ export const EnhancedCreatorDiscovery = () => {
   const getUniqueSpecialties = () => {
     const specialties = creators.flatMap(c => c.specialties || []);
     return [...new Set(specialties)].sort();
+  };
+
+  const clearAllFilters = () => {
+    setSelectedLocation('all-locations');
+    setSelectedSpecialty('all-specialties');
+    setSelectedLanguages([]);
+    setSelectedTier('all-tiers');
+    setSelectedCreatorType('all-types');
+    setSortBy('best_match');
   };
 
   const formatNumber = (num: number) => {
@@ -593,82 +605,102 @@ export const EnhancedCreatorDiscovery = () => {
             </div>
 
             {/* Filter Controls */}
-            <div className="flex flex-wrap gap-3">
-              <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-                <SelectTrigger className="w-40 h-9">
-                  <SelectValue placeholder="Location" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all-locations">All Locations</SelectItem>
-                  {getUniqueLocations().map(location => (
-                    <SelectItem key={location} value={location}>{location}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            {isMobile ? (
+              <MobileCreatorFilter
+                selectedLocation={selectedLocation}
+                setSelectedLocation={setSelectedLocation}
+                selectedSpecialty={selectedSpecialty}
+                setSelectedSpecialty={setSelectedSpecialty}
+                selectedLanguages={selectedLanguages}
+                setSelectedLanguages={setSelectedLanguages}
+                selectedTier={selectedTier}
+                setSelectedTier={setSelectedTier}
+                selectedCreatorType={selectedCreatorType}
+                setSelectedCreatorType={setSelectedCreatorType}
+                sortBy={sortBy}
+                setSortBy={setSortBy}
+                locations={getUniqueLocations()}
+                specialties={getUniqueSpecialties()}
+                onClearAll={clearAllFilters}
+              />
+            ) : (
+              <div className="flex flex-wrap gap-3">
+                <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                  <SelectTrigger className="w-40 h-9">
+                    <SelectValue placeholder="Location" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all-locations">All Locations</SelectItem>
+                    {getUniqueLocations().map(location => (
+                      <SelectItem key={location} value={location}>{location}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-              <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
-                <SelectTrigger className="w-40 h-9">
-                  <SelectValue placeholder="Specialty" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all-specialties">All Specialties</SelectItem>
-                  {getUniqueSpecialties().map(specialty => (
-                    <SelectItem key={specialty} value={specialty}>{specialty}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
+                  <SelectTrigger className="w-40 h-9">
+                    <SelectValue placeholder="Specialty" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all-specialties">All Specialties</SelectItem>
+                    {getUniqueSpecialties().map(specialty => (
+                      <SelectItem key={specialty} value={specialty}>{specialty}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-              <div className="w-48">
-                <LanguageSelector
-                  selectedLanguages={selectedLanguages}
-                  onLanguagesChange={setSelectedLanguages}
-                  variant="filter"
-                  placeholder="Languages"
-                  maxSelections={5}
-                />
+                <div className="w-48">
+                  <LanguageSelector
+                    selectedLanguages={selectedLanguages}
+                    onLanguagesChange={setSelectedLanguages}
+                    variant="filter"
+                    placeholder="Languages"
+                    maxSelections={5}
+                  />
+                </div>
+
+                <Select value={selectedTier} onValueChange={setSelectedTier}>
+                  <SelectTrigger className="w-32 h-9">
+                    <SelectValue placeholder="Tier" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all-tiers">All Tiers</SelectItem>
+                    <SelectItem value="bronze">Bronze</SelectItem>
+                    <SelectItem value="silver">Silver</SelectItem>
+                    <SelectItem value="gold">Gold</SelectItem>
+                    <SelectItem value="platinum">Platinum</SelectItem>
+                    <SelectItem value="diamond">Diamond</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={selectedCreatorType} onValueChange={setSelectedCreatorType}>
+                  <SelectTrigger className="w-40 h-9">
+                    <SelectValue placeholder="Creator Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all-types">All Types</SelectItem>
+                    <SelectItem value="local_guide">Local Guide</SelectItem>
+                    <SelectItem value="cultural_expert">Cultural Expert</SelectItem>
+                    <SelectItem value="historian">Historian</SelectItem>
+                    <SelectItem value="photographer">Photographer</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-36 h-9">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="best_match">Best Match</SelectItem>
+                    <SelectItem value="highest_rated">Highest Rated</SelectItem>
+                    <SelectItem value="most_followed">Most Followed</SelectItem>
+                    <SelectItem value="most_guides">Most Guides</SelectItem>
+                    <SelectItem value="newest">Newest</SelectItem>
+                    <SelectItem value="most_experienced">Most Experienced</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-
-              <Select value={selectedTier} onValueChange={setSelectedTier}>
-                <SelectTrigger className="w-32 h-9">
-                  <SelectValue placeholder="Tier" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all-tiers">All Tiers</SelectItem>
-                  <SelectItem value="bronze">Bronze</SelectItem>
-                  <SelectItem value="silver">Silver</SelectItem>
-                  <SelectItem value="gold">Gold</SelectItem>
-                  <SelectItem value="platinum">Platinum</SelectItem>
-                  <SelectItem value="diamond">Diamond</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={selectedCreatorType} onValueChange={setSelectedCreatorType}>
-                <SelectTrigger className="w-40 h-9">
-                  <SelectValue placeholder="Creator Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all-types">All Types</SelectItem>
-                  <SelectItem value="local_guide">Local Guide</SelectItem>
-                  <SelectItem value="cultural_expert">Cultural Expert</SelectItem>
-                  <SelectItem value="historian">Historian</SelectItem>
-                  <SelectItem value="photographer">Photographer</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-36 h-9">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="best_match">Best Match</SelectItem>
-                  <SelectItem value="highest_rated">Highest Rated</SelectItem>
-                  <SelectItem value="most_followed">Most Followed</SelectItem>
-                  <SelectItem value="most_guides">Most Guides</SelectItem>
-                  <SelectItem value="newest">Newest</SelectItem>
-                  <SelectItem value="most_experienced">Most Experienced</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            )}
           </div>
 
           {/* Results Summary and Active Filters */}
