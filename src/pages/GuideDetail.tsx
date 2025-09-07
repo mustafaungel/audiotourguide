@@ -773,7 +773,6 @@ const GuideDetail = () => {
               ×
             </Button>
             <div className="space-y-4">
-              <StripeConfigHelper />
               <EmbeddedCheckout
                 guide={{
                   id: realGuideData.id,
