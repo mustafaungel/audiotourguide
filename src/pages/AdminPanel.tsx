@@ -502,6 +502,9 @@ const AdminPanel = () => {
                     sections={sections}
                     onSectionsChange={setSections}
                     guideId={tempGuideId}
+                    guideTitle={formData.title}
+                    location={`${formData.city}, ${formData.country}`}
+                    category={formData.category}
                   />
 
                   <Button
