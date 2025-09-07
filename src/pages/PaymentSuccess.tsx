@@ -80,12 +80,20 @@ export default function PaymentSuccess() {
 
   const verifyPayment = async () => {
     try {
+      console.log('[PAYMENT-SUCCESS] Verifying payment with sessionId:', sessionId, 'guideId:', guideId);
+      console.log('[PAYMENT-SUCCESS] Current URL:', window.location.href);
+      console.log('[PAYMENT-SUCCESS] URL params:', window.location.search);
+      
       // Verify payment and create purchase record
       const { data: verifyData, error: verifyError } = await supabase.functions.invoke('verify-payment', {
         body: { sessionId, guideId },
       });
 
-      if (verifyError) throw verifyError;
+      console.log('[PAYMENT-SUCCESS] Verify payment response:', verifyData);
+      if (verifyError) {
+        console.error('[PAYMENT-SUCCESS] Verify payment error:', verifyError);
+        throw verifyError;
+      }
 
       setPurchaseData(verifyData);
 
@@ -96,7 +104,12 @@ export default function PaymentSuccess() {
         .eq('id', guideId)
         .single();
 
-      if (guideError) throw guideError;
+      if (guideError) {
+        console.error('[PAYMENT-SUCCESS] Guide fetch error:', guideError);
+        throw guideError;
+      }
+      
+      console.log('[PAYMENT-SUCCESS] Guide data fetched:', guideData);
       setGuide(guideData);
 
       toast({
@@ -111,7 +124,7 @@ export default function PaymentSuccess() {
         }, 1500); // Show after success message
       }
     } catch (error: any) {
-      console.error('Payment verification error:', error);
+      console.error('[PAYMENT-SUCCESS] Payment verification error:', error);
       toast({
         title: "Payment Error",
         description: error.message || "Failed to verify payment",
