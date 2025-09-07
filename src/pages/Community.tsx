@@ -129,38 +129,38 @@ const Community = () => {
         </div>
 
         {/* Community Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <Card className="p-4 text-center bg-gradient-card">
-            <div className="flex flex-col items-center gap-2">
-              <Users className="h-6 w-6 text-tourism-warm" />
-              <div className="text-2xl font-bold text-foreground">{formatNumber(communityStats.totalMembers)}</div>
-              <div className="text-sm text-muted-foreground">Total Members</div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
+          <Card className="p-4 sm:p-6 text-center bg-gradient-card">
+            <div className="flex flex-col items-center gap-2 sm:gap-3">
+              <Users className="h-6 w-6 sm:h-8 sm:w-8 text-tourism-warm" />
+              <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">{formatNumber(communityStats.totalMembers)}</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">Total Members</div>
             </div>
           </Card>
           
-          <Card className="p-4 text-center bg-gradient-card">
-            <div className="flex flex-col items-center gap-2">
-              <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+          <Card className="p-4 sm:p-6 text-center bg-gradient-card">
+            <div className="flex flex-col items-center gap-2 sm:gap-3">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-500 rounded-full flex items-center justify-center">
+                <div className="w-2 h-2 sm:w-3 sm:h-3 bg-white rounded-full animate-pulse"></div>
               </div>
-              <div className="text-2xl font-bold text-foreground">{formatNumber(communityStats.activeToday)}</div>
-              <div className="text-sm text-muted-foreground">Active Today</div>
+              <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">{formatNumber(communityStats.activeToday)}</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">Active Today</div>
             </div>
           </Card>
           
-          <Card className="p-4 text-center bg-gradient-card">
-            <div className="flex flex-col items-center gap-2">
-              <MessageSquare className="h-6 w-6 text-tourism-sky" />
-              <div className="text-2xl font-bold text-foreground">{communityStats.postsToday}</div>
-              <div className="text-sm text-muted-foreground">Posts Today</div>
+          <Card className="p-4 sm:p-6 text-center bg-gradient-card">
+            <div className="flex flex-col items-center gap-2 sm:gap-3">
+              <MessageSquare className="h-6 w-6 sm:h-8 sm:w-8 text-tourism-sky" />
+              <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">{communityStats.postsToday}</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">Posts Today</div>
             </div>
           </Card>
           
-          <Card className="p-4 text-center bg-gradient-card">
-            <div className="flex flex-col items-center gap-2">
-              <Globe className="h-6 w-6 text-tourism-earth" />
-              <div className="text-2xl font-bold text-foreground">{communityStats.countriesRepresented}</div>
-              <div className="text-sm text-muted-foreground">Countries</div>
+          <Card className="p-4 sm:p-6 text-center bg-gradient-card">
+            <div className="flex flex-col items-center gap-2 sm:gap-3">
+              <Globe className="h-6 w-6 sm:h-8 sm:w-8 text-tourism-earth" />
+              <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">{communityStats.countriesRepresented}</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">Countries</div>
             </div>
           </Card>
         </div>
@@ -236,41 +236,41 @@ const Community = () => {
 
                       {/* Post Content */}
                       <div className="mb-4">
-                        <p className="text-foreground mb-3">{post.content}</p>
+                        <p className="text-foreground mb-3 text-base leading-relaxed">{post.content}</p>
                         {post.image && (
                           <img 
                             src={post.image} 
                             alt="Post content" 
-                            className="w-full rounded-lg object-cover max-h-96"
+                            className="w-full rounded-lg object-cover max-h-80 sm:max-h-96"
                           />
                         )}
                       </div>
 
                       {/* Post Actions */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-6">
+                      <div className="flex items-center justify-between flex-wrap gap-3">
+                        <div className="flex items-center gap-4 sm:gap-6">
                           <button 
                             onClick={() => toggleLike(post.id)}
-                            className={`flex items-center gap-2 transition-colors ${
+                            className={`flex items-center gap-2 transition-colors min-h-[44px] touch-manipulation ${
                               post.liked ? 'text-red-500' : 'text-muted-foreground hover:text-red-500'
                             }`}
                           >
-                            <Heart className={`h-4 w-4 ${post.liked ? 'fill-current' : ''}`} />
-                            <span className="text-sm">{formatNumber(post.likes)}</span>
+                            <Heart className={`h-5 w-5 ${post.liked ? 'fill-current' : ''}`} />
+                            <span className="text-sm sm:text-base">{formatNumber(post.likes)}</span>
                           </button>
                           
-                          <button className="flex items-center gap-2 text-muted-foreground hover:text-tourism-sky transition-colors">
-                            <MessageSquare className="h-4 w-4" />
-                            <span className="text-sm">{post.comments}</span>
+                          <button className="flex items-center gap-2 text-muted-foreground hover:text-tourism-sky transition-colors min-h-[44px] touch-manipulation">
+                            <MessageSquare className="h-5 w-5" />
+                            <span className="text-sm sm:text-base">{post.comments}</span>
                           </button>
                           
-                          <button className="flex items-center gap-2 text-muted-foreground hover:text-tourism-earth transition-colors">
-                            <Share2 className="h-4 w-4" />
-                            <span className="text-sm">{post.shares}</span>
+                          <button className="flex items-center gap-2 text-muted-foreground hover:text-tourism-earth transition-colors min-h-[44px] touch-manipulation">
+                            <Share2 className="h-5 w-5" />
+                            <span className="text-sm sm:text-base">{post.shares}</span>
                           </button>
                         </div>
                         
-                        <Button variant="ghost" size="sm" className="text-tourism-warm hover:bg-tourism-warm/10">
+                        <Button variant="ghost" size="sm" className="text-tourism-warm hover:bg-tourism-warm/10 min-h-[44px] touch-manipulation">
                           View Guide
                         </Button>
                       </div>

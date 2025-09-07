@@ -261,9 +261,9 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
     <Card className="bg-gradient-card border-border/50 shadow-card p-6">
       <div className="space-y-4">
         {/* Title and Description */}
-        <div className="text-center space-y-2">
-          <h3 className="text-xl font-semibold text-foreground">{title}</h3>
-          <p className="text-muted-foreground text-sm">{description}</p>
+        <div className="text-center space-y-2 sm:space-y-3">
+          <h3 className="text-lg sm:text-xl lg:text-2xl font-semibold text-foreground">{title}</h3>
+          <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">{description}</p>
         </div>
 
         {/* Waveform Visualization */}
@@ -294,14 +294,15 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
         )}
 
         {/* Controls */}
-        <div className="flex items-center justify-center gap-4">
+        <div className="flex items-center justify-center gap-6 sm:gap-8">
           <Button 
             variant="ghost" 
             size="icon"
             onClick={skipBackward}
             disabled={!actualAudioSrc || loading}
+            className="h-12 w-12 sm:h-14 sm:w-14 min-h-[48px] touch-manipulation"
           >
-            <SkipBack className="h-5 w-5" />
+            <SkipBack className="h-6 w-6" />
           </Button>
           
           <Button 
@@ -309,14 +310,14 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
             size="lg"
             onClick={togglePlayPause}
             disabled={!actualAudioSrc || loading}
-            className="h-14 w-14 rounded-full"
+            className="h-16 w-16 sm:h-18 sm:w-18 rounded-full min-h-[64px] touch-manipulation"
           >
             {loading ? (
-              <div className="animate-spin h-6 w-6 border-2 border-current border-t-transparent rounded-full" />
+              <div className="animate-spin h-8 w-8 border-2 border-current border-t-transparent rounded-full" />
             ) : isPlaying ? (
-              <Pause className="h-6 w-6" />
+              <Pause className="h-8 w-8" />
             ) : (
-              <Play className="h-6 w-6 ml-1" />
+              <Play className="h-8 w-8 ml-1" />
             )}
           </Button>
           
@@ -325,8 +326,9 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
             size="icon"
             onClick={skipForward}
             disabled={!actualAudioSrc || loading}
+            className="h-12 w-12 sm:h-14 sm:w-14 min-h-[48px] touch-manipulation"
           >
-            <SkipForward className="h-5 w-5" />
+            <SkipForward className="h-6 w-6" />
           </Button>
         </div>
 
@@ -347,21 +349,21 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
         </div>
 
         {/* Volume Control */}
-        <div className="flex items-center justify-center gap-3 pt-2">
+        <div className="flex items-center justify-center gap-4 pt-2">
           <Button
             variant="ghost"
             size="icon"
             onClick={toggleMute}
-            className="h-8 w-8"
+            className="h-10 w-10 min-h-[40px] touch-manipulation"
           >
             {isMuted || volume === 0 ? (
-              <VolumeX className="h-4 w-4 text-muted-foreground" />
+              <VolumeX className="h-5 w-5 text-muted-foreground" />
             ) : (
-              <Volume2 className="h-4 w-4 text-muted-foreground" />
+              <Volume2 className="h-5 w-5 text-muted-foreground" />
             )}
           </Button>
           <div 
-            className="w-24 h-2 bg-muted rounded-full cursor-pointer"
+            className="w-32 sm:w-40 h-3 bg-muted rounded-full cursor-pointer touch-manipulation"
             onClick={(e) => {
               const rect = e.currentTarget.getBoundingClientRect();
               const clickX = e.clientX - rect.left;

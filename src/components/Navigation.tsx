@@ -41,13 +41,13 @@ export const Navigation = () => {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo and Brand */}
-          <Link to="/" className="flex items-center space-x-3">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center">
-                <MapPin className="w-5 h-5 text-white" />
+          <Link to="/" className="flex items-center space-x-2 sm:space-x-3 min-w-0">
+            <div className="flex items-center space-x-2 min-w-0">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              <div className="flex flex-col">
-                <span className="text-lg font-bold font-playfair text-foreground">Audio Tour Guides</span>
+              <div className="flex flex-col min-w-0">
+                <span className="text-sm sm:text-lg font-bold font-playfair text-foreground truncate">Audio Tour Guides</span>
                 <span className="text-xs text-muted-foreground hidden sm:block">Discover World Heritage</span>
               </div>
             </div>
@@ -70,10 +70,10 @@ export const Navigation = () => {
           </nav>
 
           {/* Actions */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1 sm:space-x-2">
             <SearchModal>
-              <Button variant="ghost" size="icon" className="w-9 h-9">
-                <Search className="w-4 h-4" />
+              <Button variant="ghost" size="icon" className="w-10 h-10 sm:w-9 sm:h-9 min-h-[44px] touch-manipulation">
+                <Search className="w-5 h-5 sm:w-4 sm:h-4" />
               </Button>
             </SearchModal>
             <ThemeToggle />
@@ -81,9 +81,9 @@ export const Navigation = () => {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="flex items-center space-x-2 px-3">
-                    <User className="h-4 w-4" />
-                    <span className="hidden sm:inline text-sm">
+                  <Button variant="ghost" size="sm" className="flex items-center space-x-2 px-2 sm:px-3 min-h-[44px] touch-manipulation">
+                    <User className="h-5 w-5 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline text-sm truncate max-w-[100px]">
                       {user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'}
                     </span>
                   </Button>
@@ -123,12 +123,12 @@ export const Navigation = () => {
             ) : (
               <>
                 <Link to="/auth">
-                  <Button variant="ghost" size="sm" className="hidden sm:flex">
+                  <Button variant="ghost" size="sm" className="hidden sm:flex min-h-[44px] touch-manipulation">
                     Sign In
                   </Button>
                 </Link>
                 <Link to="/auth">
-                  <Button variant="default" size="sm">
+                  <Button variant="default" size="sm" className="min-h-[44px] touch-manipulation text-sm">
                     Get Started
                   </Button>
                 </Link>
@@ -138,8 +138,8 @@ export const Navigation = () => {
             {/* Mobile Navigation Sheet */}
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden w-9 h-9">
-                  <Menu className="w-4 h-4" />
+                <Button variant="ghost" size="icon" className="md:hidden w-10 h-10 min-h-[44px] touch-manipulation">
+                  <Menu className="w-5 h-5" />
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-80">

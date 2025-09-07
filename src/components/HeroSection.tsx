@@ -29,33 +29,33 @@ export const HeroSection: React.FC = () => {
           </div>
 
           {/* Main Headline */}
-          <div className="space-y-4">
-            <h1 className="text-3xl sm:text-4xl md:text-7xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent leading-tight">
+          <div className="space-y-4 md:space-y-6">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent leading-tight">
               Explore the World's Hidden Stories
             </h1>
-            <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
               Discover UNESCO World Heritage sites, cultural traditions, and iconic destinations with AI-powered audio tours that bring history to life.
             </p>
           </div>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col gap-4 justify-center items-center w-full max-w-sm mx-auto sm:max-w-none sm:flex-row">
+          <div className="flex flex-col gap-3 sm:gap-4 justify-center items-center w-full max-w-sm mx-auto sm:max-w-none sm:flex-row">
             <Button 
               variant="hero" 
               size="lg" 
-              className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg h-auto min-h-[44px]"
+              className="w-full sm:w-auto px-8 py-4 text-lg h-auto min-h-[48px] touch-manipulation"
               onClick={() => navigate('/search')}
             >
-              <Play className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+              <Play className="h-5 w-5 mr-3" />
               Explore Destinations
             </Button>
             <Button 
               variant="glass" 
               size="lg" 
-              className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg h-auto min-h-[44px]"
+              className="w-full sm:w-auto px-8 py-4 text-lg h-auto min-h-[48px] touch-manipulation"
               onClick={() => navigate('/unesco-sites')}
             >
-              <Headphones className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+              <Headphones className="h-5 w-5 mr-3" />
               World Heritage Sites
             </Button>
           </div>
@@ -79,10 +79,10 @@ export const HeroSection: React.FC = () => {
                 description: "Uncover secrets and legends behind iconic landmarks"
               }
             ].map((feature, index) => (
-              <div key={index} className="text-center space-y-2 sm:space-y-3 p-4 sm:p-6 rounded-xl bg-card/10 backdrop-blur-sm border border-border/30">
-                <div className="text-3xl sm:text-4xl">{feature.icon}</div>
-                <h3 className="text-base sm:text-lg font-semibold text-foreground">{feature.title}</h3>
-                <p className="text-sm text-muted-foreground">{feature.description}</p>
+              <div key={index} className="text-center space-y-3 sm:space-y-4 p-6 sm:p-8 rounded-xl bg-card/10 backdrop-blur-sm border border-border/30 hover:bg-card/15 transition-all duration-300">
+                <div className="text-4xl sm:text-5xl">{feature.icon}</div>
+                <h3 className="text-lg sm:text-xl font-semibold text-foreground">{feature.title}</h3>
+                <p className="text-base text-muted-foreground leading-relaxed">{feature.description}</p>
               </div>
             ))}
           </div>

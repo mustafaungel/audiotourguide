@@ -199,29 +199,29 @@ const Dashboard = () => {
 
           <TabsContent value="overview" className="space-y-6">
             {/* Quick Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card className="p-4 text-center bg-gradient-card">
-                <Headphones className="h-6 w-6 text-tourism-warm mx-auto mb-2" />
-                <div className="text-2xl font-bold text-foreground">{userStats.guidesListened}</div>
-                <div className="text-sm text-muted-foreground">Guides Listened</div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <Card className="p-4 sm:p-6 text-center bg-gradient-card">
+                <Headphones className="h-6 w-6 sm:h-8 sm:w-8 text-tourism-warm mx-auto mb-2 sm:mb-3" />
+                <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">{userStats.guidesListened}</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">Guides Listened</div>
               </Card>
               
-              <Card className="p-4 text-center bg-gradient-card">
-                <Clock className="h-6 w-6 text-tourism-sky mx-auto mb-2" />
-                <div className="text-2xl font-bold text-foreground">{userStats.hoursListened}h</div>
-                <div className="text-sm text-muted-foreground">Hours Explored</div>
+              <Card className="p-4 sm:p-6 text-center bg-gradient-card">
+                <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-tourism-sky mx-auto mb-2 sm:mb-3" />
+                <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">{userStats.hoursListened}h</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">Hours Explored</div>
               </Card>
               
-              <Card className="p-4 text-center bg-gradient-card">
-                <MapPin className="h-6 w-6 text-tourism-earth mx-auto mb-2" />
-                <div className="text-2xl font-bold text-foreground">{userStats.placesVisited}</div>
-                <div className="text-sm text-muted-foreground">Places Visited</div>
+              <Card className="p-4 sm:p-6 text-center bg-gradient-card">
+                <MapPin className="h-6 w-6 sm:h-8 sm:w-8 text-tourism-earth mx-auto mb-2 sm:mb-3" />
+                <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">{userStats.placesVisited}</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">Places Visited</div>
               </Card>
               
-              <Card className="p-4 text-center bg-gradient-card">
-                <Trophy className="h-6 w-6 text-yellow-600 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-foreground">{userStats.achievementsUnlocked}</div>
-                <div className="text-sm text-muted-foreground">Achievements</div>
+              <Card className="p-4 sm:p-6 text-center bg-gradient-card">
+                <Trophy className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-600 mx-auto mb-2 sm:mb-3" />
+                <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">{userStats.achievementsUnlocked}</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">Achievements</div>
               </Card>
             </div>
 

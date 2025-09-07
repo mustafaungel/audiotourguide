@@ -127,24 +127,24 @@ export function GuideCard({
           <Button
             size="sm"
             variant="secondary"
-            className="bg-white/80 backdrop-blur-sm hover:bg-white"
+            className="bg-white/80 backdrop-blur-sm hover:bg-white min-h-[44px] min-w-[44px] p-2 touch-manipulation"
             onClick={(e) => {
               e.stopPropagation();
               handleBookmark();
             }}
           >
-            <Bookmark className="h-4 w-4" />
+            <Bookmark className="h-5 w-5" />
           </Button>
           <Button
             size="sm"
             variant="secondary"
-            className="bg-white/80 backdrop-blur-sm hover:bg-white"
+            className="bg-white/80 backdrop-blur-sm hover:bg-white min-h-[44px] min-w-[44px] p-2 touch-manipulation"
             onClick={(e) => {
               e.stopPropagation();
               handleShare();
             }}
           >
-            <Share2 className="h-4 w-4" />
+            <Share2 className="h-5 w-5" />
           </Button>
         </div>
 
@@ -164,22 +164,22 @@ export function GuideCard({
         </div>
       </CardHeader>
 
-      <CardContent className="p-6">
-        <div className="space-y-3">
-          <div className="flex items-start justify-between">
-            <h3 className="font-semibold text-lg leading-tight line-clamp-2">{title}</h3>
-            <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+      <CardContent className="p-4 sm:p-6">
+        <div className="space-y-3 sm:space-y-4">
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="font-semibold text-base sm:text-lg leading-tight line-clamp-2">{title}</h3>
+            <div className="flex items-center gap-1 flex-shrink-0">
               <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
               <span className="text-sm font-medium">{rating.toFixed(1)}</span>
             </div>
           </div>
 
-          <p className="text-muted-foreground text-sm line-clamp-2">{description}</p>
+          <p className="text-muted-foreground text-sm sm:text-base line-clamp-2 leading-relaxed">{description}</p>
 
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground flex-wrap">
             <div className="flex items-center gap-1">
               <MapPin className="h-4 w-4" />
-              <span>{location}</span>
+              <span className="truncate">{location}</span>
             </div>
             <div className="flex items-center gap-1">
               <Clock className="h-4 w-4" />
@@ -195,7 +195,7 @@ export function GuideCard({
 
           <div className="flex items-center justify-between pt-2">
             <div 
-              className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+              className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity min-w-0 flex-1"
               onClick={(e) => {
                 e.stopPropagation();
                 if (creatorId) {
@@ -203,24 +203,24 @@ export function GuideCard({
                 }
               }}
             >
-              <Avatar className="h-6 w-6">
+              <Avatar className="h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0">
                 <AvatarImage src={creatorAvatar} />
                 <AvatarFallback className="text-xs">
                   {creatorName.charAt(0)}
                 </AvatarFallback>
               </Avatar>
-              <span className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <span className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors truncate">
                 {creatorName}
               </span>
             </div>
-            <div className="text-right">
-              <div className="text-lg font-bold">${(price / 100).toFixed(2)}</div>
+            <div className="text-right flex-shrink-0 ml-2">
+              <div className="text-lg sm:text-xl font-bold">${(price / 100).toFixed(2)}</div>
             </div>
           </div>
 
           <Button 
             variant="default" 
-            className="w-full bg-gradient-tourism hover:shadow-tourism"
+            className="w-full bg-gradient-tourism hover:shadow-tourism min-h-[48px] text-base sm:text-lg touch-manipulation"
             disabled={isProcessingPayment}
             onClick={(e) => {
               e.stopPropagation();
@@ -231,12 +231,12 @@ export function GuideCard({
           >
             {isProcessingPayment ? (
               <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
                 Processing...
               </>
             ) : (
               <>
-                <Play className="h-4 w-4 mr-2" />
+                <Play className="h-5 w-5 mr-2" />
                 Start Audio Tour
               </>
             )}

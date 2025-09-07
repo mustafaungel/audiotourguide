@@ -214,5 +214,60 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground font-inter;
+    /* Improve text readability */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Responsive typography */
+  html {
+    font-size: 16px; /* Base font size for accessibility */
+  }
+
+  @media (max-width: 768px) {
+    html {
+      font-size: 15px; /* Slightly smaller on mobile for better fitting */
+    }
+  }
+}
+
+@layer utilities {
+  /* Touch-friendly utilities */
+  .touch-manipulation {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Improved line heights for readability */
+  .leading-relaxed {
+    line-height: 1.6;
+  }
+
+  .leading-loose {
+    line-height: 1.8;
+  }
+
+  /* Better text truncation */
+  .text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Improved focus states for accessibility */
+  .focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  /* Content density helpers */
+  .content-compact {
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+  }
+
+  .content-comfortable {
+    line-height: 1.7;
+    letter-spacing: 0.01em;
   }
 }
