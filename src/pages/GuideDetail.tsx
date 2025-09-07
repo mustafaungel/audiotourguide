@@ -1,9 +1,9 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { SocialShare } from "@/components/SocialShare";
-import { PaymentModal } from "@/components/PaymentModal";
+import { GuestCheckout } from "@/components/GuestCheckout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -119,9 +119,11 @@ const GuideDetail = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { trackEngagement } = useViralTracking();
+  const [searchParams] = useSearchParams();
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [playingGuide, setPlayingGuide] = useState(false);
   const [isPurchased, setIsPurchased] = useState(false);
+  const [hasAccessCode, setHasAccessCode] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [realGuideData, setRealGuideData] = useState<any>(null);
@@ -267,21 +269,45 @@ const GuideDetail = () => {
   };
 
   const checkPurchaseStatus = async () => {
-    if (!user || !guideId) return;
+    if (!guideId) return;
 
-    try {
-      const { data, error } = await supabase
-        .from('user_purchases')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('guide_id', guideId)
-        .single();
+    // Check for access code in URL (for guest users)
+    const accessCode = searchParams.get('access_code');
+    if (accessCode) {
+      try {
+        const { data, error } = await supabase
+          .from('user_purchases')
+          .select('id')
+          .eq('guide_id', guideId)
+          .eq('access_code', accessCode)
+          .single();
 
-      if (data) {
-        setIsPurchased(true);
+        if (data && !error) {
+          setHasAccessCode(true);
+          setIsPurchased(true);
+          return;
+        }
+      } catch (error) {
+        console.log('Access code validation failed:', error);
       }
-    } catch (error) {
-      setIsPurchased(false);
+    }
+
+    // Check for logged-in user purchases
+    if (user) {
+      try {
+        const { data, error } = await supabase
+          .from('user_purchases')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('guide_id', guideId)
+          .single();
+
+        if (data) {
+          setIsPurchased(true);
+        }
+      } catch (error) {
+        setIsPurchased(false);
+      }
     }
   };
 
@@ -300,10 +326,8 @@ const GuideDetail = () => {
 
   useEffect(() => {
     fetchGuideDetails();
-    if (user) {
-      checkPurchaseStatus();
-    }
-  }, [guideId, user]);
+    checkPurchaseStatus();
+  }, [guideId, user, searchParams]);
 
   const handleShare = () => {
     if (navigator.share) {
@@ -571,41 +595,67 @@ const GuideDetail = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <QrCode className="w-5 h-5" />
-                    Share This Guide
+                    {isPurchased ? 'Share This Guide' : 'QR Code Access'}
                   </CardTitle>
                   <CardDescription>
-                    Easy sharing options for this audio guide
+                    {isPurchased 
+                      ? 'Easy sharing options for this audio guide'
+                      : 'Purchase this guide to unlock QR code sharing'
+                    }
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {guide.qr_code_url && (
-                    <div className="text-center">
-                      <div className="inline-block p-4 bg-white rounded-lg border-2 border-border">
-                        <img 
-                          src={guide.qr_code_url} 
-                          alt="QR Code for guide"
-                          className="w-32 h-32 mx-auto"
-                        />
-                      </div>
-                      <p className="text-sm text-muted-foreground mt-2">
-                        Scan to share this guide
-                      </p>
-                    </div>
-                  )}
-                  
-                  {guide.share_url && (
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Share Link</label>
-                      <div className="flex gap-2">
-                        <div className="flex-1 p-2 bg-muted rounded-md text-sm font-mono truncate">
-                          {guide.share_url}
+                  {isPurchased ? (
+                    <>
+                      {guide.qr_code_url && (
+                        <div className="text-center">
+                          <div className="inline-block p-4 bg-white rounded-lg border-2 border-border">
+                            <img 
+                              src={guide.qr_code_url} 
+                              alt="QR Code for guide"
+                              className="w-32 h-32 mx-auto"
+                            />
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-2">
+                            Scan to share this guide
+                          </p>
                         </div>
-                        <Button
+                      )}
+                      
+                      {guide.share_url && (
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Share Link</label>
+                          <div className="flex gap-2">
+                            <div className="flex-1 p-2 bg-muted rounded-md text-sm font-mono truncate">
+                              {guide.share_url}
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => copyToClipboard(guide.share_url, 'Share link')}
+                            >
+                              <Copy className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="text-center space-y-4">
+                      <div className="inline-block p-8 bg-muted/50 rounded-lg border-2 border-dashed border-border">
+                        <QrCode className="w-24 h-24 mx-auto text-muted-foreground/30" />
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-sm text-muted-foreground">
+                          QR code will be available after purchase
+                        </p>
+                        <Button 
+                          onClick={() => setShowPaymentModal(true)}
                           variant="outline"
                           size="sm"
-                          onClick={() => copyToClipboard(guide.share_url, 'Share link')}
                         >
-                          <Copy className="w-4 h-4" />
+                          <Lock className="w-4 h-4 mr-2" />
+                          Unlock QR Code
                         </Button>
                       </div>
                     </div>
@@ -707,15 +757,31 @@ const GuideDetail = () => {
         </div>
       )}
 
-      {/* Payment Modal */}
-      <PaymentModal
-        isOpen={showPaymentModal}
-        onClose={() => setShowPaymentModal(false)}
-        guideId={realGuideData?.id || guideId || ''}
-        guideTitle={realGuideData?.title || guide.title}
-        price={realGuideData?.price_usd || (guide.price * 100)}
-        onSuccess={handlePaymentSuccess}
-      />
+      {/* Payment Modal with Guest Checkout */}
+      {showPaymentModal && realGuideData && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute -top-2 -right-2 z-10"
+              onClick={() => setShowPaymentModal(false)}
+            >
+              ×
+            </Button>
+            <GuestCheckout
+              guide={{
+                id: realGuideData.id,
+                title: realGuideData.title,
+                price_usd: realGuideData.price_usd,
+                creator_name: realGuideData.creator?.name,
+                image_url: realGuideData.image_url
+              }}
+              onSuccess={handlePaymentSuccess}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
