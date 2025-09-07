@@ -207,26 +207,25 @@ const Index = () => {
                 return (
                   <GuideCard
                     key={guide.id}
+                    id={guide.id}
                     title={guide.title}
                     description={guide.description}
-                    duration={formattedDuration}
+                    duration={guide.duration}
                     location={guide.location}
                     rating={guide.rating || 0}
                     category={guide.category}
-                    price={formattedPrice}
+                    price={guide.price_usd}
                     difficulty={guide.difficulty}
-                    languages={guide.languages || ["English"]}
-                    bestTime={guide.best_time}
                     imageUrl={guide.image_url}
-                    onPlay={() => {
+                    totalPurchases={guide.total_purchases || 0}
+                    creatorName="Guide Creator"
+                    onViewGuide={() => {
                       if (isPurchased || guide.price_usd === 0) {
                         handlePlayGuide(guide);
                       } else {
                         handlePurchaseGuide(guide.id);
                       }
                     }}
-                    isPurchased={isPurchased}
-                    onPurchase={() => handlePurchaseGuide(guide.id)}
                   />
                 );
               })}

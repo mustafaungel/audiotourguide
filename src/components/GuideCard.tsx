@@ -1,64 +1,146 @@
-import React from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Play, Clock, MapPin, Star } from 'lucide-react';
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Star, Clock, MapPin, Users, Heart, Share2, Bookmark, Play } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useViralTracking } from "@/hooks/useViralTracking";
 
 interface GuideCardProps {
+  id: string;
   title: string;
   description: string;
-  duration: string;
   location: string;
+  price: number;
   rating: number;
+  duration: number;
   category: string;
-  price?: string;
-  difficulty?: string;
-  languages?: string[];
-  bestTime?: string;
+  difficulty: string;
   imageUrl?: string;
-  onPlay?: () => void;
-  isPurchased?: boolean;
-  onPurchase?: () => void;
+  totalPurchases?: number;
+  creatorName?: string;
+  creatorAvatar?: string;
+  onViewGuide?: () => void;
 }
 
-export const GuideCard: React.FC<GuideCardProps> = ({
+export function GuideCard({
+  id,
   title,
   description,
-  duration,
   location,
+  price,
   rating,
+  duration,
   category,
-  price = "Free",
-  difficulty = "Easy",
-  languages = ["English"],
-  bestTime,
+  difficulty,
   imageUrl,
-  onPlay,
-  isPurchased = false,
-  onPurchase,
-}) => {
+  totalPurchases = 0,
+  creatorName = "Guide Creator",
+  creatorAvatar,
+  onViewGuide
+}: GuideCardProps) {
+  const { toast } = useToast();
+  const { trackEngagement } = useViralTracking();
+
+  const handleShare = async () => {
+    await trackEngagement('share', id, { platform: 'native' });
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title,
+          text: description,
+          url: window.location.href
+        });
+      } catch (error) {
+        console.log('Error sharing:', error);
+      }
+    } else {
+      await navigator.clipboard.writeText(window.location.href);
+      toast({
+        title: "Link copied!",
+        description: "Guide link copied to clipboard",
+      });
+    }
+  };
+
+  const handleBookmark = async () => {
+    await trackEngagement('bookmark', id);
+    toast({
+      title: "Bookmarked!",
+      description: "Guide saved to your library",
+    });
+  };
+
+  const handleView = async () => {
+    await trackEngagement('view', id);
+    onViewGuide?.();
+  };
+
+  const getCategoryColor = (cat: string) => {
+    const colors = {
+      cultural: "bg-blue-100 text-blue-800 hover:bg-blue-200",
+      historical: "bg-amber-100 text-amber-800 hover:bg-amber-200",
+      adventure: "bg-green-100 text-green-800 hover:bg-green-200",
+      scenic: "bg-purple-100 text-purple-800 hover:bg-purple-200",
+      food: "bg-orange-100 text-orange-800 hover:bg-orange-200"
+    };
+    return colors[cat as keyof typeof colors] || "bg-gray-100 text-gray-800";
+  };
+
+  const getDifficultyColor = (diff: string) => {
+    const colors = {
+      easy: "bg-green-100 text-green-800",
+      moderate: "bg-yellow-100 text-yellow-800", 
+      challenging: "bg-red-100 text-red-800"
+    };
+    return colors[diff as keyof typeof colors] || "bg-gray-100 text-gray-800";
+  };
+
   return (
-    <Card className="bg-gradient-card border-border/50 shadow-card overflow-hidden group hover:shadow-glow transition-all duration-300 hover:scale-[1.02]">
-      {/* Image Section */}
-      <div className="relative h-48 overflow-hidden">
-        {imageUrl ? (
-          <img 
-            src={imageUrl} 
+    <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer bg-gradient-card border-border/50 shadow-card hover:shadow-glow hover:scale-[1.02]" onClick={handleView}>
+      <CardHeader className="p-0 relative">
+        <div className="aspect-video overflow-hidden">
+          <img
+            src={imageUrl || "/placeholder.svg"}
             alt={title}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
-        ) : (
-          <div className="w-full h-full bg-gradient-hero flex items-center justify-center">
-            <div className="text-6xl opacity-20">🎧</div>
-          </div>
-        )}
+        </div>
         
-        {/* Category Badge */}
-        <Badge 
-          className="absolute top-3 left-3 bg-card/80 backdrop-blur-sm text-foreground border-border/50"
-        >
-          {category}
-        </Badge>
+        <div className="absolute top-4 left-4 flex gap-2">
+          <Badge className={getCategoryColor(category)}>
+            {category}
+          </Badge>
+          <Badge className={getDifficultyColor(difficulty)}>
+            {difficulty}
+          </Badge>
+        </div>
+        
+        <div className="absolute top-4 right-4 flex gap-2">
+          <Button
+            size="sm"
+            variant="secondary"
+            className="bg-white/80 backdrop-blur-sm hover:bg-white"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleBookmark();
+            }}
+          >
+            <Bookmark className="h-4 w-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            className="bg-white/80 backdrop-blur-sm hover:bg-white"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleShare();
+            }}
+          >
+            <Share2 className="h-4 w-4" />
+          </Button>
+        </div>
 
         {/* Play Button Overlay */}
         <div className="absolute inset-0 bg-background/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
@@ -66,81 +148,73 @@ export const GuideCard: React.FC<GuideCardProps> = ({
             variant="hero" 
             size="lg" 
             className="rounded-full h-16 w-16"
-            onClick={onPlay}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleView();
+            }}
           >
             <Play className="h-6 w-6 ml-1" />
           </Button>
         </div>
-      </div>
+      </CardHeader>
 
-      {/* Content Section */}
-      <div className="p-6 space-y-4">
-        <div className="space-y-2">
-          <h3 className="text-xl font-semibold text-foreground line-clamp-2">{title}</h3>
-          <p className="text-muted-foreground text-sm line-clamp-3">{description}</p>
-        </div>
-
-        {/* Meta Information */}
+      <CardContent className="p-6">
         <div className="space-y-3">
+          <div className="flex items-start justify-between">
+            <h3 className="font-semibold text-lg leading-tight line-clamp-2">{title}</h3>
+            <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+              <span className="text-sm font-medium">{rating.toFixed(1)}</span>
+            </div>
+          </div>
+
+          <p className="text-muted-foreground text-sm line-clamp-2">{description}</p>
+
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
-              <Clock className="h-4 w-4" />
-              <span>{duration}</span>
-            </div>
-            <div className="flex items-center gap-1">
               <MapPin className="h-4 w-4" />
-              <span className="truncate">{location}</span>
+              <span>{location}</span>
             </div>
             <div className="flex items-center gap-1">
-              <Star className="h-4 w-4 fill-current text-yellow-400" />
-              <span>{rating}</span>
+              <Clock className="h-4 w-4" />
+              <span>{duration} min</span>
             </div>
+            {totalPurchases > 0 && (
+              <div className="flex items-center gap-1">
+                <Users className="h-4 w-4" />
+                <span>{totalPurchases}</span>
+              </div>
+            )}
           </div>
-          
-          {/* Tourism Details */}
-          <div className="flex items-center justify-between text-sm">
+
+          <div className="flex items-center justify-between pt-2">
             <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="text-xs">{price}</Badge>
-              <Badge variant="outline" className="text-xs">{difficulty}</Badge>
+              <Avatar className="h-6 w-6">
+                <AvatarImage src={creatorAvatar} />
+                <AvatarFallback className="text-xs">
+                  {creatorName.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-sm text-muted-foreground">{creatorName}</span>
             </div>
-            <div className="text-xs text-muted-foreground">
-              {languages.slice(0, 2).join(", ")}
-              {languages.length > 2 && ` +${languages.length - 2}`}
+            <div className="text-right">
+              <div className="text-lg font-bold">${(price / 100).toFixed(2)}</div>
             </div>
           </div>
-          
-          {bestTime && (
-            <div className="text-xs text-muted-foreground">
-              Best time: {bestTime}
-            </div>
-          )}
+
+          <Button 
+            variant="default" 
+            className="w-full bg-gradient-tourism hover:shadow-tourism"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleView();
+            }}
+          >
+            <Play className="h-4 w-4 mr-2" />
+            Start Audio Tour
+          </Button>
         </div>
-
-        {/* Purchase Status & Action */}
-        {isPurchased && (
-          <div className="flex items-center gap-2 mb-2">
-            <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 border-green-300">
-              ✓ Purchased
-            </Badge>
-          </div>
-        )}
-
-        {/* Action Button */}
-        <Button 
-          variant="default" 
-          className="w-full bg-gradient-tourism hover:shadow-tourism"
-          onClick={() => {
-            if (isPurchased || price === "Free") {
-              onPlay?.();
-            } else {
-              onPurchase?.();
-            }
-          }}
-        >
-          <Play className="h-4 w-4 mr-2" />
-          {isPurchased || price === "Free" ? "Start Audio Tour" : `Buy for ${price}`}
-        </Button>
-      </div>
+      </CardContent>
     </Card>
   );
-};
+}
