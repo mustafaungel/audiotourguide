@@ -77,11 +77,15 @@ const AdminPanel = () => {
 
       if (error) throw error;
       
-      setGeneratedImage(data.image);
-      toast({
-        title: "Image Generated",
-        description: "AI has created your guide image successfully.",
-      });
+      if (data.imageContent) {
+        setGeneratedImage(`data:image/webp;base64,${data.imageContent}`);
+        toast({
+          title: "Image Generated",
+          description: "AI has created your guide image successfully.",
+        });
+      } else {
+        throw new Error('No image received');
+      }
     } catch (error: any) {
       console.error('Error generating image:', error);
       toast({
