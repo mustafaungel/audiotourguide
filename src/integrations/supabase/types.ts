@@ -207,18 +207,21 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          blue_tick_verified: boolean | null
           created_at: string
           creator_badge: boolean | null
           email: string
           experience_years: number | null
           full_name: string | null
           id: string
+          local_guide_verified: boolean | null
           rejection_reason: string | null
           role: Database["public"]["Enums"]["user_role"]
           social_profiles: Json | null
           specialties: string[] | null
           updated_at: string
           user_id: string
+          verification_badge_type: string | null
           verification_documents: Json | null
           verification_status: string | null
           verified_at: string | null
@@ -226,18 +229,21 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          blue_tick_verified?: boolean | null
           created_at?: string
           creator_badge?: boolean | null
           email: string
           experience_years?: number | null
           full_name?: string | null
           id?: string
+          local_guide_verified?: boolean | null
           rejection_reason?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           social_profiles?: Json | null
           specialties?: string[] | null
           updated_at?: string
           user_id: string
+          verification_badge_type?: string | null
           verification_documents?: Json | null
           verification_status?: string | null
           verified_at?: string | null
@@ -245,18 +251,21 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          blue_tick_verified?: boolean | null
           created_at?: string
           creator_badge?: boolean | null
           email?: string
           experience_years?: number | null
           full_name?: string | null
           id?: string
+          local_guide_verified?: boolean | null
           rejection_reason?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           social_profiles?: Json | null
           specialties?: string[] | null
           updated_at?: string
           user_id?: string
+          verification_badge_type?: string | null
           verification_documents?: Json | null
           verification_status?: string | null
           verified_at?: string | null
@@ -409,50 +418,81 @@ export type Database = {
         Row: {
           admin_notes: string | null
           created_at: string
+          creator_type: Database["public"]["Enums"]["creator_type"] | null
+          document_status: Database["public"]["Enums"]["document_status"] | null
           experience_description: string | null
           full_name: string
           id: string
           id_document_url: string | null
+          id_number: string | null
+          license_document_url: string | null
+          license_number: string | null
           portfolio_url: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           social_media_links: Json | null
+          social_verification_data: Json | null
           status: string
           submitted_at: string
           updated_at: string
           user_id: string
+          verification_level:
+            | Database["public"]["Enums"]["verification_level"]
+            | null
         }
         Insert: {
           admin_notes?: string | null
           created_at?: string
+          creator_type?: Database["public"]["Enums"]["creator_type"] | null
+          document_status?:
+            | Database["public"]["Enums"]["document_status"]
+            | null
           experience_description?: string | null
           full_name: string
           id?: string
           id_document_url?: string | null
+          id_number?: string | null
+          license_document_url?: string | null
+          license_number?: string | null
           portfolio_url?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           social_media_links?: Json | null
+          social_verification_data?: Json | null
           status?: string
           submitted_at?: string
           updated_at?: string
           user_id: string
+          verification_level?:
+            | Database["public"]["Enums"]["verification_level"]
+            | null
         }
         Update: {
           admin_notes?: string | null
           created_at?: string
+          creator_type?: Database["public"]["Enums"]["creator_type"] | null
+          document_status?:
+            | Database["public"]["Enums"]["document_status"]
+            | null
           experience_description?: string | null
           full_name?: string
           id?: string
           id_document_url?: string | null
+          id_number?: string | null
+          license_document_url?: string | null
+          license_number?: string | null
           portfolio_url?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           social_media_links?: Json | null
+          social_verification_data?: Json | null
           status?: string
           submitted_at?: string
           updated_at?: string
           user_id?: string
+          verification_level?:
+            | Database["public"]["Enums"]["verification_level"]
+            | null
         }
         Relationships: [
           {
@@ -584,7 +624,10 @@ export type Database = {
       }
     }
     Enums: {
+      creator_type: "local_guide" | "influencer" | "hybrid"
+      document_status: "pending" | "approved" | "rejected" | "incomplete"
       user_role: "traveler" | "admin" | "content_creator"
+      verification_level: "basic" | "premium" | "expert"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -712,7 +755,10 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      creator_type: ["local_guide", "influencer", "hybrid"],
+      document_status: ["pending", "approved", "rejected", "incomplete"],
       user_role: ["traveler", "admin", "content_creator"],
+      verification_level: ["basic", "premium", "expert"],
     },
   },
 } as const

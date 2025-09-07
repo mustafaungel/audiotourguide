@@ -1,7 +1,8 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigation } from '@/components/Navigation';
-import CreatorVerificationForm from '@/components/CreatorVerificationForm';
+import { EnhancedCreatorVerificationForm } from '@/components/EnhancedCreatorVerificationForm';
+import { VerificationBadge } from '@/components/VerificationBadge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -61,10 +62,11 @@ const Profile = () => {
                       {userProfile?.full_name || 'Anonymous User'}
                     </h2>
                     {getRoleBadge()}
-                    {userProfile?.creator_badge && (
-                      <Badge className="bg-blue-100 text-blue-800">
-                        <Star className="w-3 h-3 mr-1" />Verified Creator
-                      </Badge>
+                    {userProfile?.verification_status === 'verified' && (
+                      <VerificationBadge 
+                        type={userProfile?.local_guide_verified ? 'local_guide' : userProfile?.blue_tick_verified ? 'blue_tick' : 'blue_tick'} 
+                        size="sm"
+                      />
                     )}
                   </div>
                   
@@ -121,7 +123,7 @@ const Profile = () => {
 
           {/* Creator Verification Section */}
           {userProfile?.role === 'traveler' && (
-            <CreatorVerificationForm />
+            <EnhancedCreatorVerificationForm userProfile={userProfile} />
           )}
 
           {/* Creator Stats (if verified) */}
