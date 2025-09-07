@@ -41,18 +41,18 @@ export const Navigation = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#destinations" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+            <Link to="/library" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
               Destinations
-            </a>
-            <a href="#heritage" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+            </Link>
+            <Link to="/library" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
               UNESCO Sites
-            </a>
-            <a href="#experiences" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+            </Link>
+            <Link to="/library" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
               Cultural Experiences
-            </a>
-            <a href="#museums" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+            </Link>
+            <Link to="/library" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
               Museums
-            </a>
+            </Link>
           </nav>
 
           {/* Actions */}
