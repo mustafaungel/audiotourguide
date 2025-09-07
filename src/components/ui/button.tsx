@@ -25,12 +25,12 @@ const buttonVariants = cva(
         sunset: "bg-gradient-sunset text-primary-foreground hover:shadow-glow transform hover:scale-105 transition-bounce",
       },
       size: {
-        default: "h-10 px-4 py-2 min-h-[40px]",
-        sm: "h-9 rounded-md px-3 min-h-[36px] text-sm",
-        lg: "h-11 rounded-md px-8 min-h-[44px] text-base",
-        icon: "h-10 w-10 min-h-[40px] min-w-[40px]",
-        "icon-sm": "h-9 w-9 min-h-[36px] min-w-[36px]",
-        "icon-lg": "h-12 w-12 min-h-[48px] min-w-[48px]",
+        default: "h-10 px-4 py-2 min-h-touch",
+        sm: "h-9 rounded-md px-3 min-h-touch-sm mobile-text",
+        lg: "h-11 rounded-md px-8 min-h-touch-lg mobile-text",
+        icon: "touch-target",
+        "icon-sm": "h-9 w-9 min-h-touch-sm min-w-touch-sm",
+        "icon-lg": "h-12 w-12 min-h-touch-lg min-w-touch-lg",
       },
     },
     defaultVariants: {

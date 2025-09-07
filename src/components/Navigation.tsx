@@ -38,16 +38,16 @@ export const Navigation = () => {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
+      <div className="mobile-container">
+        <div className="flex h-14 sm:h-16 items-center justify-between">{/* Mobile-first header height */}
           {/* Logo and Brand */}
-          <Link to="/" className="flex items-center space-x-2 sm:space-x-3 min-w-0">
+          <Link to="/" className="flex items-center space-x-2 min-w-0">
             <div className="flex items-center space-x-2 min-w-0">
               <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center flex-shrink-0">
                 <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
               <div className="flex flex-col min-w-0">
-                <span className="text-sm sm:text-lg font-bold font-playfair text-foreground truncate">Audio Tour Guides</span>
+                <span className="mobile-text sm:text-lg font-bold font-playfair text-foreground truncate">Audio Tour Guides</span>
                 <span className="text-xs text-muted-foreground hidden sm:block">Discover World Heritage</span>
               </div>
             </div>
@@ -70,10 +70,10 @@ export const Navigation = () => {
           </nav>
 
           {/* Actions */}
-          <div className="flex items-center space-x-1 sm:space-x-2">
+          <div className="flex items-center space-x-1">
             <SearchModal>
-              <Button variant="ghost" size="icon" className="w-10 h-10 sm:w-9 sm:h-9 min-h-[44px] touch-manipulation">
-                <Search className="w-5 h-5 sm:w-4 sm:h-4" />
+              <Button variant="ghost" size="icon" className="touch-target">
+                <Search className="w-5 h-5" />
               </Button>
             </SearchModal>
             <ThemeToggle />
@@ -81,9 +81,9 @@ export const Navigation = () => {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="flex items-center space-x-2 px-2 sm:px-3 min-h-[44px] touch-manipulation">
-                    <User className="h-5 w-5 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline text-sm truncate max-w-[100px]">
+                  <Button variant="ghost" size="sm" className="flex items-center space-x-2 px-2 touch-target">
+                    <User className="h-5 w-5" />
+                    <span className="hidden sm:inline mobile-caption truncate max-w-[100px]">
                       {user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'}
                     </span>
                   </Button>
@@ -123,12 +123,12 @@ export const Navigation = () => {
             ) : (
               <>
                 <Link to="/auth">
-                  <Button variant="ghost" size="sm" className="hidden sm:flex min-h-[44px] touch-manipulation">
+                  <Button variant="ghost" size="sm" className="hidden sm:flex touch-target">
                     Sign In
                   </Button>
                 </Link>
                 <Link to="/auth">
-                  <Button variant="default" size="sm" className="min-h-[44px] touch-manipulation text-sm">
+                  <Button variant="default" size="sm" className="touch-target mobile-text">
                     Get Started
                   </Button>
                 </Link>
@@ -138,11 +138,11 @@ export const Navigation = () => {
             {/* Mobile Navigation Sheet */}
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden w-10 h-10 min-h-[44px] touch-manipulation">
+                <Button variant="ghost" size="icon" className="md:hidden touch-target">
                   <Menu className="w-5 h-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-80">
+              <SheetContent side="right" className="w-80 mobile-padding">{/* Mobile-first sheet */}
                 <SheetHeader>
                   <SheetTitle className="flex items-center gap-2">
                     <MapPin className="w-5 h-5 text-primary" />
@@ -153,34 +153,34 @@ export const Navigation = () => {
                   </SheetDescription>
                 </SheetHeader>
                 
-                <div className="mt-8 space-y-6">
+                <div className="mobile-spacing">
                   {/* Mobile Navigation Links */}
-                  <nav className="space-y-4">
+                  <nav className="mobile-stack">
                     <Link 
                       to="/library" 
                       onClick={closeMobileMenu}
-                      className="flex items-center py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
+                      className="flex items-center py-3 mobile-text font-medium text-foreground hover:text-primary transition-colors touch-target"
                     >
                       Audio Guides
                     </Link>
                     <Link 
                       to="/experiences" 
                       onClick={closeMobileMenu}
-                      className="flex items-center py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
+                      className="flex items-center py-3 mobile-text font-medium text-foreground hover:text-primary transition-colors touch-target"
                     >
                       Live Experiences
                     </Link>
                     <Link 
                       to="/creators" 
                       onClick={closeMobileMenu}
-                      className="flex items-center py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
+                      className="flex items-center py-3 mobile-text font-medium text-foreground hover:text-primary transition-colors touch-target"
                     >
                       Creators
                     </Link>
                     <Link 
                       to="/unesco-sites" 
                       onClick={closeMobileMenu}
-                      className="flex items-center py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
+                      className="flex items-center py-3 mobile-text font-medium text-foreground hover:text-primary transition-colors touch-target"
                     >
                       UNESCO Sites
                     </Link>
