@@ -8,14 +8,14 @@ All colors MUST be HSL.
 
 @layer base {
 :root {
-    /* Enhanced Tourism Light Mode Color Palette */
-    --background: 45 35% 98%;
+    /* Enhanced Tourism Light Mode Color Palette - Warmer and softer */
+    --background: 25 20% 96%;
     --foreground: 25 30% 12%;
 
-    --card: 0 0% 100%;
+    --card: 25 15% 99%;
     --card-foreground: 25 25% 15%;
 
-    --popover: 0 0% 100%;
+    --popover: 25 15% 99%;
     --popover-foreground: 25 25% 15%;
 
     /* Warmer, more vibrant primary colors */
@@ -25,12 +25,12 @@ All colors MUST be HSL.
     --primary-hover: 22 88% 47%;
 
     /* Enhanced secondary with subtle warmth */
-    --secondary: 45 35% 92%;
+    --secondary: 25 20% 94%;
     --secondary-foreground: 25 25% 15%;
-    --secondary-hover: 45 35% 87%;
+    --secondary-hover: 25 20% 90%;
 
-    --muted: 45 25% 94%;
-    --muted-foreground: 25 20% 40%;
+    --muted: 25 20% 94%;
+    --muted-foreground: 25 20% 42%;
 
     /* Mediterranean-inspired accent colors */
     --accent: 205 88% 48%;
@@ -51,8 +51,8 @@ All colors MUST be HSL.
     --warning-foreground: 0 0% 100%;
     --warning-hover: 35 85% 50%;
 
-    --border: 45 25% 85%;
-    --input: 45 25% 91%;
+    --border: 25 15% 88%;
+    --input: 25 15% 90%;
     --ring: 22 88% 52%;
 
     /* Enhanced Tourism Color Palette */
@@ -72,22 +72,23 @@ All colors MUST be HSL.
     --audio-background: 45 25% 97%;
     --audio-secondary: 205 88% 48%;
 
-    /* Rich Gradient System */
-    --gradient-hero: linear-gradient(135deg, hsl(22 88% 52% / 0.12), hsl(205 88% 48% / 0.08));
+    /* Rich Gradient System - Better image overlays */
+    --gradient-hero: linear-gradient(135deg, hsl(22 88% 52% / 0.8), hsl(205 88% 48% / 0.9));
     --gradient-primary: linear-gradient(135deg, hsl(22 88% 52%), hsl(22 88% 62%));
     --gradient-accent: linear-gradient(135deg, hsl(205 88% 48%), hsl(205 88% 58%));
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(45 25% 97%));
+    --gradient-card: linear-gradient(145deg, hsl(25 15% 99%), hsl(25 20% 96%));
     --gradient-tourism: linear-gradient(135deg, hsl(22 88% 52%), hsl(18 85% 62%));
     --gradient-sunset: linear-gradient(135deg, hsl(18 85% 62%), hsl(12 90% 68%));
     --gradient-ocean: linear-gradient(135deg, hsl(205 88% 48%), hsl(195 85% 52%));
     --gradient-earth: linear-gradient(135deg, hsl(28 75% 58%), hsl(15 75% 55%));
+    --gradient-overlay: linear-gradient(180deg, transparent 0%, hsl(0 0% 0% / 0.6) 100%);
 
     /* Enhanced Shadow System */
     --shadow-glow: 0 0 40px hsl(22 88% 52% / 0.25);
     --shadow-accent-glow: 0 0 30px hsl(205 88% 48% / 0.2);
-    --shadow-card: 0 4px 20px hsl(25 30% 12% / 0.08);
+    --shadow-card: 0 4px 20px hsl(25 30% 12% / 0.06);
     --shadow-tourism: 0 8px 32px hsl(22 88% 52% / 0.18);
-    --shadow-elevated: 0 12px 48px hsl(25 30% 12% / 0.12);
+    --shadow-elevated: 0 12px 48px hsl(25 30% 12% / 0.10);
     --shadow-interactive: 0 6px 24px hsl(22 88% 52% / 0.15);
 
     /* Animation System */
@@ -180,7 +181,7 @@ All colors MUST be HSL.
     --audio-secondary: 205 85% 58%;
 
     /* Rich Dark Mode Gradient System */
-    --gradient-hero: linear-gradient(135deg, hsl(22 85% 65% / 0.18), hsl(205 85% 58% / 0.12));
+    --gradient-hero: linear-gradient(135deg, hsl(22 85% 65% / 0.8), hsl(205 85% 58% / 0.9));
     --gradient-primary: linear-gradient(135deg, hsl(22 85% 65%), hsl(22 85% 75%));
     --gradient-accent: linear-gradient(135deg, hsl(205 85% 58%), hsl(205 85% 68%));
     --gradient-card: linear-gradient(145deg, hsl(25 18% 9%), hsl(25 18% 11%));
@@ -188,6 +189,7 @@ All colors MUST be HSL.
     --gradient-sunset: linear-gradient(135deg, hsl(18 80% 68%), hsl(12 85% 72%));
     --gradient-ocean: linear-gradient(135deg, hsl(205 85% 58%), hsl(195 80% 58%));
     --gradient-earth: linear-gradient(135deg, hsl(28 70% 65%), hsl(15 70% 62%));
+    --gradient-overlay: linear-gradient(180deg, transparent 0%, hsl(0 0% 0% / 0.8) 100%);
 
     /* Enhanced Dark Mode Shadow System */
     --shadow-glow: 0 0 40px hsl(22 85% 65% / 0.35);
@@ -269,5 +271,25 @@ All colors MUST be HSL.
   .content-comfortable {
     line-height: 1.7;
     letter-spacing: 0.01em;
+  }
+
+  /* Image overlay utilities for better text readability */
+  .image-overlay {
+    background: var(--gradient-overlay);
+  }
+
+  .text-shadow {
+    text-shadow: 0 2px 4px hsl(0 0% 0% / 0.5);
+  }
+
+  .text-shadow-light {
+    text-shadow: 0 1px 2px hsl(0 0% 0% / 0.3);
+  }
+
+  /* Better badge contrast over images */
+  .badge-contrast {
+    background: hsl(var(--background) / 0.9);
+    backdrop-filter: blur(8px);
+    border: 1px solid hsl(var(--border) / 0.2);
   }
 }

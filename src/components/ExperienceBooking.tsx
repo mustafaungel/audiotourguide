@@ -3,7 +3,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
+import { TextareaWithCounter } from '@/components/ui/character-counter';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Clock, Users, MapPin, Calendar as CalendarIcon, CreditCard } from 'lucide-react';
@@ -350,10 +350,12 @@ export const ExperienceBooking: React.FC<ExperienceBookingProps> = ({
             {/* Special Requests */}
             <div>
               <h4 className="font-medium mb-3">Special Requests (Optional)</h4>
-              <Textarea
+              <TextareaWithCounter
                 placeholder="Any special requirements or questions..."
                 value={specialRequests}
                 onChange={(e) => setSpecialRequests(e.target.value)}
+                maxLength={300}
+                helpText="Share any dietary restrictions, accessibility needs, or special requests"
               />
             </div>
 
