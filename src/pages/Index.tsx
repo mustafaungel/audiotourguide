@@ -160,28 +160,7 @@ const Index = () => {
       <Navigation />
       <HeroSection />
       
-      {/* Viral Dashboard Section */}
-      <ViralDashboard />
-
-      {/* Audio Player Section */}
-      {selectedGuide && (
-        <section className="py-16 px-6">
-          <div className="max-w-2xl mx-auto">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-foreground mb-2">Now Playing</h2>
-              <p className="text-muted-foreground">Immerse yourself in the audio experience</p>
-            </div>
-            <AudioPlayer 
-              title={selectedGuide.title}
-              description={selectedGuide.description}
-              guideId={selectedGuide.id}
-              transcript={selectedGuide.transcript}
-            />
-          </div>
-        </section>
-      )}
-
-      {/* Featured Guides Section */}
+      {/* Featured Destinations Section - Moved to top */}
       <section className="py-16 px-6">
         <div className="max-w-7xl mx-auto">
           {/* Section Header */}
@@ -297,15 +276,27 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Featured Creators Section */}
-      <section className="py-16 px-6 bg-muted/30">
-        <div className="max-w-7xl mx-auto">
-          <CreatorRecommendations 
-            title="Featured Creators" 
-            limit={6}
-          />
-        </div>
-      </section>
+      {/* Simplified Viral Dashboard Section */}
+      <ViralDashboard />
+
+      {/* Audio Player Section */}
+      {selectedGuide && (
+        <section className="py-16 px-6">
+          <div className="max-w-2xl mx-auto">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-foreground mb-2">Now Playing</h2>
+              <p className="text-muted-foreground">Immerse yourself in the audio experience</p>
+            </div>
+            <AudioPlayer 
+              title={selectedGuide.title}
+              description={selectedGuide.description}
+              guideId={selectedGuide.id}
+              transcript={selectedGuide.transcript}
+            />
+          </div>
+        </section>
+      )}
+
 
       {/* CTA Section */}
       <section className="py-16 px-6 bg-gradient-hero">

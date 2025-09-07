@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { CreatorTypeBadge } from '@/components/CreatorTypeBadge';
+import { CreatorRecommendations } from '@/components/CreatorRecommendations';
 import { 
   Star, 
   MapPin, 
@@ -23,6 +25,7 @@ interface FeaturedCreator {
   title: string;
   location: string;
   avatar_url: string;
+  creator_type: 'influencer' | 'local_guide' | 'expert';
   followers: number;
   guides_count: number;
   total_plays: number;
@@ -47,6 +50,7 @@ export const CreatorSpotlight: React.FC = () => {
       title: 'UNESCO Heritage Expert',
       location: 'Machu Picchu, Peru',
       avatar_url: '/api/placeholder/100/100',
+      creator_type: 'expert',
       followers: 15420,
       guides_count: 28,
       total_plays: 89000,
@@ -68,6 +72,7 @@ export const CreatorSpotlight: React.FC = () => {
       title: 'Renaissance Art Historian',
       location: 'Florence, Italy',
       avatar_url: '/api/placeholder/100/100',
+      creator_type: 'expert',
       followers: 12890,
       guides_count: 35,
       total_plays: 156000,
@@ -89,6 +94,7 @@ export const CreatorSpotlight: React.FC = () => {
       title: 'Cultural Immersion Guide',
       location: 'Kyoto, Japan',
       avatar_url: '/api/placeholder/100/100',
+      creator_type: 'local_guide',
       followers: 18750,
       guides_count: 22,
       total_plays: 78000,
@@ -176,9 +182,12 @@ export const CreatorSpotlight: React.FC = () => {
                     
                     <p className="text-tourism-warm font-medium mb-1">{creator.title}</p>
                     
-                    <div className="flex items-center gap-1 text-muted-foreground mb-2">
-                      <MapPin className="h-4 w-4" />
-                      {creator.location}
+                    <div className="flex items-center gap-2 mb-2">
+                      <CreatorTypeBadge type={creator.creator_type} variant="compact" />
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                        <MapPin className="h-4 w-4" />
+                        {creator.location}
+                      </div>
                     </div>
                     
                     <p className="text-sm text-muted-foreground mb-3 line-clamp-2">

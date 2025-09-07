@@ -610,6 +610,7 @@ export type Database = {
           certifications: Json | null
           created_at: string
           creator_badge: boolean | null
+          creator_type: string | null
           current_tier: string | null
           email: string
           experience_years: number | null
@@ -640,6 +641,7 @@ export type Database = {
           certifications?: Json | null
           created_at?: string
           creator_badge?: boolean | null
+          creator_type?: string | null
           current_tier?: string | null
           email: string
           experience_years?: number | null
@@ -670,6 +672,7 @@ export type Database = {
           certifications?: Json | null
           created_at?: string
           creator_badge?: boolean | null
+          creator_type?: string | null
           current_tier?: string | null
           email?: string
           experience_years?: number | null

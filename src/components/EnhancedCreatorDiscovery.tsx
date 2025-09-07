@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { TierBadge } from '@/components/TierBadge';
 import { VerificationBadge } from '@/components/VerificationBadge';
+import { CreatorTypeBadge } from '@/components/CreatorTypeBadge';
 import { toast } from '@/hooks/use-toast';
 
 interface Creator {
@@ -22,6 +23,7 @@ interface Creator {
   specialties: string[];
   location: string;
   current_tier: string;
+  creator_type: 'influencer' | 'local_guide' | 'expert';
   tier_points: number;
   experience_years: number;
   languages_spoken: string[];
@@ -42,6 +44,7 @@ export const EnhancedCreatorDiscovery = () => {
   const [locationFilter, setLocationFilter] = useState('');
   const [specialtyFilter, setSpecialtyFilter] = useState('');
   const [tierFilter, setTierFilter] = useState('');
+  const [creatorTypeFilter, setCreatorTypeFilter] = useState('');
   const [sortBy, setSortBy] = useState('tier_weighted');
   const [followedCreators, setFollowedCreators] = useState<Set<string>>(new Set());
   const [showSpotlight, setShowSpotlight] = useState(true);
@@ -56,7 +59,7 @@ export const EnhancedCreatorDiscovery = () => {
 
   useEffect(() => {
     filterAndSortCreators();
-  }, [creators, searchQuery, locationFilter, specialtyFilter, tierFilter, sortBy]);
+  }, [creators, searchQuery, locationFilter, specialtyFilter, tierFilter, creatorTypeFilter, sortBy]);
 
   const fetchCreators = async () => {
     try {
@@ -73,6 +76,7 @@ export const EnhancedCreatorDiscovery = () => {
           specialties,
           guide_country,
           current_tier,
+          creator_type,
           tier_points,
           experience_years,
           languages_spoken,
@@ -103,6 +107,7 @@ export const EnhancedCreatorDiscovery = () => {
             specialties: profile.specialties || [],
             location: profile.guide_country || 'Global',
             current_tier: profile.current_tier || 'bronze',
+            creator_type: (profile.creator_type as 'influencer' | 'local_guide' | 'expert') || 'local_guide',
             tier_points: profile.tier_points || 0,
             experience_years: profile.experience_years || 0,
             languages_spoken: profile.languages_spoken || [],
@@ -205,6 +210,10 @@ export const EnhancedCreatorDiscovery = () => {
 
     if (tierFilter && tierFilter !== 'all') {
       filtered = filtered.filter(creator => creator.current_tier === tierFilter);
+    }
+
+    if (creatorTypeFilter && creatorTypeFilter !== 'all') {
+      filtered = filtered.filter(creator => creator.creator_type === creatorTypeFilter);
     }
 
     // Apply sorting with tier weighting
@@ -410,7 +419,7 @@ export const EnhancedCreatorDiscovery = () => {
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
           <Select value={locationFilter} onValueChange={setLocationFilter}>
             <SelectTrigger>
               <SelectValue placeholder="Location" />
@@ -445,6 +454,18 @@ export const EnhancedCreatorDiscovery = () => {
               <SelectItem value="gold">Gold</SelectItem>
               <SelectItem value="silver">Silver</SelectItem>
               <SelectItem value="bronze">Bronze</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={creatorTypeFilter} onValueChange={setCreatorTypeFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="Creator Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="influencer">Influencers</SelectItem>
+              <SelectItem value="local_guide">Local Guides</SelectItem>
+              <SelectItem value="expert">Experts</SelectItem>
             </SelectContent>
           </Select>
 
@@ -501,11 +522,7 @@ export const EnhancedCreatorDiscovery = () => {
                   
                   <div className="flex items-center gap-2 mb-2">
                     <TierBadge tier={creator.current_tier} size="sm" />
-                    {creator.creator_badge && (
-                      <Badge variant="secondary" className="text-xs bg-primary/10 text-primary">
-                        Creator
-                      </Badge>
-                    )}
+                    <CreatorTypeBadge type={creator.creator_type} variant="compact" />
                   </div>
                   
                   <div className="flex items-center gap-1 text-sm text-muted-foreground">

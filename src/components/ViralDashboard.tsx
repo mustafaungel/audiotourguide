@@ -52,8 +52,8 @@ export const ViralDashboard: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
-      {/* Viral Stats Header */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      {/* Simplified Viral Stats Header - Only 3 key metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="bg-gradient-primary border-none shadow-tourism">
           <CardContent className="p-4 text-center">
             <div className="flex items-center justify-center gap-2 mb-2">
@@ -87,25 +87,6 @@ export const ViralDashboard: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-card border-tourism-warm/20">
-          <CardContent className="p-4 text-center">
-            <Share2 className="h-5 w-5 text-tourism-warm mx-auto mb-2" />
-            <div className="text-2xl font-bold text-foreground">
-              {formatNumber(viralStats.social_shares)}
-            </div>
-            <div className="text-sm text-muted-foreground">Shares Today</div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-card border-green-500/20">
-          <CardContent className="p-4 text-center">
-            <TrendingUp className="h-5 w-5 text-green-600 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-foreground">
-              {viralStats.growth_rate}
-            </div>
-            <div className="text-sm text-muted-foreground">Growth Rate</div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Live Activity Feed */}
@@ -161,6 +142,7 @@ export const ViralDashboard: React.FC = () => {
 
         <TabsContent value="creators" className="space-y-6">
           <CreatorSpotlight />
+          {/* Move Featured Creators from main page to here */}
         </TabsContent>
 
         <TabsContent value="achievements" className="space-y-6">
