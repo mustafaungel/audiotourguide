@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { CheckCircle, XCircle, Eye, Clock, Trash2 } from 'lucide-react';
+import { CheckCircle, XCircle, Eye, Clock, Trash2, Edit } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface Guide {
@@ -126,7 +126,17 @@ export const GuideManagement = () => {
 
   const previewGuide = (guideId: string) => {
     // Open guide detail page in new tab
-    window.open(`/guide/${guideId}`, '_blank');
+    window.open(`/guides/${guideId}`, '_blank');
+  };
+
+  const editGuide = (guide: Guide) => {
+    // Store the guide data in sessionStorage for editing
+    sessionStorage.setItem('editingGuide', JSON.stringify(guide));
+    // Navigate to edit tab in current admin panel
+    const editTab = document.querySelector('[data-tab="edit-guide"]') as HTMLElement;
+    if (editTab) {
+      editTab.click();
+    }
   };
 
   const getStatusBadge = (guide: Guide) => {
@@ -194,6 +204,15 @@ export const GuideManagement = () => {
                   >
                     <Eye className="h-4 w-4 mr-1" />
                     Preview
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => editGuide(guide)}
+                  >
+                    <Edit className="h-4 w-4 mr-1" />
+                    Edit
                   </Button>
                   
                   {!guide.is_approved && (

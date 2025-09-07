@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { Loader2, FileText, BarChart3, Users, UserCheck, UserPlus, Plus, ImageIcon, Copy, QrCode } from 'lucide-react';
+import { Loader2, FileText, BarChart3, Users, UserCheck, UserPlus, Plus, ImageIcon, Copy, QrCode, Edit2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -23,6 +23,7 @@ import { AdminCreatorCreation } from '@/components/AdminCreatorCreation';
 import { AdminMobileNavigation } from '@/components/AdminMobileNavigation';
 import { CountrySelector } from '@/components/CountrySelector';
 import { AudioGuideSectionManager } from '@/components/AudioGuideSectionManager';
+import { AdminGuideEditForm } from '@/components/AdminGuideEditForm';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const AdminPanel = () => {
@@ -259,7 +260,7 @@ const AdminPanel = () => {
         <AdminMobileNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="hidden md:grid grid-cols-3 lg:grid-cols-6 w-full max-w-4xl gap-2">
+          <TabsList className="hidden md:grid grid-cols-4 lg:grid-cols-7 w-full max-w-5xl gap-2">
             <TabsTrigger value="dashboard" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
               <BarChart3 className="h-3 w-3 lg:h-4 lg:w-4" />
               <span className="hidden lg:inline">Dashboard</span>
@@ -279,6 +280,10 @@ const AdminPanel = () => {
             <TabsTrigger value="create-guide" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
               <Plus className="h-3 w-3 lg:h-4 lg:w-4" />
               <span className="hidden lg:inline">Create</span>
+            </TabsTrigger>
+            <TabsTrigger value="edit-guide" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm" data-tab="edit-guide">
+              <Edit2 className="h-3 w-3 lg:h-4 lg:w-4" />
+              <span className="hidden lg:inline">Edit</span>
             </TabsTrigger>
             <TabsTrigger value="analytics" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
               <BarChart3 className="h-3 w-3 lg:h-4 lg:w-4" />
@@ -597,6 +602,10 @@ const AdminPanel = () => {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="edit-guide">
+            <AdminGuideEditForm onBack={() => setActiveTab('content-management')} />
           </TabsContent>
 
           <TabsContent value="analytics">
