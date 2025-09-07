@@ -398,9 +398,12 @@ const GuideDetail = () => {
             {/* Hero Image */}
             <div className="relative aspect-video rounded-xl overflow-hidden">
               <img 
-                src={guide.image} 
+                src={guide.image && guide.image.length < 500000 ? guide.image : '/hero-audio-guide.jpg'} 
                 alt={guide.title}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = '/hero-audio-guide.jpg';
+                }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
               <div className="absolute bottom-4 left-4 text-white">
