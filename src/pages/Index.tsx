@@ -218,46 +218,49 @@ const Index = () => {
 
           {/* Loading State */}
           {loading && (
-            <CarouselComponents.Carousel
-              opts={{
-                align: "start",
-                loop: false,
-              }}
-              className="w-full"
-            >
-              <CarouselComponents.CarouselContent className="-ml-2 md:-ml-4">
-                {[...Array(6)].map((_, i) => (
-                  <CarouselComponents.CarouselItem key={i} className="pl-2 md:pl-4 basis-full md:basis-1/2 lg:basis-1/3">
-                    <div className="bg-card rounded-lg p-6 animate-pulse">
-                      <div className="h-48 bg-muted rounded-lg mb-4"></div>
-                      <div className="h-4 bg-muted rounded mb-2"></div>
-                      <div className="h-4 bg-muted rounded w-3/4"></div>
-                    </div>
-                  </CarouselComponents.CarouselItem>
-                ))}
-              </CarouselComponents.CarouselContent>
-              <CarouselComponents.CarouselPrevious />
-              <CarouselComponents.CarouselNext />
-            </CarouselComponents.Carousel>
+            <div className="px-4">
+              <CarouselComponents.Carousel
+                opts={{
+                  align: "start",
+                  loop: false,
+                }}
+                className="w-full max-w-none"
+              >
+                <CarouselComponents.CarouselContent className="-ml-1 md:-ml-2">
+                  {[...Array(6)].map((_, i) => (
+                    <CarouselComponents.CarouselItem key={i} className="pl-1 md:pl-2 basis-[85%] sm:basis-1/2 lg:basis-1/3">
+                      <div className="bg-card rounded-lg p-4 animate-pulse">
+                        <div className="h-48 bg-muted rounded-lg mb-4"></div>
+                        <div className="h-4 bg-muted rounded mb-2"></div>
+                        <div className="h-4 bg-muted rounded w-3/4"></div>
+                      </div>
+                    </CarouselComponents.CarouselItem>
+                  ))}
+                </CarouselComponents.CarouselContent>
+                <CarouselComponents.CarouselPrevious className="left-2" />
+                <CarouselComponents.CarouselNext className="right-2" />
+              </CarouselComponents.Carousel>
+            </div>
           )}
 
           {/* Guides Carousel */}
           {!loading && (
-            <CarouselComponents.Carousel
-              opts={{
-                align: "start",
-                loop: false,
-              }}
-              className="w-full"
-            >
-              <CarouselComponents.CarouselContent className="-ml-2 md:-ml-4">
-                {filteredGuides.map((guide) => {
-                  const isPurchased = userPurchases.includes(guide.id);
-                  const formattedPrice = guide.price_usd === 0 ? "Free" : `$${guide.price_usd}`;
-                  const formattedDuration = `${Math.floor(guide.duration / 60)} min`;
-                  
-                  return (
-                    <CarouselComponents.CarouselItem key={guide.id} className="pl-2 md:pl-4 basis-full md:basis-1/2 lg:basis-1/3">
+            <div className="px-4">
+              <CarouselComponents.Carousel
+                opts={{
+                  align: "start",
+                  loop: false,
+                }}
+                className="w-full max-w-none"
+              >
+                <CarouselComponents.CarouselContent className="-ml-1 md:-ml-2">
+                  {filteredGuides.map((guide) => {
+                    const isPurchased = userPurchases.includes(guide.id);
+                    const formattedPrice = guide.price_usd === 0 ? "Free" : `$${guide.price_usd}`;
+                    const formattedDuration = `${Math.floor(guide.duration / 60)} min`;
+                    
+                    return (
+                      <CarouselComponents.CarouselItem key={guide.id} className="pl-1 md:pl-2 basis-[85%] sm:basis-1/2 lg:basis-1/3">
                       <GuideCard
                         id={guide.id}
                         title={guide.title}
@@ -279,14 +282,15 @@ const Index = () => {
                             handlePurchaseGuide(guide.id);
                           }
                         }}
-                      />
-                    </CarouselComponents.CarouselItem>
-                  );
-                })}
-              </CarouselComponents.CarouselContent>
-              <CarouselComponents.CarouselPrevious />
-              <CarouselComponents.CarouselNext />
-            </CarouselComponents.Carousel>
+                       />
+                      </CarouselComponents.CarouselItem>
+                    );
+                  })}
+                </CarouselComponents.CarouselContent>
+                <CarouselComponents.CarouselPrevious className="left-2" />
+                <CarouselComponents.CarouselNext className="right-2" />
+              </CarouselComponents.Carousel>
+            </div>
           )}
 
           {/* No Results */}
