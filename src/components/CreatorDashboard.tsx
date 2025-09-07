@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
+import { TierProgress } from '@/components/TierProgress';
 import { supabase } from '@/integrations/supabase/client';
 import { Eye, Edit, BarChart3, DollarSign, Star, TrendingUp } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
@@ -24,7 +25,7 @@ interface Guide {
 }
 
 export const CreatorDashboard = () => {
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const [guides, setGuides] = useState<Guide[]>([]);
   const [stats, setStats] = useState({
     totalGuides: 0,
@@ -133,6 +134,9 @@ export const CreatorDashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Tier Progress Section */}
+      <TierProgress userProfile={userProfile} showUpdateButton={true} />
 
       {/* Guides List */}
       <Card>

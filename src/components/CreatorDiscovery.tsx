@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { VerificationBadge } from '@/components/VerificationBadge';
+import { TierBadge } from '@/components/TierBadge';
 import { 
   Star, 
   MapPin, 
@@ -38,6 +39,8 @@ interface Creator {
   total_plays?: number;
   avg_rating?: number;
   is_trending?: boolean;
+  current_tier?: string;
+  tier_points?: number;
 }
 
 export const CreatorDiscovery: React.FC = () => {
@@ -65,7 +68,11 @@ export const CreatorDiscovery: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select(`
+          *,
+          current_tier,
+          tier_points
+        `)
         .eq('role', 'content_creator')
         .eq('verification_status', 'verified');
 
@@ -165,6 +172,8 @@ export const CreatorDiscovery: React.FC = () => {
           return (b.avg_rating || 0) - (a.avg_rating || 0);
         case 'guides':
           return (b.total_guides || 0) - (a.total_guides || 0);
+        case 'tier':
+          return (b.tier_points || 0) - (a.tier_points || 0);
         default:
           return 0;
       }
@@ -300,6 +309,7 @@ export const CreatorDiscovery: React.FC = () => {
                 <SelectItem value="followers">Most Followers</SelectItem>
                 <SelectItem value="rating">Highest Rated</SelectItem>
                 <SelectItem value="guides">Most Guides</SelectItem>
+                <SelectItem value="tier">Tier Ranking</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -358,12 +368,15 @@ export const CreatorDiscovery: React.FC = () => {
                   
                   <h3 className="font-bold text-lg mt-3 mb-1">{creator.full_name}</h3>
                   
-                  {creator.location && (
-                    <div className="flex items-center justify-center gap-1 text-sm text-muted-foreground mb-2">
-                      <MapPin className="h-3 w-3" />
-                      {creator.location}
-                    </div>
-                  )}
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <TierBadge tier={creator.current_tier || 'bronze'} size="sm" />
+                    {creator.location && (
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <MapPin className="h-3 w-3" />
+                        {creator.location}
+                      </div>
+                    )}
+                  </div>
                   
                   <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
                     {creator.bio}
