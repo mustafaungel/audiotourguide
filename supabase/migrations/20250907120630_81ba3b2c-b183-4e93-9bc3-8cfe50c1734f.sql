@@ -1,0 +1,486 @@
+-- Create demo data for the platform
+-- First, let's add comprehensive demo users with proper profiles
+
+-- Insert demo creators (these will be actual auth users through the auth.users table)
+-- We'll insert into profiles directly since we can't insert into auth.users
+
+-- Demo Admin User
+INSERT INTO public.profiles (
+  user_id, 
+  email, 
+  full_name, 
+  role, 
+  verification_status, 
+  creator_badge,
+  bio,
+  avatar_url,
+  experience_years,
+  specialties,
+  languages_spoken,
+  guide_country,
+  social_profiles,
+  current_tier,
+  tier_points,
+  verified_at
+) VALUES (
+  'admin-demo-uuid-1234567890',
+  'admin@wanderguide.com',
+  'Sarah Chen',
+  'admin',
+  'verified',
+  true,
+  'Platform administrator and travel enthusiast with 10+ years in the tourism industry. Passionate about connecting travelers with authentic local experiences.',
+  'https://images.unsplash.com/photo-1494790108755-2616c99ce19b?w=400',
+  10,
+  ARRAY['Platform Management', 'Tourism Strategy', 'Content Curation'],
+  ARRAY['English', 'Mandarin', 'Spanish'],
+  'United States',
+  '{"instagram": "https://instagram.com/sarahwanders", "website": "https://wanderguide.com/sarah"}',
+  'diamond',
+  2500,
+  now()
+) ON CONFLICT (user_id) DO NOTHING;
+
+-- Demo Creator 1 - Rome Expert
+INSERT INTO public.profiles (
+  user_id, 
+  email, 
+  full_name, 
+  role, 
+  verification_status, 
+  creator_badge,
+  bio,
+  avatar_url,
+  experience_years,
+  specialties,
+  languages_spoken,
+  guide_country,
+  social_profiles,
+  current_tier,
+  tier_points,
+  verified_at,
+  local_guide_verified,
+  license_type,
+  license_country
+) VALUES (
+  'creator-demo-uuid-rome-001',
+  'marco@wanderguide.com',
+  'Marco Rossi',
+  'content_creator',
+  'verified',
+  true,
+  'Licensed tour guide in Rome for 8 years. Specializing in ancient history and culinary experiences. Born and raised in the Eternal City, I know every hidden corner and authentic trattoria.',
+  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+  8,
+  ARRAY['Ancient History', 'Culinary Tours', 'Architecture', 'Local Culture'],
+  ARRAY['Italian', 'English', 'French'],
+  'Italy',
+  '{"instagram": "https://instagram.com/marco_rome_guide", "website": "https://romewithmarco.com", "tripadvisor": "https://tripadvisor.com/marco-rossi"}',
+  'gold',
+  1850,
+  now(),
+  true,
+  'Professional Tour Guide',
+  'Italy'
+) ON CONFLICT (user_id) DO NOTHING;
+
+-- Demo Creator 2 - Tokyo Expert
+INSERT INTO public.profiles (
+  user_id, 
+  email, 
+  full_name, 
+  role, 
+  verification_status, 
+  creator_badge,
+  bio,
+  avatar_url,
+  experience_years,
+  specialties,
+  languages_spoken,
+  guide_country,
+  social_profiles,
+  current_tier,
+  tier_points,
+  verified_at,
+  blue_tick_verified
+) VALUES (
+  'creator-demo-uuid-tokyo-002',
+  'yuki@wanderguide.com',
+  'Yuki Tanaka',
+  'content_creator',
+  'verified',
+  true,
+  'Tokyo native and certified cultural interpreter. I blend traditional Japanese culture with modern urban exploration. Follow me for authentic ramen spots and hidden temples.',
+  'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=400',
+  6,
+  ARRAY['Japanese Culture', 'Food Tours', 'Urban Exploration', 'Traditional Arts'],
+  ARRAY['Japanese', 'English'],
+  'Japan',
+  '{"instagram": "https://instagram.com/yuki_tokyo_adventures", "youtube": "https://youtube.com/yukitokyoguide"}',
+  'silver',
+  1200,
+  now(),
+  true
+) ON CONFLICT (user_id) DO NOTHING;
+
+-- Demo Creator 3 - Paris Expert
+INSERT INTO public.profiles (
+  user_id, 
+  email, 
+  full_name, 
+  role, 
+  verification_status, 
+  creator_badge,
+  bio,
+  avatar_url,
+  experience_years,
+  specialties,
+  languages_spoken,
+  guide_country,
+  social_profiles,
+  current_tier,
+  tier_points,
+  verified_at,
+  local_guide_verified
+) VALUES (
+  'creator-demo-uuid-paris-003',
+  'sophie@wanderguide.com',
+  'Sophie Dubois',
+  'content_creator',
+  'verified',
+  true,
+  'Art historian and professional guide in Paris. Specializing in museum tours and off-the-beaten-path artistic experiences. Let me show you the Paris that locals love.',
+  'https://images.unsplash.com/photo-1488716820095-cbe80883c496?w=400',
+  5,
+  ARRAY['Art History', 'Museums', 'Photography', 'French Culture'],
+  ARRAY['French', 'English', 'German'],
+  'France',
+  '{"instagram": "https://instagram.com/sophie_paris_art", "website": "https://parisartwalks.fr"}',
+  'silver',
+  950,
+  now(),
+  true
+) ON CONFLICT (user_id) DO NOTHING;
+
+-- Demo Creator 4 - New York Expert
+INSERT INTO public.profiles (
+  user_id, 
+  email, 
+  full_name, 
+  role, 
+  verification_status, 
+  creator_badge,
+  bio,
+  avatar_url,
+  experience_years,
+  specialties,
+  languages_spoken,
+  guide_country,
+  social_profiles,
+  current_tier,
+  tier_points,
+  verified_at
+) VALUES (
+  'creator-demo-uuid-nyc-004',
+  'alex@wanderguide.com',
+  'Alex Rodriguez',
+  'content_creator',
+  'verified',
+  true,
+  'NYC local for 15 years, immigrant story expert. I specialize in multicultural neighborhoods and the real New York experience beyond Times Square.',
+  'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
+  4,
+  ARRAY['Urban Culture', 'Immigration History', 'Food Tours', 'Street Art'],
+  ARRAY['English', 'Spanish'],
+  'United States',
+  '{"instagram": "https://instagram.com/alex_real_nyc", "tiktok": "https://tiktok.com/@alexrealnyc"}',
+  'bronze',
+  650,
+  now()
+) ON CONFLICT (user_id) DO NOTHING;
+
+-- Demo Creator 5 - Bali Expert
+INSERT INTO public.profiles (
+  user_id, 
+  email, 
+  full_name, 
+  role, 
+  verification_status, 
+  creator_badge,
+  bio,
+  avatar_url,
+  experience_years,
+  specialties,
+  languages_spoken,
+  guide_country,
+  social_profiles,
+  current_tier,
+  tier_points,
+  verified_at
+) VALUES (
+  'creator-demo-uuid-bali-005',
+  'made@wanderguide.com',
+  'Made Wijaya',
+  'content_creator',
+  'verified',
+  true,
+  'Balinese cultural guide and wellness expert. Born in Ubud, I share the spiritual side of Bali while respecting our ancient traditions and natural environment.',
+  'https://images.unsplash.com/photo-1566492031773-4f4e44671d66?w=400',
+  7,
+  ARRAY['Spiritual Tours', 'Wellness', 'Traditional Culture', 'Nature'],
+  ARRAY['Indonesian', 'English', 'Balinese'],
+  'Indonesia',
+  '{"instagram": "https://instagram.com/made_bali_spirit", "website": "https://balispirit.id"}',
+  'gold',
+  1650,
+  now()
+) ON CONFLICT (user_id) DO NOTHING;
+
+-- Demo Traveler Users
+INSERT INTO public.profiles (
+  user_id, 
+  email, 
+  full_name, 
+  role, 
+  bio,
+  avatar_url,
+  specialties
+) VALUES 
+(
+  'traveler-demo-uuid-001',
+  'emma@example.com',
+  'Emma Johnson',
+  'traveler',
+  'Solo traveler and photographer. Always looking for unique cultural experiences and hidden gems.',
+  'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+  ARRAY['Photography', 'Solo Travel', 'Cultural Immersion']
+),
+(
+  'traveler-demo-uuid-002',
+  'david@example.com',
+  'David Kim',
+  'traveler',
+  'Adventure seeker and history buff. Love exploring ancient sites and trying local cuisines.',
+  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
+  ARRAY['Adventure Travel', 'History', 'Food']
+) ON CONFLICT (user_id) DO NOTHING;
+
+-- Demo Audio Guides
+INSERT INTO public.audio_guides (
+  id,
+  creator_id,
+  title,
+  description,
+  location,
+  category,
+  price_usd,
+  duration,
+  difficulty,
+  languages,
+  is_approved,
+  is_published,
+  rating,
+  total_reviews,
+  total_purchases,
+  image_url,
+  audio_url,
+  transcript,
+  best_time,
+  preview_url
+) VALUES 
+(
+  'guide-demo-colosseum-001',
+  'creator-demo-uuid-rome-001',
+  'Secrets of the Colosseum: Gladiators & Glory',
+  'Step into the arena where gladiators once fought for their lives. This immersive audio guide reveals untold stories of ancient Rome''s most iconic amphitheater, from underground chambers to emperor''s boxes.',
+  'Rome, Italy',
+  'Historical',
+  2999, -- $29.99
+  45,
+  'intermediate',
+  ARRAY['English', 'Italian'],
+  true,
+  true,
+  4.8,
+  127,
+  256,
+  'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800',
+  'https://example.com/audio/colosseum-secrets.mp3',
+  'Welcome to the Colosseum, one of the most magnificent structures ever built...',
+  'Morning (8-10 AM) for best lighting and fewer crowds',
+  'https://example.com/audio/colosseum-preview.mp3'
+),
+(
+  'guide-demo-shibuya-001',
+  'creator-demo-uuid-tokyo-002',
+  'Tokyo After Dark: Shibuya Cultural Deep Dive',
+  'Experience the real Shibuya beyond the crossing. Discover hidden yakitori stands, traditional karaoke culture, and the stories behind Tokyo''s neon-lit entertainment district.',
+  'Tokyo, Japan',
+  'Cultural',
+  2199, -- $21.99
+  60,
+  'beginner',
+  ARRAY['English', 'Japanese'],
+  true,
+  true,
+  4.9,
+  93,
+  178,
+  'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800',
+  'https://example.com/audio/shibuya-night.mp3',
+  'Konnichiwa! Welcome to Shibuya, where traditional Japan meets ultra-modern culture...',
+  'Evening (7-10 PM) for the full night experience',
+  'https://example.com/audio/shibuya-preview.mp3'
+),
+(
+  'guide-demo-louvre-001',
+  'creator-demo-uuid-paris-003',
+  'Louvre Masterpieces: Beyond the Mona Lisa',
+  'Skip the crowds and discover the Louvre''s hidden treasures. An art historian''s guide to paintings and sculptures that tell the real story of European art.',
+  'Paris, France',
+  'Art & Museums',
+  3499, -- $34.99
+  75,
+  'intermediate',
+  ARRAY['English', 'French'],
+  true,
+  true,
+  4.7,
+  201,
+  423,
+  'https://images.unsplash.com/photo-1566139884009-a1eb07c8de9c?w=800',
+  'https://example.com/audio/louvre-masterpieces.mp3',
+  'Bonjour and welcome to the Louvre Museum. I''m Sophie, and I''ve been guiding art lovers through these halls for over five years...',
+  'Weekday mornings (9-11 AM) to avoid crowds',
+  'https://example.com/audio/louvre-preview.mp3'
+),
+(
+  'guide-demo-brooklyn-001',
+  'creator-demo-uuid-nyc-004',
+  'Real Brooklyn: Immigration Stories & Street Art',
+  'Walk through Brooklyn''s most authentic neighborhoods. Learn about waves of immigration, sample amazing food, and discover world-class street art in Bushwick and Williamsburg.',
+  'New York, USA',
+  'Cultural',
+  2699, -- $26.99
+  90,
+  'beginner',
+  ARRAY['English', 'Spanish'],
+  true,
+  true,
+  4.6,
+  156,
+  289,
+  'https://images.unsplash.com/photo-1518391846015-55a9cc003b25?w=800',
+  'https://example.com/audio/brooklyn-real.mp3',
+  'Hey there! I''m Alex, born in Queens but Brooklyn has been my home for 15 years. Let me show you the real Brooklyn...',
+  'Afternoon (2-5 PM) for best street art lighting',
+  'https://example.com/audio/brooklyn-preview.mp3'
+),
+(
+  'guide-demo-ubud-001',
+  'creator-demo-uuid-bali-005',
+  'Sacred Ubud: Temples, Rice Terraces & Healing',
+  'Experience the spiritual heart of Bali. Visit ancient temples, walk through emerald rice terraces, and learn about traditional Balinese healing practices from a local perspective.',
+  'Ubud, Indonesia',
+  'Spiritual & Nature',
+  2899, -- $28.99
+  120,
+  'beginner',
+  ARRAY['English', 'Indonesian'],
+  true,
+  true,
+  4.9,
+  312,
+  567,
+  'https://images.unsplash.com/photo-1537953773345-d172ccf13cf1?w=800',
+  'https://example.com/audio/ubud-sacred.mp3',
+  'Om Swastiastu. Welcome to Ubud, the cultural and spiritual heart of Bali. I am Made, and this is my homeland...',
+  'Early morning (6-9 AM) for sunrise at rice terraces',
+  'https://example.com/audio/ubud-preview.mp3'
+) ON CONFLICT (id) DO NOTHING;
+
+-- Create some demo purchases to show activity
+INSERT INTO public.user_purchases (
+  user_id,
+  guide_id,
+  price_paid,
+  currency,
+  stripe_payment_id,
+  access_code
+) VALUES 
+(
+  'traveler-demo-uuid-001',
+  'guide-demo-colosseum-001',
+  2999,
+  'usd',
+  'pi_demo_purchase_001',
+  'ART-COL001'
+),
+(
+  'traveler-demo-uuid-002',
+  'guide-demo-shibuya-001',
+  2199,
+  'usd',
+  'pi_demo_purchase_002',
+  'ART-SHI001'
+),
+(
+  'traveler-demo-uuid-001',
+  'guide-demo-ubud-001',
+  2899,
+  'usd',
+  'pi_demo_purchase_003',
+  'ART-UBU001'
+) ON CONFLICT DO NOTHING;
+
+-- Create some demo reviews
+INSERT INTO public.guide_reviews (
+  guide_id,
+  user_id,
+  rating,
+  comment
+) VALUES 
+(
+  'guide-demo-colosseum-001',
+  'traveler-demo-uuid-001',
+  5,
+  'Marco''s knowledge of Roman history is incredible! The hidden details about gladiator life really brought the Colosseum to life.'
+),
+(
+  'guide-demo-shibuya-001',
+  'traveler-demo-uuid-002',
+  5,
+  'Yuki showed me a side of Tokyo I never would have found on my own. The local food recommendations were spot on!'
+),
+(
+  'guide-demo-ubud-001',
+  'traveler-demo-uuid-001',
+  5,
+  'A truly spiritual experience. Made''s connection to Balinese culture made this so much more than just a tour.'
+) ON CONFLICT DO NOTHING;
+
+-- Create creator connections from purchases
+INSERT INTO public.creator_connections (
+  user_id,
+  creator_id,
+  guide_id,
+  connection_source
+) VALUES 
+(
+  'traveler-demo-uuid-001',
+  'creator-demo-uuid-rome-001',
+  'guide-demo-colosseum-001',
+  'purchase'
+),
+(
+  'traveler-demo-uuid-002',
+  'creator-demo-uuid-tokyo-002',
+  'guide-demo-shibuya-001',
+  'purchase'
+),
+(
+  'traveler-demo-uuid-001',
+  'creator-demo-uuid-bali-005',
+  'guide-demo-ubud-001',
+  'purchase'
+) ON CONFLICT DO NOTHING;
