@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigation } from '@/components/Navigation';
 import { CreatorDashboard as CreatorDashboardComponent } from '@/components/CreatorDashboard';
 import { CreatorEarningsDashboard } from '@/components/CreatorEarningsDashboard';
+import { CreatorGuideEditForm } from '@/components/CreatorGuideEditForm';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart3, DollarSign, Users, TrendingUp, Plus } from 'lucide-react';
 import { CreatorGuideCreation } from '@/components/CreatorGuideCreation';
@@ -9,6 +10,21 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const CreatorDashboard = () => {
   const { user, userProfile } = useAuth();
+  const [editMode, setEditMode] = useState(false);
+
+  useEffect(() => {
+    // Check if we're in edit mode from sessionStorage
+    const isEditMode = sessionStorage.getItem('editMode') === 'true';
+    if (isEditMode) {
+      setEditMode(true);
+      sessionStorage.removeItem('editMode'); // Clean up
+    }
+  }, []);
+
+  const handleBackFromEdit = () => {
+    setEditMode(false);
+    sessionStorage.removeItem('selectedGuideForEdit');
+  };
 
   if (!user) {
     return (
@@ -24,6 +40,24 @@ const CreatorDashboard = () => {
 
   // For demo purposes, allow access to creator dashboard for testing
   // In production, you'd want stricter role checking
+
+  // Show edit form if in edit mode
+  if (editMode) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        
+        <div className="container mx-auto px-4 py-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold mb-2">Edit Guide</h1>
+            <p className="text-muted-foreground">Update your audio guide information</p>
+          </div>
+
+          <CreatorGuideEditForm onBack={handleBackFromEdit} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">

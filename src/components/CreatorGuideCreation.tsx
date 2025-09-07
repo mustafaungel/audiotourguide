@@ -189,7 +189,7 @@ export function CreatorGuideCreation() {
       setQrCodeUrl(data.guide.qr_code_url);
       setShareUrl(data.guide.share_url);
       
-      toast.success('Audio guide created successfully with QR code and share link!');
+      toast.success(`${data.message || 'Audio guide created successfully with QR code and share link!'}`);
       
       // Reset form
       setFormData({

@@ -239,9 +239,13 @@ export const CreatorDashboard = () => {
                 <Edit className="w-4 h-4 mr-2" />
                 Create New Guide
               </Button>
-              <Button variant="outline" className="w-full justify-start touch-target">
+              <Button variant="outline" className="w-full justify-start touch-target" onClick={() => {
+                const tabs = document.querySelector('[role="tablist"]');
+                const guidesTab = tabs?.querySelector('[value="guides"]') as HTMLButtonElement;
+                guidesTab?.click();
+              }}>
                 <BarChart3 className="w-4 h-4 mr-2" />
-                View Analytics
+                Manage My Guides
               </Button>
               <Button variant="outline" className="w-full justify-start touch-target">
                 <MessageSquare className="w-4 h-4 mr-2" />
@@ -324,11 +328,23 @@ export const CreatorDashboard = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm">
-                        <TrendingUp className="h-4 w-4 mr-1" />
-                        Analytics
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => window.open(`/guide/${guide.id}`, '_blank')}
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        Preview
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          sessionStorage.setItem('selectedGuideForEdit', JSON.stringify(guide));
+                          sessionStorage.setItem('editMode', 'true');
+                          window.location.reload();
+                        }}
+                      >
                         <Edit className="h-4 w-4 mr-1" />
                         Edit
                       </Button>
