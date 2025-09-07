@@ -1,5 +1,5 @@
-import React from "react";
-import { MapPin, Menu, Search, User, LogOut } from "lucide-react";
+import React, { useState } from "react";
+import { MapPin, Menu, Search, User, LogOut, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -12,14 +12,28 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { SearchModal } from "@/components/SearchModal";
 
 export const Navigation = () => {
   const { user, userProfile, signOut } = useAuth();
   const navigate = useNavigate();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
   };
 
   return (
@@ -57,9 +71,11 @@ export const Navigation = () => {
 
           {/* Actions */}
           <div className="flex items-center space-x-2">
-            <Button variant="ghost" size="icon" className="w-9 h-9">
-              <Search className="w-4 h-4" />
-            </Button>
+            <SearchModal>
+              <Button variant="ghost" size="icon" className="w-9 h-9">
+                <Search className="w-4 h-4" />
+              </Button>
+            </SearchModal>
             <ThemeToggle />
             
             {user ? (
@@ -119,9 +135,166 @@ export const Navigation = () => {
               </>
             )}
 
-            <Button variant="ghost" size="icon" className="md:hidden w-9 h-9">
-              <Menu className="w-4 h-4" />
-            </Button>
+            {/* Mobile Navigation Sheet */}
+            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="md:hidden w-9 h-9">
+                  <Menu className="w-4 h-4" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-80">
+                <SheetHeader>
+                  <SheetTitle className="flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-primary" />
+                    Audio Tour Guides
+                  </SheetTitle>
+                  <SheetDescription>
+                    Discover World Heritage
+                  </SheetDescription>
+                </SheetHeader>
+                
+                <div className="mt-8 space-y-6">
+                  {/* Mobile Navigation Links */}
+                  <nav className="space-y-4">
+                    <Link 
+                      to="/library" 
+                      onClick={closeMobileMenu}
+                      className="flex items-center py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
+                    >
+                      Audio Guides
+                    </Link>
+                    <Link 
+                      to="/experiences" 
+                      onClick={closeMobileMenu}
+                      className="flex items-center py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
+                    >
+                      Live Experiences
+                    </Link>
+                    <Link 
+                      to="/creators" 
+                      onClick={closeMobileMenu}
+                      className="flex items-center py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
+                    >
+                      Creators
+                    </Link>
+                    <Link 
+                      to="/library" 
+                      onClick={closeMobileMenu}
+                      className="flex items-center py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
+                    >
+                      UNESCO Sites
+                    </Link>
+                  </nav>
+
+                  {/* User Section */}
+                  {user ? (
+                    <div className="space-y-4 pt-6 border-t">
+                      <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                        <User className="h-8 w-8 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium text-sm">
+                            {user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'}
+                          </p>
+                          <p className="text-xs text-muted-foreground">{user.email}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Button 
+                          variant="ghost" 
+                          className="w-full justify-start"
+                          onClick={() => {
+                            navigate('/profile');
+                            closeMobileMenu();
+                          }}
+                        >
+                          <User className="mr-2 h-4 w-4" />
+                          Profile
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          className="w-full justify-start"
+                          onClick={() => {
+                            navigate('/library');
+                            closeMobileMenu();
+                          }}
+                        >
+                          My Library
+                        </Button>
+                        {userProfile?.role === 'admin' && (
+                          <Button 
+                            variant="ghost" 
+                            className="w-full justify-start"
+                            onClick={() => {
+                              navigate('/admin');
+                              closeMobileMenu();
+                            }}
+                          >
+                            Admin Panel
+                          </Button>
+                        )}
+                        {(userProfile?.role === 'content_creator' || userProfile?.verification_status === 'verified') && (
+                          <Button 
+                            variant="ghost" 
+                            className="w-full justify-start"
+                            onClick={() => {
+                              navigate('/creator-dashboard');
+                              closeMobileMenu();
+                            }}
+                          >
+                            Creator Dashboard
+                          </Button>
+                        )}
+                        {userProfile?.role === 'traveler' && (
+                          <Button 
+                            variant="ghost" 
+                            className="w-full justify-start"
+                            onClick={() => {
+                              navigate('/profile');
+                              closeMobileMenu();
+                            }}
+                          >
+                            Become a Creator
+                          </Button>
+                        )}
+                        <Button 
+                          variant="ghost" 
+                          className="w-full justify-start text-destructive hover:text-destructive"
+                          onClick={() => {
+                            handleSignOut();
+                            closeMobileMenu();
+                          }}
+                        >
+                          <LogOut className="mr-2 h-4 w-4" />
+                          Sign out
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 pt-6 border-t">
+                      <Link to="/auth" onClick={closeMobileMenu}>
+                        <Button variant="outline" className="w-full">
+                          Sign In
+                        </Button>
+                      </Link>
+                      <Link to="/auth" onClick={closeMobileMenu}>
+                        <Button variant="default" className="w-full">
+                          Get Started
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
+
+                  {/* Theme Toggle */}
+                  <div className="pt-4 border-t">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Theme</span>
+                      <ThemeToggle />
+                    </div>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </div>

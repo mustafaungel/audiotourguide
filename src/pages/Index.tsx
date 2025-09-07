@@ -167,7 +167,7 @@ const Index = () => {
             </p>
           </div>
 
-          {/* Search and Filter */}
+          {/* Enhanced Search and Filter */}
           <div className="flex flex-col md:flex-row gap-4 mb-8 max-w-2xl mx-auto">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -178,11 +178,32 @@ const Index = () => {
                 className="pl-10 bg-card/50 backdrop-blur-sm border-border/50"
               />
             </div>
-            <Button variant="outline" className="md:w-auto">
-              <Filter className="h-4 w-4 mr-2" />
-              Filters
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" className="md:w-auto">
+                <Filter className="h-4 w-4 mr-2" />
+                Filters
+              </Button>
+              {searchTerm && (
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setSearchTerm('')}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
           </div>
+
+          {/* Search Results Info */}
+          {searchTerm && (
+            <div className="text-center mb-6">
+              <p className="text-sm text-muted-foreground">
+                {loading ? 'Searching...' : `Found ${filteredGuides.length} result(s) for "${searchTerm}"`}
+              </p>
+            </div>
+          )}
 
           {/* Loading State */}
           {loading && (

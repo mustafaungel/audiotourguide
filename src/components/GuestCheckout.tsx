@@ -49,7 +49,17 @@ export const GuestCheckout: React.FC<GuestCheckoutProps> = ({ guide, onSuccess }
       if (error) throw error;
 
       if (data?.url) {
-        window.location.href = data.url;
+        // Open Stripe checkout in a new tab for better UX
+        const newWindow = window.open(data.url, '_blank');
+        if (!newWindow) {
+          // Fallback if popup blocked
+          window.location.href = data.url;
+        } else {
+          toast({
+            title: "Redirecting to payment",
+            description: "Opening secure checkout in a new tab...",
+          });
+        }
       }
     } catch (error) {
       toast({
@@ -77,7 +87,17 @@ export const GuestCheckout: React.FC<GuestCheckoutProps> = ({ guide, onSuccess }
       if (error) throw error;
 
       if (data?.url) {
-        window.location.href = data.url;
+        // Open Stripe checkout in a new tab for better UX
+        const newWindow = window.open(data.url, '_blank');
+        if (!newWindow) {
+          // Fallback if popup blocked
+          window.location.href = data.url;
+        } else {
+          toast({
+            title: "Redirecting to payment",
+            description: "Opening secure checkout in a new tab...",
+          });
+        }
       }
     } catch (error) {
       toast({
