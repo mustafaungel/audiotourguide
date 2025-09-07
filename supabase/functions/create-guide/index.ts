@@ -157,17 +157,16 @@ serve(async (req) => {
     // Generate QR code and share link with proper base URL detection
     let baseUrl = Deno.env.get('SITE_URL');
     if (!baseUrl) {
-      // Fallback: try to detect from request headers
-      const host = req.headers.get('host');
-      const protocol = req.headers.get('x-forwarded-proto') || 'https';
-      baseUrl = host ? `${protocol}://${host}` : 'https://dsaqlgxajdnwoqvtsrqd.supabase.co';
+      // Use the Supabase project URL as fallback since edge functions run on Supabase
+      baseUrl = 'https://dsaqlgxajdnwoqvtsrqd.supabase.co';
     }
     
     console.log('Using base URL for new guide:', baseUrl);
     const shareUrl = `${baseUrl}/guide/${guideData.id}`;
     
-    // Generate QR code URL that points to an image, not base64 data
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&format=png&data=${encodeURIComponent(shareUrl)}`;
+    // Generate QR code URL with proper encoding
+    const encodedUrl = encodeURIComponent(shareUrl);
+    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&format=png&data=${encodedUrl}`;
     
     // Update guide with QR code and share URL
     await supabaseServiceClient
