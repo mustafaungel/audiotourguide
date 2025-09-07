@@ -9,7 +9,7 @@ const corsHeaders = {
 
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[CREATE-PAYMENT] ${step}${detailsStr}`);
+  console.log(`[CREATE-PAYMENT-INTENT] ${step}${detailsStr}`);
 };
 
 serve(async (req) => {
@@ -18,7 +18,7 @@ serve(async (req) => {
   }
 
   try {
-    logStep("Payment function started");
+    logStep("Payment intent function started");
     
     // Use service role key to bypass RLS for purchase operations
     const supabaseService = createClient(
@@ -26,10 +26,6 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
       { auth: { persistSession: false } }
     );
-
-    // Get and validate origin for URL construction
-    const origin = req.headers.get("origin") || req.headers.get("referer") || "http://localhost:3000";
-    logStep("Origin header", { origin, referer: req.headers.get("referer") });
 
     const { guide_id, guest_email, is_guest } = await req.json();
     if (!guide_id) throw new Error("Guide ID is required");
@@ -106,97 +102,53 @@ serve(async (req) => {
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
       logStep("Existing customer found", { customerId });
-    }
-
-    // Construct URLs with proper validation
-    const successUrl = `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&guide_id=${guide_id}`;
-    const cancelUrl = `${origin}/payment-cancelled`;
-    logStep("Constructed URLs", { successUrl, cancelUrl });
-
-    try {
-      // Validate URLs
-      new URL(successUrl.replace('{CHECKOUT_SESSION_ID}', 'test'));
-      new URL(cancelUrl);
-      logStep("URL validation passed");
-    } catch (urlError) {
-      logStep("URL validation failed", { error: urlError.message, origin });
-      throw new Error(`Invalid URL construction: ${urlError.message}`);
-    }
-
-    // Fix image URL - convert relative paths to absolute or remove invalid ones
-    let processedImageUrl = null;
-    if (guide.image_url) {
-      try {
-        if (guide.image_url.startsWith('http')) {
-          // Already absolute URL
-          processedImageUrl = guide.image_url;
-        } else if (guide.image_url.startsWith('/')) {
-          // Relative path - convert to absolute
-          processedImageUrl = `${origin}${guide.image_url}`;
+    } else {
+      // Create new customer
+      const customer = await stripe.customers.create({
+        email: userEmail,
+        metadata: {
+          user_id: user?.id || "",
+          is_guest: is_guest ? "true" : "false",
         }
-        // Validate the processed URL
-        if (processedImageUrl) {
-          new URL(processedImageUrl);
-          logStep("Image URL processed", { original: guide.image_url, processed: processedImageUrl });
-        }
-      } catch (imageError) {
-        logStep("Invalid image URL, excluding from Stripe", { 
-          imageUrl: guide.image_url, 
-          error: imageError.message 
-        });
-        processedImageUrl = null;
-      }
+      });
+      customerId = customer.id;
+      logStep("New customer created", { customerId });
     }
 
-    // Create checkout session with detailed validation
-    const productData = { 
-      name: guide.title,
-      description: guide.description,
-    };
-    
-    // Only add images if we have a valid URL
-    if (processedImageUrl) {
-      productData.images = [processedImageUrl];
-    }
-    
-    logStep("Product data prepared", { productData });
-
-    const sessionData = {
+    // Create payment intent
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: guide.price_usd, // Already in cents from database
+      currency: guide.currency || "usd",
       customer: customerId,
-      customer_email: customerId ? undefined : userEmail,
-      line_items: [
-        {
-          price_data: {
-            currency: guide.currency || "usd",
-            product_data: productData,
-            unit_amount: guide.price_usd, // Already in cents from database
-          },
-          quantity: 1,
-        },
-      ],
-      mode: "payment" as const,
-      success_url: successUrl,
-      cancel_url: cancelUrl,
       metadata: {
         user_id: user?.id || "",
         guest_email: is_guest ? guest_email : "",
         is_guest: is_guest ? "true" : "false",
         guide_id: guide_id,
+        guide_title: guide.title,
       },
-    };
-    
-    logStep("Creating Stripe session", { sessionData: { ...sessionData, line_items: "..." } });
-    const session = await stripe.checkout.sessions.create(sessionData);
+      automatic_payment_methods: {
+        enabled: true,
+      },
+    });
 
-    logStep("Checkout session created", { sessionId: session.id, url: session.url });
+    logStep("Payment intent created", { 
+      paymentIntentId: paymentIntent.id, 
+      amount: paymentIntent.amount,
+      clientSecret: paymentIntent.client_secret?.substring(0, 10) + "..." 
+    });
 
-    return new Response(JSON.stringify({ url: session.url }), {
+    return new Response(JSON.stringify({
+      client_secret: paymentIntent.client_secret,
+      amount: paymentIntent.amount,
+      currency: paymentIntent.currency,
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in create-payment", { message: errorMessage });
+    logStep("ERROR in create-payment-intent", { message: errorMessage });
     return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
