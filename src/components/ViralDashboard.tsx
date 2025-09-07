@@ -52,87 +52,86 @@ export const ViralDashboard: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
-      {/* Simplified Viral Stats Header - Only 3 key metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Mobile-Optimized Viral Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         <Card className="bg-gradient-primary border-none shadow-tourism">
-          <CardContent className="p-4 text-center">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Users className="h-5 w-5 text-primary-foreground" />
+          <CardContent className="p-3 sm:p-4 text-center">
+            <div className="flex items-center justify-center gap-2 mb-1 sm:mb-2">
+              <Users className="h-4 w-4 sm:h-5 sm:w-5 text-primary-foreground" />
               <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
             </div>
-            <div className="text-2xl font-bold text-primary-foreground">
+            <div className="text-xl sm:text-2xl font-bold text-primary-foreground">
               {formatNumber(viralStats.total_users_online)}
             </div>
-            <div className="text-sm text-primary-foreground/80">Users Online</div>
+            <div className="text-xs sm:text-sm text-primary-foreground/80">Users Online</div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-accent border-none shadow-accent-glow">
-          <CardContent className="p-4 text-center">
-            <Flame className="h-5 w-5 text-accent-foreground mx-auto mb-2 animate-pulse" />
-            <div className="text-2xl font-bold text-accent-foreground">
+          <CardContent className="p-3 sm:p-4 text-center">
+            <Flame className="h-4 w-4 sm:h-5 sm:w-5 text-accent-foreground mx-auto mb-1 sm:mb-2 animate-pulse" />
+            <div className="text-xl sm:text-2xl font-bold text-accent-foreground">
               {viralStats.viral_guides_today}
             </div>
-            <div className="text-sm text-accent-foreground/80">Viral Guides Today</div>
+            <div className="text-xs sm:text-sm text-accent-foreground/80">Viral Today</div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-tourism border-none shadow-tourism">
-          <CardContent className="p-4 text-center">
-            <Globe className="h-5 w-5 text-primary-foreground mx-auto mb-2" />
-            <div className="text-2xl font-bold text-primary-foreground">
+          <CardContent className="p-3 sm:p-4 text-center">
+            <Globe className="h-4 w-4 sm:h-5 sm:w-5 text-primary-foreground mx-auto mb-1 sm:mb-2" />
+            <div className="text-xl sm:text-2xl font-bold text-primary-foreground">
               {viralStats.trending_locations}
             </div>
-            <div className="text-sm text-primary-foreground/80">Trending Cities</div>
+            <div className="text-xs sm:text-sm text-primary-foreground/80">Trending</div>
           </CardContent>
         </Card>
-
       </div>
 
-      {/* Live Activity Feed */}
+      {/* Mobile-Optimized Live Activity Feed */}
       <Card className="border-accent/20 bg-gradient-accent/5">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+        <CardHeader className="pb-3 sm:pb-6">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
             <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
             Live Activity
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {liveActivity.map((activity, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-background/50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 bg-accent rounded-full"></div>
-                  <span className="text-sm">
-                    <span className="font-medium text-foreground">{activity.user}</span>
+        <CardContent className="pt-0">
+          <div className="space-y-2 sm:space-y-3 max-h-64 sm:max-h-none overflow-y-auto">
+            {liveActivity.slice(0, 3).map((activity, index) => (
+              <div key={index} className="flex items-start justify-between p-2 sm:p-3 bg-background/50 rounded-lg">
+                <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
+                  <div className="w-2 h-2 bg-accent rounded-full mt-1 flex-shrink-0"></div>
+                  <span className="text-xs sm:text-sm leading-relaxed">
+                    <span className="font-medium text-foreground block sm:inline">{activity.user}</span>
                     <span className="text-muted-foreground"> {activity.action}</span>
                   </span>
                 </div>
-                <span className="text-xs text-muted-foreground">{activity.time}</span>
+                <span className="text-xs text-muted-foreground flex-shrink-0 ml-2">{activity.time}</span>
               </div>
             ))}
           </div>
         </CardContent>
       </Card>
 
-      {/* Main Viral Content Tabs */}
-      <Tabs defaultValue="trending" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-4 bg-card border border-border">
-          <TabsTrigger value="trending" className="flex items-center gap-2">
-            <Flame className="h-4 w-4" />
-            <span className="hidden sm:inline">Trending</span>
+      {/* Mobile-Optimized Tabs */}
+      <Tabs defaultValue="trending" className="space-y-4 sm:space-y-6">
+        <TabsList className="grid w-full grid-cols-4 bg-card border border-border h-12 sm:h-10">
+          <TabsTrigger value="trending" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+            <Flame className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden xs:inline sm:inline">Trending</span>
           </TabsTrigger>
-          <TabsTrigger value="creators" className="flex items-center gap-2">
-            <Crown className="h-4 w-4" />
-            <span className="hidden sm:inline">Creators</span>
+          <TabsTrigger value="creators" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+            <Crown className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden xs:inline sm:inline">Creators</span>
           </TabsTrigger>
-          <TabsTrigger value="achievements" className="flex items-center gap-2">
-            <Trophy className="h-4 w-4" />
-            <span className="hidden sm:inline">Achievements</span>
+          <TabsTrigger value="achievements" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+            <Trophy className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden xs:inline sm:inline">Awards</span>
           </TabsTrigger>
-          <TabsTrigger value="viral-tools" className="flex items-center gap-2">
-            <Zap className="h-4 w-4" />
-            <span className="hidden sm:inline">Viral Tools</span>
+          <TabsTrigger value="viral-tools" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+            <Zap className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden xs:inline sm:inline">Tools</span>
           </TabsTrigger>
         </TabsList>
 

@@ -161,36 +161,36 @@ const Index = () => {
       <Navigation />
       <HeroSection />
       
-      {/* Featured Destinations Section - Moved to top */}
-      <section className="py-16 px-6">
+      {/* Mobile-Optimized Featured Destinations Section */}
+      <section className="py-8 sm:py-12 lg:py-16 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           {/* Section Header */}
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card/20 backdrop-blur-md border border-border/50 mb-6">
+          <div className="text-center mb-6 sm:mb-8 lg:mb-12">
+            <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-card/20 backdrop-blur-md border border-border/50 mb-4 sm:mb-6">
               <Headphones className="h-4 w-4 text-primary" />
               <span className="text-sm font-medium">Featured Destinations</span>
             </div>
-            <h2 className="text-4xl font-bold text-foreground mb-4">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-3 sm:mb-4">
               Iconic Destinations Await
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto px-4 sm:px-0">
               Explore UNESCO World Heritage sites, cultural treasures, and iconic landmarks with immersive AI-guided tours
             </p>
           </div>
 
           {/* Enhanced Search and Filter */}
-          <div className="flex flex-col md:flex-row gap-4 mb-8 max-w-2xl mx-auto">
+          <div className="flex flex-col gap-3 mb-6 sm:mb-8 max-w-2xl mx-auto">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search destinations, UNESCO sites, or cultural experiences..."
+                placeholder="Search destinations..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-card/50 backdrop-blur-sm border-border/50"
+                className="pl-10 bg-card/50 backdrop-blur-sm border-border/50 h-12 text-base"
               />
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" className="md:w-auto">
+              <Button variant="outline" className="flex-1 sm:flex-none min-h-[44px]">
                 <Filter className="h-4 w-4 mr-2" />
                 Filters
               </Button>
@@ -199,7 +199,7 @@ const Index = () => {
                   variant="ghost" 
                   size="sm"
                   onClick={() => setSearchTerm('')}
-                  className="text-muted-foreground hover:text-foreground"
+                  className="text-muted-foreground hover:text-foreground min-h-[44px] px-4"
                 >
                   Clear
                 </Button>
@@ -218,7 +218,7 @@ const Index = () => {
 
           {/* Loading State */}
           {loading && (
-            <div className="px-4">
+            <div className="px-2 sm:px-4">
               <CarouselComponents.Carousel
                 opts={{
                   align: "start",
@@ -226,9 +226,9 @@ const Index = () => {
                 }}
                 className="w-full max-w-none"
               >
-                <CarouselComponents.CarouselContent className="-ml-1 md:-ml-2">
+                <CarouselComponents.CarouselContent className="-ml-2 sm:-ml-4">
                   {[...Array(6)].map((_, i) => (
-                    <CarouselComponents.CarouselItem key={i} className="pl-1 md:pl-2 basis-[85%] sm:basis-1/2 lg:basis-1/3">
+                    <CarouselComponents.CarouselItem key={i} className="pl-2 sm:pl-4 basis-[90%] sm:basis-[80%] md:basis-1/2 lg:basis-1/3">
                       <div className="bg-card rounded-lg p-4 animate-pulse">
                         <div className="h-48 bg-muted rounded-lg mb-4"></div>
                         <div className="h-4 bg-muted rounded mb-2"></div>
@@ -245,7 +245,7 @@ const Index = () => {
 
           {/* Guides Carousel */}
           {!loading && (
-            <div className="px-4">
+            <div className="px-2 sm:px-4">
               <CarouselComponents.Carousel
                 opts={{
                   align: "start",
@@ -253,14 +253,14 @@ const Index = () => {
                 }}
                 className="w-full max-w-none"
               >
-                <CarouselComponents.CarouselContent className="-ml-1 md:-ml-2">
+                <CarouselComponents.CarouselContent className="-ml-2 sm:-ml-4">
                   {filteredGuides.map((guide) => {
                     const isPurchased = userPurchases.includes(guide.id);
                     const formattedPrice = guide.price_usd === 0 ? "Free" : `$${guide.price_usd}`;
                     const formattedDuration = `${Math.floor(guide.duration / 60)} min`;
                     
                     return (
-                      <CarouselComponents.CarouselItem key={guide.id} className="pl-1 md:pl-2 basis-[85%] sm:basis-1/2 lg:basis-1/3">
+                      <CarouselComponents.CarouselItem key={guide.id} className="pl-2 sm:pl-4 basis-[90%] sm:basis-[80%] md:basis-1/2 lg:basis-1/3">
                       <GuideCard
                         id={guide.id}
                         title={guide.title}

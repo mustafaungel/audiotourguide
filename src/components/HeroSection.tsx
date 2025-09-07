@@ -27,36 +27,36 @@ export const HeroSection: React.FC = () => {
 
           {/* Main Headline */}
           <div className="space-y-4">
-            <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent leading-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-7xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent leading-tight">
               Explore the World's Hidden Stories
             </h1>
-            <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
               Discover UNESCO World Heritage sites, cultural traditions, and iconic destinations with AI-powered audio tours that bring history to life.
             </p>
           </div>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <div className="flex flex-col gap-4 justify-center items-center w-full max-w-sm mx-auto sm:max-w-none sm:flex-row">
             <Button 
               variant="hero" 
               size="lg" 
-              className="px-8 py-4 text-lg h-auto"
+              className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg h-auto min-h-[44px]"
             >
-              <Play className="h-5 w-5 mr-2" />
+              <Play className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
               Explore Destinations
             </Button>
             <Button 
               variant="glass" 
               size="lg" 
-              className="px-8 py-4 text-lg h-auto"
+              className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg h-auto min-h-[44px]"
             >
-              <Headphones className="h-5 w-5 mr-2" />
+              <Headphones className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
               World Heritage Sites
             </Button>
           </div>
 
           {/* Features */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16">
+          <div className="grid grid-cols-1 gap-4 sm:gap-6 mt-8 sm:mt-16 md:grid-cols-3">
             {[
               {
                 icon: "🏛️",
@@ -74,9 +74,9 @@ export const HeroSection: React.FC = () => {
                 description: "Uncover secrets and legends behind iconic landmarks"
               }
             ].map((feature, index) => (
-              <div key={index} className="text-center space-y-3 p-6 rounded-xl bg-card/10 backdrop-blur-sm border border-border/30">
-                <div className="text-4xl">{feature.icon}</div>
-                <h3 className="text-lg font-semibold text-foreground">{feature.title}</h3>
+              <div key={index} className="text-center space-y-2 sm:space-y-3 p-4 sm:p-6 rounded-xl bg-card/10 backdrop-blur-sm border border-border/30">
+                <div className="text-3xl sm:text-4xl">{feature.icon}</div>
+                <h3 className="text-base sm:text-lg font-semibold text-foreground">{feature.title}</h3>
                 <p className="text-sm text-muted-foreground">{feature.description}</p>
               </div>
             ))}
