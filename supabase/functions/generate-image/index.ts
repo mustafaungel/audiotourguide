@@ -51,8 +51,7 @@ serve(async (req) => {
         n: 1,
         size: '1024x1024',
         quality: 'high',
-        output_format: 'webp',
-        response_format: 'b64_json'
+        output_format: 'webp'
       }),
     });
 
