@@ -287,26 +287,21 @@ const CreatorProfile = () => {
                   ))}
                 </div>
                 
-                {/* Social Links */}
-                {creator.social_profiles && (
-                  <div className="flex gap-2">
-                    {creator.social_profiles.instagram && (
-                      <Button size="sm" variant="ghost" className="text-primary-foreground hover:bg-primary-foreground/20">
-                        <Instagram className="h-4 w-4" />
-                      </Button>
-                    )}
-                    {creator.social_profiles.twitter && (
-                      <Button size="sm" variant="ghost" className="text-primary-foreground hover:bg-primary-foreground/20">
-                        <Twitter className="h-4 w-4" />
-                      </Button>
-                    )}
-                    {creator.social_profiles.website && (
-                      <Button size="sm" variant="ghost" className="text-primary-foreground hover:bg-primary-foreground/20">
-                        <Globe className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                )}
+                {/* Professional Info (Social links now hidden by default) */}
+                <div className="flex gap-4 text-sm text-primary-foreground/80">
+                  {creator.experience_years && (
+                    <div className="flex items-center gap-1">
+                      <Award className="h-4 w-4" />
+                      {creator.experience_years} years experience
+                    </div>
+                  )}
+                  {creator.location && (
+                    <div className="flex items-center gap-1">
+                      <MapPin className="h-4 w-4" />
+                      {creator.location}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
             

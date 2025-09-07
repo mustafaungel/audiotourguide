@@ -2,6 +2,7 @@ import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigation } from '@/components/Navigation';
 import { EnhancedCreatorVerificationForm } from '@/components/EnhancedCreatorVerificationForm';
+import { CreatorPrivacySettings } from '@/components/CreatorPrivacySettings';
 import { VerificationBadge } from '@/components/VerificationBadge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -152,6 +153,11 @@ const Profile = () => {
                 </div>
               </CardContent>
             </Card>
+          )}
+
+          {/* Creator Privacy Settings */}
+          {userProfile?.role === 'content_creator' && (
+            <CreatorPrivacySettings />
           )}
         </div>
       </div>

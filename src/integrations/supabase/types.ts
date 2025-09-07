@@ -527,17 +527,64 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_privacy_settings: {
+        Row: {
+          allow_public_messaging: boolean
+          created_at: string
+          id: string
+          show_certifications: boolean
+          show_experience_years: boolean
+          show_guide_country: boolean
+          show_languages: boolean
+          show_license_info: boolean
+          show_social_media: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          allow_public_messaging?: boolean
+          created_at?: string
+          id?: string
+          show_certifications?: boolean
+          show_experience_years?: boolean
+          show_guide_country?: boolean
+          show_languages?: boolean
+          show_license_info?: boolean
+          show_social_media?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          allow_public_messaging?: boolean
+          created_at?: string
+          id?: string
+          show_certifications?: boolean
+          show_experience_years?: boolean
+          show_guide_country?: boolean
+          show_languages?: boolean
+          show_license_info?: boolean
+          show_social_media?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           bio: string | null
           blue_tick_verified: boolean | null
+          certifications: Json | null
           created_at: string
           creator_badge: boolean | null
           email: string
           experience_years: number | null
           full_name: string | null
+          guide_country: string | null
           id: string
+          languages_spoken: string[] | null
+          license_country: string | null
+          license_type: string | null
           local_guide_verified: boolean | null
           rejection_reason: string | null
           role: Database["public"]["Enums"]["user_role"]
@@ -554,12 +601,17 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           blue_tick_verified?: boolean | null
+          certifications?: Json | null
           created_at?: string
           creator_badge?: boolean | null
           email: string
           experience_years?: number | null
           full_name?: string | null
+          guide_country?: string | null
           id?: string
+          languages_spoken?: string[] | null
+          license_country?: string | null
+          license_type?: string | null
           local_guide_verified?: boolean | null
           rejection_reason?: string | null
           role?: Database["public"]["Enums"]["user_role"]
@@ -576,12 +628,17 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           blue_tick_verified?: boolean | null
+          certifications?: Json | null
           created_at?: string
           creator_badge?: boolean | null
           email?: string
           experience_years?: number | null
           full_name?: string | null
+          guide_country?: string | null
           id?: string
+          languages_spoken?: string[] | null
+          license_country?: string | null
+          license_type?: string | null
           local_guide_verified?: boolean | null
           rejection_reason?: string | null
           role?: Database["public"]["Enums"]["user_role"]
