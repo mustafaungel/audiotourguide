@@ -157,7 +157,8 @@ export function CreatorGuideEditForm({ onBack }: CreatorGuideEditFormProps) {
 
   const previewGuide = () => {
     if (guide) {
-      window.open(`/guide/${guide.id}`, '_blank');
+      const baseUrl = window.location.origin;
+      window.open(`${baseUrl}/guide/${guide.id}`, '_blank');
     }
   };
 
