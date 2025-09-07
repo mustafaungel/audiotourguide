@@ -10,6 +10,7 @@ import { VerificationBadge } from './VerificationBadge';
 import { TierBadge } from './TierBadge';
 import { CreatorTypeBadge } from './CreatorTypeBadge';
 import { LanguageSelector } from './LanguageSelector';
+import { DualRatingDisplay } from './DualRatingDisplay';
 import { 
   Search, 
   MapPin, 
@@ -45,6 +46,11 @@ interface Creator {
   followers_count: number;
   total_guides: number;
   avg_rating: number;
+  service_rating?: number;
+  service_rating_count?: number;
+  platform_rating?: number;
+  platform_rating_count?: number;
+  combined_rating?: number;
   total_plays: number;
   social_profiles: any;
   verified_at: string;
@@ -520,10 +526,14 @@ export const EnhancedCreatorDiscovery = () => {
                         <VerificationBadge type="blue_tick" size="sm" />
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1">
-                          <Star className="w-3 h-3 fill-current text-yellow-500" />
-                          <span className="text-xs">{creator.avg_rating}</span>
-                        </div>
+                        <DualRatingDisplay
+                          serviceRating={creator.service_rating || creator.avg_rating}
+                          serviceRatingCount={creator.service_rating_count || 0}
+                          platformRating={creator.platform_rating}
+                          platformRatingCount={creator.platform_rating_count}
+                          combinedRating={creator.combined_rating || creator.avg_rating}
+                          variant="inline"
+                        />
                         <div className="flex items-center gap-1">
                           <Users className="w-3 h-3 text-muted-foreground" />
                           <span className="text-xs">{formatNumber(creator.followers_count)}</span>
@@ -795,10 +805,14 @@ export const EnhancedCreatorDiscovery = () => {
                             </div>
                           </div>
                           <div className="space-y-1">
-                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                              <Star className="w-3 h-3 fill-current text-yellow-500" />
-                              <span>{creator.avg_rating}/5</span>
-                            </div>
+                            <DualRatingDisplay
+                              serviceRating={creator.service_rating || creator.avg_rating}
+                              serviceRatingCount={creator.service_rating_count || 0}
+                              platformRating={creator.platform_rating}
+                              platformRatingCount={creator.platform_rating_count}
+                              combinedRating={creator.combined_rating || creator.avg_rating}
+                              variant="inline"
+                            />
                             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                               <Play className="w-3 h-3" />
                               <span>{formatNumber(creator.total_plays)} plays</span>

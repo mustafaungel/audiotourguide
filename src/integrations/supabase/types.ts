@@ -276,6 +276,84 @@ export type Database = {
         }
         Relationships: []
       }
+      creator_platform_ratings: {
+        Row: {
+          created_at: string
+          creator_id: string
+          evidence_data: Json | null
+          id: string
+          rated_by: string
+          rating: number
+          rating_category: string
+          rating_notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          evidence_data?: Json | null
+          id?: string
+          rated_by: string
+          rating: number
+          rating_category: string
+          rating_notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          evidence_data?: Json | null
+          id?: string
+          rated_by?: string
+          rating?: number
+          rating_category?: string
+          rating_notes?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      creator_service_ratings: {
+        Row: {
+          created_at: string
+          creator_id: string
+          experience_id: string | null
+          guide_id: string | null
+          id: string
+          is_verified_purchase: boolean
+          rating: number
+          review_text: string | null
+          service_category: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          experience_id?: string | null
+          guide_id?: string | null
+          id?: string
+          is_verified_purchase?: boolean
+          rating: number
+          review_text?: string | null
+          service_category?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          experience_id?: string | null
+          guide_id?: string | null
+          id?: string
+          is_verified_purchase?: boolean
+          rating?: number
+          review_text?: string | null
+          service_category?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       creator_stories: {
         Row: {
           background_color: string | null
@@ -608,6 +686,7 @@ export type Database = {
           bio: string | null
           blue_tick_verified: boolean | null
           certifications: Json | null
+          combined_rating: number | null
           created_at: string
           creator_badge: boolean | null
           creator_type: string | null
@@ -621,8 +700,12 @@ export type Database = {
           license_country: string | null
           license_type: string | null
           local_guide_verified: boolean | null
+          platform_rating: number | null
+          platform_rating_count: number | null
           rejection_reason: string | null
           role: Database["public"]["Enums"]["user_role"]
+          service_rating: number | null
+          service_rating_count: number | null
           social_profiles: Json | null
           specialties: string[] | null
           tier_points: number | null
@@ -639,6 +722,7 @@ export type Database = {
           bio?: string | null
           blue_tick_verified?: boolean | null
           certifications?: Json | null
+          combined_rating?: number | null
           created_at?: string
           creator_badge?: boolean | null
           creator_type?: string | null
@@ -652,8 +736,12 @@ export type Database = {
           license_country?: string | null
           license_type?: string | null
           local_guide_verified?: boolean | null
+          platform_rating?: number | null
+          platform_rating_count?: number | null
           rejection_reason?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          service_rating?: number | null
+          service_rating_count?: number | null
           social_profiles?: Json | null
           specialties?: string[] | null
           tier_points?: number | null
@@ -670,6 +758,7 @@ export type Database = {
           bio?: string | null
           blue_tick_verified?: boolean | null
           certifications?: Json | null
+          combined_rating?: number | null
           created_at?: string
           creator_badge?: boolean | null
           creator_type?: string | null
@@ -683,8 +772,12 @@ export type Database = {
           license_country?: string | null
           license_type?: string | null
           local_guide_verified?: boolean | null
+          platform_rating?: number | null
+          platform_rating_count?: number | null
           rejection_reason?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          service_rating?: number | null
+          service_rating_count?: number | null
           social_profiles?: Json | null
           specialties?: string[] | null
           tier_points?: number | null

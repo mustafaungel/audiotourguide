@@ -9,6 +9,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GuideCard } from '@/components/GuideCard';
 import { VerificationBadge } from '@/components/VerificationBadge';
 import { CreatorMessaging } from '@/components/CreatorMessaging';
+import { DualRatingDisplay } from '@/components/DualRatingDisplay';
+import { ServiceRatingForm } from '@/components/ServiceRatingForm';
+import { PlatformRatingManager } from '@/components/PlatformRatingManager';
 import { 
   Star, 
   MapPin, 
@@ -48,6 +51,11 @@ interface CreatorProfile {
   total_guides?: number;
   total_plays?: number;
   avg_rating?: number;
+  service_rating?: number;
+  service_rating_count?: number;
+  platform_rating?: number;
+  platform_rating_count?: number;
+  combined_rating?: number;
   achievements?: any[];
 }
 
@@ -632,12 +640,15 @@ const CreatorProfile = () => {
                 </Card>
                 
                 <Card className="bg-primary-foreground/10 border-primary-foreground/20">
-                  <CardContent className="p-4 text-center">
-                    <div className="flex items-center justify-center gap-1 text-2xl font-bold text-primary-foreground mb-1">
-                      <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                      {creator.avg_rating?.toFixed(1) || '0.0'}
-                    </div>
-                    <div className="text-sm text-primary-foreground/70">Rating</div>
+                  <CardContent className="p-4">
+                    <DualRatingDisplay
+                      serviceRating={creator.service_rating || creator.avg_rating}
+                      serviceRatingCount={creator.service_rating_count || 0}
+                      platformRating={creator.platform_rating}
+                      platformRatingCount={creator.platform_rating_count}
+                      combinedRating={creator.combined_rating || creator.avg_rating}
+                      variant="card"
+                    />
                   </CardContent>
                 </Card>
               </div>
@@ -682,10 +693,11 @@ const CreatorProfile = () => {
       {/* Content Tabs */}
       <div className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4 lg:w-[500px]">
+          <TabsList className="grid w-full grid-cols-5 lg:w-[600px]">
             <TabsTrigger value="guides">Audio Guides</TabsTrigger>
             <TabsTrigger value="about">About</TabsTrigger>
             <TabsTrigger value="message">Message</TabsTrigger>
+            <TabsTrigger value="ratings">Ratings</TabsTrigger>
             <TabsTrigger value="achievements">Achievements</TabsTrigger>
           </TabsList>
           
@@ -786,6 +798,31 @@ const CreatorProfile = () => {
               creatorName={creator.full_name}
               creatorAvatar={creator.avatar_url}
             />
+          </TabsContent>
+
+          <TabsContent value="ratings" className="mt-8">
+            <div className="space-y-6">
+              {user && user.id !== creator?.user_id && (
+                <div>
+                  <h2 className="text-2xl font-bold mb-4">Rate This Creator</h2>
+                  <ServiceRatingForm
+                    creatorId={creator?.user_id || ''}
+                    onSubmit={() => {
+                      // Refresh creator data after rating
+                      fetchCreatorProfile();
+                    }}
+                  />
+                </div>
+              )}
+              
+              <PlatformRatingManager
+                creatorId={creator?.user_id || ''}
+                onUpdate={() => {
+                  // Refresh creator data after platform rating update
+                  fetchCreatorProfile();
+                }}
+              />
+            </div>
           </TabsContent>
 
           <TabsContent value="achievements" className="mt-8">
