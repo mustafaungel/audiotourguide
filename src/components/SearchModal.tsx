@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, MapPin, Star, Clock, Users } from 'lucide-react';
+import { Search, Filter, MapPin, Star, Clock, Users, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { AdvancedSearchFilters } from './AdvancedSearchFilters';
 
 interface Guide {
   id: string;
@@ -44,6 +45,18 @@ export const SearchModal: React.FC<SearchModalProps> = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('relevance');
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [advancedFilters, setAdvancedFilters] = useState({
+    location: '',
+    categories: [],
+    languages: [],
+    priceRange: [0, 100],
+    durationRange: [15, 180],
+    minRating: 0,
+    difficulty: [],
+    features: [],
+    accessibility: []
+  });
   const navigate = useNavigate();
 
   const categories = [
@@ -193,7 +206,41 @@ export const SearchModal: React.FC<SearchModalProps> = ({ children }) => {
                 <SelectItem value="newest">Newest</SelectItem>
               </SelectContent>
             </Select>
+
+            <Button
+              variant="outline"
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              className="flex items-center gap-2"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              Advanced
+            </Button>
           </div>
+
+          {/* Advanced Filters */}
+          {showAdvancedFilters && (
+            <div className="mt-4">
+              <AdvancedSearchFilters
+                filters={advancedFilters}
+                onFiltersChange={setAdvancedFilters}
+                onApply={() => searchGuides(searchTerm, categoryFilter, sortBy)}
+                onReset={() => {
+                  setAdvancedFilters({
+                    location: '',
+                    categories: [],
+                    languages: [],
+                    priceRange: [0, 100],
+                    durationRange: [15, 180],
+                    minRating: 0,
+                    difficulty: [],
+                    features: [],
+                    accessibility: []
+                  });
+                  searchGuides(searchTerm, categoryFilter, sortBy);
+                }}
+              />
+            </div>
+          )}
 
           {/* Results */}
           <div className="max-h-[400px] overflow-y-auto">
