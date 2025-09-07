@@ -36,6 +36,10 @@ serve(async (req) => {
     
     logStep("User authenticated", { userId: user.id, email: user.email });
 
+    // Get and validate origin for URL construction
+    const origin = req.headers.get("origin") || "https://dsaqlgxajdnwoqvtsrqd.supabase.co";
+    logStep("Origin header", { origin });
+
     const { guideId } = await req.json();
     if (!guideId) throw new Error("Guide ID is required");
 
@@ -94,8 +98,8 @@ serve(async (req) => {
         },
       ],
       mode: "payment",
-      success_url: `${req.headers.get("origin")}/payment-success?session_id={CHECKOUT_SESSION_ID}&guide_id=${guideId}`,
-      cancel_url: `${req.headers.get("origin")}/payment-cancelled`,
+      success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&guide_id=${guideId}`,
+      cancel_url: `${origin}/payment-cancelled`,
       metadata: {
         user_id: user.id,
         guide_id: guideId,
