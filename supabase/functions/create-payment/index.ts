@@ -20,31 +20,42 @@ serve(async (req) => {
   try {
     logStep("Payment function started");
     
-    const supabaseClient = createClient(
+    // Use service role key to bypass RLS for purchase operations
+    const supabaseService = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } }
     );
-
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("No authorization header provided");
-    
-    const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError) throw new Error(`Authentication error: ${userError.message}`);
-    const user = userData.user;
-    if (!user?.email) throw new Error("User not authenticated or email not available");
-    
-    logStep("User authenticated", { userId: user.id, email: user.email });
 
     // Get and validate origin for URL construction
     const origin = req.headers.get("origin") || req.headers.get("referer") || "http://localhost:3000";
     logStep("Origin header", { origin, referer: req.headers.get("referer") });
 
-    const { guideId } = await req.json();
+    const { guideId, guestEmail, isGuest } = await req.json();
     if (!guideId) throw new Error("Guide ID is required");
 
+    let user = null;
+    let userEmail = guestEmail;
+
+    // Handle authentication for registered users
+    if (!isGuest) {
+      const authHeader = req.headers.get("Authorization");
+      if (!authHeader) throw new Error("No authorization header provided");
+      
+      const token = authHeader.replace("Bearer ", "");
+      const { data: userData, error: userError } = await supabaseService.auth.getUser(token);
+      if (userError) throw new Error(`Authentication error: ${userError.message}`);
+      user = userData.user;
+      if (!user?.email) throw new Error("User not authenticated or email not available");
+      userEmail = user.email;
+      logStep("User authenticated", { userId: user.id, email: user.email });
+    } else {
+      if (!guestEmail) throw new Error("Guest email is required");
+      logStep("Guest checkout", { email: guestEmail });
+    }
+
     // Fetch guide details
-    const { data: guide, error: guideError } = await supabaseClient
+    const { data: guide, error: guideError } = await supabaseService
       .from("audio_guides")
       .select("*")
       .eq("id", guideId)
@@ -55,16 +66,28 @@ serve(async (req) => {
     if (guideError || !guide) throw new Error("Guide not found or not available for purchase");
     logStep("Guide found", { guideId, title: guide.title, price: guide.price_usd });
 
-    // Check if user already purchased this guide
-    const { data: existingPurchase } = await supabaseClient
-      .from("user_purchases")
-      .select("id")
-      .eq("user_id", user.id)
-      .eq("guide_id", guideId)
-      .single();
+    // Check if user/guest has already purchased this guide
+    let existingPurchase = null;
+    if (user) {
+      const { data } = await supabaseService
+        .from("user_purchases")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("guide_id", guideId)
+        .single();
+      existingPurchase = data;
+    } else {
+      const { data } = await supabaseService
+        .from("user_purchases")
+        .select("id")
+        .eq("guest_email", guestEmail)
+        .eq("guide_id", guideId)
+        .single();
+      existingPurchase = data;
+    }
 
     if (existingPurchase) {
-      throw new Error("You have already purchased this guide");
+      throw new Error("This guide has already been purchased");
     }
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
@@ -78,7 +101,7 @@ serve(async (req) => {
     });
 
     // Check if customer exists
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
     let customerId;
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
@@ -140,7 +163,7 @@ serve(async (req) => {
 
     const sessionData = {
       customer: customerId,
-      customer_email: customerId ? undefined : user.email,
+      customer_email: customerId ? undefined : userEmail,
       line_items: [
         {
           price_data: {
@@ -155,7 +178,9 @@ serve(async (req) => {
       success_url: successUrl,
       cancel_url: cancelUrl,
       metadata: {
-        user_id: user.id,
+        user_id: user?.id || "",
+        guest_email: isGuest ? guestEmail : "",
+        is_guest: isGuest ? "true" : "false",
         guide_id: guideId,
       },
     };

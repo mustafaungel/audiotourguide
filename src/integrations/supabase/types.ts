@@ -1099,32 +1099,35 @@ export type Database = {
         Row: {
           access_code: string
           currency: string
+          guest_email: string | null
           guide_id: string
           id: string
           price_paid: number
           purchase_date: string
           stripe_payment_id: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           access_code: string
           currency?: string
+          guest_email?: string | null
           guide_id: string
           id?: string
           price_paid: number
           purchase_date?: string
           stripe_payment_id: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           access_code?: string
           currency?: string
+          guest_email?: string | null
           guide_id?: string
           id?: string
           price_paid?: number
           purchase_date?: string
           stripe_payment_id?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {

@@ -43,16 +43,34 @@ serve(async (req) => {
     }
 
     const userId = session.metadata?.user_id;
-    if (!userId) throw new Error("User ID not found in session metadata");
+    const guestEmail = session.metadata?.guest_email;
+    const isGuest = session.metadata?.is_guest === "true";
+
+    if (!userId && !guestEmail) {
+      throw new Error("Neither user ID nor guest email found in session metadata");
+    }
 
     // Check if purchase record already exists
-    const { data: existingPurchase } = await supabaseService
-      .from("user_purchases")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("guide_id", guideId)
-      .eq("stripe_payment_id", sessionId)
-      .single();
+    let existingPurchase = null;
+    if (userId) {
+      const { data } = await supabaseService
+        .from("user_purchases")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("guide_id", guideId)
+        .eq("stripe_payment_id", sessionId)
+        .single();
+      existingPurchase = data;
+    } else {
+      const { data } = await supabaseService
+        .from("user_purchases")
+        .select("id")
+        .eq("guest_email", guestEmail)
+        .eq("guide_id", guideId)
+        .eq("stripe_payment_id", sessionId)
+        .single();
+      existingPurchase = data;
+    }
 
     if (existingPurchase) {
       logStep("Purchase already recorded", { purchaseId: existingPurchase.id });
@@ -71,7 +89,8 @@ serve(async (req) => {
     const { data: purchase, error: purchaseError } = await supabaseService
       .from("user_purchases")
       .insert({
-        user_id: userId,
+        user_id: userId || null,
+        guest_email: guestEmail || null,
         guide_id: guideId,
         stripe_payment_id: sessionId,
         price_paid: session.amount_total || 0,
