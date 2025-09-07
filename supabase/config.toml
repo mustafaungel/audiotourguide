@@ -17,3 +17,9 @@ verify_jwt = true
 
 [functions.verify-payment]
 verify_jwt = false
+
+[functions.generate-viral-content]
+verify_jwt = false
+
+[functions.track-viral-engagement]
+verify_jwt = false
