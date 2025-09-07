@@ -4,6 +4,7 @@ import { Navigation } from "@/components/Navigation";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { SocialShare } from "@/components/SocialShare";
 import { EmbeddedCheckout } from "@/components/EmbeddedCheckout";
+import { StripeConfigHelper } from "@/components/StripeConfigHelper";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -762,7 +763,7 @@ const GuideDetail = () => {
         return true;
       })() && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="relative">
+          <div className="relative max-w-2xl">
             <Button
               variant="ghost"
               size="sm"
@@ -771,17 +772,20 @@ const GuideDetail = () => {
             >
               ×
             </Button>
-            <EmbeddedCheckout
-              guide={{
-                id: realGuideData.id,
-                title: realGuideData.title,
-                price_usd: realGuideData.price_usd,
-                creator_name: realGuideData.creator?.name,
-                image_url: realGuideData.image_url
-              }}
-              onSuccess={handlePaymentSuccess}
-              onCancel={() => setShowPaymentModal(false)}
-            />
+            <div className="space-y-4">
+              <StripeConfigHelper />
+              <EmbeddedCheckout
+                guide={{
+                  id: realGuideData.id,
+                  title: realGuideData.title,
+                  price_usd: realGuideData.price_usd,
+                  creator_name: realGuideData.creator?.name,
+                  image_url: realGuideData.image_url
+                }}
+                onSuccess={handlePaymentSuccess}
+                onCancel={() => setShowPaymentModal(false)}
+              />
+            </div>
           </div>
         </div>
       )}

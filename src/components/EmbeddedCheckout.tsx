@@ -72,8 +72,24 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
         throw new Error('Failed to create payment session');
       }
 
-      // Redirect to Stripe Checkout in the same tab
-      window.location.href = data.url;
+      console.log('[PAYMENT] Redirecting to Stripe Checkout:', data.url);
+      
+      // Add timeout to prevent white screen hanging
+      const redirectTimeout = setTimeout(() => {
+        console.error('[PAYMENT] Redirect timeout - falling back to new tab');
+        window.open(data.url, '_blank');
+      }, 3000);
+
+      // Redirect to Stripe Checkout with fallback
+      try {
+        window.location.href = data.url;
+        // Clear timeout if redirect succeeds
+        setTimeout(() => clearTimeout(redirectTimeout), 1000);
+      } catch (redirectError) {
+        console.error('[PAYMENT] Redirect failed, opening in new tab:', redirectError);
+        clearTimeout(redirectTimeout);
+        window.open(data.url, '_blank');
+      }
     } catch (err: any) {
       toast({
         title: "Payment Error",
