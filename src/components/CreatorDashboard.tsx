@@ -154,96 +154,96 @@ export const CreatorDashboard = () => {
   }
 
   return (
-    <Tabs defaultValue="overview" className="space-y-6">
-      <TabsList className="grid grid-cols-4 w-full max-w-md">
-        <TabsTrigger value="overview">Overview</TabsTrigger>
-        <TabsTrigger value="analytics">Analytics</TabsTrigger>
-        <TabsTrigger value="guides">Guides</TabsTrigger>
-        <TabsTrigger value="activity">Activity</TabsTrigger>
+    <Tabs defaultValue="overview" className="mobile-spacing">
+      <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full max-w-md mobile-container">
+        <TabsTrigger value="overview" className="mobile-caption">Overview</TabsTrigger>
+        <TabsTrigger value="analytics" className="mobile-caption">Analytics</TabsTrigger>
+        <TabsTrigger value="guides" className="mobile-caption">Guides</TabsTrigger>
+        <TabsTrigger value="activity" className="mobile-caption">Activity</TabsTrigger>
       </TabsList>
 
-      <TabsContent value="overview" className="space-y-6">
+      <TabsContent value="overview" className="mobile-spacing">
         {/* Enhanced Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-gradient-card">
+        <div className="mobile-grid gap-4">
+          <Card className="mobile-card bg-gradient-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+              <CardTitle className="mobile-caption font-medium">Total Revenue</CardTitle>
               <DollarSign className="h-4 w-4 text-tourism-warm" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-tourism-warm">${stats.totalRevenue.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="mobile-subheading font-bold text-tourism-warm">${stats.totalRevenue.toFixed(2)}</div>
+              <p className="mobile-caption text-muted-foreground">
                 +${stats.thisMonthRevenue.toFixed(2)} this month
               </p>
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-card">
+          <Card className="mobile-card bg-gradient-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Views</CardTitle>
+              <CardTitle className="mobile-caption font-medium">Total Views</CardTitle>
               <Eye className="h-4 w-4 text-accent" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-accent">{stats.totalViews.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="mobile-subheading font-bold text-accent">{stats.totalViews.toLocaleString()}</div>
+              <p className="mobile-caption text-muted-foreground">
                 +{stats.monthlyGrowth}% from last month
               </p>
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-card">
+          <Card className="mobile-card bg-gradient-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Published Guides</CardTitle>
+              <CardTitle className="mobile-caption font-medium">Published Guides</CardTitle>
               <BarChart3 className="h-4 w-4 text-tourism-earth" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-tourism-earth">{stats.publishedGuides}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="mobile-subheading font-bold text-tourism-earth">{stats.publishedGuides}</div>
+              <p className="mobile-caption text-muted-foreground">
                 {stats.totalGuides} total created
               </p>
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-card">
+          <Card className="mobile-card bg-gradient-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Avg Rating</CardTitle>
+              <CardTitle className="mobile-caption font-medium">Avg Rating</CardTitle>
               <Star className="h-4 w-4 text-tourism-sunset" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-tourism-sunset">{stats.averageRating.toFixed(1)}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="mobile-subheading font-bold text-tourism-sunset">{stats.averageRating.toFixed(1)}</div>
+              <p className="mobile-caption text-muted-foreground">
                 {stats.followerCount} followers
               </p>
             </CardContent>
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="mobile-grid lg:grid-cols-2 gap-6">
           {/* Tier Progress */}
           <TierProgress userProfile={userProfile} showUpdateButton={true} />
 
           {/* Quick Actions */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 mobile-subheading">
                 <Target className="w-5 h-5" />
                 Quick Actions
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <Button variant="outline" className="w-full justify-start" onClick={() => window.location.href = '/admin'}>
+            <CardContent className="mobile-spacing">
+              <Button variant="outline" className="w-full justify-start touch-target" onClick={() => window.location.href = '/admin'}>
                 <Edit className="w-4 h-4 mr-2" />
                 Create New Guide
               </Button>
-              <Button variant="outline" className="w-full justify-start">
+              <Button variant="outline" className="w-full justify-start touch-target">
                 <BarChart3 className="w-4 h-4 mr-2" />
                 View Analytics
               </Button>
-              <Button variant="outline" className="w-full justify-start">
+              <Button variant="outline" className="w-full justify-start touch-target">
                 <MessageSquare className="w-4 h-4 mr-2" />
                 Message Followers
               </Button>
-              <Button variant="outline" className="w-full justify-start">
+              <Button variant="outline" className="w-full justify-start touch-target">
                 <Award className="w-4 h-4 mr-2" />
                 Update Profile
               </Button>

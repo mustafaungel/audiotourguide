@@ -151,77 +151,77 @@ const Dashboard = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="mobile-viewport bg-background">
         <Navigation />
-        <div className="container mx-auto px-4 py-16 text-center">
-          <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
-          <p className="text-muted-foreground mb-6">Please sign in to view your dashboard.</p>
-          <Button onClick={() => navigate('/auth')}>Sign In</Button>
+        <div className="mobile-container mobile-padding text-center">
+          <h1 className="mobile-heading mb-4">Access Denied</h1>
+          <p className="mobile-caption mb-6">Please sign in to view your dashboard.</p>
+          <Button onClick={() => navigate('/auth')} className="touch-target">Sign In</Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="mobile-viewport bg-background">
       <Navigation />
       
-      <main className="container mx-auto px-4 py-8">
+      <main className="mobile-container mobile-padding">
         {/* Dashboard Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
+        <div className="mobile-spacing">
+          <h1 className="mobile-heading sm:text-3xl text-foreground mb-2">
             Welcome back, {userProfile?.full_name || user.email}!
           </h1>
-          <p className="text-muted-foreground">
+          <p className="mobile-caption">
             Track your journey, discover new places, and connect with fellow travelers.
           </p>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-card border border-border">
-            <TabsTrigger value="overview" className="flex items-center gap-2">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mobile-spacing">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 bg-card border border-border">
+            <TabsTrigger value="overview" className="flex items-center gap-2 mobile-caption font-medium">
               <User className="h-4 w-4" />
-              Overview
+              <span className="hidden sm:inline">Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="achievements" className="flex items-center gap-2">
+            <TabsTrigger value="achievements" className="flex items-center gap-2 mobile-caption font-medium">
               <Trophy className="h-4 w-4" />
-              Achievements
+              <span className="hidden sm:inline">Achievements</span>
             </TabsTrigger>
-            <TabsTrigger value="activity" className="flex items-center gap-2">
+            <TabsTrigger value="activity" className="flex items-center gap-2 mobile-caption font-medium">
               <Clock className="h-4 w-4" />
-              Activity
+              <span className="hidden sm:inline">Activity</span>
             </TabsTrigger>
-            <TabsTrigger value="discover" className="flex items-center gap-2">
+            <TabsTrigger value="discover" className="flex items-center gap-2 mobile-caption font-medium">
               <TrendingUp className="h-4 w-4" />
-              Discover
+              <span className="hidden sm:inline">Discover</span>
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-6">
+          <TabsContent value="overview" className="mobile-spacing">
             {/* Quick Stats Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-              <Card className="p-4 sm:p-6 text-center bg-gradient-card">
+            <div className="mobile-grid gap-3 sm:gap-4">
+              <Card className="mobile-padding text-center bg-gradient-card">
                 <Headphones className="h-6 w-6 sm:h-8 sm:w-8 text-tourism-warm mx-auto mb-2 sm:mb-3" />
-                <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">{userStats.guidesListened}</div>
-                <div className="text-xs sm:text-sm text-muted-foreground">Guides Listened</div>
+                <div className="mobile-subheading sm:text-2xl lg:text-3xl font-bold text-foreground">{userStats.guidesListened}</div>
+                <div className="mobile-caption text-muted-foreground">Guides Listened</div>
               </Card>
               
-              <Card className="p-4 sm:p-6 text-center bg-gradient-card">
+              <Card className="mobile-padding text-center bg-gradient-card">
                 <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-tourism-sky mx-auto mb-2 sm:mb-3" />
-                <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">{userStats.hoursListened}h</div>
-                <div className="text-xs sm:text-sm text-muted-foreground">Hours Explored</div>
+                <div className="mobile-subheading sm:text-2xl lg:text-3xl font-bold text-foreground">{userStats.hoursListened}h</div>
+                <div className="mobile-caption text-muted-foreground">Hours Explored</div>
               </Card>
               
-              <Card className="p-4 sm:p-6 text-center bg-gradient-card">
+              <Card className="mobile-padding text-center bg-gradient-card">
                 <MapPin className="h-6 w-6 sm:h-8 sm:w-8 text-tourism-earth mx-auto mb-2 sm:mb-3" />
-                <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">{userStats.placesVisited}</div>
-                <div className="text-xs sm:text-sm text-muted-foreground">Places Visited</div>
+                <div className="mobile-subheading sm:text-2xl lg:text-3xl font-bold text-foreground">{userStats.placesVisited}</div>
+                <div className="mobile-caption text-muted-foreground">Places Visited</div>
               </Card>
               
-              <Card className="p-4 sm:p-6 text-center bg-gradient-card">
+              <Card className="mobile-padding text-center bg-gradient-card">
                 <Trophy className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-600 mx-auto mb-2 sm:mb-3" />
-                <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">{userStats.achievementsUnlocked}</div>
-                <div className="text-xs sm:text-sm text-muted-foreground">Achievements</div>
+                <div className="mobile-subheading sm:text-2xl lg:text-3xl font-bold text-foreground">{userStats.achievementsUnlocked}</div>
+                <div className="mobile-caption text-muted-foreground">Achievements</div>
               </Card>
             </div>
 
@@ -255,15 +255,15 @@ const Dashboard = () => {
             {/* Recent Activity */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 mobile-subheading">
                   <Clock className="h-5 w-5 text-tourism-warm" />
                   Recent Activity
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className="mobile-spacing">
                   {recentActivity.slice(0, 4).map((activity) => (
-                    <div key={activity.id} className="flex items-center gap-3 p-3 rounded-lg bg-gradient-card">
+                    <div key={activity.id} className="flex items-center gap-3 mobile-padding rounded-lg bg-gradient-card">
                       <div className="flex-shrink-0">
                         {getActivityIcon(activity.type)}
                       </div>
@@ -275,10 +275,10 @@ const Dashboard = () => {
                         />
                       )}
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-foreground truncate">{activity.title}</h4>
-                        <p className="text-sm text-muted-foreground">{activity.description}</p>
+                        <h4 className="mobile-text font-medium text-foreground truncate">{activity.title}</h4>
+                        <p className="mobile-caption text-muted-foreground">{activity.description}</p>
                       </div>
-                      <div className="text-xs text-muted-foreground flex-shrink-0">
+                      <div className="mobile-caption text-muted-foreground flex-shrink-0">
                         {activity.timestamp}
                       </div>
                     </div>
@@ -359,33 +359,33 @@ const Dashboard = () => {
                 </p>
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="mobile-grid gap-4">
                   {recommendations.map((rec) => (
                     <Card key={rec.id} className="overflow-hidden hover:shadow-card transition-all cursor-pointer">
-                      <div className="aspect-video relative">
+                      <div className="aspect-mobile relative">
                         <img 
                           src={rec.image} 
                           alt={rec.title}
                           className="w-full h-full object-cover"
                         />
-                        <Badge className="absolute top-2 right-2 bg-background/90 text-foreground">
+                        <Badge className="absolute top-2 right-2 bg-background/90 text-foreground mobile-caption">
                           {rec.category}
                         </Badge>
                       </div>
-                      <CardContent className="p-4">
-                        <h4 className="font-semibold text-foreground mb-1">{rec.title}</h4>
+                      <CardContent className="mobile-padding">
+                        <h4 className="mobile-text font-semibold text-foreground mb-1">{rec.title}</h4>
                         <div className="flex items-center gap-1 mb-2">
                           <MapPin className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground">{rec.location}</span>
+                          <span className="mobile-caption text-muted-foreground">{rec.location}</span>
                           <div className="flex items-center gap-1 ml-auto">
                             <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                            <span className="text-sm">{rec.rating}</span>
+                            <span className="mobile-caption">{rec.rating}</span>
                           </div>
                         </div>
-                        <p className="text-xs text-accent mb-3">{rec.reason}</p>
+                        <p className="mobile-caption text-accent mb-3">{rec.reason}</p>
                         <Button 
                           size="sm" 
-                          className="w-full"
+                          className="w-full touch-target"
                           onClick={() => rec.type === 'guide' ? navigate(`/guide/${rec.id}`) : navigate(`/experience/${rec.id}`)}
                         >
                           {rec.type === 'guide' ? 'Listen Now' : rec.type === 'experience' ? 'Book Experience' : 'Explore'}
