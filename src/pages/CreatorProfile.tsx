@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { GuideCard } from '@/components/GuideCard';
 import { VerificationBadge } from '@/components/VerificationBadge';
 import { CreatorMessaging } from '@/components/CreatorMessaging';
@@ -623,8 +624,8 @@ const CreatorProfile = () => {
             
             {/* Stats & Actions */}
             <div className="lg:min-w-[300px]">
-              {/* Stats Grid */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
+              {/* Stats Grid - Convert to horizontal layout on desktop */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mb-6">
                 <Card className="bg-primary-foreground/10 border-primary-foreground/20">
                   <CardContent className="p-4 text-center">
                     <div className="text-2xl font-bold text-primary-foreground mb-1">
@@ -724,32 +725,43 @@ const CreatorProfile = () => {
             </div>
             
             {guides.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {guides.map((guide) => (
-                  <GuideCard
-                    key={guide.id}
-                    id={guide.id}
-                    title={guide.title}
-                    description={guide.description}
-                    location={guide.location}
-                    price={guide.price_usd}
-                    rating={guide.rating || 0}
-                    duration={guide.duration}
-                    category={guide.category}
-                    difficulty={guide.difficulty}
-                    imageUrl={guide.image_url}
-                    totalPurchases={guide.total_purchases}
-                    creatorName={creator.full_name}
-                    creatorAvatar={creator.avatar_url}
-                    onViewGuide={() => {
-                      toast({
-                        title: "Guide Preview",
-                        description: "Guide player coming soon!",
-                      });
-                    }}
-                  />
-                ))}
-              </div>
+              <Carousel
+                opts={{
+                  align: "start",
+                  loop: false,
+                }}
+                className="w-full"
+              >
+                <CarouselContent className="-ml-2 md:-ml-4">
+                  {guides.map((guide) => (
+                    <CarouselItem key={guide.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
+                      <GuideCard
+                        id={guide.id}
+                        title={guide.title}
+                        description={guide.description}
+                        location={guide.location}
+                        price={guide.price_usd}
+                        rating={guide.rating || 0}
+                        duration={guide.duration}
+                        category={guide.category}
+                        difficulty={guide.difficulty}
+                        imageUrl={guide.image_url}
+                        totalPurchases={guide.total_purchases}
+                        creatorName={creator.full_name}
+                        creatorAvatar={creator.avatar_url}
+                        onViewGuide={() => {
+                          toast({
+                            title: "Guide Preview",
+                            description: "Guide player coming soon!",
+                          });
+                        }}
+                      />
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious />
+                <CarouselNext />
+              </Carousel>
             ) : (
               <div className="text-center py-12">
                 <Play className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
