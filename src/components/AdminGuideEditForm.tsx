@@ -5,10 +5,11 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Save, ArrowLeft } from 'lucide-react';
+import { Loader2, Save, ArrowLeft, QrCode, ExternalLink, Copy } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { GuideSectionsManager } from './GuideSectionsManager';
+import { getGuidePreviewUrl } from '@/lib/url-utils';
 
 interface Guide {
   id: string;
@@ -21,6 +22,8 @@ interface Guide {
   is_published: boolean;
   created_at: string;
   creator_id: string;
+  qr_code_url?: string | null;
+  share_url?: string | null;
   profiles?: {
     full_name: string;
     email: string;
@@ -34,6 +37,7 @@ interface AdminGuideEditFormProps {
 export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
   const [guide, setGuide] = useState<Guide | null>(null);
   const [loading, setLoading] = useState(false);
+  const [generatingQR, setGeneratingQR] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -97,6 +101,48 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const generateQRCode = async () => {
+    if (!guide) return;
+    
+    setGeneratingQR(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-qr-code', {
+        body: { guideId: guide.id }
+      });
+
+      if (error) throw error;
+
+      // Update local guide state with new QR code data
+      setGuide(prev => prev ? {
+        ...prev,
+        qr_code_url: data.qr_code_url,
+        share_url: data.share_url
+      } : null);
+
+      toast.success('QR code generated successfully!');
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+      toast.error('Failed to generate QR code');
+    } finally {
+      setGeneratingQR(false);
+    }
+  };
+
+  const copyToClipboard = async (text: string, type: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success(`${type} copied to clipboard!`);
+    } catch (err) {
+      toast.error(`Failed to copy ${type.toLowerCase()}`);
+    }
+  };
+
+  const openGuidePreview = () => {
+    if (!guide) return;
+    const url = getGuidePreviewUrl(guide.id);
+    window.open(url, '_blank');
   };
 
   if (!guide) {
@@ -231,6 +277,83 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
           </CardContent>
         </Card>
       </div>
+
+      {/* QR Code and Share Management */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <QrCode className="w-5 h-5" />
+            QR Code & Sharing
+          </CardTitle>
+          <CardDescription>
+            Generate QR codes and manage sharing options for this guide
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap gap-2">
+            <Button 
+              variant="outline" 
+              onClick={generateQRCode}
+              disabled={generatingQR}
+            >
+              {generatingQR ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <QrCode className="w-4 h-4 mr-2" />
+              )}
+              {guide.qr_code_url ? 'Regenerate QR Code' : 'Generate QR Code'}
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={openGuidePreview}
+            >
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Preview Guide
+            </Button>
+          </div>
+
+          {(guide.qr_code_url || guide.share_url) && (
+            <div className="grid gap-4 md:grid-cols-2">
+              {guide.qr_code_url && (
+                <div className="space-y-2">
+                  <Label>QR Code</Label>
+                  <div className="text-center p-4 bg-white rounded-lg border-2 border-border">
+                    <img 
+                      src={guide.qr_code_url} 
+                      alt="QR Code for guide"
+                      className="w-32 h-32 mx-auto"
+                    />
+                  </div>
+                  <p className="text-sm text-muted-foreground text-center">
+                    Users can scan this to access the guide
+                  </p>
+                </div>
+              )}
+              
+              {guide.share_url && (
+                <div className="space-y-2">
+                  <Label>Share Link</Label>
+                  <div className="flex gap-2">
+                    <div className="flex-1 p-2 bg-muted rounded-md text-sm font-mono truncate">
+                      {guide.share_url}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => copyToClipboard(guide.share_url!, 'Share link')}
+                    >
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Direct link to the guide page
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

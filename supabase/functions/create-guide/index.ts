@@ -157,19 +157,32 @@ serve(async (req) => {
     // Generate QR code and share link with proper base URL detection
     let baseUrl = Deno.env.get('SITE_URL');
     if (!baseUrl) {
-      // Use the Supabase project URL as fallback since edge functions run on Supabase
-      baseUrl = 'https://dsaqlgxajdnwoqvtsrqd.supabase.co';
+      console.warn('SITE_URL environment variable not set, using fallback');
+      baseUrl = 'https://lovable.dev';
     }
+    
+    // Ensure baseUrl doesn't have trailing slash
+    baseUrl = baseUrl.replace(/\/$/, '');
     
     console.log('Using base URL for new guide:', baseUrl);
     const shareUrl = `${baseUrl}/guide/${guideData.id}`;
+    
+    // Validate the share URL format
+    if (!shareUrl.match(/^https?:\/\/.+\/guide\/[a-f0-9-]{36}$/)) {
+      throw new Error('Invalid share URL format generated');
+    }
     
     // Generate QR code URL with proper encoding
     const encodedUrl = encodeURIComponent(shareUrl);
     const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&format=png&data=${encodedUrl}`;
     
+    // Validate QR code URL doesn't contain base64 data
+    if (qrCodeUrl.includes('data=aHR0')) {
+      throw new Error('QR code generation resulted in base64 encoding, which is invalid');
+    }
+    
     // Update guide with QR code and share URL
-    await supabaseServiceClient
+    const { error: updateError } = await supabaseServiceClient
       .from('audio_guides')
       .update({
         qr_code_url: qrCodeUrl,
@@ -177,7 +190,14 @@ serve(async (req) => {
       })
       .eq('id', guideData.id);
 
+    if (updateError) {
+      console.error('Failed to update guide with QR code:', updateError);
+      throw new Error('Failed to update guide with QR code');
+    }
+
     console.log('Successfully created audio guide:', guideData.id);
+    console.log('Share URL:', shareUrl);
+    console.log('QR Code URL:', qrCodeUrl);
 
     return new Response(JSON.stringify({ 
       guide: { ...guideData, qr_code_url: qrCodeUrl, share_url: shareUrl },

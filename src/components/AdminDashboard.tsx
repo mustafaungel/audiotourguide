@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { Users, BookOpen, Clock, CheckCircle, DollarSign, TrendingUp } from 'lucide-react';
+import { AdminQRCodeRegenerator } from './AdminQRCodeRegenerator';
 
 interface DashboardStats {
   totalUsers: number;
@@ -205,6 +206,9 @@ export const AdminDashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* QR Code Management Section */}
+      <AdminQRCodeRegenerator />
     </div>
   );
 };
