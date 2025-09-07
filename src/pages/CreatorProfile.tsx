@@ -565,12 +565,13 @@ const CreatorProfile = () => {
                     {creator.full_name.split(' ').map(n => n[0]).join('')}
                   </AvatarFallback>
                 </Avatar>
-                <div className="absolute -bottom-1 -right-1 md:-bottom-2 md:-right-2">
-                  <VerificationBadge 
-                    type={creator.verification_badge_type as any}
-                    size="lg"
-                  />
-                </div>
+                {creator.verification_status === 'verified' && (
+                  <div className="absolute -bottom-1 -right-1 md:-bottom-2 md:-right-2">
+                    <div className="bg-primary text-primary-foreground rounded-full p-1">
+                      <Verified className="h-3 w-3 md:h-4 md:w-4" />
+                    </div>
+                  </div>
+                )}
               </div>
               
               <div className="flex-1 text-center md:text-left w-full">
@@ -738,45 +739,33 @@ const CreatorProfile = () => {
             </div>
             
             {guides.length > 0 ? (
-              <CarouselComponents.Carousel
-                opts={{
-                  align: "start",
-                  loop: false,
-                }}
-                className="w-full"
-              >
-                <CarouselComponents.CarouselContent className="-ml-2 md:-ml-4">
-                  {guides.map((guide) => (
-                    <CarouselComponents.CarouselItem key={guide.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3">
-                      <div className="h-full">
-                        <GuideCard
-                          id={guide.id}
-                          title={guide.title}
-                          description={guide.description}
-                          location={guide.location}
-                          price={guide.price_usd}
-                          rating={guide.rating || 0}
-                          duration={guide.duration}
-                          category={guide.category}
-                          difficulty={guide.difficulty}
-                          imageUrl={guide.image_url}
-                          totalPurchases={guide.total_purchases}
-                          creatorName={creator.full_name}
-                          creatorAvatar={creator.avatar_url}
-                          onViewGuide={() => {
-                            toast({
-                              title: "Guide Preview",
-                              description: "Guide player coming soon!",
-                            });
-                          }}
-                        />
-                      </div>
-                    </CarouselComponents.CarouselItem>
-                  ))}
-                </CarouselComponents.CarouselContent>
-                <CarouselComponents.CarouselPrevious className="hidden sm:flex" />
-                <CarouselComponents.CarouselNext className="hidden sm:flex" />
-              </CarouselComponents.Carousel>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {guides.map((guide) => (
+                  <div key={guide.id} className="h-full">
+                    <GuideCard
+                      id={guide.id}
+                      title={guide.title}
+                      description={guide.description}
+                      location={guide.location}
+                      price={guide.price_usd}
+                      rating={guide.rating || 0}
+                      duration={guide.duration}
+                      category={guide.category}
+                      difficulty={guide.difficulty}
+                      imageUrl={guide.image_url}
+                      totalPurchases={guide.total_purchases}
+                      creatorName={creator.full_name}
+                      creatorAvatar={creator.avatar_url}
+                      onViewGuide={() => {
+                        toast({
+                          title: "Guide Preview",
+                          description: "Guide player coming soon!",
+                        });
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
             ) : (
               <div className="text-center py-8 md:py-12">
                 <Play className="h-8 w-8 md:h-12 md:w-12 text-muted-foreground mx-auto mb-3 md:mb-4" />
