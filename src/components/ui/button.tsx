@@ -9,15 +9,20 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow hover:shadow-glow",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline: "border border-border bg-card/50 backdrop-blur-sm text-foreground hover:bg-card hover:border-primary/50",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        default: "bg-primary text-primary-foreground hover:bg-[hsl(var(--primary-hover))] shadow-glow hover:shadow-[var(--shadow-interactive)] transform hover:scale-[1.02]",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:shadow-[var(--shadow-interactive)]",
+        outline: "border border-border bg-card/50 backdrop-blur-sm text-foreground hover:bg-card hover:border-primary/50 hover:shadow-[var(--shadow-card)]",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-[hsl(var(--secondary-hover))] hover:shadow-[var(--shadow-card)]",
         ghost: "hover:bg-accent/10 hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         hero: "bg-gradient-primary text-primary-foreground hover:shadow-glow transform hover:scale-105 transition-bounce",
         audio: "bg-gradient-accent text-accent-foreground hover:shadow-accent-glow transform hover:scale-105 transition-bounce",
-        glass: "bg-card/20 backdrop-blur-md border border-border/50 text-foreground hover:bg-card/30 hover:border-primary/50",
+        glass: "bg-card/20 backdrop-blur-md border border-border/50 text-foreground hover:bg-card/30 hover:border-primary/50 hover:shadow-[var(--shadow-card)]",
+        success: "bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))] hover:bg-[hsl(var(--success-hover))] hover:shadow-[var(--shadow-interactive)] transform hover:scale-[1.02]",
+        warning: "bg-[hsl(var(--warning))] text-[hsl(var(--warning-foreground))] hover:bg-[hsl(var(--warning-hover))] hover:shadow-[var(--shadow-interactive)] transform hover:scale-[1.02]",
+        tourism: "bg-gradient-tourism text-primary-foreground hover:shadow-tourism transform hover:scale-105 transition-bounce",
+        ocean: "bg-gradient-ocean text-accent-foreground hover:shadow-accent-glow transform hover:scale-105 transition-bounce",
+        sunset: "bg-gradient-sunset text-primary-foreground hover:shadow-glow transform hover:scale-105 transition-bounce",
       },
       size: {
         default: "h-10 px-4 py-2",

@@ -8,9 +8,9 @@ All colors MUST be HSL.
 
 @layer base {
 :root {
-    /* Tourism Light Mode Color Palette */
-    --background: 45 29% 97%;
-    --foreground: 25 25% 15%;
+    /* Enhanced Tourism Light Mode Color Palette */
+    --background: 45 35% 98%;
+    --foreground: 25 30% 12%;
 
     --card: 0 0% 100%;
     --card-foreground: 25 25% 15%;
@@ -18,55 +18,82 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 25 25% 15%;
 
-    --primary: 25 95% 53%;
+    /* Warmer, more vibrant primary colors */
+    --primary: 22 88% 52%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 25 95% 63%;
+    --primary-glow: 22 88% 62%;
+    --primary-hover: 22 88% 47%;
 
-    --secondary: 45 20% 93%;
+    /* Enhanced secondary with subtle warmth */
+    --secondary: 45 35% 92%;
     --secondary-foreground: 25 25% 15%;
+    --secondary-hover: 45 35% 87%;
 
-    --muted: 45 20% 95%;
-    --muted-foreground: 25 15% 45%;
+    --muted: 45 25% 94%;
+    --muted-foreground: 25 20% 40%;
 
-    --accent: 200 95% 45%;
+    /* Mediterranean-inspired accent colors */
+    --accent: 205 88% 48%;
     --accent-foreground: 0 0% 100%;
-    --accent-glow: 200 95% 55%;
+    --accent-glow: 205 88% 58%;
+    --accent-hover: 205 88% 43%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 45 20% 88%;
-    --input: 45 20% 93%;
-    --ring: 25 95% 53%;
+    /* Success colors for bookings */
+    --success: 145 65% 42%;
+    --success-foreground: 0 0% 100%;
+    --success-hover: 145 65% 37%;
 
-    /* Tourism Specific Colors */
-    --tourism-warm: 25 95% 53%;
-    --tourism-earth: 30 85% 60%;
-    --tourism-sky: 200 95% 45%;
-    --tourism-sunset: 15 90% 65%;
+    /* Warning colors for travel alerts */
+    --warning: 35 85% 55%;
+    --warning-foreground: 0 0% 100%;
+    --warning-hover: 35 85% 50%;
 
-    /* Audio Player Colors */
-    --audio-primary: 25 95% 53%;
-    --audio-waveform: 25 75% 65%;
-    --audio-progress: 25 95% 53%;
-    --audio-background: 45 20% 98%;
+    --border: 45 25% 85%;
+    --input: 45 25% 91%;
+    --ring: 22 88% 52%;
 
-    /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(25 95% 53% / 0.1), hsl(200 95% 45% / 0.1));
-    --gradient-primary: linear-gradient(135deg, hsl(25 95% 53%), hsl(25 95% 63%));
-    --gradient-accent: linear-gradient(135deg, hsl(200 95% 45%), hsl(200 95% 55%));
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(45 20% 98%));
-    --gradient-tourism: linear-gradient(135deg, hsl(25 95% 53%), hsl(15 90% 65%));
+    /* Enhanced Tourism Color Palette */
+    --tourism-warm: 22 88% 52%;
+    --tourism-earth: 28 75% 58%;
+    --tourism-sky: 205 88% 48%;
+    --tourism-sunset: 18 85% 62%;
+    --tourism-coral: 12 90% 68%;
+    --tourism-terracotta: 15 75% 55%;
+    --tourism-mediterranean: 195 85% 52%;
+    --tourism-sage: 75 25% 68%;
 
-    /* Shadows */
-    --shadow-glow: 0 0 40px hsl(25 95% 53% / 0.2);
-    --shadow-accent-glow: 0 0 30px hsl(200 95% 45% / 0.2);
-    --shadow-card: 0 4px 20px hsl(25 25% 15% / 0.1);
-    --shadow-tourism: 0 8px 32px hsl(25 95% 53% / 0.15);
+    /* Enhanced Audio Player Colors */
+    --audio-primary: 22 88% 52%;
+    --audio-waveform: 22 70% 65%;
+    --audio-progress: 22 88% 52%;
+    --audio-background: 45 25% 97%;
+    --audio-secondary: 205 88% 48%;
 
-    /* Animations */
+    /* Rich Gradient System */
+    --gradient-hero: linear-gradient(135deg, hsl(22 88% 52% / 0.12), hsl(205 88% 48% / 0.08));
+    --gradient-primary: linear-gradient(135deg, hsl(22 88% 52%), hsl(22 88% 62%));
+    --gradient-accent: linear-gradient(135deg, hsl(205 88% 48%), hsl(205 88% 58%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(45 25% 97%));
+    --gradient-tourism: linear-gradient(135deg, hsl(22 88% 52%), hsl(18 85% 62%));
+    --gradient-sunset: linear-gradient(135deg, hsl(18 85% 62%), hsl(12 90% 68%));
+    --gradient-ocean: linear-gradient(135deg, hsl(205 88% 48%), hsl(195 85% 52%));
+    --gradient-earth: linear-gradient(135deg, hsl(28 75% 58%), hsl(15 75% 55%));
+
+    /* Enhanced Shadow System */
+    --shadow-glow: 0 0 40px hsl(22 88% 52% / 0.25);
+    --shadow-accent-glow: 0 0 30px hsl(205 88% 48% / 0.2);
+    --shadow-card: 0 4px 20px hsl(25 30% 12% / 0.08);
+    --shadow-tourism: 0 8px 32px hsl(22 88% 52% / 0.18);
+    --shadow-elevated: 0 12px 48px hsl(25 30% 12% / 0.12);
+    --shadow-interactive: 0 6px 24px hsl(22 88% 52% / 0.15);
+
+    /* Animation System */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --transition-spring: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
     --radius: 0.75rem;
 
@@ -88,61 +115,87 @@ All colors MUST be HSL.
   }
 
   .dark {
-    /* Tourism Dark Mode Color Palette */
-    --background: 25 15% 8%;
-    --foreground: 45 29% 95%;
+    /* Enhanced Tourism Dark Mode Color Palette */
+    --background: 25 20% 6%;
+    --foreground: 45 35% 96%;
 
-    --card: 25 15% 10%;
-    --card-foreground: 45 29% 95%;
+    --card: 25 18% 9%;
+    --card-foreground: 45 35% 96%;
 
-    --popover: 25 15% 10%;
-    --popover-foreground: 45 29% 95%;
+    --popover: 25 18% 9%;
+    --popover-foreground: 45 35% 96%;
 
-    --primary: 25 95% 63%;
-    --primary-foreground: 25 15% 8%;
-    --primary-glow: 25 95% 73%;
+    /* Warmer, more vibrant primary colors for dark mode */
+    --primary: 22 85% 65%;
+    --primary-foreground: 25 20% 6%;
+    --primary-glow: 22 85% 75%;
+    --primary-hover: 22 85% 60%;
 
-    --secondary: 25 12% 18%;
-    --secondary-foreground: 45 29% 95%;
+    /* Enhanced secondary with warm undertones */
+    --secondary: 25 15% 16%;
+    --secondary-foreground: 45 35% 96%;
+    --secondary-hover: 25 15% 20%;
 
-    --muted: 25 12% 15%;
-    --muted-foreground: 45 15% 65%;
+    --muted: 25 15% 12%;
+    --muted-foreground: 45 20% 68%;
 
-    --accent: 200 95% 55%;
-    --accent-foreground: 25 15% 8%;
-    --accent-glow: 200 95% 65%;
+    /* Mediterranean-inspired accent colors for dark */
+    --accent: 205 85% 58%;
+    --accent-foreground: 25 20% 6%;
+    --accent-glow: 205 85% 68%;
+    --accent-hover: 205 85% 53%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 45 29% 95%;
+    --destructive: 0 84% 65%;
+    --destructive-foreground: 45 35% 96%;
 
-    --border: 25 12% 20%;
-    --input: 25 12% 18%;
-    --ring: 25 95% 63%;
+    /* Success colors for bookings - dark mode */
+    --success: 145 60% 48%;
+    --success-foreground: 25 20% 6%;
+    --success-hover: 145 60% 43%;
 
-    /* Tourism Specific Colors */
-    --tourism-warm: 25 95% 63%;
-    --tourism-earth: 30 85% 70%;
-    --tourism-sky: 200 95% 55%;
-    --tourism-sunset: 15 90% 75%;
+    /* Warning colors for travel alerts - dark mode */
+    --warning: 35 80% 60%;
+    --warning-foreground: 25 20% 6%;
+    --warning-hover: 35 80% 55%;
 
-    /* Audio Player Colors */
-    --audio-primary: 25 95% 63%;
-    --audio-waveform: 25 75% 75%;
-    --audio-progress: 25 95% 63%;
-    --audio-background: 25 15% 12%;
+    --border: 25 15% 22%;
+    --input: 25 15% 16%;
+    --ring: 22 85% 65%;
 
-    /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(25 95% 63% / 0.15), hsl(200 95% 55% / 0.15));
-    --gradient-primary: linear-gradient(135deg, hsl(25 95% 63%), hsl(25 95% 73%));
-    --gradient-accent: linear-gradient(135deg, hsl(200 95% 55%), hsl(200 95% 65%));
-    --gradient-card: linear-gradient(145deg, hsl(25 15% 10%), hsl(25 15% 12%));
-    --gradient-tourism: linear-gradient(135deg, hsl(25 95% 63%), hsl(15 90% 75%));
+    /* Enhanced Tourism Color Palette - Dark Mode */
+    --tourism-warm: 22 85% 65%;
+    --tourism-earth: 28 70% 65%;
+    --tourism-sky: 205 85% 58%;
+    --tourism-sunset: 18 80% 68%;
+    --tourism-coral: 12 85% 72%;
+    --tourism-terracotta: 15 70% 62%;
+    --tourism-mediterranean: 195 80% 58%;
+    --tourism-sage: 75 20% 65%;
 
-    /* Shadows */
-    --shadow-glow: 0 0 40px hsl(25 95% 63% / 0.3);
-    --shadow-accent-glow: 0 0 30px hsl(200 95% 55% / 0.2);
-    --shadow-card: 0 8px 32px hsl(25 15% 3% / 0.4);
-    --shadow-tourism: 0 8px 32px hsl(25 95% 63% / 0.2);
+    /* Enhanced Audio Player Colors - Dark Mode */
+    --audio-primary: 22 85% 65%;
+    --audio-waveform: 22 65% 70%;
+    --audio-progress: 22 85% 65%;
+    --audio-background: 25 18% 10%;
+    --audio-secondary: 205 85% 58%;
+
+    /* Rich Dark Mode Gradient System */
+    --gradient-hero: linear-gradient(135deg, hsl(22 85% 65% / 0.18), hsl(205 85% 58% / 0.12));
+    --gradient-primary: linear-gradient(135deg, hsl(22 85% 65%), hsl(22 85% 75%));
+    --gradient-accent: linear-gradient(135deg, hsl(205 85% 58%), hsl(205 85% 68%));
+    --gradient-card: linear-gradient(145deg, hsl(25 18% 9%), hsl(25 18% 11%));
+    --gradient-tourism: linear-gradient(135deg, hsl(22 85% 65%), hsl(18 80% 68%));
+    --gradient-sunset: linear-gradient(135deg, hsl(18 80% 68%), hsl(12 85% 72%));
+    --gradient-ocean: linear-gradient(135deg, hsl(205 85% 58%), hsl(195 80% 58%));
+    --gradient-earth: linear-gradient(135deg, hsl(28 70% 65%), hsl(15 70% 62%));
+
+    /* Enhanced Dark Mode Shadow System */
+    --shadow-glow: 0 0 40px hsl(22 85% 65% / 0.35);
+    --shadow-accent-glow: 0 0 30px hsl(205 85% 58% / 0.25);
+    --shadow-card: 0 8px 32px hsl(25 20% 3% / 0.5);
+    --shadow-tourism: 0 8px 32px hsl(22 85% 65% / 0.25);
+    --shadow-elevated: 0 12px 48px hsl(25 20% 3% / 0.6);
+    --shadow-interactive: 0 6px 24px hsl(22 85% 65% / 0.2);
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
