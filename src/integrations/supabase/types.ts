@@ -58,6 +58,7 @@ export type Database = {
           creator_id: string
           currency: string
           description: string
+          destination_id: string | null
           difficulty: string
           duration: number
           id: string
@@ -83,6 +84,7 @@ export type Database = {
           creator_id: string
           currency?: string
           description: string
+          destination_id?: string | null
           difficulty: string
           duration: number
           id?: string
@@ -108,6 +110,7 @@ export type Database = {
           creator_id?: string
           currency?: string
           description?: string
+          destination_id?: string | null
           difficulty?: string
           duration?: number
           id?: string
@@ -125,7 +128,15 @@ export type Database = {
           transcript?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "audio_guides_destination_id_fkey"
+            columns: ["destination_id"]
+            isOneToOne: false
+            referencedRelation: "destinations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       creator_availability: {
         Row: {
@@ -473,6 +484,75 @@ export type Database = {
           related_guide_id?: string | null
           title?: string | null
           update_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      destinations: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          best_time_to_visit: string | null
+          category: string
+          city: string
+          coordinates: unknown | null
+          country: string
+          created_at: string
+          cultural_significance: string | null
+          description: string | null
+          difficulty_level: string
+          id: string
+          image_url: string | null
+          is_approved: boolean
+          latitude: number | null
+          longitude: number | null
+          name: string
+          popular_attractions: string[] | null
+          suggested_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          best_time_to_visit?: string | null
+          category?: string
+          city: string
+          coordinates?: unknown | null
+          country: string
+          created_at?: string
+          cultural_significance?: string | null
+          description?: string | null
+          difficulty_level?: string
+          id?: string
+          image_url?: string | null
+          is_approved?: boolean
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          popular_attractions?: string[] | null
+          suggested_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          best_time_to_visit?: string | null
+          category?: string
+          city?: string
+          coordinates?: unknown | null
+          country?: string
+          created_at?: string
+          cultural_significance?: string | null
+          description?: string | null
+          difficulty_level?: string
+          id?: string
+          image_url?: string | null
+          is_approved?: boolean
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          popular_attractions?: string[] | null
+          suggested_by?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -1194,6 +1274,10 @@ export type Database = {
     Functions: {
       approve_creator_verification: {
         Args: { admin_notes_param?: string; request_id: string }
+        Returns: boolean
+      }
+      approve_destination: {
+        Args: { admin_notes?: string; destination_id: string }
         Returns: boolean
       }
       calculate_tier_points: {
