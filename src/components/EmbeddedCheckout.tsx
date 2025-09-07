@@ -23,7 +23,8 @@ interface EmbeddedCheckoutProps {
   onCancel?: () => void;
 }
 
-const stripePromise = loadStripe('pk_live_51QP4VvGslELtkkDqODTnNpN1YJsP5dw5gQGQBESSBIy2q2TCg1C4AzHNrzjkGwJ1jSJL4Dc7sHxjy3Sf5WX3ZnPf00WaTGBH7Y');
+// Use test key for development - user will provide the correct key via secrets
+const stripePromise = loadStripe('pk_test_51QJxELFHXLar2q2udkxP8k1nJNZwRoUKZIR61XU7y7q1DhQ2gKFBGCE7RUgz8p6S3OKtNM8YJH6Gn0D1q9GUKlkL00tOJq24HU');
 
 // Payment form component that uses Stripe Elements
 const PaymentForm: React.FC<{
@@ -83,9 +84,23 @@ const PaymentForm: React.FC<{
         throw new Error(paymentError.message);
       }
 
+      // Send confirmation email
+      try {
+        await supabase.functions.invoke('send-confirmation-email', {
+          body: {
+            email: isGuest ? guestEmail : user?.email,
+            guideId: guide.id,
+            guideTitle: guide.title,
+            accessCode: guide.access_code
+          }
+        });
+      } catch (emailError) {
+        console.error('Failed to send confirmation email:', emailError);
+      }
+
       toast({
         title: "Payment Successful!",
-        description: "Your audio guide purchase has been completed.",
+        description: "Your audio guide purchase has been completed. Check your email for confirmation.",
       });
 
       onSuccess?.();

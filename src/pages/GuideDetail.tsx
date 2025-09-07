@@ -165,6 +165,12 @@ const GuideDetail = () => {
     setIsPurchased(true);
     setShowPaymentModal(false);
     checkPurchaseStatus();
+    fetchGuideDetails(); // Refresh guide data
+    
+    // Force a page refresh after a short delay to ensure all data is updated
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
   };
 
   const fetchGuideDetails = async () => {
