@@ -62,18 +62,21 @@ serve(async (req) => {
       throw new Error('Unauthorized to generate QR code for this guide');
     }
 
-    // Get the correct base URL from environment variable
+    // Get the correct base URL from environment variable with detailed logging
     let baseUrl = Deno.env.get('SITE_URL');
+    console.log('Raw SITE_URL environment variable:', baseUrl);
+    
     if (!baseUrl) {
-      console.warn('SITE_URL environment variable not set, using fallback');
-      baseUrl = 'https://lovable.dev';
+      console.error('CRITICAL: SITE_URL environment variable not set!');
+      throw new Error('SITE_URL environment variable is required');
     }
     
     // Ensure baseUrl doesn't have trailing slash
     baseUrl = baseUrl.replace(/\/$/, '');
     
-    console.log('Using base URL:', baseUrl);
+    console.log('Final base URL after processing:', baseUrl);
     const shareUrl = `${baseUrl}/guide/${guideId}`;
+    console.log('Generated share URL:', shareUrl);
     
     // Validate the share URL format
     if (!shareUrl.match(/^https?:\/\/.+\/guide\/[a-f0-9-]{36}$/)) {

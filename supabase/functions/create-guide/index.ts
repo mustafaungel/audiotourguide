@@ -154,18 +154,21 @@ serve(async (req) => {
       }
     }
 
-    // Generate QR code and share link with proper base URL detection
+    // Generate QR code and share link with detailed logging
     let baseUrl = Deno.env.get('SITE_URL');
+    console.log('Raw SITE_URL environment variable:', baseUrl);
+    
     if (!baseUrl) {
-      console.warn('SITE_URL environment variable not set, using fallback');
-      baseUrl = 'https://lovable.dev';
+      console.error('CRITICAL: SITE_URL environment variable not set!');
+      throw new Error('SITE_URL environment variable is required');
     }
     
     // Ensure baseUrl doesn't have trailing slash
     baseUrl = baseUrl.replace(/\/$/, '');
     
-    console.log('Using base URL for new guide:', baseUrl);
+    console.log('Final base URL after processing:', baseUrl);
     const shareUrl = `${baseUrl}/guide/${guideData.id}`;
+    console.log('Generated share URL for new guide:', shareUrl);
     
     // Validate the share URL format
     if (!shareUrl.match(/^https?:\/\/.+\/guide\/[a-f0-9-]{36}$/)) {
