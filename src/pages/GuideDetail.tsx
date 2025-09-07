@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Star, MapPin, Clock, Users, Play, Download, Share2, Bookmark, ChevronLeft, Lock, Copy, QrCode } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useViralTracking } from "@/hooks/useViralTracking";
@@ -158,6 +159,7 @@ const GuideDetail = () => {
   };
 
   const handlePaymentSuccess = (sessionId?: string) => {
+    console.log('🔧 [SUCCESS] Payment success handler called with sessionId:', sessionId);
     setIsPurchased(true);
     setShowPaymentModal(false);
     setPaymentSuccess(true);
@@ -797,42 +799,58 @@ const GuideDetail = () => {
         </div>
       )}
 
-      {/* Payment Modal with Guest Checkout */}
-      {showPaymentModal && realGuideData && (() => {
-        console.log('Payment modal rendering with realGuideData:', {
-          id: realGuideData.id,
-          title: realGuideData.title,
-          price_usd: realGuideData.price_usd,
-          creator: realGuideData.creator
-        });
-        return true;
-      })() && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="relative max-w-2xl">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="absolute -top-2 -right-2 z-10"
-              onClick={() => setShowPaymentModal(false)}
-            >
-              ×
-            </Button>
-            <div className="space-y-4">
-              <EmbeddedCheckout
-                guide={{
-                  id: realGuideData.id,
-                  title: realGuideData.title,
-                  price_usd: realGuideData.price_usd,
-                  creator_name: realGuideData.creator?.name,
-                  image_url: realGuideData.image_url
-                }}
-                onSuccess={handlePaymentSuccess}
-                onCancel={() => setShowPaymentModal(false)}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Enhanced Payment Modal with Browser Compatibility */}
+      <Dialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
+        <DialogContent 
+          className="max-w-2xl max-h-[90vh] overflow-y-auto"
+          style={{ zIndex: 99999 }}
+          onOpenAutoFocus={(e) => {
+            // Enhanced debugging for browser compatibility
+            const userAgent = navigator.userAgent;
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+            const browserName = userAgent.includes('Chrome') ? 'Chrome' : 
+                              userAgent.includes('Firefox') ? 'Firefox' : 
+                              userAgent.includes('Safari') ? 'Safari' : 
+                              userAgent.includes('Edge') ? 'Edge' : 'Unknown';
+            
+            console.log('🔧 [MODAL DEBUG] Dialog opened:', {
+              userAgent,
+              browserName,
+              isMobile,
+              modalState: showPaymentModal,
+              realGuideData: realGuideData ? {
+                id: realGuideData.id,
+                title: realGuideData.title,
+                price_usd: realGuideData.price_usd,
+                creator: realGuideData.creator
+              } : null
+            });
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>Complete Your Purchase</DialogTitle>
+          </DialogHeader>
+          {realGuideData && (
+            <EmbeddedCheckout
+              guide={{
+                id: realGuideData.id,
+                title: realGuideData.title,
+                price_usd: realGuideData.price_usd,
+                creator_name: realGuideData.creator?.name,
+                image_url: realGuideData.image_url
+              }}
+              onSuccess={() => {
+                console.log('🔧 [MODAL] Payment success callback triggered');
+                handlePaymentSuccess();
+              }}
+              onCancel={() => {
+                console.log('🔧 [MODAL] Payment cancel callback triggered');
+                setShowPaymentModal(false);
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

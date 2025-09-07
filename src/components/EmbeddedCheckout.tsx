@@ -96,81 +96,125 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
   };
 
   const handleStripeRedirect = async (checkoutUrl: string): Promise<void> => {
-    console.log('[REDIRECT] Starting multi-strategy redirect to:', checkoutUrl);
+    console.log('🔧 [REDIRECT] Starting browser-compatible redirect to:', checkoutUrl);
     
-    // Strategy 1: Direct assignment (most reliable for same-tab)
-    try {
-      console.log('[REDIRECT] Attempting window.location.assign...');
-      window.location.assign(checkoutUrl);
-      
-      // Wait briefly to see if redirect works
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // If we reach here, redirect likely failed
-      console.warn('[REDIRECT] Same-tab redirect may have failed, trying fallback...');
-      
-    } catch (assignError) {
-      console.error('[REDIRECT] window.location.assign failed:', assignError);
-    }
+    // Detect browser type for compatibility
+    const userAgent = navigator.userAgent;
+    const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
+    const isFirefox = userAgent.toLowerCase().indexOf('firefox') > -1;
+    const isChrome = userAgent.toLowerCase().indexOf('chrome') > -1;
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
     
-    // Strategy 2: Fallback with user notification
+    console.log('🔧 [REDIRECT] Browser detection:', { isSafari, isFirefox, isChrome, isMobile });
+    
+    // Enhanced Strategy 1: Direct assignment with browser-specific handling
     try {
-      console.log('[REDIRECT] Fallback: Opening in new tab...');
+      console.log('🔧 [REDIRECT] Attempting window.location.href (universal)...');
       
-      const newWindow = window.open(checkoutUrl, '_blank', 'noopener,noreferrer');
-      
-      if (!newWindow) {
-        console.error('[REDIRECT] Popup blocked, trying alternative...');
-        
-        // Strategy 3: Manual copy to clipboard as last resort
-        if (navigator.clipboard) {
-          await navigator.clipboard.writeText(checkoutUrl);
-          toast({
-            title: "Popup Blocked",
-            description: "Payment URL copied to clipboard. Please paste in a new tab.",
-            duration: 5000,
-          });
-        } else {
-          toast({
-            title: "Manual Redirect Required",
-            description: "Please allow popups or manually navigate to complete payment.",
-            action: (
-              <Button 
-                size="sm" 
-                onClick={() => {
-                  const textarea = document.createElement('textarea');
-                  textarea.value = checkoutUrl;
-                  document.body.appendChild(textarea);
-                  textarea.select();
-                  document.execCommand('copy');
-                  document.body.removeChild(textarea);
-                  toast({ title: "URL Copied", description: "Payment URL copied to clipboard." });
-                }}
-              >
-                Copy URL
-              </Button>
-            ),
-          });
-        }
+      if (isSafari || isMobile) {
+        // Safari and mobile browsers prefer href over assign
+        window.location.href = checkoutUrl;
       } else {
-        console.log('[REDIRECT] New tab opened successfully');
-        toast({
-          title: "Payment Window Opened",
-          description: "Complete your payment in the new tab.",
-          duration: 3000,
-        });
+        // Chrome, Firefox prefer assign
+        window.location.assign(checkoutUrl);
       }
       
-    } catch (popupError) {
-      console.error('[REDIRECT] All redirect strategies failed:', popupError);
+      // Don't wait on mobile - redirect immediately
+      if (!isMobile) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
       
-      // Final fallback: Show manual instructions
+      return; // Exit if redirect successful
+      
+    } catch (redirectError) {
+      console.error('🔧 [REDIRECT] Primary redirect failed:', redirectError);
+    }
+    
+    // Strategy 2: Enhanced fallback with better browser support
+    try {
+      console.log('🔧 [REDIRECT] Fallback: Enhanced new tab strategy...');
+      
+      // Try multiple window.open approaches
+      let newWindow: Window | null = null;
+      
+      if (isSafari) {
+        // Safari-specific approach
+        newWindow = window.open(checkoutUrl, '_blank');
+      } else {
+        // Standard approach for other browsers
+        newWindow = window.open(checkoutUrl, '_blank', 'noopener,noreferrer,width=800,height=600');
+      }
+      
+      if (!newWindow || newWindow.closed) {
+        console.error('🔧 [REDIRECT] Popup blocked or failed, using clipboard fallback...');
+        throw new Error('Popup blocked');
+      }
+      
+      console.log('🔧 [REDIRECT] New tab opened successfully');
       toast({
-        title: "Redirect Failed",
-        description: "Please manually visit the payment page. Check browser console for URL.",
-        variant: "destructive",
-        duration: 8000,
+        title: "Payment Window Opened",
+        description: "Complete your payment in the new tab. The window should open automatically.",
+        duration: 4000,
       });
+      
+      return;
+      
+    } catch (popupError) {
+      console.error('🔧 [REDIRECT] Popup strategy failed:', popupError);
+    }
+    
+    // Strategy 3: Clipboard + manual redirect with enhanced UX
+    try {
+      console.log('🔧 [REDIRECT] Final fallback: clipboard + manual navigation...');
+      
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(checkoutUrl);
+        toast({
+          title: "Popup Blocked - URL Copied!",
+          description: "Payment URL copied to clipboard. Please paste in a new browser tab.",
+          duration: 8000,
+        });
+      } else {
+        // Fallback for non-secure contexts or older browsers
+        const textarea = document.createElement('textarea');
+        textarea.value = checkoutUrl;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        
+        try {
+          document.execCommand('copy');
+          toast({
+            title: "URL Copied (Compatibility Mode)",
+            description: "Payment URL copied. Please paste in a new tab to complete payment.",
+            duration: 8000,
+          });
+        } catch (copyError) {
+          toast({
+            title: "Manual Navigation Required",
+            description: `Please manually visit: ${checkoutUrl.substring(0, 50)}...`,
+            duration: 10000,
+          });
+        } finally {
+          document.body.removeChild(textarea);
+        }
+      }
+      
+    } catch (finalError) {
+      console.error('🔧 [REDIRECT] All strategies failed:', finalError);
+      
+      // Ultimate fallback - show the URL
+      toast({
+        title: "Browser Compatibility Issue",
+        description: "Please check the browser console for the payment URL and navigate manually.",
+        variant: "destructive",
+        duration: 10000,
+      });
+      
+      // Log URL to console for manual access
+      console.log('🔧 [REDIRECT] MANUAL PAYMENT URL:', checkoutUrl);
     }
   };
 
