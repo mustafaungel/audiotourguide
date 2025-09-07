@@ -157,40 +157,40 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="mobile-viewport bg-background">
       <Navigation />
       <HeroSection />
       
       {/* Mobile-Optimized Featured Destinations Section */}
-      <section className="py-8 sm:py-12 lg:py-16 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto">
+      <section className="mobile-padding mobile-spacing">{/* Mobile-first section */}
+        <div className="mobile-container">
           {/* Section Header */}
-          <div className="text-center mb-6 sm:mb-8 lg:mb-12">
-            <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-card/20 backdrop-blur-md border border-border/50 mb-4 sm:mb-6">
+          <div className="text-center mobile-spacing">
+            <div className="inline-flex items-center gap-2 mobile-padding rounded-full bg-card/20 backdrop-blur-md border border-border/50 mb-4">
               <Headphones className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium">Featured Destinations</span>
+              <span className="mobile-caption font-medium">Featured Destinations</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-3 sm:mb-4">
+            <h2 className="mobile-heading sm:text-3xl lg:text-4xl text-foreground mb-3">
               Iconic Destinations Await
             </h2>
-            <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto px-4 sm:px-0">
+            <p className="mobile-text sm:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto">
               Explore UNESCO World Heritage sites, cultural treasures, and iconic landmarks with immersive AI-guided tours
             </p>
           </div>
 
           {/* Enhanced Search and Filter */}
-          <div className="flex flex-col gap-3 mb-6 sm:mb-8 max-w-2xl mx-auto">
+          <div className="mobile-stack max-w-2xl mx-auto">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search destinations..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-card/50 backdrop-blur-sm border-border/50 h-12 text-base"
+                className="pl-10 bg-card/50 backdrop-blur-sm border-border/50 touch-target mobile-text"
               />
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" className="flex-1 sm:flex-none min-h-[44px]">
+              <Button variant="outline" className="flex-1 sm:flex-none touch-target">
                 <Filter className="h-4 w-4 mr-2" />
                 Filters
               </Button>
@@ -199,7 +199,7 @@ const Index = () => {
                   variant="ghost" 
                   size="sm"
                   onClick={() => setSearchTerm('')}
-                  className="text-muted-foreground hover:text-foreground min-h-[44px] px-4"
+                  className="text-muted-foreground hover:text-foreground touch-target px-4"
                 >
                   Clear
                 </Button>
@@ -210,7 +210,7 @@ const Index = () => {
           {/* Search Results Info */}
           {searchTerm && (
             <div className="text-center mb-6">
-              <p className="text-sm text-muted-foreground">
+              <p className="mobile-caption">
                 {loading ? 'Searching...' : `Found ${filteredGuides.length} result(s) for "${searchTerm}"`}
               </p>
             </div>
@@ -218,7 +218,7 @@ const Index = () => {
 
           {/* Loading State */}
           {loading && (
-            <div className="px-2 sm:px-4">
+            <div className="mobile-padding">
               <CarouselComponents.Carousel
                 opts={{
                   align: "start",
@@ -226,11 +226,11 @@ const Index = () => {
                 }}
                 className="w-full max-w-none"
               >
-                <CarouselComponents.CarouselContent className="-ml-2 sm:-ml-4">
+                <CarouselComponents.CarouselContent className="-ml-2">
                   {[...Array(6)].map((_, i) => (
-                    <CarouselComponents.CarouselItem key={i} className="pl-2 sm:pl-4 basis-[90%] sm:basis-[80%] md:basis-1/2 lg:basis-1/3">
-                      <div className="bg-card rounded-lg p-4 animate-pulse">
-                        <div className="h-48 bg-muted rounded-lg mb-4"></div>
+                    <CarouselComponents.CarouselItem key={i} className="pl-2 basis-[85%] sm:basis-[75%] md:basis-1/2 lg:basis-1/3">
+                      <div className="mobile-card animate-pulse">
+                        <div className="aspect-mobile bg-muted rounded-lg mb-4"></div>
                         <div className="h-4 bg-muted rounded mb-2"></div>
                         <div className="h-4 bg-muted rounded w-3/4"></div>
                       </div>
@@ -245,7 +245,7 @@ const Index = () => {
 
           {/* Guides Carousel */}
           {!loading && (
-            <div className="px-2 sm:px-4">
+            <div className="mobile-padding">
               <CarouselComponents.Carousel
                 opts={{
                   align: "start",
@@ -253,14 +253,14 @@ const Index = () => {
                 }}
                 className="w-full max-w-none"
               >
-                <CarouselComponents.CarouselContent className="-ml-2 sm:-ml-4">
+                <CarouselComponents.CarouselContent className="-ml-2">
                   {filteredGuides.map((guide) => {
                     const isPurchased = userPurchases.includes(guide.id);
                     const formattedPrice = guide.price_usd === 0 ? "Free" : `$${guide.price_usd}`;
                     const formattedDuration = `${Math.floor(guide.duration / 60)} min`;
                     
                     return (
-                      <CarouselComponents.CarouselItem key={guide.id} className="pl-2 sm:pl-4 basis-[90%] sm:basis-[80%] md:basis-1/2 lg:basis-1/3">
+                      <CarouselComponents.CarouselItem key={guide.id} className="pl-2 basis-[85%] sm:basis-[75%] md:basis-1/2 lg:basis-1/3">{/* Mobile-first carousel items */}
                       <GuideCard
                         id={guide.id}
                         title={guide.title}
@@ -295,10 +295,10 @@ const Index = () => {
 
           {/* No Results */}
           {!loading && filteredGuides.length === 0 && (
-            <div className="text-center py-16">
+            <div className="text-center py-16 mobile-spacing">
               <div className="text-6xl mb-4">🔍</div>
-              <h3 className="text-xl font-semibold text-foreground mb-2">No destinations found</h3>
-              <p className="text-muted-foreground">Try searching for UNESCO sites, cultural experiences, or specific countries</p>
+              <h3 className="mobile-subheading text-foreground mb-2">No destinations found</h3>
+              <p className="mobile-caption">Try searching for UNESCO sites, cultural experiences, or specific countries</p>
             </div>
           )}
         </div>
@@ -309,11 +309,11 @@ const Index = () => {
 
       {/* Audio Player Section */}
       {selectedGuide && (
-        <section className="py-16 px-6">
-          <div className="max-w-2xl mx-auto">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-foreground mb-2">Now Playing</h2>
-              <p className="text-muted-foreground">Immerse yourself in the audio experience</p>
+        <section className="mobile-padding mobile-spacing">
+          <div className="mobile-container max-w-2xl">
+            <div className="text-center mobile-spacing">
+              <h2 className="mobile-heading text-foreground mb-2">Now Playing</h2>
+              <p className="mobile-caption">Immerse yourself in the audio experience</p>
             </div>
             <AudioPlayer 
               title={selectedGuide.title}
@@ -327,19 +327,19 @@ const Index = () => {
 
 
       {/* CTA Section */}
-      <section className="py-16 px-6 bg-gradient-hero">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl font-bold text-foreground mb-4">
+      <section className="mobile-padding mobile-spacing bg-gradient-hero">
+        <div className="mobile-container max-w-4xl text-center">
+          <h2 className="mobile-heading sm:text-3xl lg:text-4xl text-foreground mb-4">
             Ready to Discover the World?
           </h2>
-          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+          <p className="mobile-text sm:text-lg lg:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
             Join thousands of travelers exploring UNESCO World Heritage sites and cultural treasures with AI-powered storytelling
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="hero" size="lg" className="px-8 py-4 text-lg h-auto">
+          <div className="mobile-stack sm:flex-row gap-4 justify-center">
+            <Button variant="hero" size="lg" className="mobile-button px-8 py-4 touch-target">
               Start Exploring
             </Button>
-            <Button variant="glass" size="lg" className="px-8 py-4 text-lg h-auto">
+            <Button variant="glass" size="lg" className="mobile-button px-8 py-4 touch-target">
               View All Destinations
             </Button>
           </div>

@@ -83,11 +83,11 @@ export const FeaturedGuides = () => {
 
   if (loading) {
     return (
-      <section className="py-16 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">Featured Audio Guides</h2>
-            <p className="text-lg text-muted-foreground">Discover extraordinary places with expert-crafted audio tours</p>
+      <section className="mobile-padding mobile-spacing">
+        <div className="mobile-container">
+          <div className="text-center mobile-spacing">
+            <h2 className="mobile-heading sm:text-3xl text-foreground mb-4">Featured Audio Guides</h2>
+            <p className="mobile-text sm:text-lg text-muted-foreground">Discover extraordinary places with expert-crafted audio tours</p>
           </div>
           <Carousel
             opts={{
@@ -96,17 +96,17 @@ export const FeaturedGuides = () => {
             }}
             className="w-full"
           >
-            <CarouselContent className="-ml-2 md:-ml-4">
+            <CarouselContent className="-ml-2">
               {[...Array(6)].map((_, i) => (
-                <CarouselItem key={i} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
-                  <Card className="animate-pulse">
-                    <div className="h-48 bg-muted rounded-t-lg"></div>
+                <CarouselItem key={i} className="pl-2 basis-[85%] sm:basis-[75%] md:basis-1/2 lg:basis-1/3">
+                  <Card className="animate-pulse mobile-card">
+                    <div className="aspect-mobile bg-muted rounded-t-lg"></div>
                     <CardHeader>
                       <div className="h-4 bg-muted rounded w-3/4"></div>
                       <div className="h-3 bg-muted rounded w-1/2"></div>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-2">
+                      <div className="mobile-spacing">
                         <div className="h-3 bg-muted rounded"></div>
                         <div className="h-3 bg-muted rounded w-2/3"></div>
                       </div>
@@ -124,11 +124,11 @@ export const FeaturedGuides = () => {
   }
 
   return (
-    <section className="py-16 px-4">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-foreground mb-4">Featured Audio Guides</h2>
-          <p className="text-lg text-muted-foreground">Discover extraordinary places with expert-crafted audio tours</p>
+    <section className="mobile-padding mobile-spacing">
+      <div className="mobile-container">
+        <div className="text-center mobile-spacing">
+          <h2 className="mobile-heading sm:text-3xl text-foreground mb-4">Featured Audio Guides</h2>
+          <p className="mobile-text sm:text-lg text-muted-foreground">Discover extraordinary places with expert-crafted audio tours</p>
         </div>
         
         <Carousel
@@ -138,11 +138,11 @@ export const FeaturedGuides = () => {
           }}
           className="w-full"
         >
-          <CarouselContent className="-ml-2 md:-ml-4">
+          <CarouselContent className="-ml-2">
             {guides.map((guide) => (
-              <CarouselItem key={guide.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
-                <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden">
-                  <div className="relative h-48 overflow-hidden">
+              <CarouselItem key={guide.id} className="pl-2 basis-[85%] sm:basis-[75%] md:basis-1/2 lg:basis-1/3">{/* Mobile-first carousel items */}
+                <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden mobile-card">
+                  <div className="relative aspect-mobile overflow-hidden">
                     <img
                       src={guide.image_url}
                       alt={guide.title}
@@ -161,13 +161,13 @@ export const FeaturedGuides = () => {
                   </div>
                   
                   <CardHeader>
-                    <CardTitle className="text-lg line-clamp-2">{guide.title}</CardTitle>
-                    <CardDescription className="line-clamp-2">{guide.description}</CardDescription>
+                    <CardTitle className="mobile-subheading line-clamp-2">{guide.title}</CardTitle>
+                    <CardDescription className="mobile-caption line-clamp-2">{guide.description}</CardDescription>
                   </CardHeader>
                   
                   <CardContent className="pt-0">
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <div className="mobile-spacing">
+                      <div className="flex items-center gap-4 mobile-caption text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <MapPin className="w-4 h-4" />
                           <span>{guide.location}</span>
@@ -178,7 +178,7 @@ export const FeaturedGuides = () => {
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-4 text-sm">
+                      <div className="flex items-center gap-4 mobile-caption">
                         <div className="flex items-center gap-1">
                           <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                           <span>{guide.rating || 0}</span>
@@ -191,12 +191,12 @@ export const FeaturedGuides = () => {
                       </div>
                       
                       <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="mobile-caption">
                           {guide.difficulty}
                         </Badge>
                         <div className="flex gap-1">
                           {guide.languages.slice(0, 2).map((lang) => (
-                            <Badge key={lang} variant="outline" className="text-xs">
+                            <Badge key={lang} variant="outline" className="mobile-caption">
                               {lang}
                             </Badge>
                           ))}
@@ -204,7 +204,7 @@ export const FeaturedGuides = () => {
                       </div>
                       
                       <Button 
-                        className="w-full mt-4"
+                        className="w-full mt-4 touch-target"
                         onClick={() => handleGuideClick(guide.id)}
                       >
                         Explore Guide
