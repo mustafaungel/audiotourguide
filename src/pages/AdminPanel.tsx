@@ -16,6 +16,7 @@ import { AdminDashboard } from '@/components/AdminDashboard';
 import { GuideManagement } from '@/components/GuideManagement';
 import { UserManagement } from '@/components/UserManagement';
 import { AdminCreatorManagement } from '@/components/AdminCreatorManagement';
+import { AdminAIGuideGenerator } from '@/components/AdminAIGuideGenerator';
 
 const AdminPanel = () => {
   const { user, userProfile } = useAuth();
@@ -230,7 +231,7 @@ const AdminPanel = () => {
         </div>
 
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid grid-cols-6 w-full max-w-3xl">
+          <TabsList className="grid grid-cols-7 w-full max-w-4xl">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Dashboard
@@ -247,8 +248,12 @@ const AdminPanel = () => {
               <Users className="h-4 w-4" />
               Creators
             </TabsTrigger>
-            <TabsTrigger value="create" className="flex items-center gap-2">
+            <TabsTrigger value="ai-guides" className="flex items-center gap-2">
               <Wand2 className="h-4 w-4" />
+              AI Guides
+            </TabsTrigger>
+            <TabsTrigger value="create" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
               Create
             </TabsTrigger>
             <TabsTrigger value="analytics" className="flex items-center gap-2">
@@ -271,6 +276,10 @@ const AdminPanel = () => {
 
           <TabsContent value="creators">
             <AdminCreatorManagement />
+          </TabsContent>
+
+          <TabsContent value="ai-guides">
+            <AdminAIGuideGenerator />
           </TabsContent>
 
           <TabsContent value="create">
