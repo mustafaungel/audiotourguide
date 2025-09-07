@@ -15,6 +15,7 @@ import Profile from "./pages/Profile";
 import CreatorDashboard from "./pages/CreatorDashboard";
 import CreatorProfile from "./pages/CreatorProfile";
 import Creators from "./pages/Creators";
+import Experiences from "./pages/Experiences";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App = () => (
               <Route path="/creator-dashboard" element={<CreatorDashboard />} />
               <Route path="/creators" element={<Creators />} />
               <Route path="/creator/:creatorId" element={<CreatorProfile />} />
+              <Route path="/experiences" element={<Experiences />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/payment-cancelled" element={<PaymentCancelled />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

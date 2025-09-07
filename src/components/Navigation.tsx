@@ -42,16 +42,16 @@ export const Navigation = () => {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             <Link to="/library" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
-              Destinations
+              Audio Guides
+            </Link>
+            <Link to="/experiences" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+              Live Experiences
             </Link>
             <Link to="/creators" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
               Creators
             </Link>
             <Link to="/library" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
               UNESCO Sites
-            </Link>
-            <Link to="/library" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
-              Cultural Experiences
             </Link>
           </nav>
 
