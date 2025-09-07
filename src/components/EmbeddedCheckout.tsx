@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +26,34 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
+  const [componentKey, setComponentKey] = useState(0);
+  const cleanupRef = useRef<(() => void) | null>(null);
+
+  // Force clean state reset on component mount/unmount
+  useEffect(() => {
+    const cleanup = () => {
+      setLoading(false);
+      setEmail('');
+      setIsCreatingAccount(false);
+    };
+    
+    cleanupRef.current = cleanup;
+    
+    return () => {
+      cleanup();
+      if (cleanupRef.current) {
+        cleanupRef.current();
+      }
+    };
+  }, [componentKey]);
+
+  // Reset component state completely
+  const resetComponentState = () => {
+    setComponentKey(prev => prev + 1);
+    setLoading(false);
+    setEmail('');
+    setIsCreatingAccount(false);
+  };
 
   // Validate required guide data
   if (!guide.id || !guide.title || !guide.price_usd) {
@@ -42,6 +70,9 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
   }
 
   const handlePayment = async (isGuest: boolean = false) => {
+    // Clear any existing state before starting
+    resetComponentState();
+    
     const targetEmail = user?.email || email;
     
     if (!targetEmail) {

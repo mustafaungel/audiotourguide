@@ -799,13 +799,32 @@ const GuideDetail = () => {
         </div>
       )}
 
-      {/* Enhanced Payment Modal with Browser Compatibility */}
-      <Dialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
+      {/* Enhanced Payment Modal with Force Reset */}
+      <Dialog 
+        key={`payment-modal-${showPaymentModal}`} 
+        open={showPaymentModal} 
+        onOpenChange={(open) => {
+          console.log('🔧 [MODAL] State change:', { from: showPaymentModal, to: open });
+          setShowPaymentModal(open);
+          
+          // Force cleanup when closing
+          if (!open) {
+            setTimeout(() => {
+              console.log('🔧 [MODAL] Cleanup timeout executed');
+            }, 100);
+          }
+        }}
+      >
         <DialogContent 
           className="max-w-2xl max-h-[90vh] overflow-y-auto"
-          style={{ zIndex: 99999 }}
+          style={{ 
+            zIndex: 99999,
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)'
+          }}
           onOpenAutoFocus={(e) => {
-            // Enhanced debugging for browser compatibility
             const userAgent = navigator.userAgent;
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
             const browserName = userAgent.includes('Chrome') ? 'Chrome' : 
@@ -818,6 +837,7 @@ const GuideDetail = () => {
               browserName,
               isMobile,
               modalState: showPaymentModal,
+              timestamp: new Date().toISOString(),
               realGuideData: realGuideData ? {
                 id: realGuideData.id,
                 title: realGuideData.title,
@@ -826,12 +846,21 @@ const GuideDetail = () => {
               } : null
             });
           }}
+          onEscapeKeyDown={() => {
+            console.log('🔧 [MODAL] Escape key pressed - force close');
+            setShowPaymentModal(false);
+          }}
+          onPointerDownOutside={() => {
+            console.log('🔧 [MODAL] Click outside - force close');
+            setShowPaymentModal(false);
+          }}
         >
           <DialogHeader>
             <DialogTitle>Complete Your Purchase</DialogTitle>
           </DialogHeader>
           {realGuideData && (
             <EmbeddedCheckout
+              key={`checkout-${showPaymentModal}-${Date.now()}`} // Force re-render
               guide={{
                 id: realGuideData.id,
                 title: realGuideData.title,
@@ -841,6 +870,7 @@ const GuideDetail = () => {
               }}
               onSuccess={() => {
                 console.log('🔧 [MODAL] Payment success callback triggered');
+                setShowPaymentModal(false);
                 handlePaymentSuccess();
               }}
               onCancel={() => {
