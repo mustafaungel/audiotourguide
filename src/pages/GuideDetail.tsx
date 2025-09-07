@@ -162,26 +162,61 @@ const GuideDetail = () => {
     if (!guideId) return;
     
     try {
-      const { data, error } = await supabase
+      // Check if user is admin or creator first
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', user?.id)
+        .single();
+
+      let query = supabase
         .from('audio_guides')
         .select(`
           *,
-          profiles:creator_id (
+          profiles!creator_id (
             full_name,
             avatar_url,
             bio
           )
         `)
-        .eq('id', guideId)
-        .eq('is_published', true)
-        .eq('is_approved', true)
-        .single();
+        .eq('id', guideId);
+
+      // Only apply publication filters for non-admin/non-creator users
+      if (profile?.role !== 'admin' && user?.id !== realGuideData?.creator_id) {
+        query = query.eq('is_published', true).eq('is_approved', true);
+      }
+
+      const { data, error } = await query.single();
 
       if (error) throw error;
-      setRealGuideData(data);
+      
+      // Transform data to match expected format
+      const transformedData = {
+        ...data,
+        creator: (data as any).profiles ? {
+          name: (data as any).profiles.full_name || 'Anonymous Creator',
+          avatar: (data as any).profiles.avatar_url || '',
+          bio: (data as any).profiles.bio || ''
+        } : {
+          name: 'Anonymous Creator',
+          avatar: '',
+          bio: ''
+        },
+        features: [
+          'High-quality audio narration',
+          'Interactive content',
+          'Offline access',
+          'Multiple languages available'
+        ],
+        duration: `${Math.floor(data.duration / 60)} min`,
+        price: `$${(data.price_usd / 100).toFixed(2)}`,
+        sections: data.sections ? JSON.parse(data.sections as string) : []
+      };
+      
+      setRealGuideData(transformedData);
     } catch (error) {
       console.error('Error fetching guide:', error);
-      // Fall back to demo data
+      // Fall back to demo data for development
     } finally {
       setIsLoading(false);
     }

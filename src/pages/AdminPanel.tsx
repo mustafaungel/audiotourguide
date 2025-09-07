@@ -186,53 +186,27 @@ const AdminPanel = () => {
     setPublishLoading(true);
     
     try {
-      // Insert the guide
-      const { data: guideData, error: guideError } = await supabase
-        .from('audio_guides')
-        .insert({
+      // Use the create-guide edge function for consistency
+      const { data, error } = await supabase.functions.invoke('create-guide', {
+        body: {
           title: formData.title,
-          location: `${formData.city}, ${formData.country}`,
           description: formData.description || `Explore ${formData.title} in ${formData.city}, ${formData.country}`,
+          location: `${formData.city}, ${formData.country}`,
           category: formData.category,
           price_usd: parseInt(formData.price),
-          creator_id: user?.id,
-          currency: 'usd',
-          languages: ['English'],
           difficulty: 'beginner',
-          duration: sections.reduce((total, section) => total + (section.duration_seconds || 0), 0),
-          is_published: true,
-          is_approved: true, // Admin privilege
-          image_url: generatedImage || null,
-          sections: JSON.stringify(sections)
-        })
-        .select()
-        .single();
+          languages: ['English'],
+          sections: sections,
+          image_content: generatedImage ? generatedImage.split(',')[1] : null,
+          generate_audio: true
+        }
+      });
 
-      if (guideError) throw guideError;
+      if (error) throw error;
 
-      setCreatedGuide(guideData);
-
-      // Insert sections
-      if (sections.length > 0) {
-        const sectionsToInsert = sections.map(section => ({
-          guide_id: guideData.id,
-          title: section.title,
-          description: section.description,
-          audio_url: section.audio_url,
-          duration_seconds: section.duration_seconds,
-          language: section.language,
-          order_index: section.order_index
-        }));
-
-        const { error: sectionsError } = await supabase
-          .from('guide_sections')
-          .insert(sectionsToInsert);
-
-        if (sectionsError) throw sectionsError;
-      }
-
-      // Generate QR code and share link
-      await generateQRCodeAndShareLink(guideData.id);
+      setCreatedGuide(data.guide);
+      setQrCodeUrl(data.guide.qr_code_url);
+      setShareUrl(data.guide.share_url);
       
       toast.success('Audio guide has been published successfully with QR code and share link!');
       

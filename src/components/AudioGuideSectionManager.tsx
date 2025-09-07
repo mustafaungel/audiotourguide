@@ -50,6 +50,7 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
   const [playingSection, setPlayingSection] = useState<string | null>(null);
   const [generatingDescription, setGeneratingDescription] = useState<string | null>(null);
+  const [generatingAudio, setGeneratingAudio] = useState<string | null>(null);
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
   const addSection = () => {
@@ -278,6 +279,42 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
     }
   };
 
+  const generateSectionAudio = async (sectionId: string) => {
+    const section = sections.find(s => s.id === sectionId);
+    if (!section?.description?.trim()) {
+      toast.error('Please add a description first before generating audio');
+      return;
+    }
+
+    setGeneratingAudio(sectionId);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-audio', {
+        body: {
+          text: section.description,
+          voiceId: 'EXAVITQu4vr4xnSDxMaL', // Sarah voice
+          modelId: 'eleven_multilingual_v2'
+        }
+      });
+
+      if (error) throw error;
+
+      // Update section with generated audio
+      updateSection(sectionId, { 
+        audio_url: data.audio_url,
+        duration_seconds: Math.ceil(section.description.length / 10) // Rough estimation
+      });
+      
+      toast.success('Audio generated successfully!');
+
+    } catch (error: any) {
+      console.error('Error generating audio:', error);
+      toast.error('Failed to generate audio. Please try again.');
+    } finally {
+      setGeneratingAudio(null);
+    }
+  };
+
   // Cleanup audio on unmount
   useEffect(() => {
     return () => {
@@ -433,16 +470,26 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
                                 Click to upload audio file
                               </span>
                             </div>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => fileInputRefs.current[section.id]?.click()}
-                            >
-                              <FileAudio className="h-4 w-4 mr-2" />
-                              Choose Audio File
-                            </Button>
+                            <div className="flex gap-2 justify-center">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => fileInputRefs.current[section.id]?.click()}
+                              >
+                                <FileAudio className="h-4 w-4 mr-2" />
+                                Choose Audio File
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => generateSectionAudio(section.id)}
+                                disabled={!section.description.trim() || generatingAudio === section.id}
+                              >
+                                {generatingAudio === section.id ? 'Generating...' : 'Generate AI Audio'}
+                              </Button>
+                            </div>
                             <p className="text-xs text-muted-foreground">
-                              Supports MP3, WAV, M4A • Max 50MB
+                              Upload your own file or generate with AI • Max 50MB
                             </p>
                           </div>
                         )}

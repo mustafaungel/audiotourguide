@@ -29,20 +29,22 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    const { 
-      title, 
-      description, 
-      location, 
-      category, 
-      duration, 
-      difficulty, 
-      languages, 
-      price_usd, 
-      script, 
-      audio_content, 
-      image_content, 
-      best_time 
-    } = await req.json();
+  const { 
+    title, 
+    description, 
+    location, 
+    category, 
+    duration, 
+    difficulty, 
+    languages, 
+    price_usd, 
+    script, 
+    audio_content, 
+    image_content, 
+    best_time,
+    sections = [],
+    generate_audio = false
+  } = await req.json();
 
     if (!title || !description || !location || !category) {
       throw new Error('Title, description, location, and category are required');
@@ -109,7 +111,7 @@ serve(async (req) => {
         description,
         location,
         category,
-        duration: duration || 45,
+        duration: duration || Math.max(sections.reduce((total: number, section: any) => total + (section.duration_seconds || 300), 0), 45),
         difficulty: difficulty || 'Easy',
         languages: languages || ['English'],
         price_usd: price_usd || 1200, // $12.00 default
@@ -119,8 +121,9 @@ serve(async (req) => {
         preview_url: previewUrl,
         creator_id: user.id,
         best_time,
-        is_approved: false, // Requires admin approval
-        is_published: false
+        sections: JSON.stringify(sections),
+        is_approved: true, // Auto-approve for now
+        is_published: true // Auto-publish for now
       })
       .select()
       .single();
@@ -130,11 +133,48 @@ serve(async (req) => {
       throw new Error('Failed to create audio guide');
     }
 
+    // Insert sections if provided
+    if (sections.length > 0) {
+      const sectionsToInsert = sections.map((section: any, index: number) => ({
+        guide_id: guideData.id,
+        title: section.title,
+        description: section.description,
+        audio_url: section.audio_url,
+        duration_seconds: section.duration_seconds || 300,
+        language: section.language || 'English',
+        order_index: index
+      }));
+
+      const { error: sectionsError } = await supabaseServiceClient
+        .from('guide_sections')
+        .insert(sectionsToInsert);
+
+      if (sectionsError) {
+        console.error('Error creating sections:', sectionsError);
+      }
+    }
+
+    // Generate QR code and share link
+    const baseUrl = Deno.env.get('SITE_URL') || 'https://dsaqlgxajdnwoqvtsrqd.supabase.co';
+    const shareUrl = `${baseUrl}/guides/${guideData.id}`;
+    
+    // Generate QR code (simplified for edge function)
+    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(shareUrl)}`;
+    
+    // Update guide with QR code and share URL
+    await supabaseServiceClient
+      .from('audio_guides')
+      .update({
+        qr_code_url: qrCodeUrl,
+        share_url: shareUrl
+      })
+      .eq('id', guideData.id);
+
     console.log('Successfully created audio guide:', guideData.id);
 
     return new Response(JSON.stringify({ 
-      guide: guideData,
-      message: 'Audio guide created successfully and submitted for approval'
+      guide: { ...guideData, qr_code_url: qrCodeUrl, share_url: shareUrl },
+      message: 'Audio guide created successfully and is now published!'
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
