@@ -54,8 +54,12 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
     }
 
     setLoading(true);
+    console.log('[PAYMENT] Starting payment process for guide:', guide.id, { email: targetEmail, isGuest });
 
     try {
+      // Enhanced logging before API call
+      console.log('[PAYMENT] Invoking create-payment function...');
+      
       const { data, error } = await supabase.functions.invoke('create-payment', {
         body: {
           guide_id: guide.id,
@@ -65,32 +69,22 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
       });
 
       if (error) {
+        console.error('[PAYMENT] Supabase function error:', error);
         throw error;
       }
 
       if (!data?.url) {
+        console.error('[PAYMENT] No checkout URL received:', data);
         throw new Error('Failed to create payment session');
       }
 
-      console.log('[PAYMENT] Redirecting to Stripe Checkout:', data.url);
+      console.log('[PAYMENT] Checkout URL received:', data.url);
       
-      // Add timeout to prevent white screen hanging
-      const redirectTimeout = setTimeout(() => {
-        console.error('[PAYMENT] Redirect timeout - falling back to new tab');
-        window.open(data.url, '_blank');
-      }, 3000);
-
-      // Redirect to Stripe Checkout with fallback
-      try {
-        window.location.href = data.url;
-        // Clear timeout if redirect succeeds
-        setTimeout(() => clearTimeout(redirectTimeout), 1000);
-      } catch (redirectError) {
-        console.error('[PAYMENT] Redirect failed, opening in new tab:', redirectError);
-        clearTimeout(redirectTimeout);
-        window.open(data.url, '_blank');
-      }
+      // Progressive redirect strategy with enhanced logging
+      await handleStripeRedirect(data.url);
+      
     } catch (err: any) {
+      console.error('[PAYMENT] Payment process failed:', err);
       toast({
         title: "Payment Error",
         description: err.message || 'Failed to start payment process.',
@@ -98,6 +92,85 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStripeRedirect = async (checkoutUrl: string): Promise<void> => {
+    console.log('[REDIRECT] Starting multi-strategy redirect to:', checkoutUrl);
+    
+    // Strategy 1: Direct assignment (most reliable for same-tab)
+    try {
+      console.log('[REDIRECT] Attempting window.location.assign...');
+      window.location.assign(checkoutUrl);
+      
+      // Wait briefly to see if redirect works
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // If we reach here, redirect likely failed
+      console.warn('[REDIRECT] Same-tab redirect may have failed, trying fallback...');
+      
+    } catch (assignError) {
+      console.error('[REDIRECT] window.location.assign failed:', assignError);
+    }
+    
+    // Strategy 2: Fallback with user notification
+    try {
+      console.log('[REDIRECT] Fallback: Opening in new tab...');
+      
+      const newWindow = window.open(checkoutUrl, '_blank', 'noopener,noreferrer');
+      
+      if (!newWindow) {
+        console.error('[REDIRECT] Popup blocked, trying alternative...');
+        
+        // Strategy 3: Manual copy to clipboard as last resort
+        if (navigator.clipboard) {
+          await navigator.clipboard.writeText(checkoutUrl);
+          toast({
+            title: "Popup Blocked",
+            description: "Payment URL copied to clipboard. Please paste in a new tab.",
+            duration: 5000,
+          });
+        } else {
+          toast({
+            title: "Manual Redirect Required",
+            description: "Please allow popups or manually navigate to complete payment.",
+            action: (
+              <Button 
+                size="sm" 
+                onClick={() => {
+                  const textarea = document.createElement('textarea');
+                  textarea.value = checkoutUrl;
+                  document.body.appendChild(textarea);
+                  textarea.select();
+                  document.execCommand('copy');
+                  document.body.removeChild(textarea);
+                  toast({ title: "URL Copied", description: "Payment URL copied to clipboard." });
+                }}
+              >
+                Copy URL
+              </Button>
+            ),
+          });
+        }
+      } else {
+        console.log('[REDIRECT] New tab opened successfully');
+        toast({
+          title: "Payment Window Opened",
+          description: "Complete your payment in the new tab.",
+          duration: 3000,
+        });
+      }
+      
+    } catch (popupError) {
+      console.error('[REDIRECT] All redirect strategies failed:', popupError);
+      
+      // Final fallback: Show manual instructions
+      toast({
+        title: "Redirect Failed",
+        description: "Please manually visit the payment page. Check browser console for URL.",
+        variant: "destructive",
+        duration: 8000,
+      });
     }
   };
 
