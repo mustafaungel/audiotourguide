@@ -129,7 +129,7 @@ const AdminPanel = () => {
   const generateQRCodeAndShareLink = async (guideId: string) => {
     try {
       const baseUrl = window.location.origin;
-      const shareUrl = `${baseUrl}/guides/${guideId}`;
+      const shareUrl = `${baseUrl}/guide/${guideId}`;
       
       // Generate QR code with custom styling
       const qrCodeDataUrl = await QRCode.toDataURL(shareUrl, {

@@ -126,7 +126,7 @@ export const GuideManagement = () => {
 
   const previewGuide = (guideId: string) => {
     // Open guide detail page in new tab
-    window.open(`/guides/${guideId}`, '_blank');
+    window.open(`/guide/${guideId}`, '_blank');
   };
 
   const editGuide = (guide: Guide) => {

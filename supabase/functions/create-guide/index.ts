@@ -156,7 +156,7 @@ serve(async (req) => {
 
     // Generate QR code and share link
     const baseUrl = Deno.env.get('SITE_URL') || 'https://dsaqlgxajdnwoqvtsrqd.supabase.co';
-    const shareUrl = `${baseUrl}/guides/${guideData.id}`;
+    const shareUrl = `${baseUrl}/guide/${guideData.id}`;
     
     // Generate QR code (simplified for edge function)
     const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(shareUrl)}`;
