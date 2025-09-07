@@ -193,17 +193,17 @@ export const EnhancedCreatorDiscovery = () => {
       );
     }
 
-    if (locationFilter) {
+    if (locationFilter && locationFilter !== 'all') {
       filtered = filtered.filter(creator => creator.location === locationFilter);
     }
 
-    if (specialtyFilter) {
+    if (specialtyFilter && specialtyFilter !== 'all') {
       filtered = filtered.filter(creator => 
         creator.specialties.includes(specialtyFilter)
       );
     }
 
-    if (tierFilter) {
+    if (tierFilter && tierFilter !== 'all') {
       filtered = filtered.filter(creator => creator.current_tier === tierFilter);
     }
 
@@ -416,7 +416,7 @@ export const EnhancedCreatorDiscovery = () => {
               <SelectValue placeholder="Location" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Locations</SelectItem>
+              <SelectItem value="all">All Locations</SelectItem>
               {getUniqueLocations().map((location) => (
                 <SelectItem key={location} value={location}>{location}</SelectItem>
               ))}
@@ -428,7 +428,7 @@ export const EnhancedCreatorDiscovery = () => {
               <SelectValue placeholder="Specialty" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Specialties</SelectItem>
+              <SelectItem value="all">All Specialties</SelectItem>
               {getUniqueSpecialties().map((specialty) => (
                 <SelectItem key={specialty} value={specialty}>{specialty}</SelectItem>
               ))}
@@ -440,7 +440,7 @@ export const EnhancedCreatorDiscovery = () => {
               <SelectValue placeholder="Tier" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Tiers</SelectItem>
+              <SelectItem value="all">All Tiers</SelectItem>
               <SelectItem value="diamond">Diamond</SelectItem>
               <SelectItem value="gold">Gold</SelectItem>
               <SelectItem value="silver">Silver</SelectItem>
