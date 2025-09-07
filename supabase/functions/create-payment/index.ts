@@ -100,7 +100,44 @@ serve(async (req) => {
       throw new Error(`Invalid URL construction: ${urlError.message}`);
     }
 
-    // Create checkout session
+    // Fix image URL - convert relative paths to absolute or remove invalid ones
+    let processedImageUrl = null;
+    if (guide.image_url) {
+      try {
+        if (guide.image_url.startsWith('http')) {
+          // Already absolute URL
+          processedImageUrl = guide.image_url;
+        } else if (guide.image_url.startsWith('/')) {
+          // Relative path - convert to absolute
+          processedImageUrl = `${origin}${guide.image_url}`;
+        }
+        // Validate the processed URL
+        if (processedImageUrl) {
+          new URL(processedImageUrl);
+          logStep("Image URL processed", { original: guide.image_url, processed: processedImageUrl });
+        }
+      } catch (imageError) {
+        logStep("Invalid image URL, excluding from Stripe", { 
+          imageUrl: guide.image_url, 
+          error: imageError.message 
+        });
+        processedImageUrl = null;
+      }
+    }
+
+    // Create checkout session with detailed validation
+    const productData = { 
+      name: guide.title,
+      description: guide.description,
+    };
+    
+    // Only add images if we have a valid URL
+    if (processedImageUrl) {
+      productData.images = [processedImageUrl];
+    }
+    
+    logStep("Product data prepared", { productData });
+
     const sessionData = {
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
@@ -108,11 +145,7 @@ serve(async (req) => {
         {
           price_data: {
             currency: guide.currency || "usd",
-            product_data: { 
-              name: guide.title,
-              description: guide.description,
-              images: guide.image_url ? [guide.image_url] : undefined,
-            },
+            product_data: productData,
             unit_amount: guide.price_usd * 100, // Convert to cents
           },
           quantity: 1,
