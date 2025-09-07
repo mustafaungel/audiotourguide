@@ -321,6 +321,39 @@ export type Database = {
         }
         Relationships: []
       }
+      creator_tiers: {
+        Row: {
+          benefits: Json | null
+          created_at: string
+          id: string
+          required_points: number
+          tier_color: string
+          tier_description: string | null
+          tier_level: number
+          tier_name: string
+        }
+        Insert: {
+          benefits?: Json | null
+          created_at?: string
+          id?: string
+          required_points: number
+          tier_color?: string
+          tier_description?: string | null
+          tier_level: number
+          tier_name: string
+        }
+        Update: {
+          benefits?: Json | null
+          created_at?: string
+          id?: string
+          required_points?: number
+          tier_color?: string
+          tier_description?: string | null
+          tier_level?: number
+          tier_name?: string
+        }
+        Relationships: []
+      }
       creator_updates: {
         Row: {
           content: string
@@ -577,6 +610,7 @@ export type Database = {
           certifications: Json | null
           created_at: string
           creator_badge: boolean | null
+          current_tier: string | null
           email: string
           experience_years: number | null
           full_name: string | null
@@ -590,6 +624,8 @@ export type Database = {
           role: Database["public"]["Enums"]["user_role"]
           social_profiles: Json | null
           specialties: string[] | null
+          tier_points: number | null
+          tier_updated_at: string | null
           updated_at: string
           user_id: string
           verification_badge_type: string | null
@@ -604,6 +640,7 @@ export type Database = {
           certifications?: Json | null
           created_at?: string
           creator_badge?: boolean | null
+          current_tier?: string | null
           email: string
           experience_years?: number | null
           full_name?: string | null
@@ -617,6 +654,8 @@ export type Database = {
           role?: Database["public"]["Enums"]["user_role"]
           social_profiles?: Json | null
           specialties?: string[] | null
+          tier_points?: number | null
+          tier_updated_at?: string | null
           updated_at?: string
           user_id: string
           verification_badge_type?: string | null
@@ -631,6 +670,7 @@ export type Database = {
           certifications?: Json | null
           created_at?: string
           creator_badge?: boolean | null
+          current_tier?: string | null
           email?: string
           experience_years?: number | null
           full_name?: string | null
@@ -644,6 +684,8 @@ export type Database = {
           role?: Database["public"]["Enums"]["user_role"]
           social_profiles?: Json | null
           specialties?: string[] | null
+          tier_points?: number | null
+          tier_updated_at?: string | null
           updated_at?: string
           user_id?: string
           verification_badge_type?: string | null
@@ -695,6 +737,36 @@ export type Database = {
           story_id?: string
           viewed_at?: string
           viewer_id?: string | null
+        }
+        Relationships: []
+      }
+      tier_history: {
+        Row: {
+          created_at: string
+          id: string
+          new_tier: string
+          points_earned: number | null
+          previous_tier: string | null
+          reason: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          new_tier: string
+          points_earned?: number | null
+          previous_tier?: string | null
+          reason?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          new_tier?: string
+          points_earned?: number | null
+          previous_tier?: string | null
+          reason?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -1028,6 +1100,10 @@ export type Database = {
         Args: { admin_notes_param?: string; request_id: string }
         Returns: boolean
       }
+      calculate_tier_points: {
+        Args: { creator_user_id: string }
+        Returns: number
+      }
       generate_access_code: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -1047,6 +1123,10 @@ export type Database = {
       track_viral_share: {
         Args: { p_guide_id: string; p_location?: string; p_platform: string }
         Returns: undefined
+      }
+      update_creator_tier: {
+        Args: { creator_user_id: string }
+        Returns: string
       }
     }
     Enums: {
