@@ -128,8 +128,15 @@ const GuideDetail = () => {
   const [error, setError] = useState<string | null>(null);
   const { toast: showToast } = useToast();
 
-  // Use real guide data if available
-  const guide = realGuideData;
+  // Use real guide data if available, with fallbacks for essential properties
+  const guide = realGuideData ? {
+    ...realGuideData,
+    languages: realGuideData.languages || [],
+    chapters: realGuideData.chapters || realGuideData.sections || [],
+    highlights: realGuideData.highlights || [],
+    included: realGuideData.included || realGuideData.features || [],
+    creator: realGuideData.creator || {}
+  } : null;
 
   const handlePurchase = () => {
     if (!user) {
@@ -326,7 +333,7 @@ const GuideDetail = () => {
     );
   }
 
-  if (error || !guide) {
+  if (error || !guide || !guide.title) {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
@@ -400,7 +407,7 @@ const GuideDetail = () => {
                     </div>
                     <div className="flex gap-2">
                       <Badge variant="outline">{guide.difficulty}</Badge>
-                      {guide.languages.map(lang => (
+                      {(guide.languages || []).map(lang => (
                         <Badge key={lang} variant="secondary">{lang}</Badge>
                       ))}
                     </div>
@@ -433,7 +440,7 @@ const GuideDetail = () => {
               </TabsList>
               
               <TabsContent value="chapters" className="space-y-3">
-                {guide.chapters.map((chapter, index) => (
+                {(guide.chapters || guide.sections || []).map((chapter, index) => (
                   <Card key={index} className="p-4 hover:bg-muted/50 cursor-pointer transition-colors">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
@@ -458,7 +465,7 @@ const GuideDetail = () => {
                   <Card className="p-4">
                     <h4 className="font-medium mb-3">What You'll Discover</h4>
                     <ul className="space-y-2">
-                      {guide.highlights.map((highlight, index) => (
+                      {(guide.highlights || []).map((highlight, index) => (
                         <li key={index} className="flex items-center gap-2 text-sm">
                           <div className="w-2 h-2 rounded-full bg-primary" />
                           {highlight}
@@ -470,7 +477,7 @@ const GuideDetail = () => {
                   <Card className="p-4">
                     <h4 className="font-medium mb-3">What's Included</h4>
                     <ul className="space-y-2">
-                      {guide.included.map((item, index) => (
+                      {(guide.included || guide.features || []).map((item, index) => (
                         <li key={index} className="flex items-center gap-2 text-sm">
                           <div className="w-2 h-2 rounded-full bg-secondary" />
                           {item}
@@ -512,7 +519,7 @@ const GuideDetail = () => {
               <CardHeader>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-primary mb-2">
-                    ${guide.price} {guide.currency}
+                    {guide.price || '$0'} {guide.currency || 'USD'}
                   </div>
                   <p className="text-sm text-muted-foreground">One-time purchase</p>
                 </div>
@@ -620,7 +627,7 @@ const GuideDetail = () => {
                 <div className="flex items-center gap-3 mb-4">
                   <Avatar className="w-12 h-12">
                     <AvatarImage src={guide.creator.avatar} />
-                    <AvatarFallback>{guide.creator.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                    <AvatarFallback>{guide.creator?.name?.split(' ').map(n => n[0]).join('') || 'CR'}</AvatarFallback>
                   </Avatar>
                   <div>
                     <div className="flex items-center gap-2">
