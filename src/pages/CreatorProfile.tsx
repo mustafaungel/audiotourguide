@@ -88,6 +88,72 @@ const CreatorProfile = () => {
 
   const fetchCreatorProfile = async () => {
     try {
+      // Handle demo creators
+      if (creatorId?.startsWith('demo-')) {
+        const demoCreators = {
+          'demo-elena': {
+            id: 'demo-elena',
+            user_id: 'demo-elena',
+            full_name: 'Elena Rossi',
+            bio: 'Passionate art historian with 15 years of experience guiding visitors through Europe\'s greatest museums and galleries. Specialized in Renaissance and Baroque art with published research on Italian masters. My expertise includes the Louvre, Vatican Museums, and Uffizi Gallery.',
+            avatar_url: 'https://images.unsplash.com/photo-1494790108755-2616c819e3f5?w=400&h=400&fit=crop&crop=face',
+            verification_status: 'verified',
+            verification_badge_type: 'verified',
+            specialties: ['Art History', 'Museums', 'Renaissance', 'Italian Culture'],
+            location: 'Italy',
+            experience_years: 15,
+            social_profiles: {},
+            created_at: '2024-01-15T00:00:00Z',
+            total_guides: 8,
+            followers_count: 2340,
+            total_plays: 12400,
+            avg_rating: 4.9
+          },
+          'demo-kenji': {
+            id: 'demo-kenji',
+            user_id: 'demo-kenji',
+            full_name: 'Kenji Tanaka',
+            bio: 'Born and raised in Kyoto, I\'ve been sharing the secrets of traditional Japanese culture for over a decade. From ancient temples to modern street food, I know every hidden gem. Certified temple guide with deep knowledge of Buddhist philosophy and traditional arts.',
+            avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face',
+            verification_status: 'verified',
+            verification_badge_type: 'verified',
+            specialties: ['Japanese Culture', 'Temples', 'Food Tours', 'Traditional Arts'],
+            location: 'Japan',
+            experience_years: 12,
+            social_profiles: {},
+            created_at: '2024-02-01T00:00:00Z',
+            total_guides: 6,
+            followers_count: 1890,
+            total_plays: 9800,
+            avg_rating: 4.8
+          },
+          'demo-maria': {
+            id: 'demo-maria',
+            user_id: 'demo-maria',
+            full_name: 'Dr. Maria Garcia',
+            bio: 'Archaeological researcher turned tour guide. I\'ve excavated sites across Peru and now share the fascinating stories of ancient civilizations with travelers from around the world. PhD in Andean Studies with exclusive access to archaeological sites.',
+            avatar_url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face',
+            verification_status: 'verified',
+            verification_badge_type: 'verified',
+            specialties: ['Archaeology', 'Ancient History', 'Inca Culture', 'Hiking'],
+            location: 'Peru',
+            experience_years: 18,
+            social_profiles: {},
+            created_at: '2024-01-20T00:00:00Z',
+            total_guides: 4,
+            followers_count: 3200,
+            total_plays: 15600,
+            avg_rating: 4.9
+          }
+        };
+
+        const demoCreator = demoCreators[creatorId as keyof typeof demoCreators];
+        if (demoCreator) {
+          setCreator(demoCreator);
+          return;
+        }
+      }
+
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -111,6 +177,77 @@ const CreatorProfile = () => {
 
   const fetchCreatorGuides = async () => {
     try {
+      // Demo guides for demo creators
+      if (creatorId?.startsWith('demo-')) {
+        const demoGuides = {
+          'demo-elena': [
+            {
+              id: 'demo-guide-1',
+              title: 'Masterpieces of the Louvre',
+              description: 'Discover the stories behind the world\'s most famous artworks including the Mona Lisa, Venus de Milo, and Winged Victory.',
+              location: 'Paris, France',
+              duration: 120,
+              price_usd: 25,
+              rating: 4.8,
+              total_purchases: 89,
+              image_url: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=800',
+              category: 'Museums',
+              difficulty: 'Beginner',
+              created_at: '2024-03-01T00:00:00Z'
+            },
+            {
+              id: 'demo-guide-2',
+              title: 'Vatican Museums Deep Dive',
+              description: 'An intimate journey through the Vatican\'s treasures, from Michelangelo\'s Sistine Chapel to the Renaissance Rooms.',
+              location: 'Vatican City',
+              duration: 180,
+              price_usd: 35,
+              rating: 4.9,
+              total_purchases: 156,
+              image_url: 'https://images.unsplash.com/photo-1478391679764-b2d8b3cd1e94?w=800',
+              category: 'Museums',
+              difficulty: 'Intermediate',
+              created_at: '2024-03-15T00:00:00Z'
+            }
+          ],
+          'demo-kenji': [
+            {
+              id: 'demo-guide-3',
+              title: 'Zen Temples of Kyoto',
+              description: 'Experience tranquility in Kyoto\'s most sacred temples while learning about Buddhist philosophy and Japanese spirituality.',
+              location: 'Kyoto, Japan',
+              duration: 180,
+              price_usd: 28,
+              rating: 4.9,
+              total_purchases: 112,
+              image_url: 'https://images.unsplash.com/photo-1478436127897-769e1b3f0f36?w=800',
+              category: 'Temples',
+              difficulty: 'Beginner',
+              created_at: '2024-03-05T00:00:00Z'
+            }
+          ],
+          'demo-maria': [
+            {
+              id: 'demo-guide-4',
+              title: 'Mysteries of Machu Picchu',
+              description: 'Uncover the secrets of the Lost City of the Incas with insights from recent archaeological discoveries.',
+              location: 'Machu Picchu, Peru',
+              duration: 240,
+              price_usd: 45,
+              rating: 4.9,
+              total_purchases: 201,
+              image_url: 'https://images.unsplash.com/photo-1587595431973-160d0d94add1?w=800',
+              category: 'Archaeology',
+              difficulty: 'Intermediate',
+              created_at: '2024-03-10T00:00:00Z'
+            }
+          ]
+        };
+
+        setGuides(demoGuides[creatorId as keyof typeof demoGuides] || []);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('audio_guides')
         .select('*')
