@@ -200,15 +200,17 @@ export default function PaymentSuccess() {
           </Button>
         </div>
 
-        <div className="mt-8 p-4 bg-card rounded-lg">
-          <h4 className="font-medium text-foreground mb-2">What's Next?</h4>
-          <ul className="text-sm text-muted-foreground space-y-1">
-            <li>• Your guide is now available in "My Library"</li>
-            <li>• Download the audio for offline listening</li>
-            <li>• Rate and review your experience</li>
-            <li>• Share your favorite moments with friends</li>
-          </ul>
-        </div>
+          <div className="mt-8 p-4 bg-card rounded-lg">
+            <h4 className="font-medium text-foreground mb-2">What's Next?</h4>
+            <ul className="text-sm text-muted-foreground space-y-1">
+              <li>• Your guide is now available in "My Library"</li>
+              <li>• Download the audio for offline listening</li>
+              <li>• Rate and review your experience</li>
+              <li>• Share your favorite moments with friends</li>
+              <li>• Explore live experiences with your creator</li>
+              <li>• Connect with the creator community</li>
+            </ul>
+          </div>
 
         {/* Creator Recommendations */}
         {guide && (

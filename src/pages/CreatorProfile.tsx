@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import * as CarouselComponents from '@/components/ui/carousel';
 import { GuideCard } from '@/components/GuideCard';
+import { LiveExperiencesList } from '@/components/LiveExperiencesList';
 import { VerificationBadge } from '@/components/VerificationBadge';
 import { CreatorMessaging } from '@/components/CreatorMessaging';
 import { DualRatingDisplay } from '@/components/DualRatingDisplay';

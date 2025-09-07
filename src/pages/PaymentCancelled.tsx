@@ -43,16 +43,37 @@ export default function PaymentCancelled() {
           </Button>
         </div>
 
-        <div className="mt-8 p-4 bg-card rounded-lg">
-          <h4 className="font-medium text-foreground mb-2">Need Help?</h4>
-          <div className="text-sm text-muted-foreground space-y-1">
-            <p>If you're experiencing issues with payment, please:</p>
-            <ul className="list-disc list-inside mt-2 space-y-1">
-              <li>Check your internet connection</li>
-              <li>Verify your payment method details</li>
-              <li>Try a different payment method</li>
-              <li>Contact our support team if issues persist</li>
-            </ul>
+        <div className="mt-8 space-y-6">
+          <div className="p-4 bg-card rounded-lg">
+            <h4 className="font-medium text-foreground mb-2">Need Help?</h4>
+            <div className="text-sm text-muted-foreground space-y-1">
+              <p>If you're experiencing issues with payment, please:</p>
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>Check your internet connection</li>
+                <li>Verify your payment method details</li>
+                <li>Try a different payment method</li>
+                <li>Contact our support team if issues persist</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="p-4 bg-muted/50 rounded-lg">
+            <h4 className="font-medium text-foreground mb-2">Explore Free Content</h4>
+            <p className="text-sm text-muted-foreground mb-3">
+              While you're here, check out our free content and live experiences.
+            </p>
+            <div className="space-y-2">
+              <Button variant="outline" asChild className="w-full">
+                <Link to="/experiences">
+                  Browse Live Experiences
+                </Link>
+              </Button>
+              <Button variant="outline" asChild className="w-full">
+                <Link to="/creators">
+                  Discover Creators
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </div>

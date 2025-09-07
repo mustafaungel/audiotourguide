@@ -21,6 +21,9 @@ import Experiences from "./pages/Experiences";
 import UnescoSites from "./pages/UnescoSites";
 import GuideDetail from "./pages/GuideDetail";
 import DestinationDetail from "./pages/DestinationDetail";
+import ExperienceDetail from "./pages/ExperienceDetail";
+import BookingFlow from "./pages/BookingFlow";
+import Category from "./pages/Category";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -48,6 +51,9 @@ const App = () => (
               <Route path="/guide/:guideId" element={<GuideDetail />} />
               <Route path="/destination/:location" element={<DestinationDetail />} />
               <Route path="/search" element={<Search />} />
+              <Route path="/experience/:experienceId" element={<ExperienceDetail />} />
+              <Route path="/booking/:experienceId" element={<BookingFlow />} />
+              <Route path="/category/:categoryType" element={<Category />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/payment-cancelled" element={<PaymentCancelled />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
