@@ -239,7 +239,9 @@ const GuideDetail = () => {
           'Multiple languages available'
         ],
         duration: `${Math.floor(guideData.duration / 60)} min`,
+        // Keep both formatted price for display AND original price_usd for payment
         price: `$${(guideData.price_usd / 100).toFixed(2)}`,
+        price_usd: guideData.price_usd, // Preserve original price_usd as number for payment
         sections: guideData.sections ? (typeof guideData.sections === 'string' ? JSON.parse(guideData.sections) : guideData.sections) : []
       };
       
@@ -755,7 +757,15 @@ const GuideDetail = () => {
       )}
 
       {/* Payment Modal with Guest Checkout */}
-      {showPaymentModal && realGuideData && (
+      {showPaymentModal && realGuideData && (() => {
+        console.log('Payment modal rendering with realGuideData:', {
+          id: realGuideData.id,
+          title: realGuideData.title,
+          price_usd: realGuideData.price_usd,
+          creator: realGuideData.creator
+        });
+        return true;
+      })() && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="relative">
             <Button

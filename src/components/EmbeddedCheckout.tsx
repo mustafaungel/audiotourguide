@@ -27,6 +27,28 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
   const [email, setEmail] = useState('');
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
 
+  // Add debugging for guide data
+  console.log('EmbeddedCheckout received guide:', {
+    id: guide.id,
+    title: guide.title,
+    price_usd: guide.price_usd,
+    creator_name: guide.creator_name
+  });
+
+  // Validate required guide data
+  if (!guide.id || !guide.title || !guide.price_usd) {
+    console.error('EmbeddedCheckout: Missing required guide data', guide);
+    return (
+      <div className="w-full max-w-md space-y-4">
+        <Card>
+          <CardContent className="p-6 text-center">
+            <p className="text-destructive">Error: Invalid guide data</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const handlePayment = async (isGuest: boolean = false) => {
     const targetEmail = user?.email || email;
     
