@@ -57,6 +57,19 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
     console.log('[PAYMENT] Starting payment process for guide:', guide.id, { email: targetEmail, isGuest });
 
     try {
+      // Validate minimum price on frontend
+      const MINIMUM_PRICE_USD = 0.50;
+      const priceInDollars = guide.price_usd / 100;
+      
+      if (priceInDollars < MINIMUM_PRICE_USD) {
+        toast({
+          title: "Price Too Low",
+          description: `This guide's price ($${priceInDollars.toFixed(2)}) is below the minimum payment threshold of $${MINIMUM_PRICE_USD.toFixed(2)}. Please contact support.`,
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Enhanced logging before API call
       console.log('[PAYMENT] Invoking create-payment function...');
       
@@ -70,7 +83,24 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
 
       if (error) {
         console.error('[PAYMENT] Supabase function error:', error);
-        throw error;
+        // Enhanced error message handling
+        const errorMessage = error.message || 'Failed to start payment process';
+        
+        // Check for specific Stripe minimum amount error
+        if (errorMessage.includes('minimum payment amount') || errorMessage.includes('$0.50')) {
+          toast({
+            title: "Payment Amount Too Low",
+            description: "This guide's price is below Stripe's minimum payment threshold. Please contact support for assistance.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Payment Error",
+            description: errorMessage,
+            variant: "destructive",
+          });
+        }
+        return;
       }
 
       if (!data?.url) {

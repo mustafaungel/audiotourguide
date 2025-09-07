@@ -239,11 +239,14 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
                 id="edit-price"
                 type="number"
                 step="0.01"
-                min="0"
+                min="0.50"
                 value={formData.price_usd}
                 onChange={(e) => handleInputChange('price_usd', parseFloat(e.target.value) || 0)}
-                placeholder="0.00"
+                placeholder="0.50"
               />
+              <p className="text-xs text-muted-foreground">
+                Minimum price: $0.50 (Stripe requirement)
+              </p>
             </div>
 
             <Button

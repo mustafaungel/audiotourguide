@@ -66,6 +66,19 @@ serve(async (req) => {
     if (guideError || !guide) throw new Error("Guide not found or not available for purchase");
     logStep("Guide found", { guideId: guide_id, title: guide.title, price: guide.price_usd });
 
+    // Validate minimum Stripe payment amount (50 cents = 50 USD cents)
+    const STRIPE_MINIMUM_AMOUNT = 50; // 50 cents in USD cents
+    if (guide.price_usd < STRIPE_MINIMUM_AMOUNT) {
+      const minAmount = (STRIPE_MINIMUM_AMOUNT / 100).toFixed(2);
+      const currentAmount = (guide.price_usd / 100).toFixed(2);
+      logStep("Payment amount below minimum", { 
+        currentAmount: guide.price_usd, 
+        minimumRequired: STRIPE_MINIMUM_AMOUNT,
+        guideTitle: guide.title 
+      });
+      throw new Error(`The guide price ($${currentAmount}) is below Stripe's minimum payment amount of $${minAmount}. Please contact support or choose a different guide.`);
+    }
+
     // Check if user/guest has already purchased this guide
     let existingPurchase = null;
     if (user) {
