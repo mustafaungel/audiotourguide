@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Trash2, Upload, MoveUp, MoveDown } from 'lucide-react';
-import { AudioUploader } from './AudioUploader';
+import { Progress } from '@/components/ui/progress';
+import { Plus, Trash2, Upload, MoveUp, MoveDown, Play, X, FileAudio } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export interface GuideSection {
   id: string;
@@ -20,6 +22,7 @@ export interface GuideSection {
 interface AudioGuideSectionManagerProps {
   sections: GuideSection[];
   onSectionsChange: (sections: GuideSection[]) => void;
+  guideId?: string;
 }
 
 const LANGUAGES = [
@@ -37,8 +40,11 @@ const LANGUAGES = [
   'Arabic'
 ];
 
-export function AudioGuideSectionManager({ sections, onSectionsChange }: AudioGuideSectionManagerProps) {
+export function AudioGuideSectionManager({ sections, onSectionsChange, guideId }: AudioGuideSectionManagerProps) {
   const [newSectionTitle, setNewSectionTitle] = useState('');
+  const [uploadingSection, setUploadingSection] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
   const addSection = () => {
     if (!newSectionTitle.trim()) return;
@@ -91,10 +97,123 @@ export function AudioGuideSectionManager({ sections, onSectionsChange }: AudioGu
     onSectionsChange(updatedSections);
   };
 
-  const handleAudioUploaded = (sectionId: string, audioUrl: string, duration: number) => {
-    updateSection(sectionId, { 
-      audio_url: audioUrl, 
-      duration_seconds: duration 
+  const handleFileSelect = (sectionId: string, file: File) => {
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('audio/')) {
+      toast.error('Please select an audio file');
+      return;
+    }
+
+    // Validate file size (max 50MB)
+    const maxSize = 50 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast.error('File size must be less than 50MB');
+      return;
+    }
+
+    uploadAudioFile(sectionId, file);
+  };
+
+  const uploadAudioFile = async (sectionId: string, file: File) => {
+    setUploadingSection(sectionId);
+    setUploadProgress(0);
+
+    try {
+      // Generate unique file name
+      const timestamp = Date.now();
+      const fileName = guideId 
+        ? `guide-${guideId}-section-${sectionId}-${timestamp}.mp3`
+        : `section-${sectionId}-${timestamp}.mp3`;
+
+      // Upload to Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('guide-audio')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) throw error;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('guide-audio')
+        .getPublicUrl(fileName);
+
+      // Get audio duration
+      const duration = await getAudioDuration(file);
+
+      // Update section with audio URL and duration
+      updateSection(sectionId, {
+        audio_url: publicUrl,
+        duration_seconds: duration
+      });
+
+      setUploadProgress(100);
+      toast.success('Audio uploaded successfully!');
+
+    } catch (error: any) {
+      console.error('Error uploading audio:', error);
+      toast.error('Failed to upload audio file');
+    } finally {
+      setUploadingSection(null);
+      setUploadProgress(0);
+    }
+  };
+
+  const getAudioDuration = (file: File): Promise<number> => {
+    return new Promise((resolve) => {
+      const audio = new Audio();
+      const url = URL.createObjectURL(file);
+      
+      audio.addEventListener('loadedmetadata', () => {
+        URL.revokeObjectURL(url);
+        resolve(Math.round(audio.duration));
+      });
+      
+      audio.addEventListener('error', () => {
+        URL.revokeObjectURL(url);
+        resolve(0); // Default to 0 if can't get duration
+      });
+      
+      audio.src = url;
+    });
+  };
+
+  const removeAudioFile = async (sectionId: string, audioUrl: string) => {
+    try {
+      // Extract file name from URL
+      const fileName = audioUrl.split('/').pop();
+      if (fileName) {
+        const { error } = await supabase.storage
+          .from('guide-audio')
+          .remove([fileName]);
+        
+        if (error) {
+          console.error('Error removing file from storage:', error);
+        }
+      }
+
+      // Update section to remove audio
+      updateSection(sectionId, {
+        audio_url: undefined,
+        duration_seconds: undefined
+      });
+
+      toast.success('Audio file removed');
+    } catch (error) {
+      console.error('Error removing audio:', error);
+      toast.error('Failed to remove audio file');
+    }
+  };
+
+  const playAudio = (audioUrl: string) => {
+    const audio = new Audio(audioUrl);
+    audio.play().catch(error => {
+      console.error('Error playing audio:', error);
+      toast.error('Could not play audio file');
     });
   };
 
@@ -201,26 +320,93 @@ export function AudioGuideSectionManager({ sections, onSectionsChange }: AudioGu
 
                   <div>
                     <label className="text-sm font-medium mb-2 block">Audio File</label>
-                    <div className="border-2 border-dashed border-muted rounded-lg p-4">
-                      <div className="flex items-center justify-center">
-                        <Upload className="h-8 w-8 text-muted-foreground mr-2" />
-                        <span className="text-sm text-muted-foreground">
-                          Audio upload functionality will be implemented
-                        </span>
+                    
+                    {/* File Input (Hidden) */}
+                    <input
+                      ref={(el) => fileInputRefs.current[section.id] = el}
+                      type="file"
+                      accept="audio/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleFileSelect(section.id, file);
+                      }}
+                      className="hidden"
+                    />
+
+                    {/* Upload Area */}
+                    {!section.audio_url ? (
+                      <div className="border-2 border-dashed border-muted rounded-lg p-4">
+                        {uploadingSection === section.id ? (
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-center">
+                              <Upload className="h-6 w-6 text-primary mr-2 animate-pulse" />
+                              <span className="text-sm">Uploading audio...</span>
+                            </div>
+                            <Progress value={uploadProgress} className="w-full" />
+                          </div>
+                        ) : (
+                          <div className="text-center space-y-2">
+                            <div className="flex items-center justify-center">
+                              <Upload className="h-8 w-8 text-muted-foreground mr-2" />
+                              <span className="text-sm text-muted-foreground">
+                                Click to upload audio file
+                              </span>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => fileInputRefs.current[section.id]?.click()}
+                            >
+                              <FileAudio className="h-4 w-4 mr-2" />
+                              Choose Audio File
+                            </Button>
+                            <p className="text-xs text-muted-foreground">
+                              Supports MP3, WAV, M4A • Max 50MB
+                            </p>
+                          </div>
+                        )}
                       </div>
-                      {section.audio_url && (
-                        <div className="mt-2">
-                          <p className="text-sm text-muted-foreground">
-                            Current audio: {section.audio_url}
-                          </p>
+                    ) : (
+                      /* Audio Uploaded State */
+                      <div className="border border-muted rounded-lg p-4 bg-muted/20">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <FileAudio className="h-6 w-6 text-primary" />
+                            <div>
+                              <p className="text-sm font-medium">Audio uploaded</p>
+                              {section.duration_seconds && (
+                                <p className="text-xs text-muted-foreground">
+                                  Duration: {Math.floor(section.duration_seconds / 60)}:
+                                  {(section.duration_seconds % 60).toString().padStart(2, '0')}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => playAudio(section.audio_url!)}
+                            >
+                              <Play className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => fileInputRefs.current[section.id]?.click()}
+                            >
+                              Replace
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => removeAudioFile(section.id, section.audio_url!)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
-                      )}
-                    </div>
-                    {section.duration_seconds && (
-                      <p className="text-sm text-muted-foreground mt-2">
-                        Duration: {Math.floor(section.duration_seconds / 60)}:
-                        {(section.duration_seconds % 60).toString().padStart(2, '0')}
-                      </p>
+                      </div>
                     )}
                   </div>
                 </CardContent>

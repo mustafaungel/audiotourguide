@@ -29,6 +29,7 @@ const AdminPanel = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
 
   // Form data state
+  const [tempGuideId] = useState(() => crypto.randomUUID());
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -500,6 +501,7 @@ const AdminPanel = () => {
                   <AudioGuideSectionManager
                     sections={sections}
                     onSectionsChange={setSections}
+                    guideId={tempGuideId}
                   />
 
                   <Button

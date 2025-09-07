@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 export function CreatorGuideCreation() {
   const { user } = useAuth();
   
+  const [tempGuideId] = useState(() => crypto.randomUUID());
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -346,6 +347,7 @@ export function CreatorGuideCreation() {
           <AudioGuideSectionManager
             sections={sections}
             onSectionsChange={setSections}
+            guideId={tempGuideId}
           />
         </div>
 
