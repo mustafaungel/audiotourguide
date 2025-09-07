@@ -61,6 +61,136 @@ export const EnhancedCreatorDiscovery = () => {
     filterAndSortCreators();
   }, [creators, searchQuery, locationFilter, specialtyFilter, tierFilter, creatorTypeFilter, sortBy]);
 
+  // Demo creators fallback data
+  const demoCreators: Creator[] = [
+    {
+      id: 'demo-1',
+      full_name: 'Sophia Chen',
+      bio: 'Travel influencer with 500K+ followers sharing authentic cultural experiences across Asia. Known for viral food tours and hidden gem discoveries.',
+      avatar_url: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400',
+      verification_status: 'verified',
+      specialties: ['Food Tours', 'Cultural Experiences', 'Photography', 'Social Media'],
+      location: 'Japan',
+      current_tier: 'gold',
+      creator_type: 'influencer',
+      tier_points: 850,
+      experience_years: 5,
+      languages_spoken: ['English', 'Mandarin', 'Japanese'],
+      followers_count: 12500,
+      total_guides: 23,
+      avg_rating: 4.8,
+      total_plays: 89400,
+      social_profiles: { instagram: '@sophiatravels', tiktok: '@sophiaexplores', youtube: 'SophiaTravelAdventures' },
+      verified_at: new Date().toISOString(),
+      creator_badge: true
+    },
+    {
+      id: 'demo-2', 
+      full_name: 'Marco Venetian',
+      bio: 'Born and raised Venetian local guide with 15+ years experience. Official licensed guide specializing in authentic Venice beyond the tourist crowds.',
+      avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+      verification_status: 'verified',
+      specialties: ['Local History', 'Architecture', 'Authentic Experiences', 'Hidden Gems'],
+      location: 'Italy',
+      current_tier: 'platinum',
+      creator_type: 'local_guide',
+      tier_points: 1200,
+      experience_years: 15,
+      languages_spoken: ['English', 'Italian', 'French', 'German'],
+      followers_count: 8200,
+      total_guides: 18,
+      avg_rating: 4.9,
+      total_plays: 45600,
+      social_profiles: { website: 'venetianwalks.com', linkedin: 'marco-venetian-guide' },
+      verified_at: new Date().toISOString(),
+      creator_badge: true
+    },
+    {
+      id: 'demo-3',
+      full_name: 'Dr. Maya Patel',
+      bio: 'Art historian and museum curator with PhD from Oxford. Specializes in ancient civilizations and artifact storytelling with 20+ years of academic experience.',
+      avatar_url: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400',
+      verification_status: 'verified',
+      specialties: ['Art History', 'Museums', 'Ancient Civilizations', 'Academic Tours'],
+      location: 'United Kingdom',
+      current_tier: 'platinum',
+      creator_type: 'expert',
+      tier_points: 1350,
+      experience_years: 20,
+      languages_spoken: ['English', 'Hindi', 'Sanskrit'],
+      followers_count: 6800,
+      total_guides: 15,
+      avg_rating: 4.9,
+      total_plays: 32100,
+      social_profiles: { academia: 'oxford.edu/maya-patel', researchgate: 'maya-patel-art-history' },
+      verified_at: new Date().toISOString(),
+      creator_badge: true
+    },
+    {
+      id: 'demo-4',
+      full_name: 'Alex Rivera',
+      bio: 'Adventure travel content creator known for extreme sports and off-the-beaten-path destinations. Creates viral content about adrenaline experiences worldwide.',
+      avatar_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
+      verification_status: 'verified',
+      specialties: ['Adventure Sports', 'Extreme Tourism', 'Outdoor Activities', 'Travel Vlogs'],
+      location: 'Brazil',
+      current_tier: 'gold',
+      creator_type: 'influencer',
+      tier_points: 920,
+      experience_years: 8,
+      languages_spoken: ['English', 'Spanish', 'Portuguese'],
+      followers_count: 15200,
+      total_guides: 28,
+      avg_rating: 4.7,
+      total_plays: 76300,
+      social_profiles: { youtube: 'AlexAdventureTime', instagram: '@alexextreme', tiktok: '@adventurealex' },
+      verified_at: new Date().toISOString(),
+      creator_badge: true
+    },
+    {
+      id: 'demo-5',
+      full_name: 'Elena Kouris',
+      bio: 'Third-generation local guide from Santorini. Family business specializing in Greek mythology, wine tours, and sunset experiences with authentic island hospitality.',
+      avatar_url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+      verification_status: 'verified',
+      specialties: ['Greek Mythology', 'Wine Tours', 'Sunset Tours', 'Island Culture'],
+      location: 'Greece',
+      current_tier: 'gold',
+      creator_type: 'local_guide',
+      tier_points: 780,
+      experience_years: 12,
+      languages_spoken: ['English', 'Greek', 'French'],
+      followers_count: 9100,
+      total_guides: 21,
+      avg_rating: 4.8,
+      total_plays: 52400,
+      social_profiles: { website: 'santoriniauthentic.gr', facebook: 'elena-santorini-tours' },
+      verified_at: new Date().toISOString(),
+      creator_badge: true
+    },
+    {
+      id: 'demo-6',
+      full_name: 'Prof. James Mitchell',
+      bio: 'Archaeological expert and professor specializing in Roman and Mayan civilizations. Led excavations at Pompeii and Chichen Itza. Makes ancient history accessible to all.',
+      avatar_url: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400',
+      verification_status: 'verified',
+      specialties: ['Archaeology', 'Roman History', 'Mayan Civilization', 'Historical Sites'],
+      location: 'United States',
+      current_tier: 'platinum',
+      creator_type: 'expert',
+      tier_points: 1450,
+      experience_years: 25,
+      languages_spoken: ['English', 'Latin', 'Spanish'],
+      followers_count: 7300,
+      total_guides: 12,
+      avg_rating: 4.9,
+      total_plays: 28900,
+      social_profiles: { university: 'stanford.edu/james-mitchell', publications: 'archaeological-journal.com/j-mitchell' },
+      verified_at: new Date().toISOString(),
+      creator_badge: true
+    }
+  ];
+
   const fetchCreators = async () => {
     try {
       setLoading(true);
@@ -89,8 +219,8 @@ export const EnhancedCreatorDiscovery = () => {
 
       if (error) throw error;
 
-      if (!profilesData) {
-        setCreators([]);
+      if (!profilesData || profilesData.length === 0) {
+        setCreators(demoCreators);
         return;
       }
 
@@ -122,7 +252,7 @@ export const EnhancedCreatorDiscovery = () => {
       setCreators(creatorsWithStats);
     } catch (error) {
       console.error('Error fetching creators:', error);
-      setCreators([]);
+      setCreators(demoCreators);
     } finally {
       setLoading(false);
     }
