@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { Loader2, FileText, BarChart3, Users, UserCheck, UserPlus, Plus, ImageIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -30,6 +31,7 @@ const AdminPanel = () => {
   // Form data state
   const [formData, setFormData] = useState({
     title: '',
+    description: '',
     city: '',
     country: '',
     category: 'Cultural Heritage',
@@ -41,6 +43,7 @@ const AdminPanel = () => {
 
   // Generation states
   const [imageLoading, setImageLoading] = useState(false);
+  const [descriptionLoading, setDescriptionLoading] = useState(false);
   const [publishLoading, setPublishLoading] = useState(false);
   
   // Generated content
@@ -91,6 +94,49 @@ const AdminPanel = () => {
     }
   };
 
+  const generateDescription = async () => {
+    if (!formData.title || !formData.city || !formData.country || !formData.category) {
+      toast({
+        title: "Error",
+        description: "Please fill in title, city, country, and category first.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setDescriptionLoading(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-guide-description', {
+        body: {
+          title: formData.title,
+          city: formData.city,
+          country: formData.country,
+          category: formData.category
+        }
+      });
+
+      if (error) throw error;
+      
+      if (data.description) {
+        handleInputChange('description', data.description);
+        toast({
+          title: "Description Generated",
+          description: "AI has created your guide description successfully.",
+        });
+      }
+    } catch (error: any) {
+      console.error('Error generating description:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate description. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setDescriptionLoading(false);
+    }
+  };
+
   const createGuide = async () => {
     if (!formData.title || !formData.city || !formData.country || !formData.category || !formData.price) {
       toast({
@@ -119,7 +165,7 @@ const AdminPanel = () => {
         .insert({
           title: formData.title,
           location: `${formData.city}, ${formData.country}`,
-          description: `Explore ${formData.title} in ${formData.city}, ${formData.country}`,
+          description: formData.description || `Explore ${formData.title} in ${formData.city}, ${formData.country}`,
           category: formData.category,
           price_usd: parseInt(formData.price),
           creator_id: user?.id,
@@ -162,7 +208,7 @@ const AdminPanel = () => {
       });
       
       // Reset form
-      setFormData({ title: '', city: '', country: '', category: 'Cultural Heritage', price: '12' });
+      setFormData({ title: '', description: '', city: '', country: '', category: 'Cultural Heritage', price: '12' });
       setSections([]);
       setGeneratedImage('');
     } catch (error: any) {
@@ -332,6 +378,39 @@ const AdminPanel = () => {
                         placeholder="e.g., Goreme Open Air Museum"
                         className="mt-1"
                       />
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <Label htmlFor="description">Guide Description</Label>
+                        <span className="text-xs text-muted-foreground">
+                          {formData.description.length}/100
+                        </span>
+                      </div>
+                      <Textarea
+                        id="description"
+                        value={formData.description}
+                        onChange={(e) => handleInputChange('description', e.target.value)}
+                        placeholder="Brief description of the guide..."
+                        maxLength={100}
+                        className="mt-1 min-h-[60px]"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={generateDescription}
+                        disabled={descriptionLoading || !formData.title || !formData.city || !formData.country || !formData.category}
+                        className="w-full mt-2"
+                      >
+                        {descriptionLoading ? (
+                          <>
+                            <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          'Generate AI Description'
+                        )}
+                      </Button>
                     </div>
                     <div>
                       <Label htmlFor="category">Category</Label>

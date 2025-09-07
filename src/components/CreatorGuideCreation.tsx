@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, AlertTriangle } from 'lucide-react';
@@ -18,6 +19,7 @@ export function CreatorGuideCreation() {
   
   const [formData, setFormData] = useState({
     title: '',
+    description: '',
     country: '',
     city: '',
     category: '',
@@ -28,6 +30,7 @@ export function CreatorGuideCreation() {
   const [generatedImage, setGeneratedImage] = useState('');
   const [loadingImage, setLoadingImage] = useState(false);
   const [errorImage, setErrorImage] = useState('');
+  const [descriptionLoading, setDescriptionLoading] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const generateImage = async () => {
@@ -66,6 +69,38 @@ export function CreatorGuideCreation() {
     }
   };
 
+  const generateDescription = async () => {
+    if (!formData.title || !formData.city || !formData.country || !formData.category) {
+      toast.error('Please fill in title, city, country, and category first');
+      return;
+    }
+
+    setDescriptionLoading(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-guide-description', {
+        body: {
+          title: formData.title,
+          city: formData.city,
+          country: formData.country,
+          category: formData.category
+        }
+      });
+
+      if (error) throw error;
+      
+      if (data.description) {
+        setFormData(prev => ({ ...prev, description: data.description }));
+        toast.success('Description generated successfully!');
+      }
+    } catch (error) {
+      console.error('Error generating description:', error);
+      toast.error('Failed to generate description');
+    } finally {
+      setDescriptionLoading(false);
+    }
+  };
+
   const createGuide = async () => {
     if (!formData.title || !formData.country || !formData.city || !formData.category || !formData.price) {
       toast.error('Please fill in all required fields');
@@ -85,7 +120,7 @@ export function CreatorGuideCreation() {
         .from('audio_guides')
         .insert({
           title: formData.title,
-          description: `Audio guide for ${formData.title} in ${formData.city}, ${formData.country}`,
+          description: formData.description || `Audio guide for ${formData.title} in ${formData.city}, ${formData.country}`,
           location: `${formData.city}, ${formData.country}`,
           category: formData.category,
           price_usd: parseInt(formData.price) || 999,
@@ -128,6 +163,7 @@ export function CreatorGuideCreation() {
       // Reset form
       setFormData({
         title: '',
+        description: '',
         country: '',
         city: '',
         category: '',
@@ -174,6 +210,39 @@ export function CreatorGuideCreation() {
               value={formData.title}
               onChange={(e) => setFormData({...formData, title: e.target.value})}
             />
+          </div>
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <Label htmlFor="description">Guide Description *</Label>
+              <span className="text-xs text-muted-foreground">
+                {formData.description.length}/100
+              </span>
+            </div>
+            <Textarea
+              id="description"
+              placeholder="Brief description of the guide..."
+              value={formData.description}
+              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              maxLength={100}
+              className="min-h-[60px]"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={generateDescription}
+              disabled={descriptionLoading || !formData.title || !formData.city || !formData.country || !formData.category}
+              className="w-full mt-2"
+            >
+              {descriptionLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                'Generate AI Description'
+              )}
+            </Button>
           </div>
           <div>
             <Label htmlFor="category">Category *</Label>
