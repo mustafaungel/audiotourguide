@@ -8,11 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, AlertTriangle } from 'lucide-react';
+import { Loader2, AlertTriangle, Copy, QrCode, Share } from 'lucide-react';
 import { CountrySelector } from './CountrySelector';
 import { AudioGuideSectionManager, GuideSection } from './AudioGuideSectionManager';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import QRCode from 'qrcode';
 
 export function CreatorGuideCreation() {
   const { user } = useAuth();
@@ -33,6 +34,9 @@ export function CreatorGuideCreation() {
   const [errorImage, setErrorImage] = useState('');
   const [descriptionLoading, setDescriptionLoading] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [createdGuide, setCreatedGuide] = useState<any>(null);
+  const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
 
   const generateImage = async () => {
     if (!formData.title || !formData.city || !formData.country) {
@@ -102,6 +106,53 @@ export function CreatorGuideCreation() {
     }
   };
 
+  const generateQRCodeAndShareLink = async (guideId: string) => {
+    try {
+      const baseUrl = window.location.origin;
+      const shareUrl = `${baseUrl}/guides/${guideId}`;
+      
+      // Generate QR code with custom styling
+      const qrCodeDataUrl = await QRCode.toDataURL(shareUrl, {
+        width: 200,
+        margin: 2,
+        color: {
+          dark: '#1e293b', // slate-800
+          light: '#ffffff'
+        },
+        errorCorrectionLevel: 'H'
+      });
+
+      // Update the guide with QR code and share URL
+      const { error: updateError } = await supabase
+        .from('audio_guides')
+        .update({
+          qr_code_url: qrCodeDataUrl,
+          share_url: shareUrl
+        })
+        .eq('id', guideId);
+
+      if (updateError) {
+        console.error('Error updating guide with QR code:', updateError);
+        return;
+      }
+
+      setQrCodeUrl(qrCodeDataUrl);
+      setShareUrl(shareUrl);
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+    }
+  };
+
+  const copyToClipboard = async (text: string, type: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success(`${type} copied to clipboard!`);
+    } catch (error) {
+      console.error('Failed to copy:', error);
+      toast.error('Failed to copy to clipboard');
+    }
+  };
+
   const createGuide = async () => {
     if (!formData.title || !formData.country || !formData.city || !formData.category || !formData.price) {
       toast.error('Please fill in all required fields');
@@ -140,6 +191,8 @@ export function CreatorGuideCreation() {
 
       if (guideError) throw guideError;
 
+      setCreatedGuide(guide);
+
       // Then create sections if any
       if (sections.length > 0) {
         const sectionsData = sections.map(section => ({
@@ -158,8 +211,11 @@ export function CreatorGuideCreation() {
 
         if (sectionsError) throw sectionsError;
       }
+
+      // Generate QR code and share link
+      await generateQRCodeAndShareLink(guide.id);
       
-      toast.success('Audio guide created successfully! It will be reviewed by our team.');
+      toast.success('Audio guide created successfully with QR code and share link!');
       
       // Reset form
       setFormData({
@@ -355,6 +411,81 @@ export function CreatorGuideCreation() {
         </div>
 
         <Separator />
+
+        {/* QR Code and Share Link Display */}
+        {createdGuide && qrCodeUrl && shareUrl && (
+          <>
+            <Separator />
+            <Card className="border-green-200 bg-green-50">
+              <CardHeader>
+                <CardTitle className="text-green-800 flex items-center gap-2">
+                  <QrCode className="h-5 w-5" />
+                  Guide Created Successfully!
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label className="text-green-700 font-medium">QR Code</Label>
+                    <div className="flex justify-center">
+                      <img 
+                        src={qrCodeUrl} 
+                        alt="QR Code for guide" 
+                        className="border rounded-lg shadow-sm"
+                      />
+                    </div>
+                    <p className="text-sm text-green-600 text-center">
+                      Scan to access your guide
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-green-700 font-medium">Share Link</Label>
+                      <div className="flex gap-2">
+                        <Input 
+                          value={shareUrl} 
+                          readOnly 
+                          className="bg-white text-sm"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => copyToClipboard(shareUrl, 'Share link')}
+                          className="shrink-0"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label className="text-green-700 font-medium">Guide Details</Label>
+                      <div className="text-sm space-y-1">
+                        <p><strong>Title:</strong> {createdGuide.title}</p>
+                        <p><strong>Location:</strong> {createdGuide.location}</p>
+                        <p><strong>Price:</strong> ${(createdGuide.price_usd / 100).toFixed(2)}</p>
+                        <p><strong>Status:</strong> Pending Approval</p>
+                      </div>
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => {
+                        setCreatedGuide(null);
+                        setQrCodeUrl(null);
+                        setShareUrl(null);
+                      }}
+                    >
+                      Create Another Guide
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
 
         {/* Create Guide */}
         <div className="flex justify-end">

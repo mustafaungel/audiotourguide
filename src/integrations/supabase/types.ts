@@ -69,8 +69,10 @@ export type Database = {
           location: string
           preview_url: string | null
           price_usd: number
+          qr_code_url: string | null
           rating: number | null
           sections: Json | null
+          share_url: string | null
           title: string
           total_purchases: number | null
           total_reviews: number | null
@@ -96,8 +98,10 @@ export type Database = {
           location: string
           preview_url?: string | null
           price_usd: number
+          qr_code_url?: string | null
           rating?: number | null
           sections?: Json | null
+          share_url?: string | null
           title: string
           total_purchases?: number | null
           total_reviews?: number | null
@@ -123,8 +127,10 @@ export type Database = {
           location?: string
           preview_url?: string | null
           price_usd?: number
+          qr_code_url?: string | null
           rating?: number | null
           sections?: Json | null
+          share_url?: string | null
           title?: string
           total_purchases?: number | null
           total_reviews?: number | null
