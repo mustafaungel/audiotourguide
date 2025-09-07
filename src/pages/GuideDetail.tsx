@@ -140,13 +140,6 @@ const GuideDetail = () => {
     creator: realGuideData.creator || {}
   } : null;
 
-  console.log('Guide data state:', {
-    isLoading,
-    error,
-    realGuideData: !!realGuideData,
-    guide: !!guide,
-    guideTitle: guide?.title
-  });
 
   const handlePurchase = () => {
     setShowPaymentModal(true);
@@ -177,7 +170,6 @@ const GuideDetail = () => {
     if (!guideId) return;
     
     setIsLoading(true);
-    console.log('Fetching guide details for:', guideId);
     
     try {
       // First, get the guide data
@@ -245,7 +237,7 @@ const GuideDetail = () => {
         sections: guideData.sections ? (typeof guideData.sections === 'string' ? JSON.parse(guideData.sections) : guideData.sections) : []
       };
       
-      console.log('Successfully fetched guide data:', transformedData);
+      
       setRealGuideData(transformedData);
       setError(null);
       

@@ -8,7 +8,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { CreditCard, ShoppingCart, User, Mail, Lock, Loader2 } from 'lucide-react';
-import { StripeDebugInfo } from './StripeDebugInfo';
 
 interface EmbeddedCheckoutProps {
   guide: {
@@ -27,14 +26,6 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
-
-  // Add debugging for guide data
-  console.log('EmbeddedCheckout received guide:', {
-    id: guide.id,
-    title: guide.title,
-    price_usd: guide.price_usd,
-    creator_name: guide.creator_name
-  });
 
   // Validate required guide data
   if (!guide.id || !guide.title || !guide.price_usd) {
@@ -65,13 +56,6 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
     setLoading(true);
 
     try {
-      console.log('[EMBEDDED-CHECKOUT] Starting payment with:', {
-        guide_id: guide.id,
-        email: targetEmail,
-        is_guest: isGuest,
-        price_usd: guide.price_usd
-      });
-
       const { data, error } = await supabase.functions.invoke('create-payment', {
         body: {
           guide_id: guide.id,
@@ -80,21 +64,13 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
         },
       });
 
-      console.log('[EMBEDDED-CHECKOUT] Payment response:', { data, error });
-
       if (error) {
-        console.error('[EMBEDDED-CHECKOUT] Payment error:', error);
-        console.error('[EMBEDDED-CHECKOUT] This usually means: 1) Stripe secret key not configured, 2) Guide not found, 3) Network issue');
         throw error;
       }
 
       if (!data?.url) {
-        console.error('[EMBEDDED-CHECKOUT] No payment URL received from create-payment function');
-        throw new Error('Failed to create payment session - no URL returned');
+        throw new Error('Failed to create payment session');
       }
-
-      console.log('[EMBEDDED-CHECKOUT] Redirecting to Stripe checkout...');
-      console.log('[EMBEDDED-CHECKOUT] If the page hangs here, check: 1) Using test keys with test cards, 2) Domain configured in Stripe dashboard, 3) Price minimum requirements');
 
       // Redirect to Stripe Checkout in the same tab
       window.location.href = data.url;
@@ -159,7 +135,6 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
   // Guest checkout and account creation options
   return (
     <div className="w-full max-w-md space-y-4">
-      <StripeDebugInfo guide={guide} />
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
