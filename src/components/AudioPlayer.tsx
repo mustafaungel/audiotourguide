@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface AudioPlayerProps {
   title?: string;
@@ -29,9 +30,12 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [actualAudioSrc, setActualAudioSrc] = useState<string | null>(null);
   const [showTranscript, setShowTranscript] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [savedPosition, setSavedPosition] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const { toast } = useToast();
 
-  // Load audio from storage bucket
+  // Load audio from storage bucket and saved position
   useEffect(() => {
     const loadAudio = async () => {
       if (audioSrc) {
@@ -49,6 +53,12 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
           
           if (data?.publicUrl) {
             setActualAudioSrc(data.publicUrl);
+            
+            // Load saved position from localStorage
+            const savedPos = localStorage.getItem(`audio-position-${guideId}`);
+            if (savedPos) {
+              setSavedPosition(parseFloat(savedPos));
+            }
           } else {
             setError("Audio file not found");
           }
@@ -63,6 +73,13 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
     loadAudio();
   }, [audioSrc, guideId]);
+
+  // Apply saved position when audio loads
+  useEffect(() => {
+    if (audioRef.current && savedPosition > 0) {
+      audioRef.current.currentTime = savedPosition;
+    }
+  }, [actualAudioSrc, savedPosition]);
 
   const togglePlayPause = useCallback(async () => {
     if (!audioRef.current || !actualAudioSrc) return;
@@ -145,8 +162,14 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
     if (audioRef.current) {
       setDuration(audioRef.current.duration);
       audioRef.current.volume = volume;
+      audioRef.current.playbackRate = playbackSpeed;
+      
+      // Apply saved position if available
+      if (savedPosition > 0) {
+        audioRef.current.currentTime = savedPosition;
+      }
     }
-  }, [volume]);
+  }, [volume, playbackSpeed, savedPosition]);
 
   const handleProgressClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (audioRef.current && duration > 0) {
@@ -164,6 +187,58 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
+
+  const handleSpeedChange = useCallback((speed: number) => {
+    setPlaybackSpeed(speed);
+    if (audioRef.current) {
+      audioRef.current.playbackRate = speed;
+    }
+  }, []);
+
+  const handleDownload = useCallback(async () => {
+    if (!actualAudioSrc) return;
+    
+    try {
+      const response = await fetch(actualAudioSrc);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${title}.mp3`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast({
+        title: "Download started",
+        description: "Audio guide is being downloaded",
+      });
+    } catch (err) {
+      console.error('Download failed:', err);
+      toast({
+        title: "Download failed",
+        description: "Unable to download audio file",
+        variant: "destructive",
+      });
+    }
+  }, [actualAudioSrc, title, toast]);
+
+  const savePosition = useCallback(() => {
+    if (audioRef.current && guideId) {
+      localStorage.setItem(`audio-position-${guideId}`, audioRef.current.currentTime.toString());
+    }
+  }, [guideId]);
+
+  // Save position every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (isPlaying) {
+        savePosition();
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [isPlaying, savePosition]);
 
   const WaveformVisualization = () => (
     <div className="flex items-center gap-1 h-16 justify-center">
@@ -255,6 +330,22 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
           </Button>
         </div>
 
+        {/* Playback Speed Controls */}
+        <div className="flex items-center justify-center gap-2 pt-2">
+          <span className="text-xs text-muted-foreground mr-2">Speed:</span>
+          {[0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => (
+            <Button
+              key={speed}
+              variant={playbackSpeed === speed ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => handleSpeedChange(speed)}
+              className="h-7 px-2 text-xs"
+            >
+              {speed}x
+            </Button>
+          ))}
+        </div>
+
         {/* Volume Control */}
         <div className="flex items-center justify-center gap-3 pt-2">
           <Button
@@ -285,9 +376,9 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
           </div>
         </div>
 
-        {/* Transcript Toggle */}
-        {transcript && (
-          <div className="flex justify-center pt-2">
+        {/* Additional Controls */}
+        <div className="flex items-center justify-center gap-4 pt-2">
+          {transcript && (
             <Button
               variant="ghost"
               size="sm"
@@ -296,8 +387,32 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
             >
               {showTranscript ? 'Hide' : 'Show'} Transcript
             </Button>
-          </div>
-        )}
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleDownload}
+            disabled={!actualAudioSrc}
+            className="text-xs"
+          >
+            <Download className="h-3 w-3 mr-1" />
+            Download
+          </Button>
+          {savedPosition > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                if (audioRef.current) {
+                  audioRef.current.currentTime = savedPosition;
+                }
+              }}
+              className="text-xs"
+            >
+              Continue: {formatTime(savedPosition)}
+            </Button>
+          )}
+        </div>
 
         {/* Transcript Content */}
         {showTranscript && transcript && (
