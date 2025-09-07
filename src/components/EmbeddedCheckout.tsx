@@ -23,8 +23,8 @@ interface EmbeddedCheckoutProps {
   onCancel?: () => void;
 }
 
-// Use test key for development - user will provide the correct key via secrets
-const stripePromise = loadStripe('pk_test_51QJxELFHXLar2q2udkxP8k1nJNZwRoUKZIR61XU7y7q1DhQ2gKFBGCE7RUgz8p6S3OKtNM8YJH6Gn0D1q9GUKlkL00tOJq24HU');
+// Stripe instance will be loaded dynamically using the secret key
+let stripePromise: Promise<Stripe | null> | null = null;
 
 // Payment form component that uses Stripe Elements
 const PaymentForm: React.FC<{
@@ -181,9 +181,36 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const [showStripeForm, setShowStripeForm] = useState(false);
   const [stripe, setStripe] = useState<Stripe | null>(null);
+  const [keyLoading, setKeyLoading] = useState(true);
+  const [keyError, setKeyError] = useState<string | null>(null);
 
   useEffect(() => {
-    stripePromise.then(setStripe);
+    const loadStripeKey = async () => {
+      try {
+        setKeyLoading(true);
+        setKeyError(null);
+        
+        const { data, error } = await supabase.functions.invoke('get-stripe-key');
+        
+        if (error) throw error;
+        if (!data?.publishableKey) throw new Error('No Stripe publishable key received');
+        
+        // Initialize Stripe with the dynamic key
+        if (!stripePromise) {
+          stripePromise = loadStripe(data.publishableKey);
+        }
+        
+        const stripeInstance = await stripePromise;
+        setStripe(stripeInstance);
+      } catch (err: any) {
+        console.error('Failed to load Stripe key:', err);
+        setKeyError(err.message || 'Failed to load payment system');
+      } finally {
+        setKeyLoading(false);
+      }
+    };
+
+    loadStripeKey();
   }, []);
 
   const handleStartPayment = async () => {
@@ -200,6 +227,37 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
 
     setShowStripeForm(true);
   };
+
+  // Show error if key loading failed
+  if (keyError) {
+    return (
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="text-destructive">Payment System Error</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-4">{keyError}</p>
+          <Button onClick={() => window.location.reload()} variant="outline" className="w-full">
+            Retry
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Show loading while fetching Stripe key
+  if (keyLoading) {
+    return (
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle>Loading Payment System...</CardTitle>
+        </CardHeader>
+        <CardContent className="flex justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </CardContent>
+      </Card>
+    );
+  }
 
   // Stripe payment form rendering
   if (showStripeForm && stripe) {
