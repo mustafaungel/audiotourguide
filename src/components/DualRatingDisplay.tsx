@@ -61,25 +61,27 @@ export const DualRatingDisplay: React.FC<DualRatingDisplayProps> = ({
             <p className="text-sm text-muted-foreground">Overall Rating</p>
           </div>
           
-          <div className="grid grid-cols-1 gap-3 pt-3 border-t">
+          <div className="grid grid-cols-2 gap-4 pt-3 border-t">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                  <div className="bg-primary/5 rounded-lg p-3 hover:bg-primary/10 transition-colors">
+                    <div className="flex items-center gap-2 mb-2">
                       <Users className="h-4 w-4 text-primary" />
-                      <span className="text-sm font-medium">User Reviews</span>
+                      <span className="text-xs font-medium text-primary">User Reviews</span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="space-y-1">
                       <div className="flex items-center gap-1">
                         {renderStars(serviceRating)}
-                        <span className="text-sm font-medium ml-1">
+                        <span className="text-sm font-bold ml-1">
                           {serviceRating > 0 ? serviceRating.toFixed(1) : 'N/A'}
                         </span>
                       </div>
-                      <Badge variant="secondary" className="text-xs">
-                        {serviceRatingCount}
-                      </Badge>
+                      <div className="flex items-center gap-1">
+                        <Badge variant="secondary" className="text-xs h-5">
+                          {serviceRatingCount} reviews
+                        </Badge>
+                      </div>
                     </div>
                   </div>
                 </TooltipTrigger>
@@ -92,25 +94,27 @@ export const DualRatingDisplay: React.FC<DualRatingDisplayProps> = ({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                  <div className="bg-accent/5 rounded-lg p-3 hover:bg-accent/10 transition-colors">
+                    <div className="flex items-center gap-2 mb-2">
                       <Award className="h-4 w-4 text-accent" />
-                      <span className="text-sm font-medium">Platform Rating</span>
+                      <span className="text-xs font-medium text-accent">Platform Rating</span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="space-y-1">
                       <div className="flex items-center gap-1">
                         {renderStars(platformRating)}
-                        <span className="text-sm font-medium ml-1">
+                        <span className="text-sm font-bold ml-1">
                           {platformRating > 0 ? platformRating.toFixed(1) : 'N/A'}
                         </span>
                       </div>
-                      {experienceYears > 0 && (
-                        <ExperienceBracketBadge 
-                          experienceYears={experienceYears} 
-                          variant="minimal"
-                          showTooltip={false}
-                        />
-                      )}
+                      <div className="flex items-center gap-1">
+                        {experienceYears > 0 && (
+                          <ExperienceBracketBadge 
+                            experienceYears={experienceYears} 
+                            variant="minimal"
+                            showTooltip={false}
+                          />
+                        )}
+                      </div>
                     </div>
                   </div>
                 </TooltipTrigger>
