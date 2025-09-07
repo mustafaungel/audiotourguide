@@ -12,6 +12,9 @@ verify_jwt = true
 [functions.create-guide]
 verify_jwt = true
 
+[functions.generate-qr-code]
+verify_jwt = true
+
 [functions.create-payment]
 verify_jwt = true
 

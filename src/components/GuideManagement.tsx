@@ -159,10 +159,9 @@ export const GuideManagement = () => {
 
   const generateQRCode = async (guideId: string) => {
     try {
-      const { data, error } = await supabase.functions.invoke('create-guide', {
+      const { data, error } = await supabase.functions.invoke('generate-qr-code', {
         body: {
-          guideId: guideId,
-          generateQROnly: true
+          guideId: guideId
         }
       });
 

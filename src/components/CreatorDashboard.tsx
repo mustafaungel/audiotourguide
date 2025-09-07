@@ -161,10 +161,9 @@ export const CreatorDashboard = () => {
 
   const generateQRCode = async (guideId: string) => {
     try {
-      const { data, error } = await supabase.functions.invoke('create-guide', {
+      const { error } = await supabase.functions.invoke('generate-qr-code', {
         body: {
-          guideId: guideId,
-          generateQROnly: true
+          guideId: guideId
         }
       });
 
@@ -381,7 +380,8 @@ export const CreatorDashboard = () => {
                           size="sm"
                           onClick={() => {
                             const baseUrl = window.location.origin;
-                            window.open(`${baseUrl}/guide/${guide.id}`, '_blank');
+                            const previewUrl = `${baseUrl}/guide/${guide.id}`;
+                            window.open(previewUrl, '_blank');
                           }}
                         >
                           <Eye className="h-4 w-4 mr-1" />

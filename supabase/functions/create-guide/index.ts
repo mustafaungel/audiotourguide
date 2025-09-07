@@ -155,7 +155,7 @@ serve(async (req) => {
     }
 
     // Generate QR code and share link
-    const baseUrl = Deno.env.get('SITE_URL') || 'https://dsaqlgxajdnwoqvtsrqd.supabase.co';
+    const baseUrl = Deno.env.get('SITE_URL') || 'https://lovable.dev';
     const shareUrl = `${baseUrl}/guide/${guideData.id}`;
     
     // Generate QR code (simplified for edge function)

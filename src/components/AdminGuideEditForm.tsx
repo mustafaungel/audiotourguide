@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Save, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { AudioGuideSectionManager } from './AudioGuideSectionManager';
+import { GuideSectionsManager } from './GuideSectionsManager';
 
 interface Guide {
   id: string;
@@ -227,11 +227,7 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
             <CardDescription>Manage audio sections and content</CardDescription>
           </CardHeader>
           <CardContent>
-            <AudioGuideSectionManager 
-              guideId={guide.id} 
-              sections={[]} 
-              onSectionsChange={() => {}} 
-            />
+            <GuideSectionsManager guideId={guide.id} />
           </CardContent>
         </Card>
       </div>
