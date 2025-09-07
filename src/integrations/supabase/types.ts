@@ -276,6 +276,96 @@ export type Database = {
         }
         Relationships: []
       }
+      creator_stories: {
+        Row: {
+          background_color: string | null
+          content_text: string | null
+          content_type: string
+          content_url: string | null
+          created_at: string
+          creator_id: string
+          duration_seconds: number | null
+          expires_at: string
+          id: string
+          is_active: boolean
+          metadata: Json | null
+          updated_at: string
+        }
+        Insert: {
+          background_color?: string | null
+          content_text?: string | null
+          content_type?: string
+          content_url?: string | null
+          created_at?: string
+          creator_id: string
+          duration_seconds?: number | null
+          expires_at?: string
+          id?: string
+          is_active?: boolean
+          metadata?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          background_color?: string | null
+          content_text?: string | null
+          content_type?: string
+          content_url?: string | null
+          created_at?: string
+          creator_id?: string
+          duration_seconds?: number | null
+          expires_at?: string
+          id?: string
+          is_active?: boolean
+          metadata?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      creator_updates: {
+        Row: {
+          content: string
+          created_at: string
+          creator_id: string
+          id: string
+          image_url: string | null
+          is_pinned: boolean | null
+          metadata: Json | null
+          related_experience_id: string | null
+          related_guide_id: string | null
+          title: string | null
+          update_type: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          creator_id: string
+          id?: string
+          image_url?: string | null
+          is_pinned?: boolean | null
+          metadata?: Json | null
+          related_experience_id?: string | null
+          related_guide_id?: string | null
+          title?: string | null
+          update_type?: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          creator_id?: string
+          id?: string
+          image_url?: string | null
+          is_pinned?: boolean | null
+          metadata?: Json | null
+          related_experience_id?: string | null
+          related_guide_id?: string | null
+          title?: string | null
+          update_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       experience_bookings: {
         Row: {
           booking_date: string
@@ -503,6 +593,51 @@ export type Database = {
           verification_documents?: Json | null
           verification_status?: string | null
           verified_at?: string | null
+        }
+        Relationships: []
+      }
+      story_reactions: {
+        Row: {
+          created_at: string
+          id: string
+          reaction_type: string
+          story_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reaction_type?: string
+          story_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reaction_type?: string
+          story_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      story_views: {
+        Row: {
+          id: string
+          story_id: string
+          viewed_at: string
+          viewer_id: string | null
+        }
+        Insert: {
+          id?: string
+          story_id: string
+          viewed_at?: string
+          viewer_id?: string | null
+        }
+        Update: {
+          id?: string
+          story_id?: string
+          viewed_at?: string
+          viewer_id?: string | null
         }
         Relationships: []
       }
