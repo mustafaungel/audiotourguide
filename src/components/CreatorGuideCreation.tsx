@@ -348,6 +348,9 @@ export function CreatorGuideCreation() {
             sections={sections}
             onSectionsChange={setSections}
             guideId={tempGuideId}
+            guideTitle={formData.title}
+            location={`${formData.city}, ${formData.country}`}
+            category={formData.category}
           />
         </div>
 

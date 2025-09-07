@@ -23,6 +23,9 @@ interface AudioGuideSectionManagerProps {
   sections: GuideSection[];
   onSectionsChange: (sections: GuideSection[]) => void;
   guideId?: string;
+  guideTitle?: string;
+  location?: string;
+  category?: string;
 }
 
 const LANGUAGES = [
@@ -40,12 +43,13 @@ const LANGUAGES = [
   'Arabic'
 ];
 
-export function AudioGuideSectionManager({ sections, onSectionsChange, guideId }: AudioGuideSectionManagerProps) {
+export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, guideTitle, location, category }: AudioGuideSectionManagerProps) {
   const [newSectionTitle, setNewSectionTitle] = useState('');
   const [uploadingSection, setUploadingSection] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
   const [playingSection, setPlayingSection] = useState<string | null>(null);
+  const [generatingDescription, setGeneratingDescription] = useState<string | null>(null);
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
   const addSection = () => {
@@ -243,6 +247,37 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId }
     });
   };
 
+  const generateSectionDescription = async (sectionId: string, sectionTitle: string) => {
+    if (!sectionTitle.trim()) {
+      toast.error('Please enter a section title first');
+      return;
+    }
+
+    setGeneratingDescription(sectionId);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-section-description', {
+        body: {
+          sectionTitle,
+          guideTitle,
+          location,
+          category
+        }
+      });
+
+      if (error) throw error;
+
+      updateSection(sectionId, { description: data.description });
+      toast.success('AI description generated successfully!');
+
+    } catch (error: any) {
+      console.error('Error generating section description:', error);
+      toast.error('Failed to generate description. Please try again.');
+    } finally {
+      setGeneratingDescription(null);
+    }
+  };
+
   // Cleanup audio on unmount
   useEffect(() => {
     return () => {
@@ -326,7 +361,17 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId }
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Description</label>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-sm font-medium">Description</label>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => generateSectionDescription(section.id, section.title)}
+                        disabled={!section.title.trim() || generatingDescription === section.id}
+                      >
+                        {generatingDescription === section.id ? 'Generating...' : 'Generate AI Description'}
+                      </Button>
+                    </div>
                     <Textarea
                       value={section.description}
                       onChange={(e) => updateSection(section.id, { description: e.target.value })}

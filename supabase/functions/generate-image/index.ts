@@ -36,8 +36,8 @@ serve(async (req) => {
 
     console.log('Generating image for:', { title, city, country, category });
 
-    // Create optimized prompt for travel destinations
-    const imagePrompt = `Professional travel photography of ${title} in ${city}, ${country}, ${category ? `${category} attraction, ` : ''}scenic view, high quality, award-winning photography, vibrant colors, tourist perspective, ultra high resolution`;
+    // Create ultra-realistic prompt for travel destinations
+    const imagePrompt = `Ultra realistic, photorealistic professional travel photography of ${title} in ${city}, ${country}, ${category ? `${category} attraction, ` : ''}scenic view, award-winning photography, professional photographer, ultra high resolution, stunning detail, vibrant natural colors, perfect lighting, tourist perspective, masterpiece quality, National Geographic style`;
 
     const response = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
