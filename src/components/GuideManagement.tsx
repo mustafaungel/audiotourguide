@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { CheckCircle, XCircle, Eye, Clock } from 'lucide-react';
+import { CheckCircle, XCircle, Eye, Clock, Trash2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface Guide {
@@ -96,6 +96,39 @@ export const GuideManagement = () => {
     }
   };
 
+  const deleteGuide = async (guideId: string) => {
+    if (!confirm('Are you sure you want to delete this guide? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('audio_guides')
+        .delete()
+        .eq('id', guideId);
+
+      if (error) throw error;
+
+      setGuides(prev => prev.filter(guide => guide.id !== guideId));
+
+      toast({
+        title: "Guide Deleted",
+        description: "Guide has been permanently deleted."
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete guide"
+      });
+    }
+  };
+
+  const previewGuide = (guideId: string) => {
+    // Open guide detail page in new tab
+    window.open(`/guide/${guideId}`, '_blank');
+  };
+
   const getStatusBadge = (guide: Guide) => {
     if (!guide.is_approved) {
       return <Badge variant="destructive">Pending Approval</Badge>;
@@ -153,8 +186,12 @@ export const GuideManagement = () => {
               <CardContent>
                 <p className="text-muted-foreground mb-4">{guide.description}</p>
                 
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
+                <div className="flex flex-wrap gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => previewGuide(guide.id)}
+                  >
                     <Eye className="h-4 w-4 mr-1" />
                     Preview
                   </Button>
@@ -179,6 +216,15 @@ export const GuideManagement = () => {
                       </Button>
                     </>
                   )}
+                  
+                  <Button 
+                    variant="destructive" 
+                    size="sm"
+                    onClick={() => deleteGuide(guide.id)}
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Delete
+                  </Button>
                 </div>
               </CardContent>
             </Card>

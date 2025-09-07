@@ -167,19 +167,19 @@ export const UserManagement = () => {
           </Card>
         ) : (
           requests.map((request) => (
-            <Card key={request.id}>
+          <Card key={request.id}>
               <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
+                <div className="flex flex-col gap-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <CardTitle className="text-base sm:text-lg break-words">
                       {request.full_name}
-                      {getStatusBadge(request.status)}
                     </CardTitle>
-                    <CardDescription>
-                      {request.profiles?.email} • 
-                      Submitted {new Date(request.submitted_at).toLocaleDateString()}
-                    </CardDescription>
+                    {getStatusBadge(request.status)}
                   </div>
+                  <CardDescription className="text-xs sm:text-sm break-words">
+                    {request.profiles?.email} • 
+                    Submitted {new Date(request.submitted_at).toLocaleDateString()}
+                  </CardDescription>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">

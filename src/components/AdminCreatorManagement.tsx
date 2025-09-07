@@ -398,44 +398,46 @@ export const AdminCreatorManagement = () => {
         {filteredCreators.map((creator) => (
           <Card key={creator.id} className="relative">
             <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={creator.avatar_url} />
-                    <AvatarFallback>{creator.full_name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h3 className="font-semibold">{creator.full_name}</h3>
-                    <p className="text-sm text-muted-foreground">{creator.email}</p>
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <Avatar className="h-10 w-10 flex-shrink-0">
+                      <AvatarImage src={creator.avatar_url} />
+                      <AvatarFallback>{creator.full_name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-semibold text-sm truncate">{creator.full_name}</h3>
+                      <p className="text-xs text-muted-foreground truncate">{creator.email}</p>
+                    </div>
                   </div>
+                  
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedCreator(creator);
+                      setShowEditDialog(true);
+                    }}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
                 </div>
-                
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setSelectedCreator(creator);
-                    setShowEditDialog(true);
-                  }}
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-              </div>
 
-              <div className="flex items-center gap-2 mt-2">
-                <TierBadge tier={creator.current_tier} size="sm" />
-                {creator.verification_status === 'verified' && (
-                  <VerificationBadge type="blue_tick" size="sm" showText={false} />
-                )}
-                {creator.creator_badge && (
-                  <Badge variant="secondary" className="text-xs">Creator</Badge>
-                )}
-                <Badge 
-                  variant={creator.verification_status === 'verified' ? 'default' : 'outline'}
-                  className="text-xs"
-                >
-                  {creator.verification_status}
-                </Badge>
+                <div className="flex flex-wrap items-center gap-1">
+                  <TierBadge tier={creator.current_tier} size="sm" />
+                  {creator.verification_status === 'verified' && (
+                    <VerificationBadge type="blue_tick" size="sm" showText={false} />
+                  )}
+                  {creator.creator_badge && (
+                    <Badge variant="secondary" className="text-xs">Creator</Badge>
+                  )}
+                  <Badge 
+                    variant={creator.verification_status === 'verified' ? 'default' : 'outline'}
+                    className="text-xs"
+                  >
+                    {creator.verification_status}
+                  </Badge>
+                </div>
               </div>
             </CardHeader>
 

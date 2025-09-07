@@ -13,34 +13,32 @@ const adminTabs = [
   { value: 'user-management', label: 'User Management', icon: Users },
   { value: 'creator-management', label: 'Creator Management', icon: UserCheck },
   { value: 'content-management', label: 'Content Management', icon: FileText },
-  { value: 'ai-tools', label: 'AI Tools', icon: Wand2 },
-  { value: 'create-guide', label: 'Create Guide', icon: Plus },
+  { value: 'create-guide', label: 'Create Audio Guide', icon: Plus },
   { value: 'analytics', label: 'Analytics', icon: Settings },
-  { value: 'audio-setup', label: 'Audio Setup', icon: Volume2 },
 ];
 
 export function AdminMobileNavigation({ activeTab, onTabChange }: AdminMobileNavigationProps) {
   const activeTabData = adminTabs.find(tab => tab.value === activeTab);
 
   return (
-    <div className="md:hidden mb-6">
+    <div className="md:hidden mb-6 pb-safe">
       <Select value={activeTab} onValueChange={onTabChange}>
-        <SelectTrigger className="w-full h-12">
+        <SelectTrigger className="w-full h-12 bg-background/95 backdrop-blur-sm border-2">
           <SelectValue>
             {activeTabData && (
               <div className="flex items-center gap-2">
                 <activeTabData.icon className="h-4 w-4" />
-                <span>{activeTabData.label}</span>
+                <span className="font-medium">{activeTabData.label}</span>
               </div>
             )}
           </SelectValue>
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="bg-background/95 backdrop-blur-md border-2 z-50 max-h-[60vh] overflow-y-auto">
           {adminTabs.map((tab) => (
-            <SelectItem key={tab.value} value={tab.value}>
-              <div className="flex items-center gap-2">
+            <SelectItem key={tab.value} value={tab.value} className="py-3">
+              <div className="flex items-center gap-3">
                 <tab.icon className="h-4 w-4" />
-                <span>{tab.label}</span>
+                <span className="font-medium">{tab.label}</span>
               </div>
             </SelectItem>
           ))}
