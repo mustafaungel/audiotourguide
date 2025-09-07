@@ -352,7 +352,7 @@ All colors MUST be HSL.
   }
   
   .mobile-safe-area {
-    @apply pb-safe-bottom;
+    @apply pb-4 sm:pb-6;
   }
   
   /* 9:16 aspect ratio helpers */
