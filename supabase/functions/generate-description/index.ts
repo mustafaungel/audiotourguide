@@ -21,22 +21,21 @@ serve(async (req) => {
 
     console.log('Generating description for:', { title, country, city, category, duration });
 
-    const prompt = `Generate a compelling and informative description for an audio guide with the following details:
+    const prompt = `Generate a compelling and informative description for an audio guide about ${title} in ${city}, ${country}.
 
-Title: ${title}
-Location: ${city}, ${country}
 Category: ${category}
 Duration: ${duration} minutes
 
-The description should:
-- Be 2-3 paragraphs long
-- Highlight what makes this location special
-- Mention key attractions or experiences visitors will encounter
-- Create excitement about the audio guide experience
-- Be professional yet engaging
-- Include practical information about what to expect
+Requirements:
+- Write 2-3 engaging paragraphs only
+- Focus on what makes this location special and unique
+- Mention key attractions and experiences visitors will discover
+- Use an engaging, travel-focused tone for tourists
+- DO NOT include any titles, headers, or formatting
+- DO NOT repeat the location name, title, or duration in the description
+- Start directly with the content
 
-Write in an engaging, travel-focused tone that would appeal to tourists and culture enthusiasts.`;
+Write only the description content without any additional formatting or labels.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',

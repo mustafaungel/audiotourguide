@@ -7,8 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Loader2, Wand2, Volume2, Image, FileText, CheckCircle, BarChart3, Users, Settings, UserPlus, UserCheck, Plus } from 'lucide-react';
+import { Loader2, FileText, ScrollText, AudioLines, Zap, Upload, BarChart3, Users, UserCheck, UserPlus, Plus } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -27,224 +26,258 @@ const AdminPanel = () => {
   const { user, userProfile } = useAuth();
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [currentStep, setCurrentStep] = useState<'script' | 'audio' | 'image' | 'complete' | null>(null);
-  const [generatedContent, setGeneratedContent] = useState({
-    script: '',
-    audioContent: '',
-    imageContent: '',
-  });
 
+  // Form data state
   const [formData, setFormData] = useState({
     title: '',
-    description: '',
-    destination: '',
-    location: '',
-    country: '',
     city: '',
+    country: '',
     category: 'Cultural Heritage',
-    duration: 45,
-    difficulty: 'Easy',
-    languages: ['English'],
-    price: 12.00,
-    tone: 'Professional yet engaging',
-    bestTime: '',
+    duration: '45',
+    price: '12'
   });
 
-  const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
+  // Generation states
+  const [descriptionLoading, setDescriptionLoading] = useState(false);
+  const [scriptLoading, setScriptLoading] = useState(false);
+  const [audioLoading, setAudioLoading] = useState(false);
+  const [publishLoading, setPublishLoading] = useState(false);
+  
+  // Generated content
+  const [generatedDescription, setGeneratedDescription] = useState('');
+  const [generatedScript, setGeneratedScript] = useState('');
+  const [generatedAudio, setGeneratedAudio] = useState('');
+  
+  // Error states
+  const [descriptionError, setDescriptionError] = useState<string | null>(null);
+  const [scriptError, setScriptError] = useState<string | null>(null);
+  const [audioError, setAudioError] = useState<string | null>(null);
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const generateDescription = async () => {
-    if (!formData.title || !formData.country || !formData.city || !formData.category || !formData.duration) {
+    if (!formData.title || !formData.city || !formData.country || !formData.category || !formData.duration) {
       toast({
-        variant: "destructive",
-        title: "Missing Information",
-        description: "Please fill in title, country, city, category, and duration first.",
+        title: "Error",
+        description: "Please fill in all required fields first.",
+        variant: "destructive"
       });
       return;
     }
 
+    setDescriptionLoading(true);
+    setDescriptionError(null);
+    
     try {
-      setIsGeneratingDescription(true);
       const { data, error } = await supabase.functions.invoke('generate-description', {
         body: {
           title: formData.title,
           country: formData.country,
           city: formData.city,
           category: formData.category,
-          duration: formData.duration
+          duration: parseInt(formData.duration)
         }
       });
 
       if (error) throw error;
-
-      handleInputChange('description', data.description);
+      
+      setGeneratedDescription(data.description);
       toast({
-        title: "Description Generated!",
+        title: "Description Generated",
         description: "AI has created your guide description successfully.",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating description:', error);
+      setDescriptionError(error.message || 'Failed to generate description');
       toast({
-        variant: "destructive",
-        title: "Description Generation Failed",
-        description: error.message,
+        title: "Error",
+        description: "Failed to generate description. Please try again.",
+        variant: "destructive"
       });
     } finally {
-      setIsGeneratingDescription(false);
+      setDescriptionLoading(false);
     }
   };
 
   const generateScript = async () => {
+    if (!generatedDescription) {
+      toast({
+        title: "Error",
+        description: "Please generate description first.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setScriptLoading(true);
+    setScriptError(null);
+    
     try {
-      setCurrentStep('script');
       const { data, error } = await supabase.functions.invoke('generate-script', {
         body: {
-          destination: formData.destination,
+          destination: `${formData.city}, ${formData.country}`,
           category: formData.category,
-          duration: formData.duration,
-          tone: formData.tone,
+          duration: parseInt(formData.duration),
+          tone: 'professional',
           language: 'English'
         }
       });
 
       if (error) throw error;
-
-      setGeneratedContent(prev => ({ ...prev, script: data.script }));
+      
+      setGeneratedScript(data.script);
       toast({
-        title: "Script Generated!",
-        description: "AI has created your tour script successfully.",
+        title: "Script Generated",
+        description: "Audio guide script has been generated successfully.",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating script:', error);
+      setScriptError(error.message || 'Failed to generate script');
       toast({
-        variant: "destructive",
-        title: "Script Generation Failed",
-        description: error.message,
+        title: "Error",
+        description: "Failed to generate script. Please try again.",
+        variant: "destructive"
       });
+    } finally {
+      setScriptLoading(false);
     }
   };
 
   const generateAudio = async () => {
-    if (!generatedContent.script) {
+    if (!generatedScript) {
       toast({
-        variant: "destructive",
-        title: "No Script Available",
-        description: "Please generate a script first.",
+        title: "Error",
+        description: "Please generate script first.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setAudioLoading(true);
+    setAudioError(null);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-audio', {
+        body: {
+          text: generatedScript,
+          voice: 'alloy'
+        }
+      });
+
+      if (error) throw error;
+      
+      setGeneratedAudio(data.audioUrl);
+      toast({
+        title: "Audio Generated",
+        description: "Audio file has been generated successfully.",
+      });
+    } catch (error: any) {
+      console.error('Error generating audio:', error);
+      setAudioError(error.message || 'Failed to generate audio');
+      toast({
+        title: "Error",
+        description: "Failed to generate audio. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setAudioLoading(false);
+    }
+  };
+
+  const publishGuide = async () => {
+    if (!generatedDescription || !generatedScript || !generatedAudio) {
+      toast({
+        title: "Error",
+        description: "Please complete all generation steps first.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setPublishLoading(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('create-guide', {
+        body: {
+          title: formData.title,
+          location: `${formData.city}, ${formData.country}`,
+          description: generatedDescription,
+          category: formData.category,
+          duration: parseInt(formData.duration),
+          price_usd: parseInt(formData.price),
+          script: generatedScript,
+          audio_url: generatedAudio,
+          image_url: null
+        }
+      });
+
+      if (error) throw error;
+      
+      toast({
+        title: "Guide Published",
+        description: "Audio guide has been submitted for approval.",
+      });
+      
+      // Reset form
+      setFormData({ title: '', city: '', country: 'Cultural Heritage', category: 'Cultural Heritage', duration: '45', price: '12' });
+      setGeneratedDescription('');
+      setGeneratedScript('');
+      setGeneratedAudio('');
+    } catch (error: any) {
+      console.error('Error publishing guide:', error);
+      toast({
+        title: "Error",
+        description: "Failed to publish guide. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setPublishLoading(false);
+    }
+  };
+
+  const generateAll = async () => {
+    // Validate form first
+    if (!formData.title || !formData.city || !formData.country || !formData.category || !formData.duration || !formData.price) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields first.",
+        variant: "destructive"
       });
       return;
     }
 
     try {
-      setCurrentStep('audio');
-      const { data, error } = await supabase.functions.invoke('generate-audio', {
-        body: {
-          text: generatedContent.script,
-          voiceId: '9BWtsMINqrJLrRacOk9x', // Aria voice
-          modelId: 'eleven_multilingual_v2',
-          isPreview: false
-        }
-      });
-
-      if (error) throw error;
-
-      setGeneratedContent(prev => ({ ...prev, audioContent: data.audioContent }));
-      toast({
-        title: "Audio Generated!",
-        description: "AI has created your tour audio successfully.",
-      });
+      // Step 1: Generate description
+      if (!generatedDescription) {
+        await generateDescription();
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+      
+      // Step 2: Generate script
+      if (generatedDescription && !generatedScript) {
+        await generateScript();
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+      
+      // Step 3: Generate audio
+      if (generatedScript && !generatedAudio) {
+        await generateAudio();
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+      
+      // Step 4: Publish
+      if (generatedAudio) {
+        await publishGuide();
+      }
     } catch (error) {
-      console.error('Error generating audio:', error);
+      console.error('Error in generate all:', error);
       toast({
-        variant: "destructive",
-        title: "Audio Generation Failed",
-        description: error.message,
+        title: "Error",
+        description: "Failed to complete generation pipeline.",
+        variant: "destructive"
       });
-    }
-  };
-
-  const generateImage = async () => {
-    try {
-      setCurrentStep('image');
-      const { data, error } = await supabase.functions.invoke('generate-image', {
-        body: {
-          destination: formData.destination,
-          style: 'professional travel photography, cinematic lighting, vibrant colors'
-        }
-      });
-
-      if (error) throw error;
-
-      setGeneratedContent(prev => ({ ...prev, imageContent: data.imageContent }));
-      toast({
-        title: "Image Generated!",
-        description: "AI has created your tour image successfully.",
-      });
-    } catch (error) {
-      console.error('Error generating image:', error);
-      toast({
-        variant: "destructive",
-        title: "Image Generation Failed",
-        description: error.message,
-      });
-    }
-  };
-
-  const publishGuide = async () => {
-    try {
-      setCurrentStep('complete');
-      const { data, error } = await supabase.functions.invoke('create-guide', {
-        body: {
-          title: formData.title,
-          description: formData.description,
-          location: formData.location,
-          category: formData.category,
-          duration: formData.duration,
-          difficulty: formData.difficulty,
-          languages: formData.languages,
-          price_usd: Math.round(formData.price * 100), // Convert to cents
-          script: generatedContent.script,
-          audio_content: generatedContent.audioContent,
-          image_content: generatedContent.imageContent,
-          best_time: formData.bestTime
-        }
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Guide Created!",
-        description: "Your audio guide has been submitted for approval.",
-      });
-
-      // Reset form
-      setGeneratedContent({ script: '', audioContent: '', imageContent: '' });
-      setCurrentStep(null);
-    } catch (error) {
-      console.error('Error publishing guide:', error);
-      toast({
-        variant: "destructive",
-        title: "Publishing Failed",
-        description: error.message,
-      });
-    }
-  };
-
-  const generateAll = async () => {
-    setIsGenerating(true);
-    try {
-      await generateScript();
-      await generateAudio();
-      await generateImage();
-      await publishGuide();
-    } catch (error) {
-      console.error('Error in generation pipeline:', error);
-    } finally {
-      setIsGenerating(false);
-      setCurrentStep(null);
     }
   };
 
@@ -307,7 +340,7 @@ const AdminPanel = () => {
               <span className="hidden lg:inline">Create</span>
             </TabsTrigger>
             <TabsTrigger value="analytics" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
-              <Settings className="h-3 w-3 lg:h-4 lg:w-4" />
+              <BarChart3 className="h-3 w-3 lg:h-4 lg:w-4" />
               <span className="hidden lg:inline">Analytics</span>
             </TabsTrigger>
           </TabsList>
@@ -385,88 +418,55 @@ const AdminPanel = () => {
 
           <TabsContent value="create-guide">
             <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <h2 className="text-xl sm:text-2xl font-bold">Create Audio Guide</h2>
-                <Button 
-                  onClick={generateDescription}
-                  disabled={isGeneratingDescription || !formData.title || !formData.country || !formData.city}
-                  variant="outline"
-                >
-                  {isGeneratingDescription ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Wand2 className="h-4 w-4 mr-2" />
-                  )}
-                  Generate Description
-                </Button>
-              </div>
+              <h2 className="text-xl sm:text-2xl font-bold">Create Audio Guide</h2>
 
-              <div className="grid lg:grid-cols-3 gap-6">
+              <div className="grid lg:grid-cols-2 gap-6">
                 {/* Form Section */}
-                <div className="lg:col-span-2 space-y-6">
+                <div className="space-y-4">
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-lg md:text-xl">Guide Information</CardTitle>
-                      <CardDescription>Basic details about your audio guide</CardDescription>
+                      <CardTitle className="text-lg">Guide Information</CardTitle>
+                      <CardDescription>Fill in the basic details for your audio guide</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-6">
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="title" className="text-sm font-medium">Guide Title</Label>
-                          <Input
-                            id="title"
-                            value={formData.title}
-                            onChange={(e) => handleInputChange('title', e.target.value)}
-                            placeholder="e.g., Ancient Rome: Colosseum & Forum"
-                            className="mt-1 h-12"
-                          />
-                        </div>
-                        
-                        <div className="grid grid-cols-1 gap-4">
-                          <div>
-                            <Label htmlFor="country" className="text-sm font-medium">Country</Label>
-                            <CountrySelector
-                              value={formData.country}
-                              onValueChange={(value) => handleInputChange('country', value)}
-                              placeholder="Select country"
-                              className="mt-1 h-12"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="city" className="text-sm font-medium">City</Label>
-                            <Input
-                              id="city"
-                              value={formData.city}
-                              onChange={(e) => handleInputChange('city', e.target.value)}
-                              placeholder="e.g., Rome"
-                              className="mt-1 h-12"
-                            />
-                          </div>
-                        </div>
-                      </div>
-
+                    <CardContent className="space-y-4">
                       <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <Label htmlFor="description" className="text-sm font-medium">Description</Label>
-                          {isGeneratingDescription && (
-                            <span className="text-xs text-muted-foreground">AI generating...</span>
-                          )}
-                        </div>
-                        <Textarea
-                          id="description"
-                          value={formData.description}
-                          onChange={(e) => handleInputChange('description', e.target.value)}
-                          placeholder="Brief description of the audio guide experience... (Can be AI generated)"
-                          rows={4}
-                          className="mt-1 min-h-[100px]"
+                        <Label htmlFor="title">Guide Title</Label>
+                        <Input
+                          id="title"
+                          value={formData.title}
+                          onChange={(e) => handleInputChange('title', e.target.value)}
+                          placeholder="e.g., Goreme Open Air Museum"
+                          className="mt-1"
                         />
                       </div>
-
-                      <div className="grid grid-cols-1 gap-4">
+                      
+                      <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <Label htmlFor="category" className="text-sm font-medium">Category</Label>
+                          <Label htmlFor="country">Country</Label>
+                          <CountrySelector
+                            value={formData.country}
+                            onValueChange={(value) => handleInputChange('country', value)}
+                            placeholder="Select country"
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="city">City</Label>
+                          <Input
+                            id="city"
+                            value={formData.city}
+                            onChange={(e) => handleInputChange('city', e.target.value)}
+                            placeholder="e.g., Cappadocia"
+                            className="mt-1"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label htmlFor="category">Category</Label>
                           <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
-                            <SelectTrigger className="mt-1 h-12">
+                            <SelectTrigger className="mt-1">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -480,112 +480,126 @@ const AdminPanel = () => {
                           </Select>
                         </div>
                         <div>
-                          <Label htmlFor="duration" className="text-sm font-medium">Duration (minutes)</Label>
+                          <Label htmlFor="duration">Duration (min)</Label>
                           <Input
                             id="duration"
                             type="number"
                             value={formData.duration}
-                            onChange={(e) => handleInputChange('duration', parseInt(e.target.value))}
+                            onChange={(e) => handleInputChange('duration', e.target.value)}
                             min="15"
                             max="120"
-                            className="mt-1 h-12"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="price" className="text-sm font-medium">Price (USD)</Label>
-                          <Input
-                            id="price"
-                            type="number"
-                            step="0.01"
-                            value={formData.price}
-                            onChange={(e) => handleInputChange('price', parseFloat(e.target.value))}
-                            min="0"
-                            className="mt-1 h-12"
+                            className="mt-1"
                           />
                         </div>
                       </div>
+
+                      <div>
+                        <Label htmlFor="price">Price (USD)</Label>
+                        <Input
+                          id="price"
+                          type="number"
+                          step="0.01"
+                          value={formData.price}
+                          onChange={(e) => handleInputChange('price', e.target.value)}
+                          min="0"
+                          className="mt-1"
+                        />
+                      </div>
                     </CardContent>
                   </Card>
+                </div>
 
+                {/* Generation Section */}
+                <div className="space-y-4">
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-lg md:text-xl">AI Generation Pipeline</CardTitle>
+                      <CardTitle className="text-lg">AI Generation Pipeline</CardTitle>
                       <CardDescription>Generate content with AI assistance</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="grid gap-4">
+                      <div className="space-y-3">
                         <Button 
-                          onClick={generateScript} 
-                          disabled={isGenerating || !formData.country || !formData.city}
-                          className="w-full h-12 text-base"
+                          onClick={generateDescription}
+                          disabled={!formData.title || !formData.city || !formData.country || !formData.category || !formData.duration || descriptionLoading}
+                          className="w-full"
                         >
-                          {currentStep === 'script' ? (
+                          {descriptionLoading ? (
                             <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Generating Script...
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Generating...
                             </>
                           ) : (
                             <>
-                              <FileText className="h-4 w-4 mr-2" />
-                              Generate Script
+                              <FileText className="w-4 h-4 mr-2" />
+                              1. Generate Description
                             </>
                           )}
                         </Button>
 
                         <Button 
-                          onClick={generateAudio} 
-                          disabled={isGenerating || !generatedContent.script}
-                          variant="outline"
-                          className="w-full h-12 text-base"
+                          onClick={generateScript}
+                          disabled={!generatedDescription || scriptLoading}
+                          className="w-full"
+                          variant={generatedDescription ? "default" : "secondary"}
                         >
-                          {currentStep === 'audio' ? (
+                          {scriptLoading ? (
                             <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Generating Audio...
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Generating...
                             </>
                           ) : (
                             <>
-                              <Volume2 className="h-4 w-4 mr-2" />
-                              Generate Audio
+                              <ScrollText className="w-4 h-4 mr-2" />
+                              2. Generate Script
                             </>
                           )}
                         </Button>
 
                         <Button 
-                          onClick={generateImage} 
-                          disabled={isGenerating}
-                          variant="outline"
-                          className="w-full h-12 text-base"
+                          onClick={generateAudio}
+                          disabled={!generatedScript || audioLoading}
+                          className="w-full"
+                          variant={generatedScript ? "default" : "secondary"}
                         >
-                          {currentStep === 'image' ? (
+                          {audioLoading ? (
                             <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Generating Image...
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Generating...
                             </>
                           ) : (
                             <>
-                              <Image className="h-4 w-4 mr-2" />
-                              Generate Image
+                              <AudioLines className="w-4 h-4 mr-2" />
+                              3. Generate Audio
                             </>
                           )}
                         </Button>
 
-                        <div className="border-t pt-4">
+                        <div className="border-t pt-3 space-y-2">
                           <Button 
-                            onClick={generateAll} 
-                            disabled={isGenerating || !formData.title || !formData.country || !formData.city}
-                            className="w-full h-14 text-base"
-                            size="lg"
+                            onClick={generateAll}
+                            disabled={!formData.title || !formData.city || !formData.country || !formData.category || !formData.duration || descriptionLoading || scriptLoading || audioLoading}
+                            className="w-full"
+                            variant="destructive"
                           >
-                            {isGenerating ? (
+                            <Zap className="w-4 h-4 mr-2" />
+                            Generate All & Publish
+                          </Button>
+
+                          <Button 
+                            onClick={publishGuide}
+                            disabled={!generatedDescription || !generatedScript || !generatedAudio || publishLoading}
+                            className="w-full"
+                            variant="outline"
+                          >
+                            {publishLoading ? (
                               <>
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Generating Complete Guide...
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                Publishing...
                               </>
                             ) : (
                               <>
-                                <Wand2 className="h-4 w-4 mr-2" />
-                                Generate Complete Guide
+                                <Upload className="w-4 h-4 mr-2" />
+                                Publish Guide
                               </>
                             )}
                           </Button>
@@ -593,119 +607,40 @@ const AdminPanel = () => {
                       </div>
                     </CardContent>
                   </Card>
-                </div>
 
-                {/* Preview Section */}
-                <div className="space-y-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Generation Progress</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex items-center space-x-2">
-                        {generatedContent.script ? (
-                          <CheckCircle className="h-5 w-5 text-green-500" />
-                        ) : (
-                          <div className="h-5 w-5 rounded-full border-2 border-muted-foreground" />
-                        )}
-                        <span className={generatedContent.script ? 'text-green-600' : 'text-muted-foreground'}>
-                          Script Generated
-                        </span>
+                  {/* Generated Content Previews */}
+                  {generatedDescription && (
+                    <div className="space-y-3">
+                      <div className="border rounded-lg p-3">
+                        <h4 className="font-medium mb-2 flex items-center text-sm">
+                          <FileText className="w-4 h-4 mr-2" />
+                          Description ✓
+                        </h4>
+                        <p className="text-xs text-muted-foreground line-clamp-3">{generatedDescription}</p>
                       </div>
-                      
-                      <div className="flex items-center space-x-2">
-                        {generatedContent.audioContent ? (
-                          <CheckCircle className="h-5 w-5 text-green-500" />
-                        ) : (
-                          <div className="h-5 w-5 rounded-full border-2 border-muted-foreground" />
-                        )}
-                        <span className={generatedContent.audioContent ? 'text-green-600' : 'text-muted-foreground'}>
-                          Audio Generated
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-center space-x-2">
-                        {generatedContent.imageContent ? (
-                          <CheckCircle className="h-5 w-5 text-green-500" />
-                        ) : (
-                          <div className="h-5 w-5 rounded-full border-2 border-muted-foreground" />
-                        )}
-                        <span className={generatedContent.imageContent ? 'text-green-600' : 'text-muted-foreground'}>
-                          Image Generated
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Content Previews */}
-                  {generatedContent.script && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Generated Script</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="max-h-40 overflow-y-auto">
-                          <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                            {generatedContent.script}
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    </div>
                   )}
 
-                  {generatedContent.audioContent && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Generated Audio</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <audio controls className="w-full">
-                          <source src={generatedContent.audioContent} type="audio/mpeg" />
-                          Your browser does not support the audio element.
-                        </audio>
-                      </CardContent>
-                    </Card>
+                  {generatedScript && (
+                    <div className="border rounded-lg p-3">
+                      <h4 className="font-medium mb-2 flex items-center text-sm">
+                        <ScrollText className="w-4 h-4 mr-2" />
+                        Script ✓
+                      </h4>
+                      <p className="text-xs text-muted-foreground line-clamp-2">{generatedScript.substring(0, 100)}...</p>
+                    </div>
                   )}
 
-                  {generatedContent.imageContent && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Generated Image</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <img 
-                          src={generatedContent.imageContent} 
-                          alt="Generated guide image" 
-                          className="w-full h-48 object-cover rounded-lg"
-                        />
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {/* Submit Button */}
-                  {generatedContent.script && generatedContent.audioContent && generatedContent.imageContent && (
-                    <Card>
-                      <CardContent className="pt-6">
-                        <Button 
-                          onClick={publishGuide}
-                          disabled={currentStep === 'complete'}
-                          className="w-full h-12"
-                          size="lg"
-                        >
-                          {currentStep === 'complete' ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Publishing...
-                            </>
-                          ) : (
-                            <>
-                              <CheckCircle className="h-4 w-4 mr-2" />
-                              Submit for Approval
-                            </>
-                          )}
-                        </Button>
-                      </CardContent>
-                    </Card>
+                  {generatedAudio && (
+                    <div className="border rounded-lg p-3">
+                      <h4 className="font-medium mb-2 flex items-center text-sm">
+                        <AudioLines className="w-4 h-4 mr-2" />
+                        Audio ✓
+                      </h4>
+                      <audio controls className="w-full h-8">
+                        <source src={generatedAudio} type="audio/mpeg" />
+                      </audio>
+                    </div>
                   )}
                 </div>
               </div>
