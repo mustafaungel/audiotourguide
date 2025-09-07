@@ -127,6 +127,48 @@ export type Database = {
         }
         Relationships: []
       }
+      creator_availability: {
+        Row: {
+          created_at: string
+          creator_id: string
+          day_of_week: number
+          end_time: string
+          id: string
+          is_available: boolean
+          max_bookings_per_slot: number
+          slot_duration_minutes: number
+          start_time: string
+          timezone: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_available?: boolean
+          max_bookings_per_slot?: number
+          slot_duration_minutes?: number
+          start_time: string
+          timezone?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_available?: boolean
+          max_bookings_per_slot?: number
+          slot_duration_minutes?: number
+          start_time?: string
+          timezone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       creator_connections: {
         Row: {
           connected_at: string
@@ -234,6 +276,66 @@ export type Database = {
         }
         Relationships: []
       }
+      experience_bookings: {
+        Row: {
+          booking_date: string
+          booking_notes: string | null
+          created_at: string
+          creator_id: string
+          currency: string
+          experience_id: string
+          id: string
+          meeting_link: string | null
+          participants_count: number
+          payment_status: string
+          scheduled_for: string
+          special_requests: string | null
+          status: string
+          stripe_payment_id: string | null
+          total_price: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          booking_date: string
+          booking_notes?: string | null
+          created_at?: string
+          creator_id: string
+          currency?: string
+          experience_id: string
+          id?: string
+          meeting_link?: string | null
+          participants_count?: number
+          payment_status?: string
+          scheduled_for: string
+          special_requests?: string | null
+          status?: string
+          stripe_payment_id?: string | null
+          total_price: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          booking_date?: string
+          booking_notes?: string | null
+          created_at?: string
+          creator_id?: string
+          currency?: string
+          experience_id?: string
+          id?: string
+          meeting_link?: string | null
+          participants_count?: number
+          payment_status?: string
+          scheduled_for?: string
+          special_requests?: string | null
+          status?: string
+          stripe_payment_id?: string | null
+          total_price?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       guide_reviews: {
         Row: {
           comment: string | null
@@ -268,6 +370,72 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      live_experiences: {
+        Row: {
+          category: string
+          created_at: string
+          creator_id: string
+          currency: string
+          description: string
+          difficulty_level: string
+          duration_minutes: number
+          experience_type: string
+          id: string
+          image_url: string | null
+          included_items: string | null
+          is_active: boolean
+          language: string
+          location: string | null
+          max_participants: number
+          price_usd: number
+          requirements: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          creator_id: string
+          currency?: string
+          description: string
+          difficulty_level?: string
+          duration_minutes: number
+          experience_type?: string
+          id?: string
+          image_url?: string | null
+          included_items?: string | null
+          is_active?: boolean
+          language?: string
+          location?: string | null
+          max_participants?: number
+          price_usd: number
+          requirements?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          creator_id?: string
+          currency?: string
+          description?: string
+          difficulty_level?: string
+          duration_minutes?: number
+          experience_type?: string
+          id?: string
+          image_url?: string | null
+          included_items?: string | null
+          is_active?: boolean
+          language?: string
+          location?: string | null
+          max_participants?: number
+          price_usd?: number
+          requirements?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
