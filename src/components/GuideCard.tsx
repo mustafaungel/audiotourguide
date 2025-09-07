@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Star, Clock, MapPin, Users, Heart, Share2, Bookmark, Play } from "lucide-react";
+import { Star, Clock, MapPin, Users, Heart, Share2, Bookmark, Play, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useViralTracking } from "@/hooks/useViralTracking";
 import { useNavigate } from "react-router-dom";
@@ -22,6 +22,7 @@ interface GuideCardProps {
   creatorName?: string;
   creatorAvatar?: string;
   creatorId?: string;
+  isProcessingPayment?: boolean;
   onViewGuide?: () => void;
 }
 
@@ -40,6 +41,7 @@ export function GuideCard({
   creatorName = "Guide Creator",
   creatorAvatar,
   creatorId,
+  isProcessingPayment = false,
   onViewGuide
 }: GuideCardProps) {
   const { toast } = useToast();
@@ -219,13 +221,25 @@ export function GuideCard({
           <Button 
             variant="default" 
             className="w-full bg-gradient-tourism hover:shadow-tourism"
+            disabled={isProcessingPayment}
             onClick={(e) => {
               e.stopPropagation();
-              handleView();
+              if (!isProcessingPayment) {
+                handleView();
+              }
             }}
           >
-            <Play className="h-4 w-4 mr-2" />
-            Start Audio Tour
+            {isProcessingPayment ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <Play className="h-4 w-4 mr-2" />
+                Start Audio Tour
+              </>
+            )}
           </Button>
         </div>
       </CardContent>

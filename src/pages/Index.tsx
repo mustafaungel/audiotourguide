@@ -24,6 +24,7 @@ const Index = () => {
   const [guides, setGuides] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [userPurchases, setUserPurchases] = useState<string[]>([]);
+  const [processingPayment, setProcessingPayment] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -85,22 +86,50 @@ const Index = () => {
       return;
     }
 
+    if (processingPayment === guideId) {
+      return; // Prevent multiple clicks
+    }
+
+    setProcessingPayment(guideId);
+
     try {
+      console.log('Starting payment process for guide:', guideId);
+      
       const { data, error } = await supabase.functions.invoke('create-payment', {
         body: { guideId },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw error;
+      }
 
+      if (!data?.url) {
+        throw new Error('No payment URL received');
+      }
+
+      console.log('Payment URL received, opening checkout:', data.url);
+      
       // Open Stripe checkout in a new tab
       window.open(data.url, '_blank');
+      
+      toast({
+        title: "Payment Started",
+        description: "Redirecting to secure checkout...",
+      });
+      
     } catch (error: any) {
       console.error('Payment error:', error);
       toast({
         title: "Payment Error",
-        description: error.message || "Failed to initiate payment",
+        description: error.message || "Failed to initiate payment. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      // Clear processing state after a short delay
+      setTimeout(() => {
+        setProcessingPayment(null);
+      }, 2000);
     }
   };
 
@@ -243,6 +272,7 @@ const Index = () => {
                     imageUrl={guide.image_url}
                     totalPurchases={guide.total_purchases || 0}
                     creatorName="Guide Creator"
+                    isProcessingPayment={processingPayment === guide.id}
                     onViewGuide={() => {
                       if (isPurchased || guide.price_usd === 0) {
                         handlePlayGuide(guide);
