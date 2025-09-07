@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Wand2, Volume2, Image, FileText, CheckCircle, BarChart3, Users, Settings } from 'lucide-react';
+import { Loader2, Wand2, Volume2, Image, FileText, CheckCircle, BarChart3, Users, Settings, UserPlus } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -18,6 +18,8 @@ import { UserManagement } from '@/components/UserManagement';
 import { AdminCreatorManagement } from '@/components/AdminCreatorManagement';
 import { AdminAIGuideGenerator } from '@/components/AdminAIGuideGenerator';
 import { AudioUploader } from '@/components/AudioUploader';
+import { AdminUserCreation } from '@/components/AdminUserCreation';
+import { AdminCreatorCreation } from '@/components/AdminCreatorCreation';
 
 const AdminPanel = () => {
   const { user, userProfile } = useAuth();
@@ -232,7 +234,7 @@ const AdminPanel = () => {
         </div>
 
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid grid-cols-8 w-full max-w-5xl">
+          <TabsList className="grid grid-cols-10 w-full max-w-6xl">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Dashboard
@@ -248,6 +250,14 @@ const AdminPanel = () => {
             <TabsTrigger value="creators" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Creators
+            </TabsTrigger>
+            <TabsTrigger value="create-user" className="flex items-center gap-2">
+              <UserPlus className="h-4 w-4" />
+              Create User
+            </TabsTrigger>
+            <TabsTrigger value="create-creator" className="flex items-center gap-2">
+              <UserPlus className="h-4 w-4" />
+              Create Creator
             </TabsTrigger>
             <TabsTrigger value="ai-guides" className="flex items-center gap-2">
               <Wand2 className="h-4 w-4" />
@@ -281,6 +291,14 @@ const AdminPanel = () => {
 
           <TabsContent value="creators">
             <AdminCreatorManagement />
+          </TabsContent>
+
+          <TabsContent value="create-user">
+            <AdminUserCreation />
+          </TabsContent>
+
+          <TabsContent value="create-creator">
+            <AdminCreatorCreation />
           </TabsContent>
 
           <TabsContent value="ai-guides">
