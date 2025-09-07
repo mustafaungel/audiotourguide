@@ -138,6 +138,14 @@ const GuideDetail = () => {
     creator: realGuideData.creator || {}
   } : null;
 
+  console.log('Guide data state:', {
+    isLoading,
+    error,
+    realGuideData: !!realGuideData,
+    guide: !!guide,
+    guideTitle: guide?.title
+  });
+
   const handlePurchase = () => {
     if (!user) {
       showToast({
@@ -489,7 +497,7 @@ const GuideDetail = () => {
               </TabsContent>
               
               <TabsContent value="reviews" className="space-y-4">
-                {reviews.map((review) => (
+                {(reviews || []).map((review) => (
                   <Card key={review.id} className="p-4">
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-2">
@@ -499,7 +507,7 @@ const GuideDetail = () => {
                         )}
                       </div>
                       <div className="flex items-center gap-1">
-                        {Array.from({length: review.rating}).map((_, i) => (
+                        {Array.from({length: review.rating || 0}).map((_, i) => (
                           <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                         ))}
                       </div>
@@ -660,7 +668,7 @@ const GuideDetail = () => {
                 <CardTitle>Related Guides</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {relatedGuides.map((relatedGuide) => (
+                {(relatedGuides || []).map((relatedGuide) => (
                   <div key={relatedGuide.id} className="flex gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
                     <img 
                       src={relatedGuide.image} 
