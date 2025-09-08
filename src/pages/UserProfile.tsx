@@ -7,7 +7,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MapPin, Star, Calendar, Heart, BookOpen, Award } from 'lucide-react';
-import { TierBadge } from '@/components/TierBadge';
 import { supabase } from '@/integrations/supabase/client';
 
 interface UserProfile {

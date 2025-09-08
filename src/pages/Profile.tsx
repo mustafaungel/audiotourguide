@@ -1,8 +1,6 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigation } from '@/components/Navigation';
-import { EnhancedCreatorVerificationForm } from '@/components/EnhancedCreatorVerificationForm';
-import { CreatorPrivacySettings } from '@/components/CreatorPrivacySettings';
 import { EnhancedProfile } from '@/components/EnhancedProfile';
 
 const Profile = () => {
@@ -28,15 +26,6 @@ const Profile = () => {
         <div className="max-w-6xl mx-auto space-y-8">
           <EnhancedProfile showAdminFeatures={userProfile?.role === 'admin'} />
 
-          {/* Creator Verification Section */}
-          {userProfile?.role === 'traveler' && (
-            <EnhancedCreatorVerificationForm userProfile={userProfile} />
-          )}
-
-          {/* Creator Privacy Settings */}
-          {userProfile?.role === 'content_creator' && (
-            <CreatorPrivacySettings />
-          )}
         </div>
       </div>
     </div>

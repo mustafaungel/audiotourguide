@@ -3,11 +3,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { TierBadge } from '@/components/TierBadge';
 import { VerificationBadge } from '@/components/VerificationBadge';
 import { LanguagePreferences } from '@/components/LanguagePreferences';
-import { TextareaWithCounter } from '@/components/ui/character-counter';
 import { 
   User, 
   Mail, 
@@ -16,12 +13,9 @@ import {
   Star, 
   MapPin, 
   Languages, 
-  Award, 
-  Globe, 
-  Users,
+  Globe,
   TrendingUp,
-  FileText,
-  DollarSign
+  FileText
 } from 'lucide-react';
 
 interface EnhancedProfileProps {
@@ -54,13 +48,6 @@ export const EnhancedProfile: React.FC<EnhancedProfileProps> = ({
             Admin
           </Badge>
         );
-      case 'content_creator':
-        return (
-          <Badge className="bg-tourism-warm/10 text-tourism-warm border-tourism-warm/20">
-            <Star className="w-3 h-3 mr-1" />
-            Content Creator
-          </Badge>
-        );
       default:
         return (
           <Badge variant="outline">
@@ -73,7 +60,6 @@ export const EnhancedProfile: React.FC<EnhancedProfileProps> = ({
 
   const renderAdminProfile = () => (
     <div className="space-y-6">
-      {/* Admin Overview */}
       <Card className="bg-gradient-card border-tourism-warm/20">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -83,14 +69,10 @@ export const EnhancedProfile: React.FC<EnhancedProfileProps> = ({
           <CardDescription>System administration and platform oversight</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-background/50 p-4 rounded-lg border">
               <div className="text-2xl font-bold text-tourism-warm">1,247</div>
               <div className="text-sm text-muted-foreground">Total Users</div>
-            </div>
-            <div className="bg-background/50 p-4 rounded-lg border">
-              <div className="text-2xl font-bold text-accent">89</div>
-              <div className="text-sm text-muted-foreground">Active Creators</div>
             </div>
             <div className="bg-background/50 p-4 rounded-lg border">
               <div className="text-2xl font-bold text-tourism-earth">342</div>
@@ -103,120 +85,11 @@ export const EnhancedProfile: React.FC<EnhancedProfileProps> = ({
           </div>
         </CardContent>
       </Card>
-
-      {/* Admin Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Administrative Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button variant="outline" className="h-auto p-4 flex-col gap-2">
-              <Users className="w-6 h-6" />
-              <span>Manage Users</span>
-            </Button>
-            <Button variant="outline" className="h-auto p-4 flex-col gap-2">
-              <FileText className="w-6 h-6" />
-              <span>Content Moderation</span>
-            </Button>
-            <Button variant="outline" className="h-auto p-4 flex-col gap-2">
-              <TrendingUp className="w-6 h-6" />
-              <span>Analytics</span>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  const renderCreatorProfile = () => (
-    <div className="space-y-6">
-      {/* Creator Stats */}
-      <Card className="bg-gradient-card border-tourism-warm/20">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Star className="w-5 h-5 text-tourism-warm" />
-            Creator Performance
-          </CardTitle>
-          <CardDescription>Your content creation statistics and achievements</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-background/50 p-4 rounded-lg border">
-              <div className="text-2xl font-bold text-tourism-warm">12</div>
-              <div className="text-sm text-muted-foreground">Published Guides</div>
-            </div>
-            <div className="bg-background/50 p-4 rounded-lg border">
-              <div className="text-2xl font-bold text-accent">4.8</div>
-              <div className="text-sm text-muted-foreground">Average Rating</div>
-            </div>
-            <div className="bg-background/50 p-4 rounded-lg border">
-              <div className="text-2xl font-bold text-tourism-earth">2,341</div>
-              <div className="text-sm text-muted-foreground">Total Downloads</div>
-            </div>
-            <div className="bg-background/50 p-4 rounded-lg border">
-              <div className="text-2xl font-bold text-tourism-sunset">$1,240</div>
-              <div className="text-sm text-muted-foreground">Monthly Revenue</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Tier Progress */}
-      {userProfile.current_tier && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Award className="w-5 h-5" />
-              Creator Tier Progress
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <TierBadge tier={userProfile.current_tier} size="lg" showIcon />
-              <div className="text-right">
-                <div className="text-sm text-muted-foreground">Tier Points</div>
-                <div className="text-xl font-bold">{userProfile.tier_points || 0}</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Creator Expertise */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Professional Information</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {userProfile.experience_years && (
-            <div className="flex items-center gap-2">
-              <Award className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm">{userProfile.experience_years} years of experience</span>
-            </div>
-          )}
-          
-          {userProfile.license_type && (
-            <div className="flex items-center gap-2">
-              <FileText className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm">{userProfile.license_type} - {userProfile.license_country}</span>
-            </div>
-          )}
-
-          {userProfile.guide_country && (
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm">Licensed guide in {userProfile.guide_country}</span>
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 
   const renderTravelerProfile = () => (
     <div className="space-y-6">
-      {/* Travel Stats */}
       <Card className="bg-gradient-card border-accent/20">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -243,7 +116,6 @@ export const EnhancedProfile: React.FC<EnhancedProfileProps> = ({
         </CardContent>
       </Card>
 
-      {/* Language Preferences */}
       <LanguagePreferences />
     </div>
   );
@@ -273,9 +145,6 @@ export const EnhancedProfile: React.FC<EnhancedProfileProps> = ({
                           userProfile?.blue_tick_verified ? 'blue_tick' : 'blue_tick'} 
                     size="sm"
                   />
-                )}
-                {userProfile?.current_tier && (
-                  <TierBadge tier={userProfile.current_tier} size="sm" showIcon />
                 )}
               </div>
               
@@ -334,25 +203,6 @@ export const EnhancedProfile: React.FC<EnhancedProfileProps> = ({
                   </div>
                 </div>
               )}
-
-              {/* Social Profiles */}
-              {userProfile?.social_profiles && Object.keys(userProfile.social_profiles).length > 0 && (
-                <div>
-                  <div className="text-sm font-medium mb-2 flex items-center gap-1">
-                    <Globe className="w-4 h-4" />
-                    Social Profiles
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {Object.entries(userProfile.social_profiles as Record<string, string>).map(([platform, url]) => (
-                      <Button key={platform} variant="outline" size="sm" asChild>
-                        <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs">
-                          {platform.charAt(0).toUpperCase() + platform.slice(1)}
-                        </a>
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </CardContent>
@@ -360,7 +210,6 @@ export const EnhancedProfile: React.FC<EnhancedProfileProps> = ({
 
       {/* Role-Specific Content */}
       {userProfile?.role === 'admin' && renderAdminProfile()}
-      {userProfile?.role === 'content_creator' && renderCreatorProfile()}
       {userProfile?.role === 'traveler' && renderTravelerProfile()}
     </div>
   );

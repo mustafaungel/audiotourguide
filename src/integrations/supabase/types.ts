@@ -57,7 +57,6 @@ export type Database = {
           best_time: string | null
           category: string
           created_at: string
-          creator_id: string
           currency: string
           description: string
           destination_id: string | null
@@ -88,7 +87,6 @@ export type Database = {
           best_time?: string | null
           category: string
           created_at?: string
-          creator_id: string
           currency?: string
           description: string
           destination_id?: string | null
@@ -119,7 +117,6 @@ export type Database = {
           best_time?: string | null
           category?: string
           created_at?: string
-          creator_id?: string
           currency?: string
           description?: string
           destination_id?: string | null
@@ -152,356 +149,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      creator_availability: {
-        Row: {
-          created_at: string
-          creator_id: string
-          day_of_week: number
-          end_time: string
-          id: string
-          is_available: boolean
-          max_bookings_per_slot: number
-          slot_duration_minutes: number
-          start_time: string
-          timezone: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          creator_id: string
-          day_of_week: number
-          end_time: string
-          id?: string
-          is_available?: boolean
-          max_bookings_per_slot?: number
-          slot_duration_minutes?: number
-          start_time: string
-          timezone?: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          creator_id?: string
-          day_of_week?: number
-          end_time?: string
-          id?: string
-          is_available?: boolean
-          max_bookings_per_slot?: number
-          slot_duration_minutes?: number
-          start_time?: string
-          timezone?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      creator_connections: {
-        Row: {
-          connected_at: string
-          connection_source: string
-          creator_id: string
-          guide_id: string | null
-          id: string
-          is_active: boolean
-          user_id: string
-        }
-        Insert: {
-          connected_at?: string
-          connection_source?: string
-          creator_id: string
-          guide_id?: string | null
-          id?: string
-          is_active?: boolean
-          user_id: string
-        }
-        Update: {
-          connected_at?: string
-          connection_source?: string
-          creator_id?: string
-          guide_id?: string | null
-          id?: string
-          is_active?: boolean
-          user_id?: string
-        }
-        Relationships: []
-      }
-      creator_earnings: {
-        Row: {
-          amount: number
-          created_at: string
-          creator_id: string
-          currency: string
-          earning_type: string
-          guide_id: string
-          id: string
-          processed_at: string | null
-        }
-        Insert: {
-          amount?: number
-          created_at?: string
-          creator_id: string
-          currency?: string
-          earning_type: string
-          guide_id: string
-          id?: string
-          processed_at?: string | null
-        }
-        Update: {
-          amount?: number
-          created_at?: string
-          creator_id?: string
-          currency?: string
-          earning_type?: string
-          guide_id?: string
-          id?: string
-          processed_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "creator_earnings_guide_id_fkey"
-            columns: ["guide_id"]
-            isOneToOne: false
-            referencedRelation: "audio_guides"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      creator_messages: {
-        Row: {
-          created_at: string
-          id: string
-          is_active: boolean
-          message_text: string
-          message_type: string
-          read_at: string | null
-          recipient_id: string
-          related_guide_id: string | null
-          sender_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          message_text: string
-          message_type?: string
-          read_at?: string | null
-          recipient_id: string
-          related_guide_id?: string | null
-          sender_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          message_text?: string
-          message_type?: string
-          read_at?: string | null
-          recipient_id?: string
-          related_guide_id?: string | null
-          sender_id?: string
-        }
-        Relationships: []
-      }
-      creator_platform_ratings: {
-        Row: {
-          created_at: string
-          creator_id: string
-          evidence_data: Json | null
-          id: string
-          rated_by: string
-          rating: number
-          rating_category: string
-          rating_notes: string | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          creator_id: string
-          evidence_data?: Json | null
-          id?: string
-          rated_by: string
-          rating: number
-          rating_category: string
-          rating_notes?: string | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          creator_id?: string
-          evidence_data?: Json | null
-          id?: string
-          rated_by?: string
-          rating?: number
-          rating_category?: string
-          rating_notes?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      creator_service_ratings: {
-        Row: {
-          created_at: string
-          creator_id: string
-          experience_id: string | null
-          guide_id: string | null
-          id: string
-          is_verified_purchase: boolean
-          rating: number
-          review_text: string | null
-          service_category: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          creator_id: string
-          experience_id?: string | null
-          guide_id?: string | null
-          id?: string
-          is_verified_purchase?: boolean
-          rating: number
-          review_text?: string | null
-          service_category?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          creator_id?: string
-          experience_id?: string | null
-          guide_id?: string | null
-          id?: string
-          is_verified_purchase?: boolean
-          rating?: number
-          review_text?: string | null
-          service_category?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      creator_stories: {
-        Row: {
-          background_color: string | null
-          content_text: string | null
-          content_type: string
-          content_url: string | null
-          created_at: string
-          creator_id: string
-          duration_seconds: number | null
-          expires_at: string
-          id: string
-          is_active: boolean
-          metadata: Json | null
-          updated_at: string
-        }
-        Insert: {
-          background_color?: string | null
-          content_text?: string | null
-          content_type?: string
-          content_url?: string | null
-          created_at?: string
-          creator_id: string
-          duration_seconds?: number | null
-          expires_at?: string
-          id?: string
-          is_active?: boolean
-          metadata?: Json | null
-          updated_at?: string
-        }
-        Update: {
-          background_color?: string | null
-          content_text?: string | null
-          content_type?: string
-          content_url?: string | null
-          created_at?: string
-          creator_id?: string
-          duration_seconds?: number | null
-          expires_at?: string
-          id?: string
-          is_active?: boolean
-          metadata?: Json | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      creator_tiers: {
-        Row: {
-          benefits: Json | null
-          created_at: string
-          id: string
-          required_points: number
-          tier_color: string
-          tier_description: string | null
-          tier_level: number
-          tier_name: string
-        }
-        Insert: {
-          benefits?: Json | null
-          created_at?: string
-          id?: string
-          required_points: number
-          tier_color?: string
-          tier_description?: string | null
-          tier_level: number
-          tier_name: string
-        }
-        Update: {
-          benefits?: Json | null
-          created_at?: string
-          id?: string
-          required_points?: number
-          tier_color?: string
-          tier_description?: string | null
-          tier_level?: number
-          tier_name?: string
-        }
-        Relationships: []
-      }
-      creator_updates: {
-        Row: {
-          content: string
-          created_at: string
-          creator_id: string
-          id: string
-          image_url: string | null
-          is_pinned: boolean | null
-          metadata: Json | null
-          related_experience_id: string | null
-          related_guide_id: string | null
-          title: string | null
-          update_type: string
-          updated_at: string
-        }
-        Insert: {
-          content: string
-          created_at?: string
-          creator_id: string
-          id?: string
-          image_url?: string | null
-          is_pinned?: boolean | null
-          metadata?: Json | null
-          related_experience_id?: string | null
-          related_guide_id?: string | null
-          title?: string | null
-          update_type?: string
-          updated_at?: string
-        }
-        Update: {
-          content?: string
-          created_at?: string
-          creator_id?: string
-          id?: string
-          image_url?: string | null
-          is_pinned?: boolean | null
-          metadata?: Json | null
-          related_experience_id?: string | null
-          related_guide_id?: string | null
-          title?: string | null
-          update_type?: string
-          updated_at?: string
-        }
-        Relationships: []
       }
       destinations: {
         Row: {
@@ -569,66 +216,6 @@ export type Database = {
           popular_attractions?: string[] | null
           suggested_by?: string | null
           updated_at?: string
-        }
-        Relationships: []
-      }
-      experience_bookings: {
-        Row: {
-          booking_date: string
-          booking_notes: string | null
-          created_at: string
-          creator_id: string
-          currency: string
-          experience_id: string
-          id: string
-          meeting_link: string | null
-          participants_count: number
-          payment_status: string
-          scheduled_for: string
-          special_requests: string | null
-          status: string
-          stripe_payment_id: string | null
-          total_price: number
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          booking_date: string
-          booking_notes?: string | null
-          created_at?: string
-          creator_id: string
-          currency?: string
-          experience_id: string
-          id?: string
-          meeting_link?: string | null
-          participants_count?: number
-          payment_status?: string
-          scheduled_for: string
-          special_requests?: string | null
-          status?: string
-          stripe_payment_id?: string | null
-          total_price: number
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          booking_date?: string
-          booking_notes?: string | null
-          created_at?: string
-          creator_id?: string
-          currency?: string
-          experience_id?: string
-          id?: string
-          meeting_link?: string | null
-          participants_count?: number
-          payment_status?: string
-          scheduled_for?: string
-          special_requests?: string | null
-          status?: string
-          stripe_payment_id?: string | null
-          total_price?: number
-          updated_at?: string
-          user_id?: string
         }
         Relationships: []
       }
@@ -748,72 +335,6 @@ export type Database = {
         }
         Relationships: []
       }
-      live_experiences: {
-        Row: {
-          category: string
-          created_at: string
-          creator_id: string
-          currency: string
-          description: string
-          difficulty_level: string
-          duration_minutes: number
-          experience_type: string
-          id: string
-          image_url: string | null
-          included_items: string | null
-          is_active: boolean
-          language: string
-          location: string | null
-          max_participants: number
-          price_usd: number
-          requirements: string | null
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          category: string
-          created_at?: string
-          creator_id: string
-          currency?: string
-          description: string
-          difficulty_level?: string
-          duration_minutes: number
-          experience_type?: string
-          id?: string
-          image_url?: string | null
-          included_items?: string | null
-          is_active?: boolean
-          language?: string
-          location?: string | null
-          max_participants?: number
-          price_usd: number
-          requirements?: string | null
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          category?: string
-          created_at?: string
-          creator_id?: string
-          currency?: string
-          description?: string
-          difficulty_level?: string
-          duration_minutes?: number
-          experience_type?: string
-          id?: string
-          image_url?: string | null
-          included_items?: string | null
-          is_active?: boolean
-          language?: string
-          location?: string | null
-          max_participants?: number
-          price_usd?: number
-          requirements?: string | null
-          title?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       profile_privacy_settings: {
         Row: {
           allow_public_messaging: boolean
@@ -862,11 +383,7 @@ export type Database = {
           bio: string | null
           blue_tick_verified: boolean | null
           certifications: Json | null
-          combined_rating: number | null
           created_at: string
-          creator_badge: boolean | null
-          creator_type: string | null
-          current_tier: string | null
           email: string
           experience_years: number | null
           full_name: string | null
@@ -876,16 +393,10 @@ export type Database = {
           license_country: string | null
           license_type: string | null
           local_guide_verified: boolean | null
-          platform_rating: number | null
-          platform_rating_count: number | null
           rejection_reason: string | null
           role: Database["public"]["Enums"]["user_role"]
-          service_rating: number | null
-          service_rating_count: number | null
           social_profiles: Json | null
           specialties: string[] | null
-          tier_points: number | null
-          tier_updated_at: string | null
           updated_at: string
           user_id: string
           verification_badge_type: string | null
@@ -898,11 +409,7 @@ export type Database = {
           bio?: string | null
           blue_tick_verified?: boolean | null
           certifications?: Json | null
-          combined_rating?: number | null
           created_at?: string
-          creator_badge?: boolean | null
-          creator_type?: string | null
-          current_tier?: string | null
           email: string
           experience_years?: number | null
           full_name?: string | null
@@ -912,16 +419,10 @@ export type Database = {
           license_country?: string | null
           license_type?: string | null
           local_guide_verified?: boolean | null
-          platform_rating?: number | null
-          platform_rating_count?: number | null
           rejection_reason?: string | null
           role?: Database["public"]["Enums"]["user_role"]
-          service_rating?: number | null
-          service_rating_count?: number | null
           social_profiles?: Json | null
           specialties?: string[] | null
-          tier_points?: number | null
-          tier_updated_at?: string | null
           updated_at?: string
           user_id: string
           verification_badge_type?: string | null
@@ -934,11 +435,7 @@ export type Database = {
           bio?: string | null
           blue_tick_verified?: boolean | null
           certifications?: Json | null
-          combined_rating?: number | null
           created_at?: string
-          creator_badge?: boolean | null
-          creator_type?: string | null
-          current_tier?: string | null
           email?: string
           experience_years?: number | null
           full_name?: string | null
@@ -948,16 +445,10 @@ export type Database = {
           license_country?: string | null
           license_type?: string | null
           local_guide_verified?: boolean | null
-          platform_rating?: number | null
-          platform_rating_count?: number | null
           rejection_reason?: string | null
           role?: Database["public"]["Enums"]["user_role"]
-          service_rating?: number | null
-          service_rating_count?: number | null
           social_profiles?: Json | null
           specialties?: string[] | null
-          tier_points?: number | null
-          tier_updated_at?: string | null
           updated_at?: string
           user_id?: string
           verification_badge_type?: string | null
@@ -1006,81 +497,6 @@ export type Database = {
           success?: boolean | null
           user_agent?: string | null
           user_id?: string | null
-        }
-        Relationships: []
-      }
-      story_reactions: {
-        Row: {
-          created_at: string
-          id: string
-          reaction_type: string
-          story_id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          reaction_type?: string
-          story_id: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          reaction_type?: string
-          story_id?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      story_views: {
-        Row: {
-          id: string
-          story_id: string
-          viewed_at: string
-          viewer_id: string | null
-        }
-        Insert: {
-          id?: string
-          story_id: string
-          viewed_at?: string
-          viewer_id?: string | null
-        }
-        Update: {
-          id?: string
-          story_id?: string
-          viewed_at?: string
-          viewer_id?: string | null
-        }
-        Relationships: []
-      }
-      tier_history: {
-        Row: {
-          created_at: string
-          id: string
-          new_tier: string
-          points_earned: number | null
-          previous_tier: string | null
-          reason: string | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          new_tier: string
-          points_earned?: number | null
-          previous_tier?: string | null
-          reason?: string | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          new_tier?: string
-          points_earned?: number | null
-          previous_tier?: string | null
-          reason?: string | null
-          user_id?: string
         }
         Relationships: []
       }
@@ -1233,7 +649,6 @@ export type Database = {
         Row: {
           admin_notes: string | null
           created_at: string
-          creator_type: Database["public"]["Enums"]["creator_type"] | null
           document_status: Database["public"]["Enums"]["document_status"] | null
           experience_description: string | null
           full_name: string
@@ -1251,14 +666,10 @@ export type Database = {
           submitted_at: string
           updated_at: string
           user_id: string
-          verification_level:
-            | Database["public"]["Enums"]["verification_level"]
-            | null
         }
         Insert: {
           admin_notes?: string | null
           created_at?: string
-          creator_type?: Database["public"]["Enums"]["creator_type"] | null
           document_status?:
             | Database["public"]["Enums"]["document_status"]
             | null
@@ -1278,14 +689,10 @@ export type Database = {
           submitted_at?: string
           updated_at?: string
           user_id: string
-          verification_level?:
-            | Database["public"]["Enums"]["verification_level"]
-            | null
         }
         Update: {
           admin_notes?: string | null
           created_at?: string
-          creator_type?: Database["public"]["Enums"]["creator_type"] | null
           document_status?:
             | Database["public"]["Enums"]["document_status"]
             | null
@@ -1305,9 +712,6 @@ export type Database = {
           submitted_at?: string
           updated_at?: string
           user_id?: string
-          verification_level?:
-            | Database["public"]["Enums"]["verification_level"]
-            | null
         }
         Relationships: [
           {
@@ -1418,7 +822,6 @@ export type Database = {
         Returns: {
           admin_notes: string | null
           created_at: string
-          creator_type: Database["public"]["Enums"]["creator_type"] | null
           document_status: Database["public"]["Enums"]["document_status"] | null
           experience_description: string | null
           full_name: string
@@ -1436,9 +839,6 @@ export type Database = {
           submitted_at: string
           updated_at: string
           user_id: string
-          verification_level:
-            | Database["public"]["Enums"]["verification_level"]
-            | null
         }[]
       }
       approve_creator_verification: {

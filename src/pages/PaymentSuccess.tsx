@@ -7,8 +7,6 @@ import { CheckCircle, Download, Play, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { MeetYourCreatorModal } from '@/components/MeetYourCreatorModal';
-import { CreatorRecommendations } from '@/components/CreatorRecommendations';
 import { ShareLink } from '@/components/ShareLink';
 
 export default function PaymentSuccess() {

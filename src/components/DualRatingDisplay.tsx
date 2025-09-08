@@ -3,7 +3,7 @@ import { Star, Users, Award } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { ExperienceBracketBadge } from '@/components/ExperienceBracketBadge';
+import { SimpleRatingDisplay } from '@/components/SimpleRatingDisplay';
 
 interface DualRatingDisplayProps {
   serviceRating?: number;
@@ -101,19 +101,7 @@ export const DualRatingDisplay: React.FC<DualRatingDisplayProps> = ({
                     </div>
                     <div className="space-y-1">
                       <div className="flex items-center gap-1">
-                        {renderStars(platformRating)}
-                        <span className="text-sm font-bold ml-1">
-                          {platformRating > 0 ? platformRating.toFixed(1) : 'N/A'}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        {experienceYears > 0 && (
-                          <ExperienceBracketBadge 
-                            experienceYears={experienceYears} 
-                            variant="minimal"
-                            showTooltip={false}
-                          />
-                        )}
+                        <SimpleRatingDisplay rating={platformRating} />
                       </div>
                     </div>
                   </div>
@@ -162,17 +150,7 @@ export const DualRatingDisplay: React.FC<DualRatingDisplayProps> = ({
               <span className="text-sm text-muted-foreground">Platform Rating</span>
             </div>
             <div className="flex items-center gap-2">
-              {renderStars(platformRating)}
-              <span className="text-sm font-medium">
-                {platformRating > 0 ? platformRating.toFixed(1) : 'N/A'}
-              </span>
-              {experienceYears > 0 && (
-                <ExperienceBracketBadge 
-                  experienceYears={experienceYears} 
-                  variant="minimal"
-                  showTooltip={false}
-                />
-              )}
+              <SimpleRatingDisplay rating={platformRating} />
             </div>
           </div>
         </div>

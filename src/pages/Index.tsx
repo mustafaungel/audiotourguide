@@ -6,7 +6,7 @@ import { AudioPlayer } from '@/components/AudioPlayer';
 import { GuideCard } from '@/components/GuideCard';
 import { Navigation } from '@/components/Navigation';
 
-import { CreatorRecommendations } from '@/components/CreatorRecommendations';
+import { Button } from '@/components/ui/button';
 import { Button } from '@/components/ui/button';
 import { Headphones, Search, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';

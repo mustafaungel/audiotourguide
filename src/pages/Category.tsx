@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
 import { GuideCard } from '@/components/GuideCard';
-import { LiveExperienceCard } from '@/components/LiveExperienceCard';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -96,66 +95,12 @@ const Category = () => {
         console.error('Error fetching guides:', guidesError);
         setGuides([]);
       } else {
-        // Get creator info separately for each guide
-        const guidesWithCreators = await Promise.all(
-          (guidesData || []).map(async (guide) => {
-            if (guide.creator_id) {
-              const { data: creatorData } = await supabase
-                .from('profiles')
-                .select('user_id, full_name, avatar_url')
-                .eq('user_id', guide.creator_id)
-                .single();
-              
-              return {
-                ...guide,
-                creator: creatorData ? {
-                  id: creatorData.user_id,
-                  full_name: creatorData.full_name,
-                  avatar_url: creatorData.avatar_url
-                } : null
-              };
-            }
-            return { ...guide, creator: null };
-          })
-        );
-        setGuides(guidesWithCreators);
+        // Simplified guides without creator references
+        setGuides(guidesData || []);
       }
 
-      // Fetch experiences from Supabase
-      const { data: experiencesData, error: experiencesError } = await supabase
-        .from('live_experiences')
-        .select('*')
-        .eq('category', categoryType)
-        .eq('is_active', true);
-
-      if (experiencesError) {
-        console.error('Error fetching experiences:', experiencesError);
-        setExperiences([]);
-      } else {
-        // Get creator info separately for each experience
-        const experiencesWithCreators = await Promise.all(
-          (experiencesData || []).map(async (exp) => {
-            if (exp.creator_id) {
-              const { data: creatorData } = await supabase
-                .from('profiles')
-                .select('user_id, full_name, avatar_url')
-                .eq('user_id', exp.creator_id)
-                .single();
-              
-              return {
-                ...exp,
-                creator: creatorData ? {
-                  id: creatorData.user_id,
-                  full_name: creatorData.full_name,
-                  avatar_url: creatorData.avatar_url
-                } : null
-              };
-            }
-            return { ...exp, creator: null };
-          })
-        );
-        setExperiences(experiencesWithCreators);
-      }
+      // Set empty experiences array for now
+      setExperiences([]);
     } catch (error) {
       console.error('Error fetching category content:', error);
       toast({
@@ -273,18 +218,17 @@ const Category = () => {
           </div>
         ) : (
           <Tabs defaultValue="all" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="all">All ({guides.length + experiences.length})</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="all">All ({guides.length})</TabsTrigger>
               <TabsTrigger value="guides">Audio Guides ({guides.length})</TabsTrigger>
-              <TabsTrigger value="experiences">Live Experiences ({experiences.length})</TabsTrigger>
             </TabsList>
             
             <TabsContent value="all" className="mt-6">
-              {guides.length === 0 && experiences.length === 0 ? (
+              {guides.length === 0 ? (
                 <div className="text-center py-12">
                   <h3 className="text-xl font-semibold mb-2">No Content Available</h3>
                   <p className="text-muted-foreground mb-4">
-                    There are no guides or experiences in this category yet.
+                    There are no audio guides in this category yet.
                   </p>
                   <Button onClick={() => navigate('/')} variant="outline">
                     <ArrowLeft className="h-4 w-4 mr-2" />
@@ -306,14 +250,8 @@ const Category = () => {
                       category={guide.category}
                       difficulty={guide.difficulty}
                       imageUrl={guide.image_url}
-                      creatorId={guide.creator?.id}
-                      creatorName={guide.creator?.full_name}
-                      creatorAvatar={guide.creator?.avatar_url}
                       totalPurchases={guide.total_purchases}
                     />
-                  ))}
-                  {experiences.map((experience) => (
-                    <LiveExperienceCard key={experience.id} experience={experience} />
                   ))}
                 </div>
               )}
@@ -342,28 +280,8 @@ const Category = () => {
                       category={guide.category}
                       difficulty={guide.difficulty}
                       imageUrl={guide.image_url}
-                      creatorId={guide.creator?.id}
-                      creatorName={guide.creator?.full_name}
-                      creatorAvatar={guide.creator?.avatar_url}
                       totalPurchases={guide.total_purchases}
                     />
-                  ))}
-                </div>
-              )}
-            </TabsContent>
-            
-            <TabsContent value="experiences" className="mt-6">
-              {experiences.length === 0 ? (
-                <div className="text-center py-12">
-                  <h3 className="text-xl font-semibold mb-2">No Live Experiences</h3>
-                  <p className="text-muted-foreground">
-                    No live experiences are available in this category yet.
-                  </p>
-                </div>
-              ) : (
-                <div className={`grid gap-6 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
-                  {experiences.map((experience) => (
-                    <LiveExperienceCard key={experience.id} experience={experience} />
                   ))}
                 </div>
               )}

@@ -16,10 +16,8 @@ import QRCode from 'qrcode';
 import { AdminDashboard } from '@/components/AdminDashboard';
 import { GuideManagement } from '@/components/GuideManagement';
 import { UserManagement } from '@/components/UserManagement';
-import { AdminCreatorManagement } from '@/components/AdminCreatorManagement';
 import { AdminAnalytics } from '@/components/AdminAnalytics';
 import { AdminUserCreation } from '@/components/AdminUserCreation';
-import { AdminCreatorCreation } from '@/components/AdminCreatorCreation';
 import AdminHomepageStats from '@/components/AdminHomepageStats';
 import { AdminMobileNavigation } from '@/components/AdminMobileNavigation';
 import { CountrySelector } from '@/components/CountrySelector';
@@ -280,10 +278,6 @@ const AdminPanel = () => {
               <Users className="h-3 w-3 lg:h-4 lg:w-4" />
               <span className="hidden lg:inline">Users</span>
             </TabsTrigger>
-            <TabsTrigger value="creator-management" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
-              <UserCheck className="h-3 w-3 lg:h-4 lg:w-4" />
-              <span className="hidden lg:inline">Creators</span>
-            </TabsTrigger>
             <TabsTrigger value="content-management" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
               <FileText className="h-3 w-3 lg:h-4 lg:w-4" />
               <span className="hidden lg:inline">Content</span>
@@ -334,36 +328,6 @@ const AdminPanel = () => {
                   </CardHeader>
                   <CardContent>
                     <AdminUserCreation />
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="creator-management">
-            <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <h2 className="text-xl sm:text-2xl font-bold">Creator Management</h2>
-                <Button onClick={() => document.getElementById('create-creator-tab')?.click()}>
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Create New Creator
-                </Button>
-              </div>
-              <div className="grid gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Existing Creators</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <AdminCreatorManagement />
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Create New Creator</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <AdminCreatorCreation />
                   </CardContent>
                 </Card>
               </div>
