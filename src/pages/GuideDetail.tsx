@@ -275,7 +275,8 @@ const GuideDetail = () => {
           title, 
           price_usd, 
           rating, 
-          image_url, 
+          image_url,
+          image_urls,
           location
         `)
         .neq('id', currentGuideId)
@@ -295,7 +296,7 @@ const GuideDetail = () => {
         creator: 'Anonymous Creator',
         rating: guide.rating || 0,
         price: Math.floor((guide.price_usd || 0) / 100),
-        image: guide.image_url?.startsWith('data:image') ? guide.image_url : guide.image_url || '/hero-audio-guide.jpg'
+        image: (guide.image_urls?.[0] || guide.image_url)?.startsWith('data:image') ? (guide.image_urls?.[0] || guide.image_url) : (guide.image_urls?.[0] || guide.image_url) || '/hero-audio-guide.jpg'
       })) || [];
 
       setRelatedGuides(transformedRelated);

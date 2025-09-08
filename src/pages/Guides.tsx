@@ -418,7 +418,7 @@ const Guides: React.FC = () => {
                 title={guide.title}
                 description={guide.description}
                 location={guide.location}
-                price={guide.price_usd / 100}
+                price={guide.price_usd}
                 rating={guide.rating}
                 duration={guide.duration}
                 category={guide.category}

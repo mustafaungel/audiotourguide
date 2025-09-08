@@ -26,6 +26,7 @@ interface Guide {
   duration: number;
   total_purchases: number;
   image_url?: string;
+  image_urls?: string[];
   description?: string;
   difficulty_level?: string;
   creator_name?: string;
@@ -309,7 +310,7 @@ const SearchResults = () => {
                   duration={guide.duration}
                   category={guide.category}
                   difficulty={guide.difficulty_level || 'intermediate'}
-                  imageUrl={guide.image_url}
+                  imageUrl={guide.image_urls?.[0] || guide.image_url}
                   totalPurchases={guide.total_purchases}
                   creatorName={guide.creator_name}
                   creatorAvatar={guide.creator_avatar}
