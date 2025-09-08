@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { AudioPreviewPlayer } from "@/components/AudioPreviewPlayer";
+import { ReviewsSection } from "@/components/ReviewsSection";
 import { EmbeddedCheckout } from "@/components/EmbeddedCheckout";
 import { StripeConfigHelper } from "@/components/StripeConfigHelper";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,91 +46,66 @@ const guideData = {
       guides: 12,
       verified: true
     },
-    chapters: [{
-      title: "Welcome to Machu Picchu",
-      duration: 8,
-      timestamp: 0
-    }, {
-      title: "The Discovery Story",
-      duration: 12,
-      timestamp: 480
-    }, {
-      title: "Inca Engineering Marvels",
-      duration: 15,
-      timestamp: 1200
-    }, {
-      title: "Sacred Spaces & Temples",
-      duration: 18,
-      timestamp: 2100
-    }, {
-      title: "Daily Life in the Citadel",
-      duration: 14,
-      timestamp: 3180
-    }, {
-      title: "Mysteries Yet Unsolved",
-      duration: 16,
-      timestamp: 4020
-    }, {
-      title: "Conservation Efforts",
-      duration: 11,
-      timestamp: 4980
-    }, {
-      title: "Your Journey Continues",
-      duration: 6,
-      timestamp: 5640
-    }],
-    highlights: ["Explore the Intihuatana Stone", "Discover the Temple of the Sun", "Learn about Inca astronomy", "Understand the agricultural terraces"],
-    included: ["2-hour premium audio guide", "Interactive map with GPS", "Downloadable transcript", "Photo spots recommendations"]
+    chapters: [
+      { title: "Welcome to Machu Picchu", duration: 8, timestamp: 0 },
+      { title: "The Discovery Story", duration: 12, timestamp: 480 },
+      { title: "Inca Engineering Marvels", duration: 15, timestamp: 1200 },
+      { title: "Sacred Spaces & Temples", duration: 18, timestamp: 2100 },
+      { title: "Daily Life in the Citadel", duration: 14, timestamp: 3180 },
+      { title: "Mysteries Yet Unsolved", duration: 16, timestamp: 4020 },
+      { title: "Conservation Efforts", duration: 11, timestamp: 4980 },
+      { title: "Your Journey Continues", duration: 6, timestamp: 5640 }
+    ],
+    highlights: [
+      "Explore the Intihuatana Stone",
+      "Discover the Temple of the Sun", 
+      "Learn about Inca astronomy",
+      "Understand the agricultural terraces"
+    ],
+    included: [
+      "2-hour premium audio guide",
+      "Interactive map with GPS",
+      "Downloadable transcript",
+      "Photo spots recommendations"
+    ]
   }
 };
-const reviews = [{
-  id: 1,
-  user: "Sarah M.",
-  rating: 5,
-  comment: "Absolutely incredible! Dr. Santos brought Machu Picchu to life with fascinating historical details and perfect pacing.",
-  date: "2 days ago",
-  verified: true
-}, {
-  id: 2,
-  user: "Michael R.",
-  rating: 5,
-  comment: "Best audio guide I've ever used. The storytelling made me feel like I was walking with the Incas themselves.",
-  date: "1 week ago",
-  verified: true
-}, {
-  id: 3,
-  user: "Ana L.",
-  rating: 4,
-  comment: "Great content and very informative. Would love more guides from this creator!",
-  date: "2 weeks ago",
-  verified: false
-}];
-const relatedGuides = [{
-  id: "2",
-  title: "Sacred Valley Explorer",
-  creator: "Carlos Mendoza",
-  rating: 4.7,
-  price: 8,
-  image: "/src/assets/kyoto-temple.jpg"
-}, {
-  id: "3",
-  title: "Cusco: Heart of the Inca Empire",
-  creator: "Dr. Maria Santos",
-  rating: 4.8,
-  price: 10,
-  image: "/src/assets/cappadocia-goreme.jpg"
-}];
+
+const reviews = [
+  {
+    id: 1,
+    user: "Sarah M.",
+    rating: 5,
+    comment: "Absolutely incredible! Dr. Santos brought Machu Picchu to life with fascinating historical details and perfect pacing.",
+    date: "2 days ago",
+    verified: true
+  },
+  {
+    id: 2, 
+    user: "Michael R.",
+    rating: 5,
+    comment: "Best audio guide I've ever used. The storytelling made me feel like I was walking with the Incas themselves.",
+    date: "1 week ago",
+    verified: true
+  },
+  {
+    id: 3,
+    user: "Ana L.",
+    rating: 4,
+    comment: "Great content and very informative. Would love more guides from this creator!",
+    date: "2 weeks ago", 
+    verified: false
+  }
+];
+
+// Related guides will be fetched dynamically
+
 const GuideDetail = () => {
-  const {
-    guideId
-  } = useParams();
+  console.log('🔧 GuideDetail component loading');
+  const { guideId } = useParams();
   const navigate = useNavigate();
-  const {
-    user
-  } = useAuth();
-  const {
-    trackEngagement
-  } = useViralTracking();
+  const { user } = useAuth();
+  const { trackEngagement } = useViralTracking();
   const [searchParams] = useSearchParams();
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [playingGuide, setPlayingGuide] = useState(false);
@@ -141,10 +117,8 @@ const GuideDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [realGuideData, setRealGuideData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
-  const [previewingChapter, setPreviewingChapter] = useState<any>(null);
-  const {
-    toast: showToast
-  } = useToast();
+  const [relatedGuides, setRelatedGuides] = useState<any[]>([]);
+  const { toast: showToast } = useToast();
 
   // Use real guide data if available, with fallbacks for essential properties
   const guide = realGuideData ? {
@@ -155,9 +129,12 @@ const GuideDetail = () => {
     included: realGuideData.included || realGuideData.features || [],
     creator: realGuideData.creator || {}
   } : null;
+
+
   const handlePurchase = () => {
     setShowPaymentModal(true);
   };
+
   const copyToClipboard = async (text: string, type: string) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -166,19 +143,20 @@ const GuideDetail = () => {
       toast.error(`Failed to copy ${type.toLowerCase()}`);
     }
   };
+
   const handlePaymentSuccess = (sessionId?: string) => {
     console.log('🔧 [SUCCESS] Payment success handler called with sessionId:', sessionId);
     setIsPurchased(true);
     setShowPaymentModal(false);
     setPaymentSuccess(true);
     setShowQRCode(true); // Auto-open QR code
-
+    
     checkPurchaseStatus();
     fetchGuideDetails(); // Refresh guide data
-
+    
     showToast({
       title: "Payment Successful!",
-      description: "Your audio guide has been purchased. Check your email for confirmation."
+      description: "Your audio guide has been purchased. Check your email for confirmation.",
     });
 
     // Clean up URL parameters if coming from redirect
@@ -187,19 +165,25 @@ const GuideDetail = () => {
       window.history.replaceState({}, '', newUrl);
     }
   };
+
   const fetchGuideDetails = async () => {
     if (!guideId) return;
+    
     setIsLoading(true);
+    
     try {
       // First, get the guide data
-      const {
-        data: guideData,
-        error: guideError
-      } = await supabase.from('audio_guides').select('*').eq('id', guideId).maybeSingle();
+      const { data: guideData, error: guideError } = await supabase
+        .from('audio_guides')
+        .select('*')
+        .eq('id', guideId)
+        .maybeSingle();
+
       if (guideError) {
         console.error('Error fetching guide:', guideError);
         throw guideError;
       }
+
       if (!guideData) {
         console.error('Guide not found with ID:', guideId);
         setError('Guide not found');
@@ -207,9 +191,11 @@ const GuideDetail = () => {
       }
 
       // Check if user is admin or creator
-      const {
-        data: profile
-      } = await supabase.from('profiles').select('role').eq('user_id', user?.id).maybeSingle();
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', user?.id)
+        .maybeSingle();
 
       // Apply publication filters for non-admin/non-creator users
       const isAdminOrCreator = profile?.role === 'admin' || user?.id === guideData.creator_id;
@@ -220,9 +206,11 @@ const GuideDetail = () => {
       }
 
       // Get creator profile separately for better reliability
-      const {
-        data: creatorProfile
-      } = await supabase.from('profiles').select('full_name, avatar_url, bio').eq('user_id', guideData.creator_id).maybeSingle();
+      const { data: creatorProfile } = await supabase
+        .from('profiles')
+        .select('full_name, avatar_url, bio')
+        .eq('user_id', guideData.creator_id)
+        .maybeSingle();
 
       // Transform data to match expected format
       const transformedData = {
@@ -236,24 +224,31 @@ const GuideDetail = () => {
           avatar: '',
           bio: ''
         },
-        features: ['High-quality audio narration', 'Interactive content', 'Offline access', 'Multiple languages available'],
-        duration: `${Math.floor(guideData.duration / 60)} min`,
+        features: [
+          'High-quality audio narration',
+          'Interactive content',
+          'Offline access',
+          'Multiple languages available'
+        ],
+        duration: guideData.duration,
         // Keep both formatted price for display AND original price_usd for payment
         price: `$${(guideData.price_usd / 100).toFixed(2)}`,
-        price_usd: guideData.price_usd,
-        // Preserve original price_usd as number for payment
-        sections: guideData.sections ? typeof guideData.sections === 'string' ? JSON.parse(guideData.sections) : guideData.sections : []
+        price_usd: guideData.price_usd, // Preserve original price_usd as number for payment
+        sections: guideData.sections ? (typeof guideData.sections === 'string' ? JSON.parse(guideData.sections) : guideData.sections) : []
       };
+      
+      
       setRealGuideData(transformedData);
       setError(null);
-
+      
+      // Fetch related guides
+      await fetchRelatedGuides(transformedData.category, transformedData.location, guideId);
+      
       // Track guide view once data is loaded
       if (guideId) {
         try {
           trackEngagement('view', guideId, {
-            metadata: {
-              location: transformedData.location
-            }
+            metadata: { location: transformedData.location }
           });
         } catch (trackError) {
           console.warn('Failed to track engagement:', trackError);
@@ -266,6 +261,47 @@ const GuideDetail = () => {
       setIsLoading(false);
     }
   };
+
+  const fetchRelatedGuides = async (category: string, location: string, currentGuideId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('audio_guides')
+        .select(`
+          id, 
+          title, 
+          price_usd, 
+          rating, 
+          image_url, 
+          location, 
+          creator_id,
+          profiles!creator_id(full_name)
+        `)
+        .neq('id', currentGuideId)
+        .eq('is_published', true)
+        .eq('is_approved', true)
+        .or(`category.eq.${category},location.ilike.%${location.split(',')[0]}%`)
+        .limit(2);
+
+      if (error) {
+        console.error('Error fetching related guides:', error);
+        return;
+      }
+
+      const transformedRelated = data?.map(guide => ({
+        id: guide.id,
+        title: guide.title,
+        creator: (guide.profiles as any)?.full_name || 'Anonymous Creator',
+        rating: guide.rating || 0,
+        price: Math.floor((guide.price_usd || 0) / 100),
+        image: guide.image_url?.startsWith('data:image') ? guide.image_url : guide.image_url || '/hero-audio-guide.jpg'
+      })) || [];
+
+      setRelatedGuides(transformedRelated);
+    } catch (error) {
+      console.error('Error fetching related guides:', error);
+    }
+  };
+
   const checkPurchaseStatus = async () => {
     if (!guideId) return;
 
@@ -273,10 +309,13 @@ const GuideDetail = () => {
     const accessCode = searchParams.get('access_code');
     if (accessCode) {
       try {
-        const {
-          data,
-          error
-        } = await supabase.from('user_purchases').select('id').eq('guide_id', guideId).eq('access_code', accessCode).single();
+        const { data, error } = await supabase
+          .from('user_purchases')
+          .select('id')
+          .eq('guide_id', guideId)
+          .eq('access_code', accessCode)
+          .single();
+
         if (data && !error) {
           setHasAccessCode(true);
           setIsPurchased(true);
@@ -290,10 +329,13 @@ const GuideDetail = () => {
     // Check for logged-in user purchases
     if (user) {
       try {
-        const {
-          data,
-          error
-        } = await supabase.from('user_purchases').select('id').eq('user_id', user.id).eq('guide_id', guideId).single();
+        const { data, error } = await supabase
+          .from('user_purchases')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('guide_id', guideId)
+          .single();
+
         if (data) {
           setIsPurchased(true);
         }
@@ -302,48 +344,53 @@ const GuideDetail = () => {
       }
     }
   };
+
   const handleBookmark = () => {
     setIsBookmarked(!isBookmarked);
     if (guideId && !isBookmarked) {
       trackEngagement('bookmark', guideId, {
-        metadata: {
-          location: guide.location
-        }
+        metadata: { location: guide.location }
       });
     }
     showToast({
       title: isBookmarked ? "Removed from Library" : "Added to Library",
-      description: isBookmarked ? "Guide removed from your bookmarks" : "Guide saved to your bookmarks"
+      description: isBookmarked ? "Guide removed from your bookmarks" : "Guide saved to your bookmarks",
     });
   };
+
   useEffect(() => {
     fetchGuideDetails();
     checkPurchaseStatus();
-
+    
     // Check for payment success parameters
     const paymentSuccessParam = searchParams.get('payment_success');
     const sessionId = searchParams.get('session_id');
+    
     if (paymentSuccessParam === 'true' && sessionId) {
       handlePaymentSuccess(sessionId);
     }
   }, [guideId, user, searchParams]);
+
+
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
         title: guide.title,
         text: guide.description,
-        url: window.location.href
+        url: window.location.href,
       });
     } else {
       navigator.clipboard.writeText(window.location.href);
       showToast({
         title: "Link Copied",
-        description: "Guide link copied to clipboard"
+        description: "Guide link copied to clipboard",
       });
     }
   };
+
   if (isLoading) {
-    return <div className="min-h-screen bg-background">
+    return (
+      <div className="min-h-screen bg-background">
         <Navigation />
         <div className="container mx-auto px-4 py-6">
           <Button variant="ghost" size="sm" className="mb-4" onClick={() => window.history.back()}>
@@ -357,10 +404,13 @@ const GuideDetail = () => {
             </div>
           </div>
         </div>
-      </div>;
+      </div>
+    );
   }
+
   if (error || !guide || !guide.title) {
-    return <div className="min-h-screen bg-background">
+    return (
+      <div className="min-h-screen bg-background">
         <Navigation />
         <div className="container mx-auto px-4 py-6">
           <Button variant="ghost" size="sm" className="mb-4" onClick={() => window.history.back()}>
@@ -379,14 +429,17 @@ const GuideDetail = () => {
             </div>
           </div>
         </div>
-      </div>;
+      </div>
+    );
   }
-  return <div className="min-h-screen bg-background">
+
+  return (
+    <div className="min-h-screen bg-background">
       <Navigation />
       
       <div className="container mx-auto px-4 py-6">
         {/* Back Button */}
-        <Button variant="ghost" size="sm" className="mb-4" onClick={() => window.history.back()}>
+        <Button variant="ghost" size="sm" className="mb-4" onClick={() => navigate('/search')}>
           <ChevronLeft className="w-4 h-4 mr-2" />
           Back to Guides
         </Button>
@@ -396,9 +449,18 @@ const GuideDetail = () => {
           <div className="lg:col-span-2 space-y-6">
             {/* Hero Image */}
             <div className="relative aspect-video rounded-xl overflow-hidden">
-              <img src={guide.image && guide.image.length < 500000 ? guide.image : '/hero-audio-guide.jpg'} alt={guide.title} className="w-full h-full object-cover" onError={e => {
-              e.currentTarget.src = '/hero-audio-guide.jpg';
-            }} />
+              <img 
+                src={
+                  guide.image_url?.startsWith('data:image') 
+                    ? guide.image_url 
+                    : guide.image_url || guide.image || '/hero-audio-guide.jpg'
+                } 
+                alt={guide.title}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = '/hero-audio-guide.jpg';
+                }}
+              />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
               <div className="absolute bottom-4 left-4 text-white">
                 <Badge className="mb-2">{guide.category}</Badge>
@@ -418,7 +480,7 @@ const GuideDetail = () => {
                       </div>
                       <div className="flex items-center gap-1">
                         <Clock className="w-4 h-4" />
-                        {guide.duration} min
+                        {Math.floor(guide.duration / 60)} min
                       </div>
                       <div className="flex items-center gap-1">
                         <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
@@ -427,7 +489,9 @@ const GuideDetail = () => {
                     </div>
                     <div className="flex gap-2">
                       <Badge variant="outline">{guide.difficulty}</Badge>
-                      {(guide.languages || []).map(lang => <Badge key={lang} variant="secondary">{lang}</Badge>)}
+                      {(guide.languages || []).map(lang => (
+                        <Badge key={lang} variant="secondary">{lang}</Badge>
+                      ))}
                     </div>
                   </div>
                   
@@ -457,149 +521,195 @@ const GuideDetail = () => {
                 <TabsTrigger value="reviews">Reviews</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="chapters" className="space-y-3">
-                {(guide.chapters || guide.sections || []).map((chapter, index) => (
-                  <Card key={index} className="p-4 hover:bg-muted/50 transition-colors">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium">
-                          {index + 1}
+              <TabsContent value="chapters" className="space-y-4">
+                {!isPurchased && !hasAccessCode ? (
+                  <div className="text-center py-12 bg-muted/20 rounded-lg border-2 border-dashed border-muted">
+                    <Lock className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                    <h3 className="text-xl font-semibold mb-2">Chapters Locked</h3>
+                    <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                      Purchase this guide to unlock all chapters and enjoy the complete audio experience.
+                    </p>
+                    <div className="space-y-2 mb-6">
+                      <p className="text-sm text-muted-foreground">What you'll get:</p>
+                      <ul className="text-sm space-y-1 text-left max-w-xs mx-auto">
+                        <li className="flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 bg-primary rounded-full" />
+                          Full chapter navigation
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 bg-primary rounded-full" />
+                          High-quality audio
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 bg-primary rounded-full" />
+                          Offline access
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 bg-primary rounded-full" />
+                          Lifetime access
+                        </li>
+                      </ul>
+                    </div>
+                    <Button onClick={handlePurchase} size="lg" className="w-auto px-8">
+                      Unlock Chapters - {guide.price}
+                    </Button>
+                  </div>
+                ) : (
+                  (guide.chapters || guide.sections || []).map((chapter, index) => (
+                    <Card key={index} className="p-4 hover:bg-muted/50 cursor-pointer transition-colors">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium">
+                            {index + 1}
+                          </div>
+                          <div>
+                            <h4 className="font-medium">{chapter.title}</h4>
+                            <p className="text-sm text-muted-foreground">
+                              {chapter.duration_seconds 
+                                ? `${Math.floor(chapter.duration_seconds / 60)}:${(chapter.duration_seconds % 60).toString().padStart(2, '0')}`
+                                : chapter.duration 
+                                  ? `${Math.floor(chapter.duration / 60)}:${((chapter.duration * 60) % 60).toString().padStart(2, '0')}`
+                                  : 'N/A'
+                              }
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <h4 className="font-medium">{chapter.title}</h4>
-                          <p className="text-sm text-muted-foreground">{chapter.duration} minutes</p>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
                         <Button 
-                          variant="outline" 
+                          variant="ghost" 
                           size="sm"
                           onClick={() => {
-                            console.log('🎵 Preview button clicked for chapter:', chapter.title);
-                            setPreviewingChapter(chapter);
+                            console.log('🔧 Chapter play clicked', { isPurchased, audioUrl: guide.audio_url });
+                            setPlayingGuide(true);
                           }}
+                          disabled={!guide.audio_url}
                         >
-                          Preview
+                          <Play className="w-4 h-4" />
                         </Button>
-                        {isPurchased && (
-                          <Button variant="ghost" size="sm">
-                            <Play className="w-4 h-4" />
-                          </Button>
-                        )}
                       </div>
-                    </div>
-                  </Card>
-                ))}
-              </TabsContent>
-              
-                <TabsContent value="qrcode" className="space-y-3">
-                {!isPurchased ? (
-                  <Card className="p-8 text-center bg-muted/30 border-dashed">
-                    <div className="max-w-md mx-auto space-y-4">
-                      <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
-                        <QrCode className="w-8 h-8 text-primary" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold mb-2">
-                          QR Code Locked
-                        </h3>
-                        <p className="text-muted-foreground text-sm">
-                          Unlock the QR code to access your guide on any device and share with others.
-                        </p>
-                      </div>
-                      <ul className="text-sm text-muted-foreground space-y-1">
-                        <li>• Access your guide on any device</li>
-                        <li>• Share with friends and family</li>
-                        <li>• No internet required after download</li>
-                        <li>• Download option</li>
-                      </ul>
-                      <Button onClick={handlePurchase} className="mt-4">
-                        Unlock QR Code - ${guide.price} USD
-                      </Button>
-                    </div>
-                  </Card>
-                ) : (
-                  <Card className="p-6">
-                    <div className="text-center space-y-4">
-                      <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
-                        <QrCode className="w-8 h-8 text-primary" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold mb-2">Your QR Code</h3>
-                        <p className="text-muted-foreground text-sm">
-                          Share this QR code with others for instant access to this guide
-                        </p>
-                      </div>
-                      
-                      {guide.qr_code_url ? (
-                        <div className="space-y-4">
-                          <div className="bg-white p-4 rounded-lg inline-block">
-                            <img 
-                              src={guide.qr_code_url} 
-                              alt="QR Code"
-                              className="w-48 h-48 mx-auto"
-                            />
-                          </div>
-                          <div className="flex gap-2 justify-center">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => copyToClipboard(guide.share_url || window.location.href, 'Share link')}
-                            >
-                              <Copy className="w-4 h-4 mr-2" />
-                              Copy Link
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                const link = document.createElement('a');
-                                link.href = guide.qr_code_url;
-                                link.download = `${guide.title}-qr-code.png`;
-                                link.click();
-                              }}
-                            >
-                              <Download className="w-4 h-4 mr-2" />
-                              Download QR
-                            </Button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="space-y-4">
-                          <p className="text-sm text-muted-foreground">
-                            QR code is being generated. Please refresh the page in a moment.
-                          </p>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => copyToClipboard(window.location.href, 'Share link')}
-                          >
-                            <Copy className="w-4 h-4 mr-2" />
-                            Copy Link
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </Card>
+                    </Card>
+                  ))
                 )}
               </TabsContent>
               
-              <TabsContent value="reviews" className="space-y-4">
-                {(reviews || []).map(review => <Card key={review.id} className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <h5 className="font-medium">{review.user}</h5>
-                        {review.verified && <Badge variant="outline" className="text-xs">Verified</Badge>}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        {Array.from({
-                      length: review.rating || 0
-                    }).map((_, i) => <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />)}
-                      </div>
+              <TabsContent value="qrcode" className="space-y-4">
+                <Card className="p-6">
+                  <div className="text-center space-y-4">
+                    <div className="flex items-center justify-center gap-2 mb-4">
+                      <QrCode className="w-5 h-5 text-primary" />
+                      <h3 className="text-lg font-semibold">QR Code Access</h3>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-2">{review.comment}</p>
-                    <p className="text-xs text-muted-foreground">{review.date}</p>
-                  </Card>)}
+                    
+                    {isPurchased || showQRCode ? (
+                      <div className="space-y-4">
+                        {guide.qr_code_url && (
+                          <div className="flex justify-center">
+                            <div className="inline-block p-6 bg-white rounded-xl border-2 border-border shadow-sm">
+                              <img 
+                                src={guide.qr_code_url} 
+                                alt="QR Code for guide access"
+                                className="w-48 h-48 mx-auto"
+                              />
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div className="space-y-3">
+                          <p className="text-sm text-muted-foreground">
+                            Scan this QR code to access your audio guide on any device
+                          </p>
+                          
+                          {paymentSuccess && (
+                            <div className="space-y-2 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                <label className="text-sm font-medium text-green-700 dark:text-green-300">Your Access Code</label>
+                              </div>
+                              <div className="flex gap-2">
+                                <div className="flex-1 p-3 bg-white dark:bg-gray-800 rounded-md border border-green-200 dark:border-green-700 text-lg font-mono text-center">
+                                  {searchParams.get('access_code') || 'Loading...'}
+                                </div>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => copyToClipboard(searchParams.get('access_code') || '', 'Access code')}
+                                  className="border-green-200 dark:border-green-700"
+                                >
+                                  <Copy className="w-4 h-4" />
+                                </Button>
+                              </div>
+                              <p className="text-sm text-green-600 dark:text-green-400">
+                                Save this code - you'll need it to access your audio guide
+                              </p>
+                            </div>
+                          )}
+                          
+                          {guide.share_url && (
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium">Share Link</label>
+                              <div className="flex gap-2">
+                                <div className="flex-1 p-3 bg-muted rounded-md text-sm font-mono truncate">
+                                  {guide.share_url}
+                                </div>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => copyToClipboard(guide.share_url, 'Share link')}
+                                >
+                                  <Copy className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-6">
+                        <div className="inline-block p-12 bg-muted/30 rounded-xl border-2 border-dashed border-border">
+                          <div className="relative">
+                            <QrCode className="w-32 h-32 mx-auto text-muted-foreground/20" />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <Lock className="w-12 h-12 text-muted-foreground/50" />
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <h4 className="text-lg font-medium">QR Code Locked</h4>
+                          <p className="text-muted-foreground">
+                            Purchase this guide to unlock your personal QR code for easy access and sharing
+                          </p>
+                          
+                          <div className="flex flex-col gap-2 mt-4">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <div className="w-2 h-2 bg-primary rounded-full" />
+                              Access your guide on any device
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <div className="w-2 h-2 bg-primary rounded-full" />
+                              Share with friends and family
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <div className="w-2 h-2 bg-primary rounded-full" />
+                              No internet required after download
+                            </div>
+                          </div>
+                          
+                          <Button 
+                            onClick={() => setShowPaymentModal(true)}
+                            className="w-full mt-4"
+                          >
+                            <Lock className="w-4 h-4 mr-2" />
+                            Unlock QR Code - {guide.price || '$0'} USD
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="reviews" className="space-y-4">
+                <ReviewsSection guideId={guide.id} isPurchased={isPurchased} showAllReviews={true} />
               </TabsContent>
             </Tabs>
           </div>
@@ -617,8 +727,12 @@ const GuideDetail = () => {
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
-                {isPurchased ? <>
-                    <Button className="w-full" onClick={() => setPlayingGuide(true)}>
+                {isPurchased ? (
+                  <>
+                    <Button 
+                      className="w-full" 
+                      onClick={() => setPlayingGuide(true)}
+                    >
                       <Play className="w-4 h-4 mr-2" />
                       Start Audio Guide
                     </Button>
@@ -626,54 +740,25 @@ const GuideDetail = () => {
                       <Download className="w-4 h-4 mr-2" />
                       Download for Offline
                     </Button>
-                  </> : <>
-                    <Button className="w-full" onClick={handlePurchase}>
-                      Purchase Guide
-                    </Button>
-                    {!user && <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
-                        <Lock className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">
-                          Sign in to purchase and access guides
-                        </span>
-                      </div>}
-                  </>}
-              </CardContent>
-            </Card>
+                  </>
+                  ) : (
+                   <>
+                     <Button className="w-full" onClick={handlePurchase}>
+                       Purchase Guide
+                     </Button>
+                     {!user && (
+                       <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
+                         <Lock className="h-4 w-4 text-muted-foreground" />
+                         <span className="text-sm text-muted-foreground">
+                           Sign in to purchase and access guides
+                         </span>
+                       </div>
+                     )}
+                    </>
+                  )}
+               </CardContent>
+             </Card>
 
-
-            {/* Creator Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Meet Your Guide</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-3 mb-4">
-                  <Avatar className="w-12 h-12">
-                    
-                    <AvatarFallback>{guide.creator?.name?.split(' ').map(n => n[0]).join('') || 'CR'}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-medium">{guide.creator.name}</h4>
-                      {guide.creator.verified && <Badge variant="secondary" className="text-xs">Verified</Badge>}
-                    </div>
-                    <p className="text-sm text-muted-foreground">{guide.creator.title}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-                  <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    {guide.creator.rating}
-                  </div>
-                  <div>{guide.creator.guides} guides</div>
-                </div>
-                
-                <Button variant="outline" className="w-full" size="sm">
-                  View Profile
-                </Button>
-              </CardContent>
-            </Card>
 
             {/* Related Guides */}
             <Card>
@@ -681,8 +766,13 @@ const GuideDetail = () => {
                 <CardTitle>Related Guides</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {(relatedGuides || []).map(relatedGuide => <div key={relatedGuide.id} className="flex gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
-                    <img src={relatedGuide.image} alt={relatedGuide.title} className="w-16 h-16 rounded-lg object-cover" />
+                {(relatedGuides || []).map((relatedGuide) => (
+                  <div key={relatedGuide.id} className="flex gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
+                    <img 
+                      src={relatedGuide.image} 
+                      alt={relatedGuide.title}
+                      className="w-16 h-16 rounded-lg object-cover"
+                    />
                     <div className="flex-1 min-w-0">
                       <h5 className="font-medium text-sm line-clamp-2">{relatedGuide.title}</h5>
                       <p className="text-xs text-muted-foreground">{relatedGuide.creator}</p>
@@ -694,95 +784,113 @@ const GuideDetail = () => {
                         <span className="text-xs font-medium">${relatedGuide.price}</span>
                       </div>
                     </div>
-                  </div>)}
+                  </div>
+                ))}
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
 
-      {/* Audio Player */}
-      {playingGuide && <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-background border-t">
+      {/* Audio Preview Player */}
+      {playingGuide && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-background border-t">
           <div className="container mx-auto">
-            <AudioPlayer title={guide.title} description={guide.description} guideId={guide.id} />
+            <AudioPreviewPlayer 
+              title={guide.title}
+              guideId={guide.id}
+              audioSrc={guide.audio_url}
+              onClose={() => setPlayingGuide(false)}
+              isPreview={!isPurchased}
+            />
           </div>
-        </div>}
-
-      {/* Chapter Preview Player */}
-      {previewingChapter && (
-        <AudioPreviewPlayer
-          title={previewingChapter.title}
-          audioSrc={`/tmp/guide${Math.floor(Math.random() * 4) + 1}.mp3`}
-          onClose={() => setPreviewingChapter(null)}
-          isPreview={true}
-        />
+        </div>
       )}
 
       {/* Enhanced Payment Modal with Force Reset */}
-      <Dialog key={`payment-modal-${showPaymentModal}`} open={showPaymentModal} onOpenChange={open => {
-      console.log('🔧 [MODAL] State change:', {
-        from: showPaymentModal,
-        to: open
-      });
-      setShowPaymentModal(open);
-
-      // Force cleanup when closing
-      if (!open) {
-        setTimeout(() => {
-          console.log('🔧 [MODAL] Cleanup timeout executed');
-        }, 100);
-      }
-    }}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" style={{
-        zIndex: 99999,
-        position: 'fixed',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)'
-      }} onOpenAutoFocus={e => {
-        const userAgent = navigator.userAgent;
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
-        const browserName = userAgent.includes('Chrome') ? 'Chrome' : userAgent.includes('Firefox') ? 'Firefox' : userAgent.includes('Safari') ? 'Safari' : userAgent.includes('Edge') ? 'Edge' : 'Unknown';
-        console.log('🔧 [MODAL DEBUG] Dialog opened:', {
-          userAgent,
-          browserName,
-          isMobile,
-          modalState: showPaymentModal,
-          timestamp: new Date().toISOString(),
-          realGuideData: realGuideData ? {
-            id: realGuideData.id,
-            title: realGuideData.title,
-            price_usd: realGuideData.price_usd,
-            creator: realGuideData.creator
-          } : null
-        });
-      }} onEscapeKeyDown={() => {
-        console.log('🔧 [MODAL] Escape key pressed - force close');
-        setShowPaymentModal(false);
-      }} onPointerDownOutside={() => {
-        console.log('🔧 [MODAL] Click outside - force close');
-        setShowPaymentModal(false);
-      }}>
+      <Dialog 
+        key={`payment-modal-${showPaymentModal}`} 
+        open={showPaymentModal} 
+        onOpenChange={(open) => {
+          console.log('🔧 [MODAL] State change:', { from: showPaymentModal, to: open });
+          setShowPaymentModal(open);
+          
+          // Force cleanup when closing
+          if (!open) {
+            setTimeout(() => {
+              console.log('🔧 [MODAL] Cleanup timeout executed');
+            }, 100);
+          }
+        }}
+      >
+        <DialogContent 
+          className="max-w-2xl max-h-[90vh] overflow-y-auto"
+          style={{ 
+            zIndex: 99999,
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)'
+          }}
+          onOpenAutoFocus={(e) => {
+            const userAgent = navigator.userAgent;
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+            const browserName = userAgent.includes('Chrome') ? 'Chrome' : 
+                              userAgent.includes('Firefox') ? 'Firefox' : 
+                              userAgent.includes('Safari') ? 'Safari' : 
+                              userAgent.includes('Edge') ? 'Edge' : 'Unknown';
+            
+            console.log('🔧 [MODAL DEBUG] Dialog opened:', {
+              userAgent,
+              browserName,
+              isMobile,
+              modalState: showPaymentModal,
+              timestamp: new Date().toISOString(),
+              realGuideData: realGuideData ? {
+                id: realGuideData.id,
+                title: realGuideData.title,
+                price_usd: realGuideData.price_usd,
+                creator: realGuideData.creator
+              } : null
+            });
+          }}
+          onEscapeKeyDown={() => {
+            console.log('🔧 [MODAL] Escape key pressed - force close');
+            setShowPaymentModal(false);
+          }}
+          onPointerDownOutside={() => {
+            console.log('🔧 [MODAL] Click outside - force close');
+            setShowPaymentModal(false);
+          }}
+        >
           <DialogHeader>
             <DialogTitle>Complete Your Purchase</DialogTitle>
           </DialogHeader>
-          {realGuideData && <EmbeddedCheckout key={`checkout-${showPaymentModal}-${Date.now()}`} // Force re-render
-        guide={{
-          id: realGuideData.id,
-          title: realGuideData.title,
-          price_usd: realGuideData.price_usd,
-          creator_name: realGuideData.creator?.name,
-          image_url: realGuideData.image_url
-        }} onSuccess={() => {
-          console.log('🔧 [MODAL] Payment success callback triggered');
-          setShowPaymentModal(false);
-          handlePaymentSuccess();
-        }} onCancel={() => {
-          console.log('🔧 [MODAL] Payment cancel callback triggered');
-          setShowPaymentModal(false);
-        }} />}
+          {realGuideData && (
+            <EmbeddedCheckout
+              key={`checkout-${showPaymentModal}-${Date.now()}`} // Force re-render
+              guide={{
+                id: realGuideData.id,
+                title: realGuideData.title,
+                price_usd: realGuideData.price_usd,
+                creator_name: realGuideData.creator?.name,
+                image_url: realGuideData.image_url
+              }}
+              onSuccess={() => {
+                console.log('🔧 [MODAL] Payment success callback triggered');
+                setShowPaymentModal(false);
+                handlePaymentSuccess();
+              }}
+              onCancel={() => {
+                console.log('🔧 [MODAL] Payment cancel callback triggered');
+                setShowPaymentModal(false);
+              }}
+            />
+          )}
         </DialogContent>
       </Dialog>
-    </div>;
+    </div>
+  );
 };
+
 export default GuideDetail;
