@@ -76,8 +76,12 @@ export function AdminQRCodeRegenerator() {
   const generateAdminQRCode = async (guideId: string) => {
     setRegenerating(guideId);
     try {
+      const { data: { session } } = await supabase.auth.getSession();
       const { data, error } = await supabase.functions.invoke('generate-admin-qr-code', {
-        body: { guideId }
+        body: { guideId },
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+        },
       });
 
       if (error) throw error;
