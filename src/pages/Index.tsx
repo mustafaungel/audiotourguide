@@ -3,7 +3,7 @@ import { HeroSection } from '@/components/HeroSection';
 import { AudioPlayer } from '@/components/AudioPlayer';
 import { GuideCard } from '@/components/GuideCard';
 import { Navigation } from '@/components/Navigation';
-import { ViralDashboard } from '@/components/ViralDashboard';
+
 import { CreatorRecommendations } from '@/components/CreatorRecommendations';
 import { Button } from '@/components/ui/button';
 import { Headphones, Search, Filter } from 'lucide-react';
@@ -304,8 +304,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Simplified Viral Dashboard Section */}
-      <ViralDashboard />
 
       {/* Audio Player Section */}
       {selectedGuide && (
