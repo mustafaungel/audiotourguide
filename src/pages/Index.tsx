@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { HeroSection } from '@/components/HeroSection';
 import { AudioPlayer } from '@/components/AudioPlayer';
 import { GuideCard } from '@/components/GuideCard';
@@ -21,6 +22,7 @@ import parisImage from '@/assets/paris-louvre.jpg';
 import santoriniImage from '@/assets/santorini-greece.jpg';
 
 const Index = () => {
+  const navigate = useNavigate();
   const [selectedGuide, setSelectedGuide] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [guides, setGuides] = useState<any[]>([]);
@@ -79,60 +81,8 @@ const Index = () => {
   };
 
   const handlePurchaseGuide = async (guideId: string) => {
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please log in to purchase guides",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (processingPayment === guideId) {
-      return; // Prevent multiple clicks
-    }
-
-    setProcessingPayment(guideId);
-
-    try {
-      console.log('Starting payment process for guide:', guideId);
-      
-      const { data, error } = await supabase.functions.invoke('create-payment', {
-        body: { guideId },
-      });
-
-      if (error) {
-        console.error('Supabase function error:', error);
-        throw error;
-      }
-
-      if (!data?.url) {
-        throw new Error('No payment URL received');
-      }
-
-      console.log('Payment URL received, opening checkout:', data.url);
-      
-      // Open Stripe checkout in a new tab
-      window.open(data.url, '_blank');
-      
-      toast({
-        title: "Payment Started",
-        description: "Redirecting to secure checkout...",
-      });
-      
-    } catch (error: any) {
-      console.error('Payment error:', error);
-      toast({
-        title: "Payment Error",
-        description: error.message || "Failed to initiate payment. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      // Clear processing state after a short delay
-      setTimeout(() => {
-        setProcessingPayment(null);
-      }, 2000);
-    }
+    // Navigate directly to guide detail page for purchase (supports guest checkout)
+    navigate(`/guide/${guideId}`);
   };
 
   const filteredGuides = guides.filter(guide =>
@@ -258,7 +208,8 @@ const Index = () => {
                           if (isPurchased || guide.price_usd === 0) {
                             handlePlayGuide(guide);
                           } else {
-                            handlePurchaseGuide(guide.id);
+                            // Navigate to guide detail page for purchase
+                            navigate(`/guide/${guide.id}`);
                           }
                         }}
                         onPreview={() => {
