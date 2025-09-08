@@ -655,13 +655,13 @@ const GuideDetail = () => {
                             <label className="text-sm font-medium">Share Link</label>
                             <div className="flex gap-2">
                               <div className="flex-1 p-3 bg-muted rounded-md text-sm font-mono truncate">
-                                {window.location.origin}/guide/{guide.id}{searchParams.get('access_code') ? `?access_code=${searchParams.get('access_code')}` : ''}
+                                {window.location.origin}/guide/{guide.slug || guide.id}{searchParams.get('access_code') ? `?access_code=${searchParams.get('access_code')}` : ''}
                               </div>
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => copyToClipboard(
-                                  `${window.location.origin}/guide/${guide.id}${searchParams.get('access_code') ? `?access_code=${searchParams.get('access_code')}` : ''}`,
+                                  `${window.location.origin}/guide/${guide.slug || guide.id}${searchParams.get('access_code') ? `?access_code=${searchParams.get('access_code')}` : ''}`,
                                   'Share link'
                                 )}
                               >
