@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HeroSection } from '@/components/HeroSection';
+import StatsSection from '@/components/StatsSection';
 import { AudioPlayer } from '@/components/AudioPlayer';
 import { GuideCard } from '@/components/GuideCard';
 import { Navigation } from '@/components/Navigation';
@@ -144,6 +145,7 @@ const Index = () => {
   return <div className="mobile-viewport bg-background">
       <Navigation />
       <HeroSection />
+      <StatsSection />
       
       {/* Mobile-Optimized Featured Destinations Section */}
       <section className="mobile-padding mobile-spacing">{/* Mobile-first section */}

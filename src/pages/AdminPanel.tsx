@@ -20,6 +20,7 @@ import { AdminCreatorManagement } from '@/components/AdminCreatorManagement';
 import { AdminAnalytics } from '@/components/AdminAnalytics';
 import { AdminUserCreation } from '@/components/AdminUserCreation';
 import { AdminCreatorCreation } from '@/components/AdminCreatorCreation';
+import AdminHomepageStats from '@/components/AdminHomepageStats';
 import { AdminMobileNavigation } from '@/components/AdminMobileNavigation';
 import { CountrySelector } from '@/components/CountrySelector';
 import { AudioGuideSectionManager } from '@/components/AudioGuideSectionManager';
@@ -270,7 +271,7 @@ const AdminPanel = () => {
         <AdminMobileNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="hidden md:grid grid-cols-4 lg:grid-cols-7 w-full max-w-5xl gap-2">
+          <TabsList className="hidden md:grid grid-cols-4 lg:grid-cols-8 w-full max-w-6xl gap-2">
             <TabsTrigger value="dashboard" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
               <BarChart3 className="h-3 w-3 lg:h-4 lg:w-4" />
               <span className="hidden lg:inline">Dashboard</span>
@@ -286,6 +287,10 @@ const AdminPanel = () => {
             <TabsTrigger value="content-management" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
               <FileText className="h-3 w-3 lg:h-4 lg:w-4" />
               <span className="hidden lg:inline">Content</span>
+            </TabsTrigger>
+            <TabsTrigger value="homepage-stats" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
+              <BarChart3 className="h-3 w-3 lg:h-4 lg:w-4" />
+              <span className="hidden lg:inline">Homepage</span>
             </TabsTrigger>
             <TabsTrigger value="create-guide" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
               <Plus className="h-3 w-3 lg:h-4 lg:w-4" />
@@ -370,6 +375,10 @@ const AdminPanel = () => {
               <h2 className="text-xl sm:text-2xl font-bold">Content Management</h2>
               <GuideManagement />
             </div>
+          </TabsContent>
+
+          <TabsContent value="homepage-stats">
+            <AdminHomepageStats />
           </TabsContent>
 
           <TabsContent value="create-guide">
