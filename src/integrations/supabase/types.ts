@@ -1404,15 +1404,19 @@ export type Database = {
       }
     }
     Views: {
-      safe_verification_requests: {
-        Row: {
+      [_ in never]: never
+    }
+    Functions: {
+      admin_get_verification_requests: {
+        Args: Record<PropertyKey, never>
+        Returns: {
           admin_notes: string | null
-          created_at: string | null
+          created_at: string
           creator_type: Database["public"]["Enums"]["creator_type"] | null
           document_status: Database["public"]["Enums"]["document_status"] | null
           experience_description: string | null
-          full_name: string | null
-          id: string | null
+          full_name: string
+          id: string
           id_document_url: string | null
           id_number: string | null
           license_document_url: string | null
@@ -1422,87 +1426,15 @@ export type Database = {
           reviewed_by: string | null
           social_media_links: Json | null
           social_verification_data: Json | null
-          status: string | null
-          submitted_at: string | null
-          updated_at: string | null
-          user_id: string | null
+          status: string
+          submitted_at: string
+          updated_at: string
+          user_id: string
           verification_level:
             | Database["public"]["Enums"]["verification_level"]
             | null
-        }
-        Insert: {
-          admin_notes?: string | null
-          created_at?: string | null
-          creator_type?: Database["public"]["Enums"]["creator_type"] | null
-          document_status?:
-            | Database["public"]["Enums"]["document_status"]
-            | null
-          experience_description?: string | null
-          full_name?: string | null
-          id?: string | null
-          id_document_url?: never
-          id_number?: never
-          license_document_url?: never
-          license_number?: never
-          portfolio_url?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          social_media_links?: Json | null
-          social_verification_data?: Json | null
-          status?: string | null
-          submitted_at?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-          verification_level?:
-            | Database["public"]["Enums"]["verification_level"]
-            | null
-        }
-        Update: {
-          admin_notes?: string | null
-          created_at?: string | null
-          creator_type?: Database["public"]["Enums"]["creator_type"] | null
-          document_status?:
-            | Database["public"]["Enums"]["document_status"]
-            | null
-          experience_description?: string | null
-          full_name?: string | null
-          id?: string | null
-          id_document_url?: never
-          id_number?: never
-          license_document_url?: never
-          license_number?: never
-          portfolio_url?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          social_media_links?: Json | null
-          social_verification_data?: Json | null
-          status?: string | null
-          submitted_at?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-          verification_level?:
-            | Database["public"]["Enums"]["verification_level"]
-            | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "verification_requests_reviewed_by_fkey"
-            columns: ["reviewed_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "verification_requests_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        }[]
       }
-    }
-    Functions: {
       approve_creator_verification: {
         Args: { admin_notes_param?: string; request_id: string }
         Returns: boolean
@@ -1522,6 +1454,32 @@ export type Database = {
       generate_access_code: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_safe_verification_request: {
+        Args: { request_id: string }
+        Returns: {
+          admin_notes: string
+          created_at: string
+          creator_type: string
+          document_status: string
+          experience_description: string
+          full_name: string
+          id: string
+          id_document_url: string
+          id_number: string
+          license_document_url: string
+          license_number: string
+          portfolio_url: string
+          reviewed_at: string
+          reviewed_by: string
+          social_media_links: Json
+          social_verification_data: Json
+          status: string
+          submitted_at: string
+          updated_at: string
+          user_id: string
+          verification_level: string
+        }[]
       }
       get_verification_document_url: {
         Args: { p_document_path: string; p_expires_in?: number }
