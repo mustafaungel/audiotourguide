@@ -65,14 +65,7 @@ const SearchResults = () => {
     try {
       let supabaseQuery = supabase
         .from('audio_guides')
-        .select(`
-          *,
-          profiles!creator_id (
-            full_name,
-            avatar_url,
-            verification_status
-          )
-        `)
+        .select('*')
         .eq('is_published', true)
         .eq('is_approved', true);
 

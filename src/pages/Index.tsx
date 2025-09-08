@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { HeroSection } from '@/components/HeroSection';
 import { AudioPlayer } from '@/components/AudioPlayer';
 import { GuideCard } from '@/components/GuideCard';
@@ -19,6 +20,7 @@ import kyotoImage from '@/assets/kyoto-temple.jpg';
 import parisImage from '@/assets/paris-louvre.jpg';
 import santoriniImage from '@/assets/santorini-greece.jpg';
 const Index = () => {
+  const navigate = useNavigate();
   const [selectedGuide, setSelectedGuide] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [guides, setGuides] = useState<any[]>([]);
@@ -191,7 +193,7 @@ const Index = () => {
             loop: false
           }} className="w-full max-w-none">
                 <CarouselComponents.CarouselContent className="-ml-2">
-                  {[...Array(6)].map((_, i) => <CarouselComponents.CarouselItem key={i} className="pl-2 basis-[85%] sm:basis-[75%] md:basis-1/2 lg:basis-1/3">
+                  {[...Array(6)].map((_, i) => <CarouselComponents.CarouselItem key={i} className="pl-2 basis-full">
                       <div className="mobile-card animate-pulse">
                         <div className="aspect-mobile bg-muted rounded-lg mb-4"></div>
                         <div className="h-4 bg-muted rounded mb-2"></div>
@@ -215,7 +217,7 @@ const Index = () => {
                 const isPurchased = userPurchases.includes(guide.id);
                 const formattedPrice = guide.price_usd === 0 ? "Free" : `$${guide.price_usd}`;
                 const formattedDuration = `${Math.floor(guide.duration / 60)} min`;
-                return <CarouselComponents.CarouselItem key={guide.id} className="pl-2 basis-[85%] sm:basis-[75%] md:basis-1/2 lg:basis-1/3">{/* Mobile-first carousel items */}
+                return <CarouselComponents.CarouselItem key={guide.id} className="pl-2 basis-full">{/* Mobile-first carousel items */}
                       <GuideCard id={guide.id} title={guide.title} description={guide.description} duration={guide.duration} location={guide.location} rating={guide.rating || 0} category={guide.category} price={guide.price_usd} difficulty={guide.difficulty} imageUrl={guide.image_url} totalPurchases={guide.total_purchases || 0} creatorName="Guide Creator" isProcessingPayment={processingPayment === guide.id} onViewGuide={() => {
                     if (isPurchased || guide.price_usd === 0) {
                       handlePlayGuide(guide);
@@ -263,10 +265,20 @@ const Index = () => {
             Join thousands of travelers exploring UNESCO World Heritage sites and cultural treasures with AI-powered storytelling
           </p>
           <div className="mobile-stack sm:flex-row gap-4 justify-center">
-            <Button variant="hero" size="lg" className="mobile-button px-8 py-4 touch-target">
+            <Button 
+              variant="hero" 
+              size="lg" 
+              className="mobile-button px-8 py-4 touch-target"
+              onClick={() => navigate('/search')}
+            >
               Start Exploring
             </Button>
-            <Button variant="glass" size="lg" className="mobile-button px-8 py-4 touch-target">
+            <Button 
+              variant="glass" 
+              size="lg" 
+              className="mobile-button px-8 py-4 touch-target"
+              onClick={() => navigate('/unesco-sites')}
+            >
               View All Destinations
             </Button>
           </div>
