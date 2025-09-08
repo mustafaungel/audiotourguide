@@ -58,7 +58,7 @@ export const AdminContactManagement: React.FC = () => {
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [selectedSubmission, setSelectedSubmission] = useState<ContactSubmission | null>(null);
   const [showTemplateEditor, setShowTemplateEditor] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<EmailTemplate | null>(null);
@@ -172,7 +172,7 @@ export const AdminContactManagement: React.FC = () => {
       submission.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       submission.subject.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesStatus = !statusFilter || submission.status === statusFilter;
+    const matchesStatus = statusFilter === 'all' || submission.status === statusFilter;
     
     return matchesSearch && matchesStatus;
   });
@@ -225,7 +225,7 @@ export const AdminContactManagement: React.FC = () => {
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All statuses</SelectItem>
+            <SelectItem value="all">All statuses</SelectItem>
             {STATUS_OPTIONS.map(option => (
               <SelectItem key={option.value} value={option.value}>
                 {option.label}
@@ -448,15 +448,19 @@ const TemplateEditor: React.FC<{
   return (
     <div className="space-y-4">
       <div className="flex gap-4 items-center">
-        <Select value={editingTemplate?.id || ''} onValueChange={(value) => {
-          const template = templates.find(t => t.id === value);
-          onEditTemplate(template || null);
+        <Select value={editingTemplate?.id || 'new'} onValueChange={(value) => {
+          if (value === 'new') {
+            onEditTemplate(null);
+          } else {
+            const template = templates.find(t => t.id === value);
+            onEditTemplate(template || null);
+          }
         }}>
           <SelectTrigger className="w-64">
             <SelectValue placeholder="Select template to edit" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">New template</SelectItem>
+            <SelectItem value="new">New template</SelectItem>
             {templates.map(template => (
               <SelectItem key={template.id} value={template.id}>
                 {template.name}
