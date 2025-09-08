@@ -66,31 +66,8 @@ export const useInvisibleAudioPlayer = ({
         return;
       }
 
-      // Validate that audio file exists by attempting to fetch
-      try {
-        const response = await fetch(audioUrl, { method: 'HEAD' });
-        if (!response.ok) {
-          // Try fallback to public tmp folder if Supabase storage fails
-          if (audioUrl.includes('supabase.co') && guideId) {
-            console.log('[AUDIO] Supabase storage failed, trying fallback');
-            audioUrl = `/tmp/${guideId}.mp3`;
-            const fallbackResponse = await fetch(audioUrl, { method: 'HEAD' });
-            if (!fallbackResponse.ok) {
-              throw new Error(`Audio file not found in storage or fallback: ${response.status}`);
-            }
-          } else {
-            throw new Error(`Audio file not found: ${response.status}`);
-          }
-        }
-      } catch (fetchError) {
-        console.error('[AUDIO] Audio file validation failed:', fetchError);
-        toast({
-          title: "Audio File Not Available",
-          description: "This guide's audio preview is not currently available",
-          variant: "destructive",
-        });
-        return;
-      }
+      // No need to validate with HEAD request - let audio element handle errors
+      console.log(`[AUDIO] Using audio URL: ${audioUrl}`);
 
       // Create or reuse audio element
       if (!audioRef.current) {
@@ -98,25 +75,47 @@ export const useInvisibleAudioPlayer = ({
       }
 
       const audio = audioRef.current;
+      
+      // Setup fallback error handling before setting src
+      const handleAudioError = () => {
+        console.log('[AUDIO] Primary source failed, trying fallback');
+        if (audioUrl.includes('supabase.co') && guideId) {
+          const fallbackUrl = `/tmp/${guideId}.mp3`;
+          console.log(`[AUDIO] Trying fallback: ${fallbackUrl}`);
+          audio.src = fallbackUrl;
+          audio.load();
+        } else {
+          console.error('[AUDIO] No fallback available');
+          toast({
+            title: "Audio Not Available",
+            description: "Audio file could not be loaded",
+            variant: "destructive",
+          });
+          setLoading(false);
+        }
+      };
+
+      // Add error listener before setting source
+      audio.addEventListener('error', handleAudioError, { once: true });
       audio.src = audioUrl;
       audio.currentTime = 0;
       
-      // Wait for audio to be ready before playing
+      // Wait for audio to be ready
       await new Promise((resolve, reject) => {
         const handleCanPlay = () => {
           audio.removeEventListener('canplay', handleCanPlay);
-          audio.removeEventListener('error', handleError);
+          audio.removeEventListener('error', handleLoadError);
           resolve(undefined);
         };
         
-        const handleError = (e: any) => {
+        const handleLoadError = () => {
           audio.removeEventListener('canplay', handleCanPlay);
-          audio.removeEventListener('error', handleError);
+          audio.removeEventListener('error', handleLoadError);
           reject(new Error('Audio failed to load'));
         };
         
         audio.addEventListener('canplay', handleCanPlay);
-        audio.addEventListener('error', handleError);
+        audio.addEventListener('error', handleLoadError);
         
         audio.load();
       });
@@ -153,8 +152,9 @@ export const useInvisibleAudioPlayer = ({
       audio.addEventListener('ended', handleEnded);
       audio.addEventListener('error', handleError);
 
-      // Start playing (handle autoplay restrictions)
+      // Start playing (require user interaction - no autoplay)
       try {
+        // Only attempt play if user explicitly called this function
         await audio.play();
         setIsPlaying(true);
         
@@ -164,15 +164,25 @@ export const useInvisibleAudioPlayer = ({
           description: isPreview ? "30-second preview • Purchase for full access" : "Now playing",
         });
       } catch (playError: any) {
-        console.error('[AUDIO] Autoplay blocked or failed:', playError);
+        console.error('[AUDIO] Playback failed:', playError);
         if (playError.name === 'NotAllowedError') {
           toast({
-            title: "Audio Blocked",
-            description: "Please click play button to start audio (browser policy)",
+            title: "Click Required",
+            description: "Please click the play button to start audio",
+            variant: "destructive",
+          });
+        } else if (playError.name === 'NotSupportedError') {
+          toast({
+            title: "Format Not Supported",
+            description: "This audio format is not supported by your browser",
             variant: "destructive",
           });
         } else {
-          throw playError;
+          toast({
+            title: "Playback Error",
+            description: "Failed to play audio. Please try again.",
+            variant: "destructive",
+          });
         }
       }
 

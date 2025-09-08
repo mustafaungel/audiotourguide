@@ -64,33 +64,13 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
             console.log('[AUDIOPLAYER] Generated public URL:', audioUrl);
           }
           
-          // Validate the audio file exists
-          try {
-            const response = await fetch(audioUrl, { method: 'HEAD' });
-            if (!response.ok) {
-              // Try fallback if Supabase storage fails
-              if (audioUrl.includes('supabase.co')) {
-                audioUrl = `/tmp/${guideId}.mp3`;
-                console.log('[AUDIOPLAYER] Trying fallback URL:', audioUrl);
-                const fallbackResponse = await fetch(audioUrl, { method: 'HEAD' });
-                if (!fallbackResponse.ok) {
-                  throw new Error(`Audio file not accessible in storage or fallback: ${response.status}`);
-                }
-              } else {
-                throw new Error(`Audio file not accessible: ${response.status}`);
-              }
-            }
-            
-            setActualAudioSrc(audioUrl);
-            
-            // Load saved position from localStorage
-            const savedPos = localStorage.getItem(`audio-position-${guideId}`);
-            if (savedPos) {
-              setSavedPosition(parseFloat(savedPos));
-            }
-          } catch (fetchError) {
-            console.error('[AUDIOPLAYER] Audio file validation failed:', fetchError);
-            setError("Audio file not available - please check if audio content is uploaded");
+          // Set audio source and let audio element handle validation
+          setActualAudioSrc(audioUrl);
+          
+          // Load saved position from localStorage
+          const savedPos = localStorage.getItem(`audio-position-${guideId}`);
+          if (savedPos) {
+            setSavedPosition(parseFloat(savedPos));
           }
         } catch (err) {
           console.error('[AUDIOPLAYER] Error loading audio:', err);
@@ -485,7 +465,17 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
           onPlay={handlePlay}
           onPause={handlePause}
           onEnded={handleEnded}
-          onError={() => setError("Failed to load audio file")}
+          onError={(e) => {
+            console.error('[AUDIOPLAYER] Audio error:', e);
+            // Try fallback if primary source fails
+            if (actualAudioSrc.includes('supabase.co') && guideId) {
+              const fallbackUrl = `/tmp/${guideId}.mp3`;
+              console.log('[AUDIOPLAYER] Trying fallback:', fallbackUrl);
+              setActualAudioSrc(fallbackUrl);
+            } else {
+              setError("Audio file not available");
+            }
+          }}
           preload="metadata"
         />
       )}

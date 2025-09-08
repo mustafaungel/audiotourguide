@@ -43,11 +43,18 @@ export const AudioPreviewPlayer: React.FC<AudioPreviewPlayerProps> = ({
       if (guideId) {
         setLoading(true);
         try {
+          // Try Supabase storage first
           const { data } = supabase.storage
             .from('guide-audio')
             .getPublicUrl(`${guideId}.mp3`);
           
-          setActualAudioSrc(data.publicUrl);
+          let audioUrl = data?.publicUrl;
+          if (!audioUrl) {
+            // Fallback to public tmp folder
+            audioUrl = `/tmp/${guideId}.mp3`;
+          }
+          
+          setActualAudioSrc(audioUrl);
         } catch (error) {
           console.error('Error loading audio:', error);
           setError('Failed to load audio preview');
@@ -225,6 +232,17 @@ export const AudioPreviewPlayer: React.FC<AudioPreviewPlayerProps> = ({
           onEnded={() => {
             setIsPlaying(false);
             setProgress(100);
+          }}
+          onError={(e) => {
+            console.error('Audio error:', e);
+            // Try fallback if primary source fails
+            if (actualAudioSrc?.includes('supabase.co') && guideId) {
+              const fallbackUrl = `/tmp/${guideId}.mp3`;
+              console.log('Trying fallback:', fallbackUrl);
+              setActualAudioSrc(fallbackUrl);
+            } else {
+              setError('Audio file not available');
+            }
           }}
           preload="metadata"
         />
