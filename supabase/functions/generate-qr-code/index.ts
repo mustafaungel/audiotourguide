@@ -40,7 +40,7 @@ serve(async (req) => {
     // Check if guide exists and belongs to user (for creators) or allow for admins
     const { data: guide, error: guideError } = await supabaseServiceClient
       .from('audio_guides')
-      .select('id, creator_id')
+      .select('id, creator_id, slug')
       .eq('id', guideId)
       .single();
 
@@ -77,11 +77,11 @@ serve(async (req) => {
     }
     
     console.log('Final base URL after processing:', baseUrl);
-    const shareUrl = `${baseUrl}/access/${guideId}${accessCode ? `?access_code=${accessCode}` : ''}`;
+    const shareUrl = `${baseUrl}/guide/${guide.slug || guideId}${accessCode ? `?access_code=${accessCode}` : ''}`;
     console.log('Generated share URL:', shareUrl, 'with access code:', accessCode);
     
     // Validate the share URL format (allow access code query param)
-    if (!shareUrl.match(/^https?:\/\/.+\/access\/[a-f0-9-]{36}(\?access_code=.+)?$/)) {
+    if (!shareUrl.match(/^https?:\/\/.+\/guide\/[a-z0-9-]+(\?access_code=.+)?$/)) {
       throw new Error('Invalid share URL format generated');
     }
     

@@ -81,7 +81,7 @@ serve(async (req) => {
     // Get guide information
     const { data: guide, error: guideError } = await supabase
       .from('audio_guides')
-      .select('id, title')
+      .select('id, title, slug')
       .eq('id', guideId)
       .single();
 
@@ -93,8 +93,8 @@ serve(async (req) => {
       );
     }
 
-    // Create admin share URL (points to purchase page)
-    const adminShareUrl = `${siteUrl}/guide/${guideId}`;
+    // Create admin share URL (points to purchase page using slug)
+    const adminShareUrl = `${siteUrl}/guide/${guide.slug || guideId}`;
     
     // Generate QR code using external service
     const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(adminShareUrl)}`;
