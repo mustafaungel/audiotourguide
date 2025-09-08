@@ -2,7 +2,7 @@ import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { AudioPlayer } from "@/components/AudioPlayer";
-import { SocialShare } from "@/components/SocialShare";
+import { AudioPreviewPlayer } from "@/components/AudioPreviewPlayer";
 import { EmbeddedCheckout } from "@/components/EmbeddedCheckout";
 import { StripeConfigHelper } from "@/components/StripeConfigHelper";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -141,6 +141,7 @@ const GuideDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [realGuideData, setRealGuideData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [previewingChapter, setPreviewingChapter] = useState<any>(null);
   const {
     toast: showToast
   } = useToast();
@@ -457,51 +458,35 @@ const GuideDetail = () => {
               </TabsList>
               
               <TabsContent value="chapters" className="space-y-3">
-                {!isPurchased ? (
-                  <Card className="p-8 text-center bg-muted/30 border-dashed">
-                    <div className="max-w-md mx-auto space-y-4">
-                      <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
-                        <Lock className="w-8 h-8 text-primary" />
+                {(guide.chapters || guide.sections || []).map((chapter, index) => (
+                  <Card key={index} className="p-4 hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <h4 className="font-medium">{chapter.title}</h4>
+                          <p className="text-sm text-muted-foreground">{chapter.duration} minutes</p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="text-lg font-semibold mb-2">
-                          Purchase to unlock chapters
-                        </h3>
-                        <p className="text-muted-foreground text-sm">
-                          Get access to all {(guide.chapters || guide.sections || []).length} chapters and premium features
-                        </p>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setPreviewingChapter(chapter)}
+                        >
+                          Preview
+                        </Button>
+                        {isPurchased && (
+                          <Button variant="ghost" size="sm">
+                            <Play className="w-4 h-4" />
+                          </Button>
+                        )}
                       </div>
-                      <ul className="text-sm text-muted-foreground space-y-1">
-                        <li>• Full chapter navigation</li>
-                        <li>• Offline access</li>
-                        <li>• High-quality audio</li>
-                        <li>• Interactive content</li>
-                      </ul>
-                      <Button onClick={handlePurchase} className="mt-4">
-                        Purchase for {guide.price}
-                      </Button>
                     </div>
                   </Card>
-                ) : (
-                  (guide.chapters || guide.sections || []).map((chapter, index) => (
-                    <Card key={index} className="p-4 hover:bg-muted/50 cursor-pointer transition-colors">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium">
-                            {index + 1}
-                          </div>
-                          <div>
-                            <h4 className="font-medium">{chapter.title}</h4>
-                            <p className="text-sm text-muted-foreground">{chapter.duration} minutes</p>
-                          </div>
-                        </div>
-                        <Button variant="ghost" size="sm">
-                          <Play className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </Card>
-                  ))
-                )}
+                ))}
               </TabsContent>
               
               <TabsContent value="qrcode" className="space-y-3">
@@ -652,81 +637,6 @@ const GuideDetail = () => {
               </CardContent>
             </Card>
 
-            {/* QR Code & Share Section */}
-            {(guide.qr_code_url || guide.share_url) && <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <QrCode className="w-5 h-5" />
-                    {isPurchased ? 'Share This Guide' : 'QR Code Access'}
-                  </CardTitle>
-                  <CardDescription>
-                    {isPurchased ? 'Easy sharing options for this audio guide' : 'Purchase this guide to unlock QR code sharing'}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {isPurchased || showQRCode ? <>
-                      {guide.qr_code_url && <div className="text-center">
-                          <div className="inline-block p-4 bg-white rounded-lg border-2 border-border">
-                            <img src={guide.qr_code_url} alt="QR Code for guide" className="w-32 h-32 mx-auto" />
-                          </div>
-                          <p className="text-sm text-muted-foreground mt-2">
-                            Scan to share this guide
-                          </p>
-                        </div>}
-                      
-                       {paymentSuccess && <div className="space-y-2 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                           <div className="flex items-center gap-2">
-                             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                             <label className="text-sm font-medium text-green-700 dark:text-green-300">Your Access Code</label>
-                           </div>
-                           <div className="flex gap-2">
-                             <div className="flex-1 p-3 bg-white dark:bg-gray-800 rounded-md border border-green-200 dark:border-green-700 text-lg font-mono text-center">
-                               {searchParams.get('access_code') || 'Loading...'}
-                             </div>
-                             <Button variant="outline" size="sm" onClick={() => copyToClipboard(searchParams.get('access_code') || '', 'Access code')} className="border-green-200 dark:border-green-700">
-                               <Copy className="w-4 h-4" />
-                             </Button>
-                           </div>
-                           <p className="text-sm text-green-600 dark:text-green-400">
-                             Save this code - you'll need it to access your audio guide
-                           </p>
-                         </div>}
-
-                       {guide.share_url && <div className="space-y-2">
-                           <label className="text-sm font-medium">Share Link</label>
-                           <div className="flex gap-2">
-                             <div className="flex-1 p-2 bg-muted rounded-md text-sm font-mono truncate">
-                               {guide.share_url}
-                             </div>
-                             <Button variant="outline" size="sm" onClick={() => copyToClipboard(guide.share_url, 'Share link')}>
-                               <Copy className="w-4 h-4" />
-                             </Button>
-                           </div>
-                         </div>}
-                    </> : <div className="text-center space-y-4">
-                      <div className="inline-block p-8 bg-muted/50 rounded-lg border-2 border-dashed border-border">
-                        <QrCode className="w-24 h-24 mx-auto text-muted-foreground/30" />
-                      </div>
-                      <div className="space-y-2">
-                        <p className="text-sm text-muted-foreground">
-                          QR code will be available after purchase
-                        </p>
-                        <Button onClick={() => setShowPaymentModal(true)} variant="outline" size="sm">
-                          <Lock className="w-4 h-4 mr-2" />
-                          Unlock QR Code
-                        </Button>
-                      </div>
-                    </div>}
-                </CardContent>
-              </Card>}
-
-            {/* Social Share */}
-            <SocialShare title={`🎧 ${guide.title}`} description={`Discover ${guide.location} through this amazing ${guide.duration}-minute audio guide! ${guide.description}`} guide={{
-            id: guide.id,
-            title: guide.title,
-            location: guide.location,
-            image_url: guide.image
-          }} />
 
             {/* Creator Card */}
             <Card>
@@ -794,6 +704,16 @@ const GuideDetail = () => {
             <AudioPlayer title={guide.title} description={guide.description} guideId={guide.id} />
           </div>
         </div>}
+
+      {/* Chapter Preview Player */}
+      {previewingChapter && (
+        <AudioPreviewPlayer
+          title={previewingChapter.title}
+          audioSrc={`/public/tmp/guide${Math.floor(Math.random() * 4) + 1}.mp3`}
+          onClose={() => setPreviewingChapter(null)}
+          isPreview={true}
+        />
+      )}
 
       {/* Enhanced Payment Modal with Force Reset */}
       <Dialog key={`payment-modal-${showPaymentModal}`} open={showPaymentModal} onOpenChange={open => {
