@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { HeroSection } from '@/components/HeroSection';
 import { AudioPlayer } from '@/components/AudioPlayer';
 import { GuideCard } from '@/components/GuideCard';
 import { Navigation } from '@/components/Navigation';
-
+import { ViralDashboard } from '@/components/ViralDashboard';
 import { CreatorRecommendations } from '@/components/CreatorRecommendations';
 import { Button } from '@/components/ui/button';
-import { Headphones, RefreshCw, AlertCircle } from 'lucide-react';
-
-import { EnhancedGuideCard } from '@/components/EnhancedGuideCard';
-
+import { Headphones, Search, Filter } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import * as CarouselComponents from '@/components/ui/carousel';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -22,13 +20,10 @@ import parisImage from '@/assets/paris-louvre.jpg';
 import santoriniImage from '@/assets/santorini-greece.jpg';
 
 const Index = () => {
-  const navigate = useNavigate();
   const [selectedGuide, setSelectedGuide] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [guides, setGuides] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
   const [userPurchases, setUserPurchases] = useState<string[]>([]);
   const [processingPayment, setProcessingPayment] = useState<string | null>(null);
   const { user } = useAuth();
@@ -41,64 +36,25 @@ const Index = () => {
     }
   }, [user]);
 
-  const fetchGuides = async (isRetry = false) => {
-    if (!isRetry) {
-      setLoading(true);
-      setError(null);
-    }
-    
+  const fetchGuides = async () => {
     try {
-      console.log('Fetching guides, attempt:', retryCount + 1);
-      
-      // Create AbortController for timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-      
       const { data, error } = await supabase
         .from('audio_guides')
         .select('*')
         .eq('is_published', true)
         .eq('is_approved', true)
-        .order('created_at', { ascending: false })
-        .abortSignal(controller.signal);
+        .order('created_at', { ascending: false });
 
-      clearTimeout(timeoutId);
-
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
-      }
+      if (error) throw error;
       
-      console.log('Successfully fetched guides:', data?.length || 0);
       setGuides(data || []);
-      setError(null);
-      setRetryCount(0);
-      
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error fetching guides:', error);
-      
-      const errorMessage = error.name === 'AbortError' 
-        ? 'Request timed out. Please check your connection.' 
-        : error.message || 'Failed to load guides';
-      
-      setError(errorMessage);
-      
-      // Auto-retry with exponential backoff (max 3 attempts)
-      if (retryCount < 2) {
-        const delay = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s
-        console.log(`Retrying in ${delay}ms...`);
-        
-        setTimeout(() => {
-          setRetryCount(prev => prev + 1);
-          fetchGuides(true);
-        }, delay);
-      } else {
-        toast({
-          title: "Connection Error",
-          description: errorMessage,
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "Error",
+        description: "Failed to load guides",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -122,8 +78,60 @@ const Index = () => {
   };
 
   const handlePurchaseGuide = async (guideId: string) => {
-    // Navigate directly to guide detail page for purchase (supports guest checkout)
-    navigate(`/guide/${guideId}`);
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to purchase guides",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (processingPayment === guideId) {
+      return; // Prevent multiple clicks
+    }
+
+    setProcessingPayment(guideId);
+
+    try {
+      console.log('Starting payment process for guide:', guideId);
+      
+      const { data, error } = await supabase.functions.invoke('create-payment', {
+        body: { guideId },
+      });
+
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw error;
+      }
+
+      if (!data?.url) {
+        throw new Error('No payment URL received');
+      }
+
+      console.log('Payment URL received, opening checkout:', data.url);
+      
+      // Open Stripe checkout in a new tab
+      window.open(data.url, '_blank');
+      
+      toast({
+        title: "Payment Started",
+        description: "Redirecting to secure checkout...",
+      });
+      
+    } catch (error: any) {
+      console.error('Payment error:', error);
+      toast({
+        title: "Payment Error",
+        description: error.message || "Failed to initiate payment. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      // Clear processing state after a short delay
+      setTimeout(() => {
+        setProcessingPayment(null);
+      }, 2000);
+    }
   };
 
   const filteredGuides = guides.filter(guide =>
@@ -153,7 +161,6 @@ const Index = () => {
       <Navigation />
       <HeroSection />
       
-      
       {/* Mobile-Optimized Featured Destinations Section */}
       <section className="mobile-padding mobile-spacing">{/* Mobile-first section */}
         <div className="mobile-container">
@@ -171,6 +178,35 @@ const Index = () => {
             </p>
           </div>
 
+          {/* Enhanced Search and Filter */}
+          <div className="mobile-stack max-w-2xl mx-auto">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search destinations..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 bg-card/50 backdrop-blur-sm border-border/50 touch-target mobile-text"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1 sm:flex-none touch-target">
+                <Filter className="h-4 w-4 mr-2" />
+                Filters
+              </Button>
+              {searchTerm && (
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setSearchTerm('')}
+                  className="text-muted-foreground hover:text-foreground touch-target px-4"
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
+          </div>
+
           {/* Search Results Info */}
           {searchTerm && (
             <div className="text-center mb-6">
@@ -182,81 +218,83 @@ const Index = () => {
 
           {/* Loading State */}
           {loading && (
-            <div className="grid gap-4 sm:gap-6">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="mobile-card animate-pulse">
-                  <div className="aspect-[16/9] sm:aspect-[4/3] bg-muted rounded-lg mb-4"></div>
-                  <div className="h-4 bg-muted rounded mb-2"></div>
-                  <div className="h-4 bg-muted rounded w-3/4"></div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Error State */}
-          {!loading && error && (
-            <div className="text-center py-16 mobile-spacing">
-              <div className="mx-auto w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mb-4">
-                <AlertCircle className="h-8 w-8 text-destructive" />
-              </div>
-              <h3 className="mobile-subheading text-foreground mb-2">Failed to Load Guides</h3>
-              <p className="mobile-caption text-muted-foreground mb-6 max-w-md mx-auto">{error}</p>
-              <Button 
-                variant="outline" 
-                onClick={() => fetchGuides()}
-                className="gap-2"
-                disabled={loading}
+            <div className="mobile-padding">
+              <CarouselComponents.Carousel
+                opts={{
+                  align: "start",
+                  loop: false,
+                }}
+                className="w-full max-w-none"
               >
-                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                {loading ? 'Retrying...' : 'Try Again'}
-              </Button>
+                <CarouselComponents.CarouselContent className="-ml-2">
+                  {[...Array(6)].map((_, i) => (
+                    <CarouselComponents.CarouselItem key={i} className="pl-2 basis-[85%] sm:basis-[75%] md:basis-1/2 lg:basis-1/3">
+                      <div className="mobile-card animate-pulse">
+                        <div className="aspect-mobile bg-muted rounded-lg mb-4"></div>
+                        <div className="h-4 bg-muted rounded mb-2"></div>
+                        <div className="h-4 bg-muted rounded w-3/4"></div>
+                      </div>
+                    </CarouselComponents.CarouselItem>
+                  ))}
+                </CarouselComponents.CarouselContent>
+                <CarouselComponents.CarouselPrevious className="left-2" />
+                <CarouselComponents.CarouselNext className="right-2" />
+              </CarouselComponents.Carousel>
             </div>
           )}
 
-          {/* Guides Grid */}
-          {!loading && !error && (
-            <div className="grid gap-4 sm:gap-6">
-              {filteredGuides.map((guide) => {
-                const isPurchased = userPurchases.includes(guide.id);
-                
-                return (
-                  <div key={guide.id} className="w-full">
-                    <EnhancedGuideCard
-                      id={guide.id}
-                      title={guide.title}
-                      description={guide.description}
-                      duration={guide.duration}
-                      location={guide.location}
-                      rating={guide.rating || 0}
-                      category={guide.category}
-                      price={guide.price_usd}
-                      difficulty={guide.difficulty}
-                      imageUrl={guide.image_url}
-                      totalPurchases={guide.total_purchases || 0}
-                      creatorName="AI Guide Creator"
-                      isPurchased={isPurchased}
-                      isProcessingPayment={processingPayment === guide.id}
-                      onViewGuide={() => {
-                        if (isPurchased || guide.price_usd === 0) {
-                          handlePlayGuide(guide);
-                        } else {
-                          // Navigate to guide detail page for purchase
-                          navigate(`/guide/${guide.id}`);
-                        }
-                      }}
-                      onPreview={() => {
-                        // Preview functionality - play first 30 seconds
-                        console.log('Playing preview for guide:', guide.id);
-                      }}
-                     />
-                  </div>
-                );
-              })}
+          {/* Guides Carousel */}
+          {!loading && (
+            <div className="mobile-padding">
+              <CarouselComponents.Carousel
+                opts={{
+                  align: "start",
+                  loop: false,
+                }}
+                className="w-full max-w-none"
+              >
+                <CarouselComponents.CarouselContent className="-ml-2">
+                  {filteredGuides.map((guide) => {
+                    const isPurchased = userPurchases.includes(guide.id);
+                    const formattedPrice = guide.price_usd === 0 ? "Free" : `$${guide.price_usd}`;
+                    const formattedDuration = `${Math.floor(guide.duration / 60)} min`;
+                    
+                    return (
+                      <CarouselComponents.CarouselItem key={guide.id} className="pl-2 basis-[85%] sm:basis-[75%] md:basis-1/2 lg:basis-1/3">{/* Mobile-first carousel items */}
+                      <GuideCard
+                        id={guide.id}
+                        title={guide.title}
+                        description={guide.description}
+                        duration={guide.duration}
+                        location={guide.location}
+                        rating={guide.rating || 0}
+                        category={guide.category}
+                        price={guide.price_usd}
+                        difficulty={guide.difficulty}
+                        imageUrl={guide.image_url}
+                        totalPurchases={guide.total_purchases || 0}
+                        creatorName="Guide Creator"
+                        isProcessingPayment={processingPayment === guide.id}
+                        onViewGuide={() => {
+                          if (isPurchased || guide.price_usd === 0) {
+                            handlePlayGuide(guide);
+                          } else {
+                            handlePurchaseGuide(guide.id);
+                          }
+                        }}
+                       />
+                      </CarouselComponents.CarouselItem>
+                    );
+                  })}
+                </CarouselComponents.CarouselContent>
+                <CarouselComponents.CarouselPrevious className="left-2" />
+                <CarouselComponents.CarouselNext className="right-2" />
+              </CarouselComponents.Carousel>
             </div>
           )}
 
           {/* No Results */}
-          {!loading && !error && filteredGuides.length === 0 && (
+          {!loading && filteredGuides.length === 0 && (
             <div className="text-center py-16 mobile-spacing">
               <div className="text-6xl mb-4">🔍</div>
               <h3 className="mobile-subheading text-foreground mb-2">No destinations found</h3>
@@ -266,6 +304,8 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Simplified Viral Dashboard Section */}
+      <ViralDashboard />
 
       {/* Audio Player Section */}
       {selectedGuide && (
@@ -296,20 +336,10 @@ const Index = () => {
             Join thousands of travelers exploring UNESCO World Heritage sites and cultural treasures with AI-powered storytelling
           </p>
           <div className="mobile-stack sm:flex-row gap-4 justify-center">
-            <Button 
-              variant="hero" 
-              size="lg" 
-              className="mobile-button px-8 py-4 touch-target"
-              onClick={() => navigate('/search')}
-            >
+            <Button variant="hero" size="lg" className="mobile-button px-8 py-4 touch-target">
               Start Exploring
             </Button>
-            <Button 
-              variant="glass" 
-              size="lg" 
-              className="mobile-button px-8 py-4 touch-target"
-              onClick={() => navigate('/category/destinations')}
-            >
+            <Button variant="glass" size="lg" className="mobile-button px-8 py-4 touch-target">
               View All Destinations
             </Button>
           </div>

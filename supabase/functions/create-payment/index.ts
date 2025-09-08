@@ -79,9 +79,6 @@ serve(async (req) => {
       throw new Error(`The guide price ($${currentAmount}) is below Stripe's minimum payment amount of $${minAmount}. Please contact support or choose a different guide.`);
     }
 
-    // Convert price to cents if stored as dollars
-    const priceInCents = guide.price_usd < 100 ? guide.price_usd * 100 : guide.price_usd;
-
     // Check if user/guest has already purchased this guide
     let existingPurchase = null;
     if (user) {
@@ -185,7 +182,7 @@ serve(async (req) => {
           price_data: {
             currency: guide.currency || "usd",
             product_data: productData,
-            unit_amount: priceInCents, // Ensure price is in cents
+            unit_amount: guide.price_usd, // Already in cents from database
           },
           quantity: 1,
         },

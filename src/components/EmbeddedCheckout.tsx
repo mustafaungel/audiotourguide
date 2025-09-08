@@ -172,8 +172,13 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
     try {
       console.log('🔧 [REDIRECT] Attempting window.location.href (universal)...');
       
-      // Use direct redirect for same-tab experience
-      window.location.href = checkoutUrl;
+      if (isSafari || isMobile) {
+        // Safari and mobile browsers prefer href over assign
+        window.location.href = checkoutUrl;
+      } else {
+        // Chrome, Firefox prefer assign
+        window.location.assign(checkoutUrl);
+      }
       
       // Don't wait on mobile - redirect immediately
       if (!isMobile) {
@@ -331,7 +336,7 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
             Purchase Audio Guide
           </CardTitle>
           <CardDescription>
-            <span className="text-primary font-medium">✓ No signup required</span> - Buy instantly with email
+            Buy instantly or create an account for better tracking
           </CardDescription>
         </CardHeader>
       <CardContent className="space-y-6">

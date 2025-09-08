@@ -4,7 +4,6 @@ import { Navigation } from "@/components/Navigation";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { SocialShare } from "@/components/SocialShare";
 import { EmbeddedCheckout } from "@/components/EmbeddedCheckout";
-import { DemoAudioPlayer } from "@/components/DemoAudioPlayer";
 import { StripeConfigHelper } from "@/components/StripeConfigHelper";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Star, MapPin, Clock, Users, Play, Download, Share2, Bookmark, ChevronLeft, Lock, Copy, QrCode, ShoppingCart } from "lucide-react";
+import { Star, MapPin, Clock, Users, Play, Download, Share2, Bookmark, ChevronLeft, Lock, Copy, QrCode } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useViralTracking } from "@/hooks/useViralTracking";
 import { useAuth } from "@/contexts/AuthContext";
@@ -133,7 +132,6 @@ const GuideDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [realGuideData, setRealGuideData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
-  const [selectedGuide, setSelectedGuide] = useState<any>(null);
   const { toast: showToast } = useToast();
 
   // Use real guide data if available, with fallbacks for essential properties
@@ -596,10 +594,10 @@ const GuideDetail = () => {
                       Purchase Guide
                     </Button>
                     {!user && (
-                      <div className="flex items-center gap-2 p-3 bg-primary/10 rounded-lg">
-                        <ShoppingCart className="h-4 w-4 text-primary" />
-                        <span className="text-sm text-foreground">
-                          Guest checkout available - no signup required
+                      <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
+                        <Lock className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">
+                          Sign in to purchase and access guides
                         </span>
                       </div>
                     )}
@@ -883,18 +881,6 @@ const GuideDetail = () => {
           )}
         </DialogContent>
       </Dialog>
-
-      {/* Demo Audio Player */}
-      {selectedGuide?.isDemo && (
-        <DemoAudioPlayer
-          guide={selectedGuide}
-          onClose={() => setSelectedGuide(null)}
-          onPurchase={() => {
-            setSelectedGuide(null);
-            setShowPaymentModal(true);
-          }}
-        />
-      )}
     </div>
   );
 };

@@ -28,6 +28,7 @@ import Category from "./pages/Category";
 import Community from "./pages/Community";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
+import { MobileNavigation } from "@/components/MobileNavigation";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +48,9 @@ const App = () => {
               <Route path="/admin" element={<AdminPanel />} />
               <Route path="/library" element={<Library />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/creator-dashboard" element={<CreatorDashboard />} />
+              <Route path="/creators" element={<Creators />} />
+              <Route path="/creator/:creatorId" element={<CreatorProfile />} />
               <Route path="/user/:userId" element={<UserProfile />} />
               <Route path="/experiences" element={<Experiences />} />
               <Route path="/unesco-sites" element={<UnescoSites />} />
@@ -63,6 +67,7 @@ const App = () => {
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <MobileNavigation />
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>
