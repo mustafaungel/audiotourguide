@@ -521,48 +521,74 @@ const GuideDetail = () => {
                 <TabsTrigger value="reviews">Reviews</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="chapters" className="space-y-3">
-                {(guide.chapters || guide.sections || []).map((chapter, index) => (
-                  <Card key={index} className="p-4 hover:bg-muted/50 cursor-pointer transition-colors">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium">
-                          {index + 1}
-                        </div>
-                        <div>
-                          <h4 className="font-medium">{chapter.title}</h4>
-                          <p className="text-sm text-muted-foreground">
-                            {chapter.duration_seconds 
-                              ? `${Math.floor(chapter.duration_seconds / 60)}:${(chapter.duration_seconds % 60).toString().padStart(2, '0')}`
-                              : chapter.duration 
-                                ? `${Math.floor(chapter.duration / 60)}:${((chapter.duration * 60) % 60).toString().padStart(2, '0')}`
-                                : 'N/A'
-                            }
-                            {!isPurchased && " • Preview available"}
-                          </p>
-                        </div>
-                      </div>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => {
-                          console.log('🔧 Chapter play clicked', { isPurchased, audioUrl: guide.audio_url });
-                          setPlayingGuide(true);
-                        }}
-                        disabled={!guide.audio_url}
-                      >
-                        {isPurchased ? (
-                          <Play className="w-4 h-4" />
-                        ) : (
-                          <div className="flex items-center gap-1">
-                            <Play className="w-4 h-4" />
-                            <span className="text-xs">30s</span>
-                          </div>
-                        )}
-                      </Button>
+              <TabsContent value="chapters" className="space-y-4">
+                {!isPurchased && !hasAccessCode ? (
+                  <div className="text-center py-12 bg-muted/20 rounded-lg border-2 border-dashed border-muted">
+                    <Lock className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                    <h3 className="text-xl font-semibold mb-2">Chapters Locked</h3>
+                    <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                      Purchase this guide to unlock all chapters and enjoy the complete audio experience.
+                    </p>
+                    <div className="space-y-2 mb-6">
+                      <p className="text-sm text-muted-foreground">What you'll get:</p>
+                      <ul className="text-sm space-y-1 text-left max-w-xs mx-auto">
+                        <li className="flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 bg-primary rounded-full" />
+                          Full chapter navigation
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 bg-primary rounded-full" />
+                          High-quality audio
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 bg-primary rounded-full" />
+                          Offline access
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 bg-primary rounded-full" />
+                          Lifetime access
+                        </li>
+                      </ul>
                     </div>
-                  </Card>
-                ))}
+                    <Button onClick={handlePurchase} size="lg" className="w-auto px-8">
+                      Unlock Chapters - {guide.price}
+                    </Button>
+                  </div>
+                ) : (
+                  (guide.chapters || guide.sections || []).map((chapter, index) => (
+                    <Card key={index} className="p-4 hover:bg-muted/50 cursor-pointer transition-colors">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium">
+                            {index + 1}
+                          </div>
+                          <div>
+                            <h4 className="font-medium">{chapter.title}</h4>
+                            <p className="text-sm text-muted-foreground">
+                              {chapter.duration_seconds 
+                                ? `${Math.floor(chapter.duration_seconds / 60)}:${(chapter.duration_seconds % 60).toString().padStart(2, '0')}`
+                                : chapter.duration 
+                                  ? `${Math.floor(chapter.duration / 60)}:${((chapter.duration * 60) % 60).toString().padStart(2, '0')}`
+                                  : 'N/A'
+                              }
+                            </p>
+                          </div>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            console.log('🔧 Chapter play clicked', { isPurchased, audioUrl: guide.audio_url });
+                            setPlayingGuide(true);
+                          }}
+                          disabled={!guide.audio_url}
+                        >
+                          <Play className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </Card>
+                  ))
+                )}
               </TabsContent>
               
               <TabsContent value="qrcode" className="space-y-4">
@@ -728,110 +754,10 @@ const GuideDetail = () => {
                          </span>
                        </div>
                      )}
-                   </>
-                 )}
-              </CardContent>
-            </Card>
-
-            {/* QR Code & Share Section */}
-            {(guide.qr_code_url || guide.share_url) && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <QrCode className="w-5 h-5" />
-                    {isPurchased ? 'Share This Guide' : 'QR Code Access'}
-                  </CardTitle>
-                  <CardDescription>
-                    {isPurchased 
-                      ? 'Easy sharing options for this audio guide'
-                      : 'Purchase this guide to unlock QR code sharing'
-                    }
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {isPurchased || showQRCode ? (
-                    <>
-                      {guide.qr_code_url && (
-                        <div className="text-center">
-                          <div className="inline-block p-4 bg-white rounded-lg border-2 border-border">
-                            <img 
-                              src={guide.qr_code_url} 
-                              alt="QR Code for guide"
-                              className="w-32 h-32 mx-auto"
-                            />
-                          </div>
-                          <p className="text-sm text-muted-foreground mt-2">
-                            Scan to share this guide
-                          </p>
-                        </div>
-                      )}
-                      
-                       {paymentSuccess && (
-                         <div className="space-y-2 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                           <div className="flex items-center gap-2">
-                             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                             <label className="text-sm font-medium text-green-700 dark:text-green-300">Your Access Code</label>
-                           </div>
-                           <div className="flex gap-2">
-                             <div className="flex-1 p-3 bg-white dark:bg-gray-800 rounded-md border border-green-200 dark:border-green-700 text-lg font-mono text-center">
-                               {searchParams.get('access_code') || 'Loading...'}
-                             </div>
-                             <Button
-                               variant="outline"
-                               size="sm"
-                               onClick={() => copyToClipboard(searchParams.get('access_code') || '', 'Access code')}
-                               className="border-green-200 dark:border-green-700"
-                             >
-                               <Copy className="w-4 h-4" />
-                             </Button>
-                           </div>
-                           <p className="text-sm text-green-600 dark:text-green-400">
-                             Save this code - you'll need it to access your audio guide
-                           </p>
-                         </div>
-                       )}
-
-                       {guide.share_url && (
-                         <div className="space-y-2">
-                           <label className="text-sm font-medium">Share Link</label>
-                           <div className="flex gap-2">
-                             <div className="flex-1 p-2 bg-muted rounded-md text-sm font-mono truncate">
-                               {guide.share_url}
-                             </div>
-                             <Button
-                               variant="outline"
-                               size="sm"
-                               onClick={() => copyToClipboard(guide.share_url, 'Share link')}
-                             >
-                               <Copy className="w-4 h-4" />
-                             </Button>
-                           </div>
-                         </div>
-                       )}
                     </>
-                  ) : (
-                    <div className="text-center space-y-4">
-                      <div className="inline-block p-8 bg-muted/50 rounded-lg border-2 border-dashed border-border">
-                        <QrCode className="w-24 h-24 mx-auto text-muted-foreground/30" />
-                      </div>
-                      <div className="space-y-2">
-                        <p className="text-sm text-muted-foreground">
-                          QR code will be available after purchase
-                        </p>
-                        <Button 
-                          onClick={() => setShowPaymentModal(true)}
-                          variant="outline"
-                          size="sm"
-                        >
-                          <Lock className="w-4 h-4 mr-2" />
-                          Unlock QR Code
-                        </Button>
-                      </div>
-                    </div>
                   )}
-                </CardContent>
-              </Card>
-            )}
+               </CardContent>
+             </Card>
 
 
             {/* Related Guides */}
