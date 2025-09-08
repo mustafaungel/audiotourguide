@@ -204,12 +204,6 @@ export default function PaymentSuccess() {
             Start Listening Now
           </Button>
           
-          <Button variant="outline" asChild className="w-full">
-            <Link to="/library">
-              <Download className="h-4 w-4 mr-2" />
-              View My Library
-            </Link>
-          </Button>
 
           <Button variant="ghost" asChild className="w-full">
             <Link to="/">
@@ -218,21 +212,6 @@ export default function PaymentSuccess() {
             </Link>
           </Button>
 
-          {/* Share Link */}
-          {guide && purchaseData?.access_code && (
-            <div className="mt-4">
-              <ShareLink
-                guideId={guide.id}
-                guideTitle={guide.title}
-                accessCode={purchaseData.access_code}
-                trigger={
-                  <Button variant="outline" className="w-full">
-                    Share Your Guide
-                  </Button>
-                }
-              />
-            </div>
-          )}
         </div>
 
           <div className="mt-8 p-4 bg-card rounded-lg">

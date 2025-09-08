@@ -55,11 +55,12 @@ export default function AudioAccess() {
     setError(null);
 
     try {
-      // First verify access with the access code
+      // First verify access with the access code (works for both guest and authenticated users)
       console.log('[AUDIO-ACCESS] Querying with:', { 
         guide_id: guideId, 
         access_code: accessCode,
-        accessCodeTrimmed: accessCode.trim()
+        accessCodeTrimmed: accessCode.trim(),
+        user: user?.id || 'guest'
       });
       
       const { data: purchaseData, error: purchaseError } = await supabase
