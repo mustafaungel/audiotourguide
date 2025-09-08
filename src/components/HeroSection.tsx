@@ -27,7 +27,7 @@ export const HeroSection: React.FC = () => {
               Explore the World's Hidden Stories
             </h1>
             <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Discover UNESCO World Heritage sites, cultural traditions, and iconic destinations with AI-powered audio tours that bring history to life.
+              Discover UNESCO World Heritage sites, cultural traditions, and iconic destinations with high quality audio guides that bring history to life.
             </p>
           </div>
 
