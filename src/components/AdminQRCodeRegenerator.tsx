@@ -9,6 +9,7 @@ import { RefreshCw, ExternalLink, QrCode, Copy } from "lucide-react";
 interface Guide {
   id: string;
   title: string;
+  slug?: string;
   qr_code_url: string | null;
   share_url: string | null;
   admin_qr_code_url: string | null;
@@ -148,8 +149,8 @@ export function AdminQRCodeRegenerator() {
     }
   };
 
-  const openGuidePreview = (guideId: string) => {
-    const url = `${window.location.origin}/guide/${guideId}`;
+  const openGuidePreview = (guide: Guide) => {
+    const url = `${window.location.origin}/guide/${guide.slug || guide.id}`;
     window.open(url, '_blank');
   };
 
@@ -244,7 +245,7 @@ export function AdminQRCodeRegenerator() {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => openGuidePreview(guide.id)}
+                  onClick={() => openGuidePreview(guide)}
                   title="Preview guide"
                 >
                   <ExternalLink className="h-4 w-4" />

@@ -112,7 +112,8 @@ export const AdminAIGuideGenerator = () => {
           languages: ['English'],
           is_approved: true, // Admin-created guides are auto-approved
           is_published: false, // Let admin choose when to publish
-          transcript: generatedGuide.content
+          transcript: generatedGuide.content,
+          slug: generatedGuide.title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').trim()
         })
         .select()
         .single();

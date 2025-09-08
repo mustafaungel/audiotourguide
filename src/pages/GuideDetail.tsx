@@ -103,7 +103,7 @@ const reviews = [
 
 const GuideDetail = () => {
   console.log('🔧 GuideDetail component loading');
-  const { guideId } = useParams();
+  const { slug } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { trackEngagement } = useViralTracking();
@@ -169,17 +169,8 @@ const GuideDetail = () => {
   };
 
   const fetchGuideDetails = async () => {
-    if (!guideId) {
-      setError('Invalid guide ID');
-      setIsLoading(false);
-      return;
-    }
-
-    // Validate guide ID format (should be UUID)
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(guideId)) {
-      console.error('Invalid guide ID format:', guideId);
-      setError('Invalid guide ID format');
+    if (!slug) {
+      setError('Invalid guide slug');
       setIsLoading(false);
       return;
     }
@@ -187,11 +178,11 @@ const GuideDetail = () => {
     setIsLoading(true);
     
     try {
-      // First, get the guide data
+      // First, get the guide data by slug
       const { data: guideData, error: guideError } = await supabase
         .from('audio_guides')
         .select('*')
-        .eq('id', guideId)
+        .eq('slug', slug)
         .maybeSingle();
 
       if (guideError) {
@@ -200,7 +191,7 @@ const GuideDetail = () => {
       }
 
       if (!guideData) {
-        console.error('Guide not found with ID:', guideId);
+        console.error('Guide not found with slug:', slug);
         setError('Guide not found');
         return;
       }
@@ -246,12 +237,12 @@ const GuideDetail = () => {
       setError(null);
       
       // Fetch related guides
-      await fetchRelatedGuides(transformedData.category, transformedData.location, guideId);
+      await fetchRelatedGuides(transformedData.category, transformedData.location, guideData.id);
       
       // Track guide view once data is loaded
-      if (guideId) {
+      if (guideData.id) {
         try {
-          trackEngagement('view', guideId, {
+          trackEngagement('view', guideData.id, {
             metadata: { location: transformedData.location }
           });
         } catch (trackError) {
@@ -306,7 +297,7 @@ const GuideDetail = () => {
   };
 
   const checkPurchaseStatus = async () => {
-    if (!guideId) return;
+    if (!guide?.id) return;
 
     // Check for access code in URL (for guest users)
     const accessCode = searchParams.get('access') || searchParams.get('access_code');
@@ -316,7 +307,7 @@ const GuideDetail = () => {
         const { data: isValidAccess, error } = await supabase
           .rpc('verify_access_code_secure', {
             p_access_code: accessCode.trim(),
-            p_guide_id: guideId
+            p_guide_id: guide.id
           });
 
         if (isValidAccess && !error) {
@@ -336,7 +327,7 @@ const GuideDetail = () => {
           .from('user_purchases')
           .select('id, access_code')
           .eq('user_id', user.id)
-          .eq('guide_id', guideId)
+          .eq('guide_id', guide.id)
           .single();
 
         if (data) {
@@ -350,8 +341,8 @@ const GuideDetail = () => {
 
   const handleBookmark = () => {
     setIsBookmarked(!isBookmarked);
-    if (guideId && !isBookmarked) {
-      trackEngagement('bookmark', guideId, {
+    if (guide?.id && !isBookmarked) {
+      trackEngagement('bookmark', guide.id, {
         metadata: { location: guide.location }
       });
     }
@@ -372,7 +363,7 @@ const GuideDetail = () => {
     if (paymentSuccessParam === 'true' && sessionId) {
       handlePaymentSuccess(sessionId);
     }
-  }, [guideId, user, searchParams]);
+  }, [slug, user, searchParams]);
 
 
   const handleShare = () => {

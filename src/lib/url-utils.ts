@@ -17,23 +17,30 @@ export function getBaseUrl(): string {
 }
 
 /**
- * Generates a guide detail URL
+ * Generates a guide detail URL using slug
  */
-export function getGuideUrl(guideId: string): string {
+export function getGuideUrl(slug: string): string {
+  return `${getBaseUrl()}/guide/${slug}`;
+}
+
+/**
+ * Generates a guide detail URL using guide ID (legacy support)
+ */
+export function getGuideUrlById(guideId: string): string {
   return `${getBaseUrl()}/guide/${guideId}`;
 }
 
 /**
- * Generates a preview URL for guides
+ * Generates a preview URL for guides using slug
  */
-export function getGuidePreviewUrl(guideId: string): string {
-  return getGuideUrl(guideId);
+export function getGuidePreviewUrl(slug: string): string {
+  return getGuideUrl(slug);
 }
 
 /**
- * Opens a guide in a new tab
+ * Opens a guide in a new tab using slug
  */
-export function openGuidePreview(guideId: string): void {
-  const url = getGuidePreviewUrl(guideId);
+export function openGuidePreview(slug: string): void {
+  const url = getGuidePreviewUrl(slug);
   window.open(url, '_blank');
 }

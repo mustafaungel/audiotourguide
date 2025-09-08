@@ -44,7 +44,7 @@ const App = () => {
               <Route path="/library" element={<Library />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/user/:userId" element={<UserProfile />} />
-              <Route path="/guide/:guideId" element={<GuideDetail />} />
+              <Route path="/guide/:slug" element={<GuideDetail />} />
               <Route path="/destination/:location" element={<DestinationDetail />} />
               <Route path="/search" element={<Search />} />
               <Route path="/category/:categoryType" element={<Category />} />

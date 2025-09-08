@@ -18,6 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface Guide {
   id: string;
+  slug?: string;
   title: string;
   location: string;
   category: string;
@@ -302,6 +303,7 @@ const SearchResults = () => {
               <div key={guide.id} className={viewMode === 'list' ? 'max-w-4xl' : ''}>
                 <GuideCard 
                   id={guide.id}
+                  slug={guide.slug}
                   title={guide.title}
                   description={guide.description || ''}
                   location={guide.location}
@@ -316,7 +318,7 @@ const SearchResults = () => {
                   creatorAvatar={guide.creator_avatar}
                   creatorId={guide.creator_id}
                   isProcessingPayment={false}
-                  onViewGuide={() => navigate(`/guide/${guide.id}`)}
+                  onViewGuide={() => navigate(`/guide/${guide.slug || guide.id}`)}
                 />
               </div>
             ))}

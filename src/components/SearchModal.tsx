@@ -24,6 +24,7 @@ import { AdvancedSearchFilters } from './AdvancedSearchFilters';
 
 interface Guide {
   id: string;
+  slug?: string;
   title: string;
   location: string;
   category: string;
@@ -138,7 +139,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ children }) => {
 
   const handleGuideClick = (guide: Guide) => {
     setIsOpen(false);
-    navigate(`/guide/${guide.id}`);
+    navigate(`/guide/${guide.slug || guide.id}`);
   };
 
   const formatPrice = (price: number) => {

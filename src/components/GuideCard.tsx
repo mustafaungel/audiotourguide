@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 
 interface GuideCardProps {
   id: string;
+  slug?: string;
   title: string;
   description: string;
   location: string;
@@ -28,6 +29,7 @@ interface GuideCardProps {
 
 export function GuideCard({
   id,
+  slug,
   title,
   description,
   location,
@@ -81,7 +83,7 @@ export function GuideCard({
   const handleView = async () => {
     await trackEngagement('view', id);
     // Check if user has purchased this guide
-    navigate(`/guide/${id}`);
+    navigate(`/guide/${slug || id}`);
   };
 
   const getCategoryColor = (cat: string) => {
