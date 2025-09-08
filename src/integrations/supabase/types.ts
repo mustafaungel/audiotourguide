@@ -57,6 +57,7 @@ export type Database = {
           best_time: string | null
           category: string
           created_at: string
+          creator_id: string
           currency: string
           description: string
           destination_id: string | null
@@ -88,6 +89,7 @@ export type Database = {
           best_time?: string | null
           category: string
           created_at?: string
+          creator_id: string
           currency?: string
           description: string
           destination_id?: string | null
@@ -119,6 +121,7 @@ export type Database = {
           best_time?: string | null
           category?: string
           created_at?: string
+          creator_id?: string
           currency?: string
           description?: string
           destination_id?: string | null
