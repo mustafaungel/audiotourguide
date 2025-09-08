@@ -214,8 +214,10 @@ export default function AudioAccess() {
       console.log('[AUDIO-ACCESS] Verifying payment session:', sessionId);
       
       const { data, error } = await supabase.functions.invoke('verify-payment', {
-        body: { sessionId, guideId }
+        body: { session_id: sessionId, guide_id: guideId }
       });
+
+      console.log('[AUDIO-ACCESS] Payment verification response:', { data, error });
 
       if (error) {
         console.error('[AUDIO-ACCESS] Payment verification error:', error);
@@ -224,16 +226,24 @@ export default function AudioAccess() {
         return;
       }
 
-      if (!data.success) {
-        console.error('[AUDIO-ACCESS] Payment not verified');
+      if (!data?.success) {
+        console.error('[AUDIO-ACCESS] Payment not verified:', data);
         setError('Payment verification failed. Please contact support.');
         setIsLoading(false);
         return;
       }
 
-      console.log('[AUDIO-ACCESS] Payment verified, loading guide');
+      console.log('[AUDIO-ACCESS] Payment verified successfully, access code:', data.access_code);
       
-      // Load guide data after payment verification
+      // Redirect to the same URL but with the access code instead of session_id
+      if (data.access_code) {
+        const newUrl = `/access/${guideId}?access_code=${data.access_code}`;
+        console.log('[AUDIO-ACCESS] Redirecting to URL with access code:', newUrl);
+        navigate(newUrl, { replace: true });
+        return;
+      }
+      
+      // Fallback: Load guide directly if no access code returned
       await loadGuideAfterVerification();
       
       toast({
@@ -327,13 +337,37 @@ export default function AudioAccess() {
               <p className="text-muted-foreground mb-4">
                 {error || "You don't have access to this audio guide."}
               </p>
-              <div className="flex gap-2 justify-center">
-                <Button onClick={() => navigate('/search')}>
-                  Browse Guides
-                </Button>
-                <Button variant="outline" onClick={() => navigate('/')}>
-                  Go Home
-                </Button>
+              
+              {/* Show different actions based on the error type */}
+              <div className="flex flex-col gap-3 items-center">
+                {sessionId && error?.includes('payment') && (
+                  <Button 
+                    onClick={() => {
+                      console.log('[AUDIO-ACCESS] Retrying payment verification');
+                      setError(null);
+                      verifyAccessAndLoadGuide();
+                    }}
+                    className="mb-2"
+                  >
+                    Retry Payment Verification
+                  </Button>
+                )}
+                
+                <div className="flex gap-2 justify-center">
+                  <Button onClick={() => navigate('/search')}>
+                    Browse Guides
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate('/')}>
+                    Go Home
+                  </Button>
+                </div>
+                
+                {sessionId && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    If you just completed a payment and are seeing this error, 
+                    please contact support with session ID: {sessionId.slice(-8)}
+                  </p>
+                )}
               </div>
             </div>
           </div>
