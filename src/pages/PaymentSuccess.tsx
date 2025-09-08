@@ -224,28 +224,6 @@ export default function PaymentSuccess() {
             </ul>
           </div>
 
-        {/* Creator Recommendations */}
-        {guide && (
-          <div className="mt-8">
-            <CreatorRecommendations
-              basedOnGuideId={guide.id}
-              location={guide.location}
-              category={guide.category}
-              title="Discover More Local Creators"
-              limit={4}
-            />
-          </div>
-        )}
-
-        {/* Meet Your Creator Modal */}
-        {guide && guide.creator_id && (
-          <MeetYourCreatorModal
-            isOpen={showCreatorModal}
-            onClose={() => setShowCreatorModal(false)}
-            guideId={guide.id}
-            creatorId={guide.creator_id}
-          />
-        )}
       </div>
     </div>
   );

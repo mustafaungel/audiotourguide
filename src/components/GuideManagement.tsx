@@ -17,7 +17,6 @@ interface Guide {
   is_approved: boolean;
   is_published: boolean;
   created_at: string;
-  creator_id: string;
   qr_code_url?: string;
   share_url?: string;
   profiles?: {
@@ -44,21 +43,11 @@ export const GuideManagement = () => {
 
       if (error) throw error;
       
-      // Fetch profile data separately to avoid TypeScript issues
-      const guidesWithProfiles = await Promise.all(
-        (guidesData || []).map(async (guide) => {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('full_name, email')
-            .eq('user_id', guide.creator_id)
-            .single();
-          
-          return {
-            ...guide,
-            profiles: profile
-          };
-        })
-      );
+      // Transform guides to match expected interface
+      const guidesWithProfiles = (guidesData || []).map((guide) => ({
+        ...guide,
+        profiles: null // No longer fetching creator profiles
+      }));
       
       setGuides(guidesWithProfiles);
     } catch (error) {
@@ -225,7 +214,6 @@ export const GuideManagement = () => {
                       {getStatusBadge(guide)}
                     </CardTitle>
                     <CardDescription>
-                      By {guide.profiles?.full_name || guide.profiles?.email || 'Unknown Creator'} • 
                       {guide.location} • {guide.category}
                     </CardDescription>
                   </div>

@@ -7,7 +7,6 @@ import { GuideCard } from '@/components/GuideCard';
 import { Navigation } from '@/components/Navigation';
 
 import { Button } from '@/components/ui/button';
-import { Button } from '@/components/ui/button';
 import { Headphones, Search, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import * as CarouselComponents from '@/components/ui/carousel';

@@ -212,29 +212,18 @@ const GuideDetail = () => {
         .eq('user_id', user?.id)
         .maybeSingle();
 
-      // Apply publication filters for non-admin/non-creator users
-      const isAdminOrCreator = profile?.role === 'admin' || user?.id === guideData.creator_id;
-      if (!isAdminOrCreator && (!guideData.is_published || !guideData.is_approved)) {
+      // Apply publication filters for non-admin users
+      const isAdmin = profile?.role === 'admin';
+      if (!isAdmin && (!guideData.is_published || !guideData.is_approved)) {
         console.error('Guide is not published or approved');
         setError('This guide is not available');
         return;
       }
 
-      // Get creator profile separately for better reliability
-      const { data: creatorProfile } = await supabase
-        .from('profiles')
-        .select('full_name, avatar_url, bio')
-        .eq('user_id', guideData.creator_id)
-        .maybeSingle();
-
       // Transform data to match expected format
       const transformedData = {
         ...guideData,
-        creator: creatorProfile ? {
-          name: creatorProfile.full_name || 'Anonymous Creator',
-          avatar: creatorProfile.avatar_url || '',
-          bio: creatorProfile.bio || ''
-        } : {
+        creator: {
           name: 'Anonymous Creator',
           avatar: '',
           bio: ''
@@ -287,9 +276,7 @@ const GuideDetail = () => {
           price_usd, 
           rating, 
           image_url, 
-          location, 
-          creator_id,
-          profiles!creator_id(full_name)
+          location
         `)
         .neq('id', currentGuideId)
         .eq('is_published', true)
@@ -305,7 +292,7 @@ const GuideDetail = () => {
       const transformedRelated = data?.map(guide => ({
         id: guide.id,
         title: guide.title,
-        creator: (guide.profiles as any)?.full_name || 'Anonymous Creator',
+        creator: 'Anonymous Creator',
         rating: guide.rating || 0,
         price: Math.floor((guide.price_usd || 0) / 100),
         image: guide.image_url?.startsWith('data:image') ? guide.image_url : guide.image_url || '/hero-audio-guide.jpg'

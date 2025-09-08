@@ -17,8 +17,6 @@ interface UserProfile {
   verification_status: string;
   specialties: string[];
   languages_spoken: string[];
-  current_tier: string;
-  tier_points: number;
   created_at: string;
 }
 
@@ -87,13 +85,24 @@ const UserProfile = () => {
 
         const demoUser = demoUsers[userId as keyof typeof demoUsers];
         if (demoUser) {
-          setProfile(demoUser);
+          const { current_tier, tier_points, ...userWithoutTier } = demoUser;
+          setProfile(userWithoutTier);
         } else {
           // User not found
           setProfile(null);
         }
       } else {
-        setProfile(profileData);
+        // Map database profile to our interface
+        setProfile({
+          id: profileData.id,
+          full_name: profileData.full_name || 'Anonymous User',
+          bio: profileData.bio || '',
+          avatar_url: profileData.avatar_url || '',
+          verification_status: profileData.verification_status || 'unverified',
+          specialties: profileData.specialties || [],
+          languages_spoken: profileData.languages_spoken || [],
+          created_at: profileData.created_at
+        });
       }
     } catch (error) {
       console.error('Error fetching user profile:', error);
@@ -160,13 +169,6 @@ const UserProfile = () => {
                       {profile.full_name.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
-                  
-                  <div className="flex items-center gap-2 mb-2">
-                    <TierBadge tier={profile.current_tier} />
-                    <span className="text-sm text-muted-foreground">
-                      {profile.tier_points} points
-                    </span>
-                  </div>
                 </div>
 
                 <div className="flex-1 text-center md:text-left">
@@ -243,13 +245,7 @@ const UserProfile = () => {
                     <h3 className="font-semibold mb-2">Traveler Status</h3>
                     <div className="flex items-center gap-4">
                       <div className="flex items-center gap-2">
-                        <TierBadge tier={profile.current_tier} />
-                        <span className="text-sm">
-                          {profile.current_tier.charAt(0).toUpperCase() + profile.current_tier.slice(1)} Member
-                        </span>
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {profile.tier_points} points earned
+                        <Badge variant="secondary">Traveler</Badge>
                       </div>
                     </div>
                   </div>

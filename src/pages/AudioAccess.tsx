@@ -130,21 +130,12 @@ export default function AudioAccess() {
         return;
       }
 
-      // Get creator profile separately
-      const { data: creatorProfile } = await supabase
-        .from('profiles')
-        .select('full_name, avatar_url, bio')
-        .eq('user_id', guideData.creator_id)
-        .maybeSingle();
+      // Creator profile removed - no longer available
 
       // Transform guide data
       const transformedGuide = {
         ...guideData,
-        creator: creatorProfile ? {
-          name: creatorProfile.full_name || 'Anonymous Creator',
-          avatar: creatorProfile.avatar_url || '',
-          bio: creatorProfile.bio || ''
-        } : {
+        creator: {
           name: 'Anonymous Creator',
           avatar: '',
           bio: ''
@@ -186,21 +177,12 @@ export default function AudioAccess() {
         return;
       }
 
-      // Get creator profile separately
-      const { data: creatorProfile } = await supabase
-        .from('profiles')
-        .select('full_name, avatar_url, bio')
-        .eq('user_id', guideData.creator_id)
-        .maybeSingle();
+      // Creator profile removed - no longer available
 
       // Transform guide data
       const transformedGuide = {
         ...guideData,
-        creator: creatorProfile ? {
-          name: creatorProfile.full_name || 'Anonymous Creator',
-          avatar: creatorProfile.avatar_url || '',
-          bio: creatorProfile.bio || ''
-        } : {
+        creator: {
           name: 'Anonymous Creator',
           avatar: '',
           bio: ''
@@ -281,21 +263,12 @@ export default function AudioAccess() {
         return;
       }
 
-      // Get creator profile separately
-      const { data: creatorProfile } = await supabase
-        .from('profiles')
-        .select('full_name, avatar_url, bio')
-        .eq('user_id', guideData.creator_id)
-        .maybeSingle();
+      // Creator profile removed - no longer available
 
       // Transform guide data
       const transformedGuide = {
         ...guideData,
-        creator: creatorProfile ? {
-          name: creatorProfile.full_name || 'Anonymous Creator',
-          avatar: creatorProfile.avatar_url || '',
-          bio: creatorProfile.bio || ''
-        } : {
+        creator: {
           name: 'Anonymous Creator',
           avatar: '',
           bio: ''
