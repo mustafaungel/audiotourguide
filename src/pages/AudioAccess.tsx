@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Star, MapPin, Clock, Download, ChevronLeft, Lock, CheckCircle } from "lucide-react";
+import { Star, MapPin, Clock, ChevronLeft, Lock, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -155,47 +155,6 @@ export default function AudioAccess() {
     }
   };
 
-  const handleDownload = async () => {
-    if (!guide?.audio_url && !guide?.id) return;
-    
-    try {
-      let audioUrl = guide.audio_url;
-      
-      if (!audioUrl) {
-        // Try to get from storage bucket
-        const { data } = supabase.storage
-          .from('guide-audio')
-          .getPublicUrl(`${guide.id}.mp3`);
-        
-        audioUrl = data?.publicUrl || `/tmp/${guide.id}.mp3`;
-      }
-
-      const response = await fetch(audioUrl);
-      if (!response.ok) throw new Error('Download failed');
-      
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${guide.title}.mp3`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      
-      toast({
-        title: "Download Started",
-        description: "Audio guide is being downloaded",
-      });
-    } catch (error) {
-      console.error('Download failed:', error);
-      toast({
-        title: "Download Failed",
-        description: "Unable to download audio file",
-        variant: "destructive",
-      });
-    }
-  };
 
   if (isLoading) {
     return (
@@ -316,25 +275,6 @@ export default function AudioAccess() {
                     </div>
                   </div>
 
-                  {/* Creator Info */}
-                  <div className="flex items-center gap-3 pt-2">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={guide.creator.avatar} alt={guide.creator.name} />
-                      <AvatarFallback>{guide.creator.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-medium">{guide.creator.name}</p>
-                      <p className="text-sm text-muted-foreground">Guide Creator</p>
-                    </div>
-                  </div>
-
-                  {/* Download Button */}
-                  <div className="pt-2">
-                    <Button onClick={handleDownload} variant="outline" className="w-full md:w-auto">
-                      <Download className="w-4 h-4 mr-2" />
-                      Download Audio
-                    </Button>
-                  </div>
                 </div>
               </div>
             </CardContent>
