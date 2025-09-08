@@ -295,8 +295,8 @@ const GuideDetail = () => {
         title: guide.title,
         creator: 'Anonymous Creator',
         rating: guide.rating || 0,
-        price: Math.floor((guide.price_usd || 0) / 100),
-        image: (guide.image_urls?.[0] || guide.image_url)?.startsWith('data:image') ? (guide.image_urls?.[0] || guide.image_url) : (guide.image_urls?.[0] || guide.image_url) || '/hero-audio-guide.jpg'
+        price: (guide.price_usd || 0) / 100,
+        image: guide.image_urls?.[0] || guide.image_url || '/hero-audio-guide.jpg'
       })) || [];
 
       setRelatedGuides(transformedRelated);
@@ -485,13 +485,8 @@ const GuideDetail = () => {
                         <Clock className="w-4 h-4" />
                         {Math.floor(guide.duration / 60)} min
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                        {guide.rating} ({guide.totalReviews})
-                      </div>
                     </div>
                     <div className="flex gap-2">
-                      <Badge variant="outline">{guide.difficulty}</Badge>
                       {(guide.languages || []).map(lang => (
                         <Badge key={lang} variant="secondary">{lang}</Badge>
                       ))}
