@@ -452,51 +452,148 @@ const GuideDetail = () => {
             <Tabs defaultValue="chapters" className="w-full">
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="chapters">Chapters</TabsTrigger>
-                <TabsTrigger value="highlights">Highlights</TabsTrigger>
+                <TabsTrigger value="qrcode">QR Code</TabsTrigger>
                 <TabsTrigger value="reviews">Reviews</TabsTrigger>
               </TabsList>
               
               <TabsContent value="chapters" className="space-y-3">
-                {(guide.chapters || guide.sections || []).map((chapter, index) => <Card key={index} className="p-4 hover:bg-muted/50 cursor-pointer transition-colors">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium">
-                          {index + 1}
-                        </div>
-                        <div>
-                          <h4 className="font-medium">{chapter.title}</h4>
-                          <p className="text-sm text-muted-foreground">{chapter.duration} minutes</p>
-                        </div>
+                {!isPurchased ? (
+                  <Card className="p-8 text-center bg-muted/30 border-dashed">
+                    <div className="max-w-md mx-auto space-y-4">
+                      <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+                        <Lock className="w-8 h-8 text-primary" />
                       </div>
-                      <Button variant="ghost" size="sm">
-                        <Play className="w-4 h-4" />
+                      <div>
+                        <h3 className="text-lg font-semibold mb-2">
+                          Purchase to unlock chapters
+                        </h3>
+                        <p className="text-muted-foreground text-sm">
+                          Get access to all {(guide.chapters || guide.sections || []).length} chapters and premium features
+                        </p>
+                      </div>
+                      <ul className="text-sm text-muted-foreground space-y-1">
+                        <li>• Full chapter navigation</li>
+                        <li>• Offline access</li>
+                        <li>• High-quality audio</li>
+                        <li>• Interactive content</li>
+                      </ul>
+                      <Button onClick={handlePurchase} className="mt-4">
+                        Purchase for {guide.price}
                       </Button>
                     </div>
-                  </Card>)}
+                  </Card>
+                ) : (
+                  (guide.chapters || guide.sections || []).map((chapter, index) => (
+                    <Card key={index} className="p-4 hover:bg-muted/50 cursor-pointer transition-colors">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium">
+                            {index + 1}
+                          </div>
+                          <div>
+                            <h4 className="font-medium">{chapter.title}</h4>
+                            <p className="text-sm text-muted-foreground">{chapter.duration} minutes</p>
+                          </div>
+                        </div>
+                        <Button variant="ghost" size="sm">
+                          <Play className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </Card>
+                  ))
+                )}
               </TabsContent>
               
-              <TabsContent value="highlights" className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Card className="p-4">
-                    <h4 className="font-medium mb-3">What You'll Discover</h4>
-                    <ul className="space-y-2">
-                      {(guide.highlights || []).map((highlight, index) => <li key={index} className="flex items-center gap-2 text-sm">
-                          <div className="w-2 h-2 rounded-full bg-primary" />
-                          {highlight}
-                        </li>)}
-                    </ul>
+              <TabsContent value="qrcode" className="space-y-3">
+                {!isPurchased ? (
+                  <Card className="p-8 text-center bg-muted/30 border-dashed">
+                    <div className="max-w-md mx-auto space-y-4">
+                      <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+                        <Lock className="w-8 h-8 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold mb-2">
+                          Purchase to unlock QR Code
+                        </h3>
+                        <p className="text-muted-foreground text-sm">
+                          Get your personal QR code for easy sharing and access
+                        </p>
+                      </div>
+                      <ul className="text-sm text-muted-foreground space-y-1">
+                        <li>• Personal QR code</li>
+                        <li>• Easy sharing</li>
+                        <li>• Instant access</li>
+                        <li>• Download option</li>
+                      </ul>
+                      <Button onClick={handlePurchase} className="mt-4">
+                        Purchase for {guide.price}
+                      </Button>
+                    </div>
                   </Card>
-                  
-                  <Card className="p-4">
-                    <h4 className="font-medium mb-3">What's Included</h4>
-                    <ul className="space-y-2">
-                      {(guide.included || guide.features || []).map((item, index) => <li key={index} className="flex items-center gap-2 text-sm">
-                          <div className="w-2 h-2 rounded-full bg-secondary" />
-                          {item}
-                        </li>)}
-                    </ul>
+                ) : (
+                  <Card className="p-6">
+                    <div className="text-center space-y-4">
+                      <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+                        <QrCode className="w-8 h-8 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold mb-2">Your QR Code</h3>
+                        <p className="text-muted-foreground text-sm">
+                          Share this QR code with others for instant access to this guide
+                        </p>
+                      </div>
+                      
+                      {guide.qr_code_url ? (
+                        <div className="space-y-4">
+                          <div className="bg-white p-4 rounded-lg inline-block">
+                            <img 
+                              src={guide.qr_code_url} 
+                              alt="QR Code"
+                              className="w-48 h-48 mx-auto"
+                            />
+                          </div>
+                          <div className="flex gap-2 justify-center">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => copyToClipboard(guide.share_url || window.location.href, 'Share link')}
+                            >
+                              <Copy className="w-4 h-4 mr-2" />
+                              Copy Link
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const link = document.createElement('a');
+                                link.href = guide.qr_code_url;
+                                link.download = `${guide.title}-qr-code.png`;
+                                link.click();
+                              }}
+                            >
+                              <Download className="w-4 h-4 mr-2" />
+                              Download QR
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          <p className="text-sm text-muted-foreground">
+                            QR code is being generated. Please refresh the page in a moment.
+                          </p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => copyToClipboard(window.location.href, 'Share link')}
+                          >
+                            <Copy className="w-4 h-4 mr-2" />
+                            Copy Link
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   </Card>
-                </div>
+                )}
               </TabsContent>
               
               <TabsContent value="reviews" className="space-y-4">
