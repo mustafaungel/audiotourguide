@@ -7,7 +7,7 @@ import { Navigation } from '@/components/Navigation';
 
 import { CreatorRecommendations } from '@/components/CreatorRecommendations';
 import { Button } from '@/components/ui/button';
-import { Headphones } from 'lucide-react';
+import { Headphones, RefreshCw, AlertCircle } from 'lucide-react';
 
 import { EnhancedGuideCard } from '@/components/EnhancedGuideCard';
 
@@ -27,6 +27,8 @@ const Index = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [guides, setGuides] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const [userPurchases, setUserPurchases] = useState<string[]>([]);
   const [processingPayment, setProcessingPayment] = useState<string | null>(null);
   const { user } = useAuth();
@@ -39,25 +41,64 @@ const Index = () => {
     }
   }, [user]);
 
-  const fetchGuides = async () => {
+  const fetchGuides = async (isRetry = false) => {
+    if (!isRetry) {
+      setLoading(true);
+      setError(null);
+    }
+    
     try {
+      console.log('Fetching guides, attempt:', retryCount + 1);
+      
+      // Create AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
       const { data, error } = await supabase
         .from('audio_guides')
         .select('*')
         .eq('is_published', true)
         .eq('is_approved', true)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .abortSignal(controller.signal);
 
-      if (error) throw error;
+      clearTimeout(timeoutId);
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
       
+      console.log('Successfully fetched guides:', data?.length || 0);
       setGuides(data || []);
-    } catch (error) {
+      setError(null);
+      setRetryCount(0);
+      
+    } catch (error: any) {
       console.error('Error fetching guides:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load guides",
-        variant: "destructive",
-      });
+      
+      const errorMessage = error.name === 'AbortError' 
+        ? 'Request timed out. Please check your connection.' 
+        : error.message || 'Failed to load guides';
+      
+      setError(errorMessage);
+      
+      // Auto-retry with exponential backoff (max 3 attempts)
+      if (retryCount < 2) {
+        const delay = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s
+        console.log(`Retrying in ${delay}ms...`);
+        
+        setTimeout(() => {
+          setRetryCount(prev => prev + 1);
+          fetchGuides(true);
+        }, delay);
+      } else {
+        toast({
+          title: "Connection Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -152,8 +193,28 @@ const Index = () => {
             </div>
           )}
 
+          {/* Error State */}
+          {!loading && error && (
+            <div className="text-center py-16 mobile-spacing">
+              <div className="mx-auto w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mb-4">
+                <AlertCircle className="h-8 w-8 text-destructive" />
+              </div>
+              <h3 className="mobile-subheading text-foreground mb-2">Failed to Load Guides</h3>
+              <p className="mobile-caption text-muted-foreground mb-6 max-w-md mx-auto">{error}</p>
+              <Button 
+                variant="outline" 
+                onClick={() => fetchGuides()}
+                className="gap-2"
+                disabled={loading}
+              >
+                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                {loading ? 'Retrying...' : 'Try Again'}
+              </Button>
+            </div>
+          )}
+
           {/* Guides Grid */}
-          {!loading && (
+          {!loading && !error && (
             <div className="grid gap-4 sm:gap-6">
               {filteredGuides.map((guide) => {
                 const isPurchased = userPurchases.includes(guide.id);
@@ -195,7 +256,7 @@ const Index = () => {
           )}
 
           {/* No Results */}
-          {!loading && filteredGuides.length === 0 && (
+          {!loading && !error && filteredGuides.length === 0 && (
             <div className="text-center py-16 mobile-spacing">
               <div className="text-6xl mb-4">🔍</div>
               <h3 className="mobile-subheading text-foreground mb-2">No destinations found</h3>
