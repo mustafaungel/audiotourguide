@@ -121,9 +121,9 @@ serve(async (req) => {
       logStep("Existing customer found", { customerId });
     }
 
-    // Construct URLs with proper validation - redirect back to guide page with success params
-    const successUrl = `${origin}/guide/${guide_id}?payment_success=true&session_id={CHECKOUT_SESSION_ID}`;
-    const cancelUrl = `${origin}/guide/${guide_id}`;
+    // Construct URLs with proper validation - redirect to PaymentSuccess page with both session_id and guide_id
+    const successUrl = `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&guide_id=${guide_id}`;
+    const cancelUrl = `${origin}/payment-cancelled?guide_id=${guide_id}`;
     logStep("Constructed URLs", { successUrl, cancelUrl });
 
     try {

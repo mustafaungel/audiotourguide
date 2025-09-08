@@ -28,15 +28,32 @@ serve(async (req) => {
     );
 
     const { session_id, guide_id } = await req.json();
-    if (!session_id || !guide_id) throw new Error("Session ID and Guide ID are required");
+    logStep("Request parameters received", { session_id, guide_id });
+    
+    if (!session_id || !guide_id) {
+      const error = "Session ID and Guide ID are required";
+      logStep("ERROR: Missing required parameters", { session_id: !!session_id, guide_id: !!guide_id });
+      throw new Error(error);
+    }
 
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeKey) {
+      logStep("ERROR: Missing Stripe secret key");
+      throw new Error("STRIPE_SECRET_KEY is not configured");
+    }
+
+    const stripe = new Stripe(stripeKey, {
       apiVersion: "2023-10-16",
     });
 
     // Retrieve the checkout session
+    logStep("Retrieving Stripe session", { sessionId: session_id });
     const session = await stripe.checkout.sessions.retrieve(session_id);
-    logStep("Session retrieved", { sessionId: session_id, status: session.payment_status });
+    logStep("Session retrieved", { 
+      sessionId: session_id, 
+      status: session.payment_status,
+      metadata: session.metadata
+    });
 
     if (session.payment_status !== "paid") {
       throw new Error("Payment not completed");
@@ -74,7 +91,18 @@ serve(async (req) => {
 
     if (existingPurchase) {
       logStep("Purchase already recorded", { purchaseId: existingPurchase.id });
-      return new Response(JSON.stringify({ success: true, purchaseId: existingPurchase.id }), {
+      // For existing purchases, we need to fetch the access code
+      const { data: existingPurchaseData } = await supabaseService
+        .from("user_purchases")
+        .select("access_code")
+        .eq("id", existingPurchase.id)
+        .single();
+      
+      return new Response(JSON.stringify({ 
+        success: true, 
+        purchaseId: existingPurchase.id,
+        access_code: existingPurchaseData?.access_code 
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -131,7 +159,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({ 
       success: true, 
       purchaseId: purchase.id,
-      accessCode: purchase.access_code 
+      access_code: purchase.access_code 
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

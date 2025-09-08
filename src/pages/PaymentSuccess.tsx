@@ -181,10 +181,10 @@ export default function PaymentSuccess() {
               </div>
             </div>
 
-            {purchaseData?.accessCode && (
+            {purchaseData?.access_code && (
               <div className="mt-4 p-3 bg-muted rounded-lg">
                 <p className="text-sm font-medium text-foreground mb-1">Access Code:</p>
-                <code className="text-primary font-mono">{purchaseData.accessCode}</code>
+                <code className="text-primary font-mono">{purchaseData.access_code}</code>
               </div>
             )}
           </Card>
@@ -213,12 +213,12 @@ export default function PaymentSuccess() {
           </Button>
 
           {/* Share Link */}
-          {guide && purchaseData?.accessCode && (
+          {guide && purchaseData?.access_code && (
             <div className="mt-4">
               <ShareLink
                 guideId={guide.id}
                 guideTitle={guide.title}
-                accessCode={purchaseData.accessCode}
+                accessCode={purchaseData.access_code}
                 trigger={
                   <Button variant="outline" className="w-full">
                     Share Your Guide
