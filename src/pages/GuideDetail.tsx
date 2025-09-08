@@ -2,7 +2,7 @@ import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { AudioPlayer } from "@/components/AudioPlayer";
-import { SocialShare } from "@/components/SocialShare";
+
 import { EmbeddedCheckout } from "@/components/EmbeddedCheckout";
 import { StripeConfigHelper } from "@/components/StripeConfigHelper";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -421,7 +421,7 @@ const GuideDetail = () => {
             {/* Hero Image */}
             <div className="relative aspect-video rounded-xl overflow-hidden">
               <img 
-                src={guide.image && guide.image.length < 500000 ? guide.image : '/hero-audio-guide.jpg'} 
+                src={guide.image_url || guide.image || '/hero-audio-guide.jpg'} 
                 alt={guide.title}
                 className="w-full h-full object-cover"
                 onError={(e) => {
@@ -588,21 +588,25 @@ const GuideDetail = () => {
                       Download for Offline
                     </Button>
                   </>
-                ) : (
-                  <>
-                    <Button className="w-full" onClick={handlePurchase}>
-                      Purchase Guide
-                    </Button>
-                    {!user && (
-                      <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
-                        <Lock className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">
-                          Sign in to purchase and access guides
-                        </span>
-                      </div>
-                    )}
-                  </>
-                )}
+                 ) : (
+                   <>
+                     <Button variant="outline" className="w-full mb-2" size="sm">
+                       <Play className="w-4 h-4 mr-2" />
+                       Preview (30s)
+                     </Button>
+                     <Button className="w-full" onClick={handlePurchase}>
+                       Purchase Guide
+                     </Button>
+                     {!user && (
+                       <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
+                         <Lock className="h-4 w-4 text-muted-foreground" />
+                         <span className="text-sm text-muted-foreground">
+                           Sign in to purchase and access guides
+                         </span>
+                       </div>
+                     )}
+                   </>
+                 )}
               </CardContent>
             </Card>
 
@@ -706,53 +710,6 @@ const GuideDetail = () => {
               </Card>
             )}
 
-            {/* Social Share */}
-            <SocialShare
-              title={`🎧 ${guide.title}`}
-              description={`Discover ${guide.location} through this amazing ${guide.duration}-minute audio guide! ${guide.description}`}
-              guide={{
-                id: guide.id,
-                title: guide.title,
-                location: guide.location,
-                image_url: guide.image
-              }}
-            />
-
-            {/* Creator Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Meet Your Guide</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-3 mb-4">
-                  <Avatar className="w-12 h-12">
-                    <AvatarImage src={guide.creator.avatar} />
-                    <AvatarFallback>{guide.creator?.name?.split(' ').map(n => n[0]).join('') || 'CR'}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-medium">{guide.creator.name}</h4>
-                      {guide.creator.verified && (
-                        <Badge variant="secondary" className="text-xs">Verified</Badge>
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground">{guide.creator.title}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-                  <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    {guide.creator.rating}
-                  </div>
-                  <div>{guide.creator.guides} guides</div>
-                </div>
-                
-                <Button variant="outline" className="w-full" size="sm">
-                  View Profile
-                </Button>
-              </CardContent>
-            </Card>
 
             {/* Related Guides */}
             <Card>

@@ -71,10 +71,10 @@ export default function StatsSection() {
         </p>
       </div>
       
-      <div className={`grid gap-6 justify-items-center ${
+      <div className={`grid gap-4 justify-items-center ${
         stats.length === 1 ? 'grid-cols-1' : 
-        stats.length === 2 ? 'grid-cols-1 sm:grid-cols-2' :
-        stats.length === 3 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' :
+        stats.length === 2 ? 'grid-cols-2' :
+        stats.length === 3 ? 'grid-cols-3' :
         'grid-cols-2 lg:grid-cols-4'
       }`}>
         {stats.map((stat) => (
