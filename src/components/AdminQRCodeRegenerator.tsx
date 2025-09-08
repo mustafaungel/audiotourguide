@@ -76,15 +76,29 @@ export function AdminQRCodeRegenerator() {
   const generateAdminQRCode = async (guideId: string) => {
     setRegenerating(guideId);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      // Get fresh session to ensure we have valid tokens
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session?.access_token) {
+        console.error('Session error:', sessionError);
+        toast({
+          title: "Authentication Error",
+          description: "Please sign in again to generate admin QR codes",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('Calling generate-admin-qr-code with session:', session.access_token.slice(-10));
+      
       const { data, error } = await supabase.functions.invoke('generate-admin-qr-code', {
-        body: { guideId },
-        headers: {
-          Authorization: `Bearer ${session?.access_token}`,
-        },
+        body: { guideId }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Function error:', error);
+        throw error;
+      }
 
       // Refresh the guide data
       await loadGuides();

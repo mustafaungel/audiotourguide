@@ -133,9 +133,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     if (error && error.message !== 'Session not found') {
       toast.error("Sign out failed: " + error.message);
-    } else {
+    } else if (!error) {
       toast.success("You have been successfully signed out.");
     }
+    // Don't show any toast for 'Session not found' errors
   };
 
   const value = {

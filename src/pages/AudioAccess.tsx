@@ -221,14 +221,22 @@ export default function AudioAccess() {
 
       if (error) {
         console.error('[AUDIO-ACCESS] Payment verification error:', error);
-        setError('Failed to verify payment. Please contact support.');
+        // Show more specific error to help with debugging
+        setError(`Payment verification error: ${error.message || error}`);
         setIsLoading(false);
         return;
       }
 
-      if (!data?.success) {
+      if (!data) {
+        console.error('[AUDIO-ACCESS] No data returned from verification');
+        setError('No response from payment verification. Please contact support.');
+        setIsLoading(false);
+        return;
+      }
+
+      if (!data.success) {
         console.error('[AUDIO-ACCESS] Payment not verified:', data);
-        setError('Payment verification failed. Please contact support.');
+        setError(`Payment verification failed: ${data.error || 'Unknown error'}`);
         setIsLoading(false);
         return;
       }
@@ -253,7 +261,7 @@ export default function AudioAccess() {
 
     } catch (error) {
       console.error('[AUDIO-ACCESS] Error during payment verification:', error);
-      setError('Failed to verify payment. Please try again.');
+      setError(`Verification failed: ${error instanceof Error ? error.message : String(error)}`);
       setIsLoading(false);
     }
   };
