@@ -45,7 +45,8 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Guide not found");
     }
 
-    const guideUrl = `${Deno.env.get("SITE_URL")}/access/${guideId}${accessCode ? `?access_code=${accessCode}` : ''}`;
+    const siteUrl = Deno.env.get("SITE_URL") || "https://audiotourguide.app";
+    const guideUrl = `${siteUrl}/access/${guideId}${accessCode ? `?access_code=${accessCode}` : ''}`;
 
     const emailResponse = await resend.emails.send({
       from: "AudioGuide <onboarding@resend.dev>",

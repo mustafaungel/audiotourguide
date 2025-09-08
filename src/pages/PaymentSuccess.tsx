@@ -186,11 +186,22 @@ export default function PaymentSuccess() {
         )}
 
         <div className="space-y-4">
-          <Button asChild className="w-full" size="lg">
-            <Link to={`/access/${guideId}${purchaseData?.access_code ? `?access_code=${purchaseData.access_code}` : ''}`}>
-              <Play className="h-4 w-4 mr-2" />
-              Start Listening Now
-            </Link>
+          <Button 
+            className="w-full" 
+            size="lg"
+            onClick={() => {
+              const accessCode = purchaseData?.access_code;
+              console.log('🔧 [DEBUG] PaymentSuccess: Navigating with access_code:', accessCode);
+              if (accessCode && guideId) {
+                window.location.href = `/access/${guideId}?access_code=${accessCode}`;
+              } else {
+                console.warn('🔧 [WARNING] Missing access_code or guideId');
+                window.location.href = '/';
+              }
+            }}
+          >
+            <Play className="h-4 w-4 mr-2" />
+            Start Listening Now
           </Button>
           
           <Button variant="outline" asChild className="w-full">

@@ -765,14 +765,11 @@ const GuideDetail = () => {
                      <Button className="w-full" onClick={handlePurchase}>
                        Purchase Guide
                      </Button>
-                     {!user && (
-                       <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
-                         <Lock className="h-4 w-4 text-muted-foreground" />
-                         <span className="text-sm text-muted-foreground">
-                           Sign in to purchase and access guides
-                         </span>
-                       </div>
-                     )}
+                      <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
+                        <span className="text-sm text-muted-foreground">
+                          Available for immediate purchase - no account required
+                        </span>
+                      </div>
                     </>
                   )}
                </CardContent>

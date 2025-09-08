@@ -7,13 +7,15 @@ interface UseInvisibleAudioPlayerProps {
   audioSrc?: string;
   title: string;
   isPreview?: boolean;
+  chapterTimestamp?: number;
 }
 
 export const useInvisibleAudioPlayer = ({
   guideId,
   audioSrc,
   title,
-  isPreview = true
+  isPreview = true,
+  chapterTimestamp = 0
 }: UseInvisibleAudioPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -98,7 +100,7 @@ export const useInvisibleAudioPlayer = ({
       // Add error listener before setting source
       audio.addEventListener('error', handleAudioError, { once: true });
       audio.src = audioUrl;
-      audio.currentTime = 0;
+      audio.currentTime = chapterTimestamp || 0;
       
       // Wait for audio to be ready
       await new Promise((resolve, reject) => {
@@ -122,14 +124,17 @@ export const useInvisibleAudioPlayer = ({
 
       // Setup event listeners
       const handleTimeUpdate = () => {
-        if (isPreview && PREVIEW_DURATION && audio.currentTime >= PREVIEW_DURATION) {
-          audio.pause();
-          setIsPlaying(false);
-          toastRef.current?.dismiss();
-          toast({
-            title: "Preview ended",
-            description: "Purchase the full guide for complete access",
-          });
+        if (isPreview && PREVIEW_DURATION) {
+          const previewEndTime = (chapterTimestamp || 0) + PREVIEW_DURATION;
+          if (audio.currentTime >= previewEndTime) {
+            audio.pause();
+            setIsPlaying(false);
+            toastRef.current?.dismiss();
+            toast({
+              title: "Preview ended",
+              description: "Purchase the full guide for complete access",
+            });
+          }
         }
       };
 

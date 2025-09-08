@@ -7,7 +7,12 @@
  */
 export function getBaseUrl(): string {
   if (typeof window !== 'undefined') {
-    return window.location.origin;
+    // Check if we're in production/live environment
+    const currentOrigin = window.location.origin;
+    if (currentOrigin.includes('audiotourguide.app')) {
+      return 'https://audiotourguide.app';
+    }
+    return currentOrigin;
   }
   
   // This should only be used in browser environments

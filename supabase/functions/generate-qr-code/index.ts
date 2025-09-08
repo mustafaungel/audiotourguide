@@ -62,23 +62,18 @@ serve(async (req) => {
       throw new Error('Unauthorized to generate QR code for this guide');
     }
 
-    // Get the correct base URL from environment variable with detailed logging
-    let baseUrl = Deno.env.get('SITE_URL');
+    // Get the correct base URL from environment variable with live domain
+    let baseUrl = Deno.env.get('SITE_URL') || 'https://audiotourguide.app';
     console.log('Raw SITE_URL environment variable:', baseUrl);
-    
-    if (!baseUrl) {
-      console.error('CRITICAL: SITE_URL environment variable not set!');
-      throw new Error('SITE_URL environment variable is required');
-    }
     
     // Ensure baseUrl doesn't have trailing slash
     baseUrl = baseUrl.replace(/\/$/, '');
     
-    // For development, use the current origin if available in headers
+    // Use live domain for production, override for development
     const origin = req.headers.get('origin');
     if (origin && origin.includes('sandbox.lovable.dev')) {
-      baseUrl = origin;
-      console.log('Using development origin from request:', baseUrl);
+      baseUrl = 'https://audiotourguide.app'; // Always use live domain for QR codes
+      console.log('Using live domain for QR code:', baseUrl);
     }
     
     console.log('Final base URL after processing:', baseUrl);
@@ -86,7 +81,7 @@ serve(async (req) => {
     console.log('Generated share URL:', shareUrl, 'with access code:', accessCode);
     
     // Validate the share URL format (allow access code query param)
-    if (!shareUrl.match(/^https?:\/\/.+\/guide\/[a-f0-9-]{36}(\?access_code=.+)?$/)) {
+    if (!shareUrl.match(/^https?:\/\/.+\/access\/[a-f0-9-]{36}(\?access_code=.+)?$/)) {
       throw new Error('Invalid share URL format generated');
     }
     

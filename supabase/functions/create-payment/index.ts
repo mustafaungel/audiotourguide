@@ -124,9 +124,12 @@ serve(async (req) => {
       logStep("Existing customer found", { customerId });
     }
 
-    // Construct URLs with proper validation - redirect to PaymentSuccess page with both session_id and guide_id
-    const successUrl = `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&guide_id=${guide_id}`;
-    const cancelUrl = `${origin}/payment-cancelled?guide_id=${guide_id}`;
+    // Construct URLs with live domain for production redirect
+    const baseUrl = origin.includes('localhost') || origin.includes('sandbox.lovable.dev') 
+      ? 'https://audiotourguide.app' 
+      : origin;
+    const successUrl = `${baseUrl}/payment-success?session_id={CHECKOUT_SESSION_ID}&guide_id=${guide_id}`;
+    const cancelUrl = `${baseUrl}/guide/${guide_id}`;
     logStep("Constructed URLs", { successUrl, cancelUrl });
 
     try {

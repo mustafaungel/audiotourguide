@@ -11,11 +11,15 @@ interface ChapterPreviewButtonProps {
 }
 
 export const ChapterPreviewButton = ({ chapter, index, guide, isPurchased }: ChapterPreviewButtonProps) => {
+  // For preview, use chapter-specific audio URL if available, otherwise fallback to guide audio
+  const chapterAudioSrc = chapter.audio_url || guide?.audio_url;
+  
   const audioPlayer = useInvisibleAudioPlayer({
     guideId: guide?.id,
-    audioSrc: guide?.audio_url,
+    audioSrc: chapterAudioSrc,
     title: `${guide?.title} - ${chapter.title}`,
-    isPreview: !isPurchased
+    isPreview: !isPurchased,
+    chapterTimestamp: chapter.timestamp || chapter.start_time
   });
 
   const handlePlayPause = () => {
