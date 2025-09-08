@@ -5,11 +5,11 @@ import { useNavigate } from 'react-router-dom';
 import heroImage from '@/assets/hero-world-travel.jpg';
 export const HeroSection: React.FC = () => {
   const navigate = useNavigate();
-  return <section className="relative mobile-viewport flex items-center justify-center overflow-hidden">{/* Mobile-first viewport */}
+  return <section className="relative min-h-[50vh] md:min-h-[60vh] flex items-center justify-center overflow-hidden">{/* Optimized viewport */}
       {/* Background */}
       <div className="absolute inset-0">
-        <img src={heroImage} alt="World Travel and Cultural Heritage Sites" className="w-full h-full object-cover opacity-30" />
-        <div className="absolute inset-0 bg-gradient-hero" />
+        <img src={heroImage} alt="World Travel and Cultural Heritage Sites" className="w-full h-full object-cover opacity-60" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-background/40 to-background/60" />
       </div>
 
       {/* Content */}
@@ -23,22 +23,22 @@ export const HeroSection: React.FC = () => {
 
           {/* Main Headline */}
           <div className="space-y-4 md:space-y-6">
-            <h1 className="text-mobile-3xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent leading-tight">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent leading-tight">
               Explore the World's Hidden Stories
             </h1>
-            <p className="mobile-text sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto">
               Discover UNESCO World Heritage sites, cultural traditions, and iconic destinations with AI-powered audio tours that bring history to life.
             </p>
           </div>
 
           {/* CTA Buttons */}
           <div className="flex flex-col gap-mobile-padding sm:gap-4 justify-center items-center w-full max-w-sm mx-auto sm:max-w-none sm:flex-row">
-            <Button variant="hero" size="lg" className="mobile-button w-full sm:w-auto px-8 py-4 text-mobile-lg touch-target" onClick={() => navigate('/search')}>
-              <Play className="h-5 w-5 mr-3" />
+            <Button variant="hero" size="default" className="w-full sm:w-auto px-6 py-3" onClick={() => navigate('/search')}>
+              <Play className="h-4 w-4 mr-2" />
               Explore Destinations
             </Button>
-            <Button variant="glass" size="lg" className="mobile-button w-full sm:w-auto px-8 py-4 text-mobile-lg touch-target" onClick={() => navigate('/unesco-sites')}>
-              <Headphones className="h-5 w-5 mr-3" />
+            <Button variant="glass" size="default" className="w-full sm:w-auto px-6 py-3" onClick={() => navigate('/unesco-sites')}>
+              <Headphones className="h-4 w-4 mr-2" />
               World Heritage Sites
             </Button>
           </div>
