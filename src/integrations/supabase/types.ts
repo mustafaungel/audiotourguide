@@ -1621,6 +1621,16 @@ export type Database = {
         Args: { p_data: string; p_field_name: string; p_user_id: string }
         Returns: string
       }
+      mask_verification_sensitive_data: {
+        Args: {
+          p_id_document_url: string
+          p_id_number: string
+          p_license_document_url: string
+          p_license_number: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       reject_creator_verification: {
         Args: {
           admin_notes_param?: string
