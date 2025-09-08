@@ -76,6 +76,7 @@ export type Database = {
           rating: number | null
           sections: Json | null
           share_url: string | null
+          slug: string
           title: string
           total_purchases: number | null
           total_reviews: number | null
@@ -108,6 +109,7 @@ export type Database = {
           rating?: number | null
           sections?: Json | null
           share_url?: string | null
+          slug: string
           title: string
           total_purchases?: number | null
           total_reviews?: number | null
@@ -140,6 +142,7 @@ export type Database = {
           rating?: number | null
           sections?: Json | null
           share_url?: string | null
+          slug?: string
           title?: string
           total_purchases?: number | null
           total_reviews?: number | null
@@ -966,6 +969,10 @@ export type Database = {
       }
       generate_access_code: {
         Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      generate_slug: {
+        Args: { title_text: string }
         Returns: string
       }
       get_guest_purchase_info: {
