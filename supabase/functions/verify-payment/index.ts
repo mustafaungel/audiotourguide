@@ -135,6 +135,26 @@ serve(async (req) => {
       accessCode: purchase.access_code 
     });
 
+    // Generate QR code after successful purchase
+    try {
+      logStep("Generating QR code for purchased guide", { guideId: guide_id, accessCode: purchase.access_code });
+      const qrResponse = await supabaseService.functions.invoke('generate-qr-code', {
+        body: {
+          guideId: guide_id,
+          accessCode: purchase.access_code
+        }
+      });
+      
+      if (qrResponse.error) {
+        logStep("QR code generation failed", { error: qrResponse.error });
+      } else {
+        logStep("QR code generated successfully", { qrData: qrResponse.data });
+      }
+    } catch (qrError) {
+      logStep("QR code generation error", { error: qrError });
+      // Don't fail the whole process if QR generation fails
+    }
+
     // Send confirmation email
     try {
       const emailResponse = await supabaseService.functions.invoke('send-confirmation-email', {

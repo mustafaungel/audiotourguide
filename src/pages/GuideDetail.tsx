@@ -319,7 +319,7 @@ const GuideDetail = () => {
       try {
         const { data, error } = await supabase
           .from('user_purchases')
-          .select('id')
+          .select('id, access_code')
           .eq('guide_id', guideId)
           .eq('access_code', accessCode)
           .single();
@@ -339,7 +339,7 @@ const GuideDetail = () => {
       try {
         const { data, error } = await supabase
           .from('user_purchases')
-          .select('id')
+          .select('id, access_code')
           .eq('user_id', user.id)
           .eq('guide_id', guideId)
           .single();
@@ -653,7 +653,7 @@ const GuideDetail = () => {
                             Scan this QR code to access your audio guide on any device
                           </p>
                           
-                          {paymentSuccess && (
+                          {(paymentSuccess || searchParams.get('access_code')) && (
                             <div className="space-y-2 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
                               <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
@@ -678,23 +678,24 @@ const GuideDetail = () => {
                             </div>
                           )}
                           
-                          {guide.share_url && (
-                            <div className="space-y-2">
-                              <label className="text-sm font-medium">Share Link</label>
-                              <div className="flex gap-2">
-                                <div className="flex-1 p-3 bg-muted rounded-md text-sm font-mono truncate">
-                                  {guide.share_url}
-                                </div>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => copyToClipboard(guide.share_url, 'Share link')}
-                                >
-                                  <Copy className="w-4 h-4" />
-                                </Button>
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium">Share Link</label>
+                            <div className="flex gap-2">
+                              <div className="flex-1 p-3 bg-muted rounded-md text-sm font-mono truncate">
+                                {window.location.origin}/guide/{guide.id}{searchParams.get('access_code') ? `?access_code=${searchParams.get('access_code')}` : ''}
                               </div>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => copyToClipboard(
+                                  `${window.location.origin}/guide/${guide.id}${searchParams.get('access_code') ? `?access_code=${searchParams.get('access_code')}` : ''}`,
+                                  'Share link'
+                                )}
+                              >
+                                <Copy className="w-4 h-4" />
+                              </Button>
                             </div>
-                          )}
+                          </div>
                         </div>
                       </div>
                     ) : (

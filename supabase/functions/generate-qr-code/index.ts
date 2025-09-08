@@ -29,7 +29,7 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    const { guideId } = await req.json();
+    const { guideId, accessCode } = await req.json();
 
     if (!guideId) {
       throw new Error('Guide ID is required');
@@ -75,11 +75,11 @@ serve(async (req) => {
     baseUrl = baseUrl.replace(/\/$/, '');
     
     console.log('Final base URL after processing:', baseUrl);
-    const shareUrl = `${baseUrl}/guide/${guideId}`;
-    console.log('Generated share URL:', shareUrl);
+    const shareUrl = `${baseUrl}/guide/${guideId}${accessCode ? `?access_code=${accessCode}` : ''}`;
+    console.log('Generated share URL:', shareUrl, 'with access code:', accessCode);
     
-    // Validate the share URL format
-    if (!shareUrl.match(/^https?:\/\/.+\/guide\/[a-f0-9-]{36}$/)) {
+    // Validate the share URL format (allow access code query param)
+    if (!shareUrl.match(/^https?:\/\/.+\/guide\/[a-f0-9-]{36}(\?access_code=.+)?$/)) {
       throw new Error('Invalid share URL format generated');
     }
     
