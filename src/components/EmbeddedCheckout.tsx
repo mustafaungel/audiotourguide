@@ -282,21 +282,21 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
   // Logged-in user checkout
   if (user) {
     return (
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <ShoppingCart className="w-5 h-5" />
-            Complete Purchase
+      <Card className="w-full max-w-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <ShoppingCart className="w-4 h-4" />
+            Purchase
           </CardTitle>
-          <CardDescription>
-            You're signed in as {user.email}
+          <CardDescription className="text-sm">
+            {user.email}
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="bg-muted/50 p-4 rounded-lg">
-            <h3 className="font-medium mb-1">{guide.title}</h3>
+        <CardContent className="space-y-3">
+          <div className="bg-muted/50 p-3 rounded-lg">
+            <h3 className="font-medium text-sm mb-1">{guide.title}</h3>
             {guide.creator_name && (
-              <p className="text-sm text-muted-foreground mb-2">by {guide.creator_name}</p>
+              <p className="text-xs text-muted-foreground mb-2">by {guide.creator_name}</p>
             )}
             <div className="text-lg font-bold text-primary">
               ${(guide.price_usd / 100).toFixed(2)}
@@ -307,16 +307,16 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
             onClick={() => handlePayment(false)}
             disabled={loading}
             className="w-full"
-            size="lg"
+            size="sm"
           >
             {loading ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <Loader2 className="w-3 h-3 mr-2 animate-spin" />
                 Processing...
               </>
             ) : (
               <>
-                <CreditCard className="w-4 h-4 mr-2" />
+                <CreditCard className="w-3 h-3 mr-2" />
                 Purchase Now
               </>
             )}
@@ -328,156 +328,70 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
 
   // Guest checkout and account creation options
   return (
-    <div className="w-full max-w-md space-y-4">
+    <div className="w-full max-w-sm space-y-3">
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <ShoppingCart className="w-5 h-5" />
-            Purchase Audio Guide
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <ShoppingCart className="w-4 h-4" />
+            Purchase Guide
           </CardTitle>
-          <CardDescription>
-            Buy instantly or create an account for better tracking
+          <CardDescription className="text-sm">
+            Enter email to buy instantly
           </CardDescription>
         </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4">
         {/* Guide Summary */}
-        <div className="bg-muted/50 p-4 rounded-lg">
-          <h3 className="font-medium mb-1">{guide.title}</h3>
+        <div className="bg-muted/50 p-3 rounded-lg">
+          <h3 className="font-medium text-sm mb-1">{guide.title}</h3>
           {guide.creator_name && (
-            <p className="text-sm text-muted-foreground mb-2">by {guide.creator_name}</p>
+            <p className="text-xs text-muted-foreground mb-2">by {guide.creator_name}</p>
           )}
           <div className="text-lg font-bold text-primary">
             ${(guide.price_usd / 100).toFixed(2)}
           </div>
         </div>
 
-        {!isCreatingAccount ? (
-          <>
-            {/* Guest Checkout */}
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="flex items-center gap-2">
-                  <Mail className="w-4 h-4" />
-                  Email Address
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full"
-                />
-                <p className="text-xs text-muted-foreground">
-                  We'll send your audio guide access details here
-                </p>
-              </div>
-
-              <Button 
-                onClick={() => handlePayment(true)}
-                disabled={loading || !email}
-                className="w-full"
-                size="lg"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <CreditCard className="w-4 h-4 mr-2" />
-                    Buy as Guest
-                  </>
-                )}
-              </Button>
-            </div>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <Separator className="w-full" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">or</span>
-              </div>
-            </div>
-
-            {/* Account Benefits */}
-            <div className="space-y-4">
-              <div className="text-center">
-                <h4 className="font-medium mb-2">Create an account for:</h4>
-                <ul className="text-sm text-muted-foreground space-y-1">
-                  <li className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 bg-primary rounded-full" />
-                    Purchase history and easy re-downloads
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 bg-primary rounded-full" />
-                    Personalized recommendations
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 bg-primary rounded-full" />
-                    Connect with creators
-                  </li>
-                </ul>
-              </div>
-
-              <Button 
-                variant="outline" 
-                onClick={() => setIsCreatingAccount(true)}
-                className="w-full"
-              >
-                <User className="w-4 h-4 mr-2" />
-                Create Account & Purchase
-              </Button>
-            </div>
-          </>
-        ) : (
-          /* Quick Account Creation */
-          <div className="space-y-4">
-            <div className="space-y-3">
-              <div className="space-y-2">
-                <Label htmlFor="signup-email">Email Address</Label>
-                <Input
-                  id="signup-email"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <Button 
-              onClick={() => {
-                toast({
-                  title: "Feature Coming Soon",
-                  description: "Quick account creation will be available soon. Please use guest checkout for now."
-                });
-                setIsCreatingAccount(false);
-              }}
-              disabled={loading || !email}
+        {/* Guest Checkout */}
+        <div className="space-y-3">
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-sm">Email Address</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="your@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full"
-              size="lg"
-            >
-              <Lock className="w-4 h-4 mr-2" />
-              Create Account & Purchase
-            </Button>
-
-            <Button 
-              variant="ghost" 
-              onClick={() => setIsCreatingAccount(false)}
-              className="w-full"
-            >
-              Back to guest checkout
-            </Button>
+            />
+            <p className="text-xs text-muted-foreground">
+              Access details sent here
+            </p>
           </div>
-        )}
+
+          <Button 
+            onClick={() => handlePayment(true)}
+            disabled={loading || !email}
+            className="w-full"
+            size="sm"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <CreditCard className="w-3 h-3 mr-2" />
+                Buy Now
+              </>
+            )}
+          </Button>
+        </div>
 
         {/* Security Notice */}
-        <div className="text-xs text-muted-foreground text-center p-3 bg-muted/30 rounded">
+        <div className="text-xs text-muted-foreground text-center p-2 bg-muted/30 rounded">
           <Lock className="w-3 h-3 inline mr-1" />
-          Secure payment powered by Stripe. Your payment information is encrypted and protected.
+          Secure payment by Stripe
         </div>
         </CardContent>
       </Card>

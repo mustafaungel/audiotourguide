@@ -79,101 +79,107 @@ export function PaymentModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5" />
-            Complete Purchase
+          <DialogTitle className="text-lg flex items-center gap-2">
+            <CreditCard className="h-4 w-4" />
+            Purchase
           </DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-6">
+        <div className="space-y-4">
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">{guideTitle}</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">{guideTitle}</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-0">
               <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Total</span>
-                <span className="text-2xl font-bold">${(price / 100).toFixed(2)}</span>
+                <span className="text-sm text-muted-foreground">Total</span>
+                <span className="text-lg font-bold">${(price / 100).toFixed(2)}</span>
               </div>
             </CardContent>
           </Card>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div>
-              <Label htmlFor="email">Email Address</Label>
+              <Label htmlFor="email" className="text-sm">Email</Label>
               <Input
                 id="email"
                 type="email"
                 value={paymentData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
                 placeholder="your@email.com"
+                className="h-8"
               />
             </div>
 
             <div>
-              <Label htmlFor="nameOnCard">Name on Card</Label>
+              <Label htmlFor="nameOnCard" className="text-sm">Name on Card</Label>
               <Input
                 id="nameOnCard"
                 value={paymentData.nameOnCard}
                 onChange={(e) => handleInputChange('nameOnCard', e.target.value)}
                 placeholder="John Doe"
+                className="h-8"
               />
             </div>
 
             <div>
-              <Label htmlFor="cardNumber">Card Number</Label>
+              <Label htmlFor="cardNumber" className="text-sm">Card Number</Label>
               <Input
                 id="cardNumber"
                 value={paymentData.cardNumber}
                 onChange={(e) => handleInputChange('cardNumber', e.target.value)}
                 placeholder="1234 5678 9012 3456"
                 maxLength={19}
+                className="h-8"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="expiryDate">Expiry Date</Label>
+                <Label htmlFor="expiryDate" className="text-sm">Expiry</Label>
                 <Input
                   id="expiryDate"
                   value={paymentData.expiryDate}
                   onChange={(e) => handleInputChange('expiryDate', e.target.value)}
                   placeholder="MM/YY"
                   maxLength={5}
+                  className="h-8"
                 />
               </div>
               <div>
-                <Label htmlFor="cvc">CVC</Label>
+                <Label htmlFor="cvc" className="text-sm">CVC</Label>
                 <Input
                   id="cvc"
                   value={paymentData.cvc}
                   onChange={(e) => handleInputChange('cvc', e.target.value)}
                   placeholder="123"
                   maxLength={4}
+                  className="h-8"
                 />
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Lock className="h-4 w-4" />
-            <span>Your payment information is secure and encrypted</span>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Lock className="h-3 w-3" />
+            <span>Secure payment by Stripe</span>
           </div>
 
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={onClose} className="flex-1">
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={onClose} className="flex-1" size="sm">
               Cancel
             </Button>
             <Button 
               onClick={handlePayment} 
               disabled={isProcessing}
               className="flex-1"
+              size="sm"
             >
               {isProcessing ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="h-3 w-3 mr-2 animate-spin" />
                   Processing...
                 </>
               ) : (

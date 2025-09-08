@@ -169,7 +169,20 @@ const GuideDetail = () => {
   };
 
   const fetchGuideDetails = async () => {
-    if (!guideId) return;
+    if (!guideId) {
+      setError('Invalid guide ID');
+      setIsLoading(false);
+      return;
+    }
+
+    // Validate guide ID format (should be UUID)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(guideId)) {
+      console.error('Invalid guide ID format:', guideId);
+      setError('Invalid guide ID format');
+      setIsLoading(false);
+      return;
+    }
     
     setIsLoading(true);
     
