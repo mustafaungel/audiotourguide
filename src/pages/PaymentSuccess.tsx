@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { MeetYourCreatorModal } from '@/components/MeetYourCreatorModal';
 import { CreatorRecommendations } from '@/components/CreatorRecommendations';
+import { ShareLink } from '@/components/ShareLink';
 
 export default function PaymentSuccess() {
   const [searchParams] = useSearchParams();
@@ -210,6 +211,22 @@ export default function PaymentSuccess() {
               Continue Exploring
             </Link>
           </Button>
+
+          {/* Share Link */}
+          {guide && purchaseData?.accessCode && (
+            <div className="mt-4">
+              <ShareLink
+                guideId={guide.id}
+                guideTitle={guide.title}
+                accessCode={purchaseData.accessCode}
+                trigger={
+                  <Button variant="outline" className="w-full">
+                    Share Your Guide
+                  </Button>
+                }
+              />
+            </div>
+          )}
         </div>
 
           <div className="mt-8 p-4 bg-card rounded-lg">

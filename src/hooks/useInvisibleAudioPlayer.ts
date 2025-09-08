@@ -37,15 +37,23 @@ export const useInvisibleAudioPlayer = ({
     try {
       setLoading(true);
       
-      // Get audio source with validation
+      // Get audio source with validation and fallback
       let audioUrl = audioSrc;
       if (!audioUrl && guideId) {
         console.log(`[AUDIO] Getting URL for guide: ${guideId}`);
+        
+        // First try Supabase storage
         const { data } = supabase.storage
           .from('guide-audio')
           .getPublicUrl(`${guideId}.mp3`);
         audioUrl = data.publicUrl;
         console.log(`[AUDIO] Generated URL: ${audioUrl}`);
+        
+        // If that fails, try fallback to public tmp folder
+        if (!audioUrl) {
+          audioUrl = `/tmp/${guideId}.mp3`;
+          console.log(`[AUDIO] Using fallback URL: ${audioUrl}`);
+        }
       }
 
       if (!audioUrl) {
@@ -62,13 +70,23 @@ export const useInvisibleAudioPlayer = ({
       try {
         const response = await fetch(audioUrl, { method: 'HEAD' });
         if (!response.ok) {
-          throw new Error(`Audio file not found: ${response.status}`);
+          // Try fallback to public tmp folder if Supabase storage fails
+          if (audioUrl.includes('supabase.co') && guideId) {
+            console.log('[AUDIO] Supabase storage failed, trying fallback');
+            audioUrl = `/tmp/${guideId}.mp3`;
+            const fallbackResponse = await fetch(audioUrl, { method: 'HEAD' });
+            if (!fallbackResponse.ok) {
+              throw new Error(`Audio file not found in storage or fallback: ${response.status}`);
+            }
+          } else {
+            throw new Error(`Audio file not found: ${response.status}`);
+          }
         }
       } catch (fetchError) {
         console.error('[AUDIO] Audio file validation failed:', fetchError);
         toast({
-          title: "Audio File Not Found",
-          description: "The audio file for this guide is not available",
+          title: "Audio File Not Available",
+          description: "This guide's audio preview is not currently available",
           variant: "destructive",
         });
         return;

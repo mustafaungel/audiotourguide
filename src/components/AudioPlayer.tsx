@@ -55,30 +55,42 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
             .from('guide-audio')
             .getPublicUrl(`${guideId}.mp3`);
           
-          if (data?.publicUrl) {
-            console.log('[AUDIOPLAYER] Generated public URL:', data.publicUrl);
-            
-            // Validate the audio file exists
-            try {
-              const response = await fetch(data.publicUrl, { method: 'HEAD' });
-              if (!response.ok) {
+          let audioUrl = data?.publicUrl;
+          if (!audioUrl) {
+            // Fallback to public tmp folder
+            audioUrl = `/tmp/${guideId}.mp3`;
+            console.log('[AUDIOPLAYER] Using fallback URL:', audioUrl);
+          } else {
+            console.log('[AUDIOPLAYER] Generated public URL:', audioUrl);
+          }
+          
+          // Validate the audio file exists
+          try {
+            const response = await fetch(audioUrl, { method: 'HEAD' });
+            if (!response.ok) {
+              // Try fallback if Supabase storage fails
+              if (audioUrl.includes('supabase.co')) {
+                audioUrl = `/tmp/${guideId}.mp3`;
+                console.log('[AUDIOPLAYER] Trying fallback URL:', audioUrl);
+                const fallbackResponse = await fetch(audioUrl, { method: 'HEAD' });
+                if (!fallbackResponse.ok) {
+                  throw new Error(`Audio file not accessible in storage or fallback: ${response.status}`);
+                }
+              } else {
                 throw new Error(`Audio file not accessible: ${response.status}`);
               }
-              
-              setActualAudioSrc(data.publicUrl);
-              
-              // Load saved position from localStorage
-              const savedPos = localStorage.getItem(`audio-position-${guideId}`);
-              if (savedPos) {
-                setSavedPosition(parseFloat(savedPos));
-              }
-            } catch (fetchError) {
-              console.error('[AUDIOPLAYER] Audio file validation failed:', fetchError);
-              setError("Audio file not available - please contact support");
             }
-          } else {
-            console.error('[AUDIOPLAYER] No public URL generated');
-            setError("Audio file not found");
+            
+            setActualAudioSrc(audioUrl);
+            
+            // Load saved position from localStorage
+            const savedPos = localStorage.getItem(`audio-position-${guideId}`);
+            if (savedPos) {
+              setSavedPosition(parseFloat(savedPos));
+            }
+          } catch (fetchError) {
+            console.error('[AUDIOPLAYER] Audio file validation failed:', fetchError);
+            setError("Audio file not available - please check if audio content is uploaded");
           }
         } catch (err) {
           console.error('[AUDIOPLAYER] Error loading audio:', err);
