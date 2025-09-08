@@ -122,11 +122,22 @@ export const useInvisibleAudioPlayer = ({
         audio.load();
       });
 
+      // Track when preview started for precise 30s timing
+      let previewStartTime: number | null = null;
+      
       // Setup event listeners
       const handleTimeUpdate = () => {
         if (isPreview && PREVIEW_DURATION) {
-          const previewEndTime = (chapterTimestamp || 0) + PREVIEW_DURATION;
-          if (audio.currentTime >= previewEndTime) {
+          // Record the start time when playback begins
+          if (previewStartTime === null) {
+            previewStartTime = Date.now();
+          }
+          
+          // Calculate elapsed time in seconds
+          const elapsedTime = (Date.now() - previewStartTime) / 1000;
+          
+          if (elapsedTime >= PREVIEW_DURATION) {
+            console.log(`[AUDIO] Preview stopped after ${elapsedTime.toFixed(1)}s`);
             audio.pause();
             setIsPlaying(false);
             toastRef.current?.dismiss();
