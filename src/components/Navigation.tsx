@@ -58,12 +58,6 @@ export const Navigation = () => {
             <Link to="/library" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
               Audio Guides
             </Link>
-            <Link to="/experiences" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
-              Live Experiences
-            </Link>
-            <Link to="/creators" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
-              Creators
-            </Link>
             <Link to="/unesco-sites" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
               UNESCO Sites
             </Link>
@@ -120,20 +114,7 @@ export const Navigation = () => {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            ) : (
-              <>
-                <Link to="/auth">
-                  <Button variant="ghost" size="sm" className="hidden sm:flex touch-target">
-                    Sign In
-                  </Button>
-                </Link>
-                <Link to="/auth">
-                  <Button variant="default" size="sm" className="touch-target mobile-text">
-                    Get Started
-                  </Button>
-                </Link>
-              </>
-            )}
+            ) : null}
 
             {/* Mobile Navigation Sheet */}
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -162,20 +143,6 @@ export const Navigation = () => {
                       className="flex items-center py-3 mobile-text font-medium text-foreground hover:text-primary transition-colors touch-target"
                     >
                       Audio Guides
-                    </Link>
-                    <Link 
-                      to="/experiences" 
-                      onClick={closeMobileMenu}
-                      className="flex items-center py-3 mobile-text font-medium text-foreground hover:text-primary transition-colors touch-target"
-                    >
-                      Live Experiences
-                    </Link>
-                    <Link 
-                      to="/creators" 
-                      onClick={closeMobileMenu}
-                      className="flex items-center py-3 mobile-text font-medium text-foreground hover:text-primary transition-colors touch-target"
-                    >
-                      Creators
                     </Link>
                     <Link 
                       to="/unesco-sites" 
@@ -270,20 +237,7 @@ export const Navigation = () => {
                         </Button>
                       </div>
                     </div>
-                  ) : (
-                    <div className="space-y-3 pt-6 border-t">
-                      <Link to="/auth" onClick={closeMobileMenu}>
-                        <Button variant="outline" className="w-full">
-                          Sign In
-                        </Button>
-                      </Link>
-                      <Link to="/auth" onClick={closeMobileMenu}>
-                        <Button variant="default" className="w-full">
-                          Get Started
-                        </Button>
-                      </Link>
-                    </div>
-                  )}
+                  ) : null}
 
                   {/* Theme Toggle */}
                   <div className="pt-4 border-t">

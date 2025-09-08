@@ -4,11 +4,9 @@ import { AudioPlayer } from '@/components/AudioPlayer';
 import { GuideCard } from '@/components/GuideCard';
 import { Navigation } from '@/components/Navigation';
 
-import { CreatorRecommendations } from '@/components/CreatorRecommendations';
 import { Button } from '@/components/ui/button';
 import { Headphones, Search, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import * as CarouselComponents from '@/components/ui/carousel';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -218,78 +216,49 @@ const Index = () => {
 
           {/* Loading State */}
           {loading && (
-            <div className="mobile-padding">
-              <CarouselComponents.Carousel
-                opts={{
-                  align: "start",
-                  loop: false,
-                }}
-                className="w-full max-w-none"
-              >
-                <CarouselComponents.CarouselContent className="-ml-2">
-                  {[...Array(6)].map((_, i) => (
-                    <CarouselComponents.CarouselItem key={i} className="pl-2 basis-[85%] sm:basis-[75%] md:basis-1/2 lg:basis-1/3">
-                      <div className="mobile-card animate-pulse">
-                        <div className="aspect-mobile bg-muted rounded-lg mb-4"></div>
-                        <div className="h-4 bg-muted rounded mb-2"></div>
-                        <div className="h-4 bg-muted rounded w-3/4"></div>
-                      </div>
-                    </CarouselComponents.CarouselItem>
-                  ))}
-                </CarouselComponents.CarouselContent>
-                <CarouselComponents.CarouselPrevious className="left-2" />
-                <CarouselComponents.CarouselNext className="right-2" />
-              </CarouselComponents.Carousel>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mobile-padding">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="mobile-card animate-pulse">
+                  <div className="aspect-mobile bg-muted rounded-lg mb-4"></div>
+                  <div className="h-4 bg-muted rounded mb-2"></div>
+                  <div className="h-4 bg-muted rounded w-3/4"></div>
+                </div>
+              ))}
             </div>
           )}
 
-          {/* Guides Carousel */}
+          {/* Audio Guides Grid */}
           {!loading && (
-            <div className="mobile-padding">
-              <CarouselComponents.Carousel
-                opts={{
-                  align: "start",
-                  loop: false,
-                }}
-                className="w-full max-w-none"
-              >
-                <CarouselComponents.CarouselContent className="-ml-2">
-                  {filteredGuides.map((guide) => {
-                    const isPurchased = userPurchases.includes(guide.id);
-                    const formattedPrice = guide.price_usd === 0 ? "Free" : `$${guide.price_usd}`;
-                    const formattedDuration = `${Math.floor(guide.duration / 60)} min`;
-                    
-                    return (
-                      <CarouselComponents.CarouselItem key={guide.id} className="pl-2 basis-[85%] sm:basis-[75%] md:basis-1/2 lg:basis-1/3">{/* Mobile-first carousel items */}
-                      <GuideCard
-                        id={guide.id}
-                        title={guide.title}
-                        description={guide.description}
-                        duration={guide.duration}
-                        location={guide.location}
-                        rating={guide.rating || 0}
-                        category={guide.category}
-                        price={guide.price_usd}
-                        difficulty={guide.difficulty}
-                        imageUrl={guide.image_url}
-                        totalPurchases={guide.total_purchases || 0}
-                        creatorName="Guide Creator"
-                        isProcessingPayment={processingPayment === guide.id}
-                        onViewGuide={() => {
-                          if (isPurchased || guide.price_usd === 0) {
-                            handlePlayGuide(guide);
-                          } else {
-                            handlePurchaseGuide(guide.id);
-                          }
-                        }}
-                       />
-                      </CarouselComponents.CarouselItem>
-                    );
-                  })}
-                </CarouselComponents.CarouselContent>
-                <CarouselComponents.CarouselPrevious className="left-2" />
-                <CarouselComponents.CarouselNext className="right-2" />
-              </CarouselComponents.Carousel>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mobile-padding">
+              {filteredGuides.map((guide) => {
+                const isPurchased = userPurchases.includes(guide.id);
+                
+                return (
+                  <GuideCard
+                    key={guide.id}
+                    id={guide.id}
+                    title={guide.title}
+                    description={guide.description}
+                    duration={guide.duration}
+                    location={guide.location}
+                    rating={guide.rating || 0}
+                    category={guide.category}
+                    price={guide.price_usd}
+                    difficulty={guide.difficulty}
+                    imageUrl={guide.image_url}
+                    totalPurchases={guide.total_purchases || 0}
+                    creatorName="Guide Creator"
+                    isProcessingPayment={processingPayment === guide.id}
+                    onViewGuide={() => {
+                      if (isPurchased || guide.price_usd === 0) {
+                        handlePlayGuide(guide);
+                      } else {
+                        handlePurchaseGuide(guide.id);
+                      }
+                    }}
+                  />
+                );
+              })}
             </div>
           )}
 
