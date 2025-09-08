@@ -168,12 +168,16 @@ serve(async (req) => {
     // Ensure baseUrl doesn't have trailing slash
     baseUrl = baseUrl.replace(/\/$/, '');
     
-    console.log('Final base URL after processing:', baseUrl);
-    const shareUrl = `${baseUrl}/guide/${guideData.slug}`;
-    console.log('Generated share URL for new guide:', shareUrl);
+    // Generate master access code for QR code access
+    const masterAccessCodeResult = await supabaseServiceClient.rpc('generate_access_code');
+    const masterAccessCode = masterAccessCodeResult.data;
     
-    // Validate the share URL format (slug can contain letters, numbers, and hyphens)
-    if (!shareUrl.match(/^https?:\/\/.+\/guide\/[a-z0-9-]+$/)) {
+    console.log('Final base URL after processing:', baseUrl);
+    const shareUrl = `${baseUrl}/access/${guideData.id}?access_code=${masterAccessCode}`;
+    console.log('Generated share URL with master access code:', shareUrl);
+    
+    // Validate the share URL format (must have access code for direct access)
+    if (!shareUrl.match(/^https?:\/\/.+\/access\/[a-f0-9-]+\?access_code=.+$/)) {
       throw new Error('Invalid share URL format generated');
     }
     
@@ -186,10 +190,11 @@ serve(async (req) => {
       throw new Error('QR code generation resulted in base64 encoding, which is invalid');
     }
     
-    // Update guide with QR code and share URL
+    // Update guide with master access code, QR code and share URL
     const { error: updateError } = await supabaseServiceClient
       .from('audio_guides')
       .update({
+        master_access_code: masterAccessCode,
         qr_code_url: qrCodeUrl,
         share_url: shareUrl
       })

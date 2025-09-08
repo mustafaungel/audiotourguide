@@ -40,7 +40,7 @@ serve(async (req) => {
     // Check if guide exists and belongs to user (for creators) or allow for admins
     const { data: guide, error: guideError } = await supabaseServiceClient
       .from('audio_guides')
-      .select('id, creator_id, slug')
+      .select('id, creator_id, slug, master_access_code')
       .eq('id', guideId)
       .single();
 
@@ -62,6 +62,19 @@ serve(async (req) => {
       throw new Error('Unauthorized to generate QR code for this guide');
     }
 
+    // Get or generate master access code
+    let masterAccessCode = guide.master_access_code;
+    if (!masterAccessCode) {
+      const masterAccessCodeResult = await supabaseServiceClient.rpc('generate_access_code');
+      masterAccessCode = masterAccessCodeResult.data;
+      
+      // Update guide with master access code
+      await supabaseServiceClient
+        .from('audio_guides')
+        .update({ master_access_code: masterAccessCode })
+        .eq('id', guideId);
+    }
+
     // Get the correct base URL from environment variable with live domain
     let baseUrl = Deno.env.get('SITE_URL') || 'https://audiotourguide.app';
     console.log('Raw SITE_URL environment variable:', baseUrl);
@@ -77,11 +90,11 @@ serve(async (req) => {
     }
     
     console.log('Final base URL after processing:', baseUrl);
-    const shareUrl = `${baseUrl}/guide/${guide.slug || guideId}${accessCode ? `?access_code=${accessCode}` : ''}`;
-    console.log('Generated share URL:', shareUrl, 'with access code:', accessCode);
+    const shareUrl = `${baseUrl}/access/${guideId}?access_code=${masterAccessCode}`;
+    console.log('Generated share URL with master access code:', shareUrl);
     
-    // Validate the share URL format (allow access code query param)
-    if (!shareUrl.match(/^https?:\/\/.+\/guide\/[a-z0-9-]+(\?access_code=.+)?$/)) {
+    // Validate the share URL format (must have access code for direct access)
+    if (!shareUrl.match(/^https?:\/\/.+\/access\/[a-f0-9-]+\?access_code=.+$/)) {
       throw new Error('Invalid share URL format generated');
     }
     

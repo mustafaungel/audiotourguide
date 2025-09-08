@@ -91,19 +91,37 @@ export default function AudioAccess() {
         user: user?.id || 'guest'
       });
       
-      // First, verify if the access code is valid using the secure function
-      const { data: isValidAccess, error: verifyError } = await supabase
+      // First, verify if the access code is valid using the secure function (for purchase codes)
+      const { data: isValidPurchase, error: verifyError } = await supabase
         .rpc('verify_access_code_secure', {
           p_access_code: accessCode?.trim(),
           p_guide_id: guideId
         });
 
-      console.log('[AUDIO-ACCESS] Access verification result:', { 
-        isValidAccess, 
+      console.log('[AUDIO-ACCESS] Purchase access verification result:', { 
+        isValidPurchase, 
         verifyError
       });
 
-      if (verifyError) {
+      let isValidAccess = isValidPurchase;
+
+      // If not a valid purchase code, check if it's a master access code
+      if (!isValidAccess) {
+        const { data: guide, error: guideError } = await supabase
+          .from('audio_guides')
+          .select('master_access_code')
+          .eq('id', guideId)
+          .single();
+
+        if (!guideError && guide && guide.master_access_code === accessCode?.trim()) {
+          isValidAccess = true;
+          console.log('[AUDIO-ACCESS] Valid master access code');
+        } else {
+          console.log('[AUDIO-ACCESS] Not a valid master access code');
+        }
+      }
+
+      if (verifyError && !isValidAccess) {
         console.error('[AUDIO-ACCESS] Access verification error:', verifyError);
         setError(`Access verification failed: ${verifyError.message}`);
         setIsLoading(false);

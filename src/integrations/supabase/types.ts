@@ -70,6 +70,7 @@ export type Database = {
           is_published: boolean
           languages: string[]
           location: string
+          master_access_code: string | null
           preview_url: string | null
           price_usd: number
           qr_code_url: string | null
@@ -103,6 +104,7 @@ export type Database = {
           is_published?: boolean
           languages?: string[]
           location: string
+          master_access_code?: string | null
           preview_url?: string | null
           price_usd: number
           qr_code_url?: string | null
@@ -136,6 +138,7 @@ export type Database = {
           is_published?: boolean
           languages?: string[]
           location?: string
+          master_access_code?: string | null
           preview_url?: string | null
           price_usd?: number
           qr_code_url?: string | null
