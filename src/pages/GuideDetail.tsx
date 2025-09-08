@@ -474,7 +474,10 @@ const GuideDetail = () => {
                         <Button 
                           variant="outline" 
                           size="sm"
-                          onClick={() => setPreviewingChapter(chapter)}
+                          onClick={() => {
+                            console.log('🎵 Preview button clicked for chapter:', chapter.title);
+                            setPreviewingChapter(chapter);
+                          }}
                         >
                           Preview
                         </Button>
@@ -489,29 +492,29 @@ const GuideDetail = () => {
                 ))}
               </TabsContent>
               
-              <TabsContent value="qrcode" className="space-y-3">
+                <TabsContent value="qrcode" className="space-y-3">
                 {!isPurchased ? (
                   <Card className="p-8 text-center bg-muted/30 border-dashed">
                     <div className="max-w-md mx-auto space-y-4">
                       <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
-                        <Lock className="w-8 h-8 text-primary" />
+                        <QrCode className="w-8 h-8 text-primary" />
                       </div>
                       <div>
                         <h3 className="text-lg font-semibold mb-2">
-                          Purchase to unlock QR Code
+                          QR Code Locked
                         </h3>
                         <p className="text-muted-foreground text-sm">
-                          Get your personal QR code for easy sharing and access
+                          Unlock the QR code to access your guide on any device and share with others.
                         </p>
                       </div>
                       <ul className="text-sm text-muted-foreground space-y-1">
-                        <li>• Personal QR code</li>
-                        <li>• Easy sharing</li>
-                        <li>• Instant access</li>
+                        <li>• Access your guide on any device</li>
+                        <li>• Share with friends and family</li>
+                        <li>• No internet required after download</li>
                         <li>• Download option</li>
                       </ul>
                       <Button onClick={handlePurchase} className="mt-4">
-                        Purchase for {guide.price}
+                        Unlock QR Code - ${guide.price} USD
                       </Button>
                     </div>
                   </Card>
@@ -709,7 +712,7 @@ const GuideDetail = () => {
       {previewingChapter && (
         <AudioPreviewPlayer
           title={previewingChapter.title}
-          audioSrc={`/public/tmp/guide${Math.floor(Math.random() * 4) + 1}.mp3`}
+          audioSrc={`/tmp/guide${Math.floor(Math.random() * 4) + 1}.mp3`}
           onClose={() => setPreviewingChapter(null)}
           isPreview={true}
         />
