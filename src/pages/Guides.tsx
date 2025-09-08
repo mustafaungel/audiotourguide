@@ -426,7 +426,7 @@ const Guides: React.FC = () => {
                 imageUrl={guide.image_urls?.[0] || guide.image_url}
                 totalPurchases={guide.total_purchases}
                 creatorName=""
-                creatorImage=""
+                creatorAvatar=""
               />
             ))}
           </div>
