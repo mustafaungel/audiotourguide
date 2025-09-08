@@ -2,6 +2,7 @@ import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { AudioPlayer } from "@/components/AudioPlayer";
+import { AudioPreviewPlayer } from "@/components/AudioPreviewPlayer";
 
 import { EmbeddedCheckout } from "@/components/EmbeddedCheckout";
 import { StripeConfigHelper } from "@/components/StripeConfigHelper";
@@ -97,24 +98,7 @@ const reviews = [
   }
 ];
 
-const relatedGuides = [
-  {
-    id: "2",
-    title: "Sacred Valley Explorer",
-    creator: "Carlos Mendoza",
-    rating: 4.7,
-    price: 8,
-    image: "/src/assets/kyoto-temple.jpg"
-  },
-  {
-    id: "3", 
-    title: "Cusco: Heart of the Inca Empire",
-    creator: "Dr. Maria Santos",
-    rating: 4.8,
-    price: 10,
-    image: "/src/assets/cappadocia-goreme.jpg"
-  }
-];
+// Related guides will be fetched dynamically
 
 const GuideDetail = () => {
   const { guideId } = useParams();
@@ -132,6 +116,7 @@ const GuideDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [realGuideData, setRealGuideData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [relatedGuides, setRelatedGuides] = useState<any[]>([]);
   const { toast: showToast } = useToast();
 
   // Use real guide data if available, with fallbacks for essential properties
@@ -255,6 +240,9 @@ const GuideDetail = () => {
       setRealGuideData(transformedData);
       setError(null);
       
+      // Fetch related guides
+      await fetchRelatedGuides(transformedData.category, transformedData.location, guideId);
+      
       // Track guide view once data is loaded
       if (guideId) {
         try {
@@ -270,6 +258,46 @@ const GuideDetail = () => {
       setError('Failed to load guide. Please try again.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchRelatedGuides = async (category: string, location: string, currentGuideId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('audio_guides')
+        .select(`
+          id, 
+          title, 
+          price_usd, 
+          rating, 
+          image_url, 
+          location, 
+          creator_id,
+          profiles!creator_id(full_name)
+        `)
+        .neq('id', currentGuideId)
+        .eq('is_published', true)
+        .eq('is_approved', true)
+        .or(`category.eq.${category},location.ilike.%${location.split(',')[0]}%`)
+        .limit(2);
+
+      if (error) {
+        console.error('Error fetching related guides:', error);
+        return;
+      }
+
+      const transformedRelated = data?.map(guide => ({
+        id: guide.id,
+        title: guide.title,
+        creator: (guide.profiles as any)?.full_name || 'Anonymous Creator',
+        rating: guide.rating || 0,
+        price: Math.floor((guide.price_usd || 0) / 100),
+        image: guide.image_url?.startsWith('data:image') ? guide.image_url : guide.image_url || '/hero-audio-guide.jpg'
+      })) || [];
+
+      setRelatedGuides(transformedRelated);
+    } catch (error) {
+      console.error('Error fetching related guides:', error);
     }
   };
 
@@ -421,7 +449,11 @@ const GuideDetail = () => {
             {/* Hero Image */}
             <div className="relative aspect-video rounded-xl overflow-hidden">
               <img 
-                src={guide.image_url || guide.image || '/hero-audio-guide.jpg'} 
+                src={
+                  guide.image_url?.startsWith('data:image') 
+                    ? guide.image_url 
+                    : guide.image_url || guide.image || '/hero-audio-guide.jpg'
+                } 
                 alt={guide.title}
                 className="w-full h-full object-cover"
                 onError={(e) => {
@@ -743,14 +775,15 @@ const GuideDetail = () => {
         </div>
       </div>
 
-      {/* Audio Player */}
+      {/* Audio Preview Player */}
       {playingGuide && (
         <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-background border-t">
           <div className="container mx-auto">
-            <AudioPlayer 
+            <AudioPreviewPlayer 
               title={guide.title}
-              description={guide.description}
               guideId={guide.id}
+              audioSrc={guide.audio_url}
+              onClose={() => setPlayingGuide(false)}
             />
           </div>
         </div>
