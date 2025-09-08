@@ -1,7 +1,7 @@
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
-import { AudioPlayer } from "@/components/AudioPlayer";
+import { SectionAudioPlayer } from "@/components/SectionAudioPlayer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -340,71 +340,15 @@ export default function AudioAccess() {
             </CardContent>
           </Card>
 
-          {/* Audio Player */}
+          {/* Section-Based Audio Player */}
           <div className="mb-6">
-            <AudioPlayer
-              title={guide.title}
-              description={guide.description}
-              audioSrc={guide.audio_url || `/tmp/${guide.id}.mp3`}
+            <SectionAudioPlayer
               guideId={guide.id}
-              transcript={guide.transcript}
+              guideTitle={guide.title}
+              sections={guide.sections || []}
+              mainAudioUrl={guide.audio_url}
             />
           </div>
-
-          {/* Guide Sections/Chapters */}
-          {guide.sections && guide.sections.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Chapters</CardTitle>
-                <CardDescription>Navigate through the guide sections</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {guide.sections.map((section: any, index: number) => (
-                     <button 
-                      key={index} 
-                      onClick={() => {
-                        // Find audio element and seek to timestamp if available
-                        const audioElement = document.querySelector('audio');
-                        console.log('[AUDIO-ACCESS] Chapter clicked:', { index, section, audioElement });
-                        if (audioElement) {
-                          if (section.timestamp !== undefined) {
-                            console.log('[AUDIO-ACCESS] Seeking to timestamp:', section.timestamp);
-                            audioElement.currentTime = section.timestamp;
-                          } else if (section.start_time !== undefined) {
-                            console.log('[AUDIO-ACCESS] Seeking to start_time:', section.start_time);
-                            audioElement.currentTime = section.start_time;
-                          } else {
-                            console.log('[AUDIO-ACCESS] No timestamp found in section');
-                          }
-                        } else {
-                          console.error('[AUDIO-ACCESS] Audio element not found');
-                        }
-                      }}
-                      className="w-full flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted cursor-pointer transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-primary/10 text-primary rounded-full flex items-center justify-center text-sm font-medium">
-                          {index + 1}
-                        </div>
-                        <div className="flex-1 text-left">
-                          <h4 className="font-medium">{section.title}</h4>
-                          {section.description && (
-                            <p className="text-sm text-muted-foreground mt-1">{section.description}</p>
-                          )}
-                        </div>
-                      </div>
-                      {section.duration_seconds && (
-                        <div className="text-sm text-muted-foreground">
-                          {Math.floor(section.duration_seconds / 60)}:{(section.duration_seconds % 60).toString().padStart(2, '0')}
-                        </div>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </div>
       </div>
     </div>
