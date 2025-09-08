@@ -270,14 +270,6 @@ const Index = () => {
             >
               Start Exploring
             </Button>
-            <Button 
-              variant="glass" 
-              size="lg" 
-              className="mobile-button px-8 py-4 touch-target"
-              onClick={() => navigate('/unesco-sites')}
-            >
-              View All Destinations
-            </Button>
           </div>
         </div>
       </section>
