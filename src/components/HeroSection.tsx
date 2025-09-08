@@ -3,19 +3,12 @@ import { Button } from '@/components/ui/button';
 import { Play, Headphones, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import heroImage from '@/assets/hero-world-travel.jpg';
-
 export const HeroSection: React.FC = () => {
   const navigate = useNavigate();
-  
-  return (
-    <section className="relative mobile-viewport flex items-center justify-center overflow-hidden">{/* Mobile-first viewport */}
+  return <section className="relative mobile-viewport flex items-center justify-center overflow-hidden">{/* Mobile-first viewport */}
       {/* Background */}
       <div className="absolute inset-0">
-        <img 
-          src={heroImage} 
-          alt="World Travel and Cultural Heritage Sites"
-          className="w-full h-full object-cover opacity-30"
-        />
+        <img src={heroImage} alt="World Travel and Cultural Heritage Sites" className="w-full h-full object-cover opacity-30" />
         <div className="absolute inset-0 bg-gradient-hero" />
       </div>
 
@@ -40,58 +33,25 @@ export const HeroSection: React.FC = () => {
 
           {/* CTA Buttons */}
           <div className="flex flex-col gap-mobile-padding sm:gap-4 justify-center items-center w-full max-w-sm mx-auto sm:max-w-none sm:flex-row">
-            <Button 
-              variant="hero" 
-              size="lg" 
-              className="mobile-button w-full sm:w-auto px-8 py-4 text-mobile-lg touch-target"
-              onClick={() => navigate('/search')}
-            >
+            <Button variant="hero" size="lg" className="mobile-button w-full sm:w-auto px-8 py-4 text-mobile-lg touch-target" onClick={() => navigate('/search')}>
               <Play className="h-5 w-5 mr-3" />
               Explore Destinations
             </Button>
-            <Button 
-              variant="glass" 
-              size="lg" 
-              className="mobile-button w-full sm:w-auto px-8 py-4 text-mobile-lg touch-target"
-              onClick={() => navigate('/unesco-sites')}
-            >
+            <Button variant="glass" size="lg" className="mobile-button w-full sm:w-auto px-8 py-4 text-mobile-lg touch-target" onClick={() => navigate('/unesco-sites')}>
               <Headphones className="h-5 w-5 mr-3" />
               World Heritage Sites
             </Button>
           </div>
 
           {/* Features */}
-          <div className="mobile-grid gap-mobile-padding mt-8 sm:mt-16">{/* Mobile-first grid */}
-            {[
-              {
-                icon: "🏛️",
-                title: "UNESCO World Heritage",
-                description: "Explore ancient sites and cultural treasures with expert narration"
-              },
-              {
-                icon: "🎭",
-                title: "Cultural Experiences",
-                description: "Immerse in local traditions, art, and centuries-old customs"
-              },
-              {
-                icon: "🗺️",
-                title: "Hidden Stories",
-                description: "Uncover secrets and legends behind iconic landmarks"
-              }
-            ].map((feature, index) => (
-              <div key={index} className="mobile-card text-center mobile-spacing hover:bg-card/15 transition-all duration-300 backdrop-blur-sm">
-                <div className="text-4xl sm:text-5xl">{feature.icon}</div>
-                <h3 className="mobile-subheading text-foreground">{feature.title}</h3>
-                <p className="mobile-caption">{feature.description}</p>
-              </div>
-            ))}
-          </div>
+          
         </div>
       </div>
 
       {/* Decorative Elements */}
       <div className="absolute top-1/4 left-10 w-32 h-32 bg-primary/10 rounded-full blur-xl animate-pulse" />
-      <div className="absolute bottom-1/4 right-10 w-24 h-24 bg-accent/10 rounded-full blur-xl animate-pulse" style={{ animationDelay: '1s' }} />
-    </section>
-  );
+      <div className="absolute bottom-1/4 right-10 w-24 h-24 bg-accent/10 rounded-full blur-xl animate-pulse" style={{
+      animationDelay: '1s'
+    }} />
+    </section>;
 };
