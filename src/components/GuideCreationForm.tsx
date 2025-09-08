@@ -9,8 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { InputWithCounter } from "@/components/ui/character-counter";
 import { toast } from "sonner";
 import { supabase } from '@/integrations/supabase/client';
-import { Sparkles, X, Plus, Image as ImageIcon } from 'lucide-react';
+import { Sparkles, X, Plus, Image as ImageIcon, Link2 } from 'lucide-react';
 import { ImageUploader } from './ImageUploader';
+import { generateSlugPreview } from '@/lib/slug-utils';
 
 interface GuideCreationFormProps {
   onSubmit: (data: GuideFormData) => Promise<void>;
@@ -83,11 +84,20 @@ export const GuideCreationForm: React.FC<GuideCreationFormProps> = ({
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [loadingDestinations, setLoadingDestinations] = useState(true);
   const [generatingDescription, setGeneratingDescription] = useState(false);
+  const [slugPreview, setSlugPreview] = useState('');
 
   // Fetch destinations on component mount
   useEffect(() => {
     fetchDestinations();
   }, []);
+
+  // Update slug preview when title or destination changes
+  useEffect(() => {
+    const selectedDestination = destinations.find(d => d.id === formData.destination_id);
+    const location = selectedDestination ? `${selectedDestination.city}, ${selectedDestination.country}` : '';
+    const preview = generateSlugPreview(formData.title, location);
+    setSlugPreview(preview);
+  }, [formData.title, formData.destination_id, destinations]);
 
   const fetchDestinations = async () => {
     try {
@@ -272,6 +282,23 @@ export const GuideCreationForm: React.FC<GuideCreationFormProps> = ({
                 </SelectContent>
               </Select>
               {errors.destination_id && <p className="text-red-500 mobile-caption mt-1">{errors.destination_id}</p>}
+            </div>
+
+            {/* URL Slug Preview */}
+            <div className="md:col-span-2">
+              <Label className="mobile-caption font-medium flex items-center gap-2">
+                <Link2 className="h-4 w-4" />
+                URL Slug (Auto-generated)
+              </Label>
+              <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+                <span className="text-sm text-muted-foreground">audiotourguide.app/guide/</span>
+                <span className="text-sm font-mono text-foreground">
+                  {slugPreview || 'enter-title-and-destination'}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                This URL will be automatically generated from your title and destination
+              </p>
             </div>
 
             {/* Category */}

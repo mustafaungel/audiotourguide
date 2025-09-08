@@ -5,12 +5,13 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Save, ArrowLeft, QrCode, ExternalLink, Copy } from 'lucide-react';
+import { Loader2, Save, ArrowLeft, QrCode, ExternalLink, Copy, Link2, Edit3 } from 'lucide-react';
 import { ImageUploader } from './ImageUploader';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { GuideSectionsManager } from './GuideSectionsManager';
 import { getGuidePreviewUrl } from '@/lib/url-utils';
+import { generateSlugPreview, validateSlug, sanitizeSlug } from '@/lib/slug-utils';
 
 interface Guide {
   id: string;
@@ -23,6 +24,7 @@ interface Guide {
   is_published: boolean;
   created_at: string;
   creator_id: string;
+  slug?: string;
   qr_code_url?: string | null;
   share_url?: string | null;
   profiles?: {
@@ -39,6 +41,10 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
   const [guide, setGuide] = useState<Guide | null>(null);
   const [loading, setLoading] = useState(false);
   const [generatingQR, setGeneratingQR] = useState(false);
+  const [editingSlug, setEditingSlug] = useState(false);
+  const [slugPreview, setSlugPreview] = useState('');
+  const [customSlug, setCustomSlug] = useState('');
+  const [slugError, setSlugError] = useState('');
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -62,8 +68,17 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
         price_usd: guideData.price_usd / 100, // Convert from cents to dollars
         image_urls: guideData.image_urls || [],
       });
+      setCustomSlug(guideData.slug || '');
     }
   }, []);
+
+  // Update slug preview when title or location changes
+  useEffect(() => {
+    if (!editingSlug) {
+      const preview = generateSlugPreview(formData.title, formData.location);
+      setSlugPreview(preview);
+    }
+  }, [formData.title, formData.location, editingSlug]);
 
   const handleInputChange = (field: string, value: string | number | string[]) => {
     setFormData(prev => ({
@@ -72,23 +87,72 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
     }));
   };
 
+  const handleSlugEdit = (editing: boolean) => {
+    setEditingSlug(editing);
+    if (editing) {
+      setCustomSlug(guide?.slug || slugPreview);
+    } else {
+      setCustomSlug('');
+      setSlugError('');
+    }
+  };
+
+  const handleSlugChange = (value: string) => {
+    const sanitized = sanitizeSlug(value);
+    setCustomSlug(sanitized);
+    
+    const validation = validateSlug(sanitized);
+    setSlugError(validation.isValid ? '' : validation.error || '');
+  };
+
+  const saveSlug = async () => {
+    if (!guide || slugError) return;
+    
+    const finalSlug = customSlug || slugPreview;
+    
+    try {
+      const { error } = await supabase
+        .from('audio_guides')
+        .update({ slug: finalSlug })
+        .eq('id', guide.id);
+
+      if (error) throw error;
+      
+      setGuide(prev => prev ? { ...prev, slug: finalSlug } : null);
+      setEditingSlug(false);
+      toast.success('Slug updated successfully!');
+    } catch (error) {
+      console.error('Error updating slug:', error);
+      toast.error('Failed to update slug');
+    }
+  };
+
   const updateGuide = async () => {
     if (!guide) return;
     
     setLoading(true);
     try {
+      const updateData: any = {
+        title: formData.title,
+        description: formData.description,
+        location: formData.location,
+        category: formData.category,
+        price_usd: Math.round(formData.price_usd * 100), // Convert to cents
+        image_urls: formData.image_urls,
+        image_url: formData.image_urls[0] || null, // Update image_url for backward compatibility
+        updated_at: new Date().toISOString(),
+      };
+
+      // Include slug if it's being edited or auto-generated
+      if (editingSlug && customSlug) {
+        updateData.slug = customSlug;
+      } else if (!guide.slug) {
+        updateData.slug = slugPreview;
+      }
+
       const { error } = await supabase
         .from('audio_guides')
-        .update({
-          title: formData.title,
-          description: formData.description,
-          location: formData.location,
-          category: formData.category,
-          price_usd: Math.round(formData.price_usd * 100), // Convert to cents
-          image_urls: formData.image_urls,
-          image_url: formData.image_urls[0] || null, // Update image_url for backward compatibility
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq('id', guide.id);
 
       if (error) throw error;
@@ -252,6 +316,77 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
               <p className="text-xs text-muted-foreground">
                 Minimum price: $0.50 (Stripe requirement)
               </p>
+            </div>
+
+            {/* URL Slug Management */}
+            <div className="space-y-3">
+              <Label className="flex items-center gap-2">
+                <Link2 className="h-4 w-4" />
+                URL Slug
+              </Label>
+              
+              {!editingSlug ? (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+                    <span className="text-sm text-muted-foreground">audiotourguide.app/guide/</span>
+                    <span className="text-sm font-mono text-foreground">
+                      {guide.slug || slugPreview || 'auto-generated'}
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleSlugEdit(true)}
+                    >
+                      <Edit3 className="w-4 h-4 mr-1" />
+                      Edit Slug
+                    </Button>
+                    {!guide.slug && (
+                      <span className="text-xs text-muted-foreground self-center">
+                        Auto-generated from title and location
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">
+                      audiotourguide.app/guide/
+                    </span>
+                    <Input
+                      value={customSlug}
+                      onChange={(e) => handleSlugChange(e.target.value)}
+                      placeholder="enter-custom-slug"
+                      className={`font-mono ${slugError ? 'border-red-500' : ''}`}
+                    />
+                  </div>
+                  {slugError && (
+                    <p className="text-red-500 text-sm">{slugError}</p>
+                  )}
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="default"
+                      size="sm"
+                      onClick={saveSlug}
+                      disabled={!!slugError || !customSlug}
+                    >
+                      Save Slug
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleSlugEdit(false)}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Image Management */}
