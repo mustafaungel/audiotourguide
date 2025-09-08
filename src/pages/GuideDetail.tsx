@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useViralTracking } from "@/hooks/useViralTracking";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useInvisibleAudioPlayer } from "@/hooks/useInvisibleAudioPlayer";
 import { toast } from "sonner";
 
 // Demo guide data
@@ -130,6 +131,13 @@ const GuideDetail = () => {
     creator: realGuideData.creator || {}
   } : null;
 
+  // Initialize invisible audio player
+  const audioPlayer = useInvisibleAudioPlayer({
+    guideId: guide?.id,
+    audioSrc: guide?.audio_url,
+    title: guide?.title || 'Audio Guide',
+    isPreview: !isPurchased
+  });
 
   const handlePurchase = () => {
     setShowPaymentModal(true);
@@ -548,9 +556,9 @@ const GuideDetail = () => {
                             size="sm"
                             onClick={() => {
                               console.log('🔧 Chapter play clicked', { isPurchased, audioUrl: guide.audio_url });
-                              setPlayingGuide(true);
+                              audioPlayer.play();
                             }}
-                            disabled={!guide.audio_url}
+                            disabled={!guide.audio_url || audioPlayer.loading}
                           >
                             <Play className="w-4 h-4" />
                           </Button>
@@ -594,10 +602,11 @@ const GuideDetail = () => {
                           <Button 
                             size="sm" 
                             variant="outline"
-                            onClick={() => setPlayingGuide(true)}
+                            onClick={() => audioPlayer.play()}
+                            disabled={audioPlayer.loading}
                           >
                             <Play className="w-3 h-3 mr-1" />
-                            30s Preview
+                            {audioPlayer.loading ? 'Loading...' : '30s Preview'}
                           </Button>
                         </div>
                       ))}
@@ -815,20 +824,6 @@ const GuideDetail = () => {
         </div>
       </div>
 
-      {/* Audio Preview Player */}
-      {playingGuide && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-background border-t">
-          <div className="container mx-auto">
-            <AudioPreviewPlayer 
-              title={guide.title}
-              guideId={guide.id}
-              audioSrc={guide.audio_url}
-              onClose={() => setPlayingGuide(false)}
-              isPreview={!isPurchased}
-            />
-          </div>
-        </div>
-      )}
 
       {/* Enhanced Payment Modal with Force Reset */}
       <Dialog 
