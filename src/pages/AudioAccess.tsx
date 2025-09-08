@@ -84,56 +84,58 @@ export default function AudioAccess() {
     setError(null);
 
     try {
-      // Use secure function to verify access code without exposing sensitive data
-      console.log('[AUDIO-ACCESS] Verifying access with secure function:', { 
+      let isValidAccess = false;
+      let accessType = '';
+
+      console.log('[AUDIO-ACCESS] Starting access verification:', { 
         guide_id: guideId, 
         access_code: accessCode?.trim(),
         user: user?.id || 'guest'
       });
-      
-      // First, verify if the access code is valid using the secure function (for purchase codes)
-      const { data: isValidPurchase, error: verifyError } = await supabase
-        .rpc('verify_access_code_secure', {
-          p_access_code: accessCode?.trim(),
-          p_guide_id: guideId
+
+      // First check if it's a master access code (most common for QR codes)
+      const { data: guide, error: masterCodeError } = await supabase
+        .from('audio_guides')
+        .select('master_access_code')
+        .eq('id', guideId)
+        .single();
+
+      if (!masterCodeError && guide && guide.master_access_code === accessCode?.trim()) {
+        isValidAccess = true;
+        accessType = 'master';
+        console.log('[AUDIO-ACCESS] Valid master access code');
+      } else {
+        console.log('[AUDIO-ACCESS] Not a master access code, checking purchase codes...');
+        
+        // If not a master access code, check if it's a purchase code
+        const { data: isValidPurchase, error: verifyError } = await supabase
+          .rpc('verify_access_code_secure', {
+            p_access_code: accessCode?.trim(),
+            p_guide_id: guideId
+          });
+
+        console.log('[AUDIO-ACCESS] Purchase access verification result:', { 
+          isValidPurchase, 
+          verifyError
         });
 
-      console.log('[AUDIO-ACCESS] Purchase access verification result:', { 
-        isValidPurchase, 
-        verifyError
-      });
-
-      let isValidAccess = isValidPurchase;
-
-      // If not a valid purchase code, check if it's a master access code
-      if (!isValidAccess) {
-        const { data: guide, error: guideError } = await supabase
-          .from('audio_guides')
-          .select('master_access_code')
-          .eq('id', guideId)
-          .single();
-
-        if (!guideError && guide && guide.master_access_code === accessCode?.trim()) {
+        if (isValidPurchase) {
           isValidAccess = true;
-          console.log('[AUDIO-ACCESS] Valid master access code');
-        } else {
-          console.log('[AUDIO-ACCESS] Not a valid master access code');
+          accessType = 'purchase';
+          console.log('[AUDIO-ACCESS] Valid purchase access code');
+        } else if (verifyError) {
+          console.warn('[AUDIO-ACCESS] Purchase verification error (not fatal):', verifyError);
         }
       }
 
-      if (verifyError && !isValidAccess) {
-        console.error('[AUDIO-ACCESS] Access verification error:', verifyError);
-        setError(`Access verification failed: ${verifyError.message}`);
-        setIsLoading(false);
-        return;
-      }
-
       if (!isValidAccess) {
-        console.error('[AUDIO-ACCESS] Invalid access code');
+        console.error('[AUDIO-ACCESS] No valid access found for code:', accessCode?.trim());
         setError('Invalid access code or guide not found');
         setIsLoading(false);
         return;
       }
+
+      console.log('[AUDIO-ACCESS] Access verified via:', accessType);
 
       // Access verified, now load guide details
       const { data: guideData, error: guideError } = await supabase
