@@ -115,12 +115,9 @@ export function GuideCard({
           />
         </div>
         
-        <div className="absolute top-4 left-4 flex gap-2">
+        <div className="absolute top-4 left-4">
           <Badge className={getCategoryColor(category)}>
             {category}
-          </Badge>
-          <Badge className={getDifficultyColor(difficulty)}>
-            {difficulty}
           </Badge>
         </div>
         
@@ -167,12 +164,8 @@ export function GuideCard({
 
       <CardContent className="p-4 sm:p-6">
         <div className="space-y-3 sm:space-y-4">
-          <div className="flex items-start justify-between gap-2">
+          <div>
             <h3 className="font-semibold text-base sm:text-lg leading-tight line-clamp-2">{title}</h3>
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-              <span className="text-sm font-medium">{rating.toFixed(1)}</span>
-            </div>
           </div>
 
           <p className="text-muted-foreground text-sm sm:text-base line-clamp-2 leading-relaxed">{description}</p>

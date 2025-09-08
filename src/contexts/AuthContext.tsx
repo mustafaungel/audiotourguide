@@ -131,7 +131,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     
-    if (error) {
+    if (error && error.message !== 'Session not found') {
       toast.error("Sign out failed: " + error.message);
     } else {
       toast.success("You have been successfully signed out.");
