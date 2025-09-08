@@ -184,7 +184,7 @@ export function GuideCard({
             </div>
             <div className="flex items-center gap-1">
               <Clock className="h-4 w-4" />
-              <span>{duration} min</span>
+              <span>{Math.floor(duration / 60)} min</span>
             </div>
             {totalPurchases > 0 && (
               <div className="flex items-center gap-1">
