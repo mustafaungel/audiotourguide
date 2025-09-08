@@ -7,12 +7,8 @@
  */
 export function getBaseUrl(): string {
   if (typeof window !== 'undefined') {
-    // Check if we're in production/live environment
-    const currentOrigin = window.location.origin;
-    if (currentOrigin.includes('audiotourguide.app')) {
-      return 'https://audiotourguide.app';
-    }
-    return currentOrigin;
+    // Always use production URL for external sharing and links
+    return 'https://audiotourguide.app';
   }
   
   // This should only be used in browser environments
