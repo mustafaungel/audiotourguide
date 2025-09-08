@@ -54,7 +54,7 @@ export function SearchHeader({
   };
 
   return (
-    <div className="bg-background/95 backdrop-blur-sm border-b border-border/50 sticky top-0 z-40">
+    <div className={`bg-background/95 backdrop-blur-sm border-b border-border/50 transition-all duration-300 ${searchTerm ? 'sticky top-0 z-30' : 'relative'}`}>
       <div className="container mx-auto px-4 py-4">
         {/* Main Search Bar */}
         <div className="max-w-3xl mx-auto mb-4">

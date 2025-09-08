@@ -162,6 +162,14 @@ const Index = () => {
       <Navigation />
       <HeroSection />
       
+      {/* Search Header - positioned after hero */}
+      <SearchHeader 
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        showResults={true}
+        resultsCount={filteredGuides.length}
+      />
+      
       {/* Mobile-Optimized Featured Destinations Section */}
       <section className="mobile-padding mobile-spacing">{/* Mobile-first section */}
         <div className="mobile-container">
@@ -178,14 +186,6 @@ const Index = () => {
               Explore UNESCO World Heritage sites, cultural treasures, and iconic landmarks with immersive AI-guided tours
             </p>
           </div>
-
-          {/* Enhanced Search Header */}
-          <SearchHeader 
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            showResults={true}
-            resultsCount={filteredGuides.length}
-          />
 
           {/* Search Results Info */}
           {searchTerm && (
