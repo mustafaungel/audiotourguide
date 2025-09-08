@@ -37,19 +37,38 @@ export const useInvisibleAudioPlayer = ({
     try {
       setLoading(true);
       
-      // Get audio source
+      // Get audio source with validation
       let audioUrl = audioSrc;
       if (!audioUrl && guideId) {
+        console.log(`[AUDIO] Getting URL for guide: ${guideId}`);
         const { data } = supabase.storage
           .from('guide-audio')
           .getPublicUrl(`${guideId}.mp3`);
         audioUrl = data.publicUrl;
+        console.log(`[AUDIO] Generated URL: ${audioUrl}`);
       }
 
       if (!audioUrl) {
+        console.error('[AUDIO] No audio URL available');
         toast({
-          title: "Error",
-          description: "Audio preview not available",
+          title: "Audio Not Available",
+          description: "Preview is not available for this guide",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate that audio file exists by attempting to fetch
+      try {
+        const response = await fetch(audioUrl, { method: 'HEAD' });
+        if (!response.ok) {
+          throw new Error(`Audio file not found: ${response.status}`);
+        }
+      } catch (fetchError) {
+        console.error('[AUDIO] Audio file validation failed:', fetchError);
+        toast({
+          title: "Audio File Not Found",
+          description: "The audio file for this guide is not available",
           variant: "destructive",
         });
         return;
@@ -63,6 +82,26 @@ export const useInvisibleAudioPlayer = ({
       const audio = audioRef.current;
       audio.src = audioUrl;
       audio.currentTime = 0;
+      
+      // Wait for audio to be ready before playing
+      await new Promise((resolve, reject) => {
+        const handleCanPlay = () => {
+          audio.removeEventListener('canplay', handleCanPlay);
+          audio.removeEventListener('error', handleError);
+          resolve(undefined);
+        };
+        
+        const handleError = (e: any) => {
+          audio.removeEventListener('canplay', handleCanPlay);
+          audio.removeEventListener('error', handleError);
+          reject(new Error('Audio failed to load'));
+        };
+        
+        audio.addEventListener('canplay', handleCanPlay);
+        audio.addEventListener('error', handleError);
+        
+        audio.load();
+      });
 
       // Setup event listeners
       const handleTimeUpdate = () => {
@@ -96,15 +135,28 @@ export const useInvisibleAudioPlayer = ({
       audio.addEventListener('ended', handleEnded);
       audio.addEventListener('error', handleError);
 
-      // Start playing
-      await audio.play();
-      setIsPlaying(true);
-
-      // Show toast notification
-      toastRef.current = toast({
-        title: `🎵 Playing: ${title}`,
-        description: isPreview ? "30-second preview • Purchase for full access" : "Now playing",
-      });
+      // Start playing (handle autoplay restrictions)
+      try {
+        await audio.play();
+        setIsPlaying(true);
+        
+        // Show toast notification
+        toastRef.current = toast({
+          title: `🎵 Playing: ${title}`,
+          description: isPreview ? "30-second preview • Purchase for full access" : "Now playing",
+        });
+      } catch (playError: any) {
+        console.error('[AUDIO] Autoplay blocked or failed:', playError);
+        if (playError.name === 'NotAllowedError') {
+          toast({
+            title: "Audio Blocked",
+            description: "Please click play button to start audio (browser policy)",
+            variant: "destructive",
+          });
+        } else {
+          throw playError;
+        }
+      }
 
       // Cleanup function
       return () => {
@@ -113,11 +165,21 @@ export const useInvisibleAudioPlayer = ({
         audio.removeEventListener('error', handleError);
       };
 
-    } catch (error) {
-      console.error('Error playing audio:', error);
+    } catch (error: any) {
+      console.error('[AUDIO] Error playing audio:', error);
+      let errorMessage = "Failed to play audio preview";
+      
+      if (error.name === 'NotSupportedError') {
+        errorMessage = "Audio format not supported by this browser";
+      } else if (error.name === 'NotAllowedError') {
+        errorMessage = "Audio playback blocked by browser";
+      } else if (error.message?.includes('not found')) {
+        errorMessage = "Audio file not found";
+      }
+      
       toast({
-        title: "Error",
-        description: "Failed to play audio preview",
+        title: "Playback Error",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

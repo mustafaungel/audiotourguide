@@ -78,13 +78,20 @@ export default function PaymentSuccess() {
       
       // Verify payment and create purchase record
       const { data: verifyData, error: verifyError } = await supabase.functions.invoke('verify-payment', {
-        body: { sessionId, guideId },
+        body: { 
+          session_id: sessionId, 
+          guide_id: guideId 
+        },
       });
 
       console.log('[PAYMENT-SUCCESS] Verify payment response:', verifyData);
       if (verifyError) {
         console.error('[PAYMENT-SUCCESS] Verify payment error:', verifyError);
-        throw verifyError;
+        throw new Error(verifyError.message || 'Payment verification failed');
+      }
+      
+      if (!verifyData?.success) {
+        throw new Error('Payment verification was not successful');
       }
 
       setPurchaseData(verifyData);

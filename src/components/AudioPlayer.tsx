@@ -39,31 +39,49 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   useEffect(() => {
     const loadAudio = async () => {
       if (audioSrc) {
+        console.log('[AUDIOPLAYER] Using provided audioSrc:', audioSrc);
         setActualAudioSrc(audioSrc);
         return;
       }
 
       if (guideId) {
         setLoading(true);
+        setError(null);
         try {
+          console.log('[AUDIOPLAYER] Loading audio for guide:', guideId);
+          
           // Try to get audio file from storage bucket
           const { data } = supabase.storage
             .from('guide-audio')
             .getPublicUrl(`${guideId}.mp3`);
           
           if (data?.publicUrl) {
-            setActualAudioSrc(data.publicUrl);
+            console.log('[AUDIOPLAYER] Generated public URL:', data.publicUrl);
             
-            // Load saved position from localStorage
-            const savedPos = localStorage.getItem(`audio-position-${guideId}`);
-            if (savedPos) {
-              setSavedPosition(parseFloat(savedPos));
+            // Validate the audio file exists
+            try {
+              const response = await fetch(data.publicUrl, { method: 'HEAD' });
+              if (!response.ok) {
+                throw new Error(`Audio file not accessible: ${response.status}`);
+              }
+              
+              setActualAudioSrc(data.publicUrl);
+              
+              // Load saved position from localStorage
+              const savedPos = localStorage.getItem(`audio-position-${guideId}`);
+              if (savedPos) {
+                setSavedPosition(parseFloat(savedPos));
+              }
+            } catch (fetchError) {
+              console.error('[AUDIOPLAYER] Audio file validation failed:', fetchError);
+              setError("Audio file not available - please contact support");
             }
           } else {
+            console.error('[AUDIOPLAYER] No public URL generated');
             setError("Audio file not found");
           }
         } catch (err) {
-          console.error('Error loading audio:', err);
+          console.error('[AUDIOPLAYER] Error loading audio:', err);
           setError("Failed to load audio");
         } finally {
           setLoading(false);
@@ -82,19 +100,37 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   }, [actualAudioSrc, savedPosition]);
 
   const togglePlayPause = useCallback(async () => {
-    if (!audioRef.current || !actualAudioSrc) return;
+    if (!audioRef.current || !actualAudioSrc) {
+      console.warn('[AUDIOPLAYER] Cannot play - no audio element or source');
+      return;
+    }
 
     try {
       if (isPlaying) {
         audioRef.current.pause();
       } else {
+        console.log('[AUDIOPLAYER] Attempting to play audio');
         await audioRef.current.play();
+        setError(null); // Clear any previous errors on successful play
       }
-    } catch (err) {
-      console.error('Error playing audio:', err);
-      setError("Failed to play audio");
+    } catch (err: any) {
+      console.error('[AUDIOPLAYER] Error playing audio:', err);
+      let errorMessage = "Failed to play audio";
+      
+      if (err.name === 'NotAllowedError') {
+        errorMessage = "Audio blocked by browser - try clicking play button again";
+      } else if (err.name === 'NotSupportedError') {
+        errorMessage = "Audio format not supported";
+      }
+      
+      setError(errorMessage);
+      toast({
+        title: "Playback Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
     }
-  }, [isPlaying, actualAudioSrc]);
+  }, [isPlaying, actualAudioSrc, toast]);
 
   const toggleMute = useCallback(() => {
     if (audioRef.current) {
