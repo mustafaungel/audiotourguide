@@ -2,7 +2,7 @@ import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { AudioPlayer } from "@/components/AudioPlayer";
-import { AudioPreviewPlayer } from "@/components/AudioPreviewPlayer";
+
 import { ReviewsSection } from "@/components/ReviewsSection";
 import { EmbeddedCheckout } from "@/components/EmbeddedCheckout";
 import { StripeConfigHelper } from "@/components/StripeConfigHelper";
@@ -131,7 +131,7 @@ const GuideDetail = () => {
     creator: realGuideData.creator || {}
   } : null;
 
-  // Initialize invisible audio player
+  // Initialize invisible audio player (moved after all state definitions)
   const audioPlayer = useInvisibleAudioPlayer({
     guideId: guide?.id,
     audioSrc: guide?.audio_url,
