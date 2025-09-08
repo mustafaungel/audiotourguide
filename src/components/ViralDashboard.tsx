@@ -18,29 +18,13 @@ interface ViralStats {
 }
 export const ViralDashboard: React.FC = () => {
   const [viralStats] = useState<ViralStats>({
-    total_users_online: 12847,
-    viral_guides_today: 23,
-    trending_locations: 8,
-    social_shares: 3420,
-    growth_rate: '+340%'
+    total_users_online: 0,
+    viral_guides_today: 0,
+    trending_locations: 0,
+    social_shares: 0,
+    growth_rate: '0%'
   });
-  const [liveActivity] = useState([{
-    user: 'Emma from NYC',
-    action: 'shared "Hidden Gems of Tokyo"',
-    time: '2 min ago'
-  }, {
-    user: 'Marcus from London',
-    action: 'unlocked "Globe Trotter" achievement',
-    time: '5 min ago'
-  }, {
-    user: 'Sofia from Barcelona',
-    action: 'started trending guide in Rome',
-    time: '8 min ago'
-  }, {
-    user: 'Raj from Mumbai',
-    action: 'reached Level 10!',
-    time: '12 min ago'
-  }]);
+  const [liveActivity] = useState([]);
   const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
     if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
@@ -111,16 +95,8 @@ export const ViralDashboard: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {liveActivity.map((activity, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                <div>
-                  <p className="font-medium">{activity.user}</p>
-                  <p className="text-sm text-muted-foreground">{activity.action}</p>
-                </div>
-                <Badge variant="outline">{activity.time}</Badge>
-              </div>
-            ))}
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">No live activity available</p>
           </div>
         </CardContent>
       </Card>

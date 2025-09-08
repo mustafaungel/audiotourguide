@@ -39,66 +39,11 @@ interface TrendingLocation {
 }
 
 export const TrendingContent: React.FC = () => {
-  const [trendingGuides, setTrendingGuides] = useState<TrendingGuide[]>([
-    {
-      id: '1',
-      title: 'Viral TikTok Spots in Rome',
-      location: 'Rome, Italy',
-      views: 15420,
-      shares: 892,
-      rating: 4.9,
-      duration: '25 min',
-        image_url: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=300&h=200&fit=crop',
-      trending_score: 98,
-      category: 'Viral Spots',
-      listeners_count: 3420,
-      created_at: '2024-01-15'
-    },
-    {
-      id: '2',
-      title: 'Instagram-Famous Cherry Blossoms',
-      location: 'Kyoto, Japan',
-      views: 12890,
-      shares: 756,
-      rating: 4.8,
-      duration: '18 min',
-        image_url: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=300&h=200&fit=crop',
-      trending_score: 94,
-      category: 'Nature & Seasons',
-      listeners_count: 2890,
-      created_at: '2024-01-10'
-    },
-    {
-      id: '3',
-      title: 'Celebrity Chef Street Food Tour',
-      location: 'Bangkok, Thailand',
-      views: 11250,
-      shares: 634,
-      rating: 4.7,
-      duration: '32 min',
-      image_url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=200&fit=crop',
-      trending_score: 91,
-      category: 'Food & Culture',
-      listeners_count: 2450,
-      created_at: '2024-01-08'
-    }
-  ]);
+  const [trendingGuides, setTrendingGuides] = useState<TrendingGuide[]>([]);
 
-  const [trendingLocations, setTrendingLocations] = useState<TrendingLocation[]>([
-    { name: 'Santorini', country: 'Greece', guides_count: 15, total_views: 45000, growth_percentage: 340, trending_rank: 1 },
-    { name: 'Dubai', country: 'UAE', guides_count: 22, total_views: 38000, growth_percentage: 280, trending_rank: 2 },
-    { name: 'Bali', country: 'Indonesia', guides_count: 18, total_views: 35000, growth_percentage: 225, trending_rank: 3 },
-    { name: 'Reykjavik', country: 'Iceland', guides_count: 12, total_views: 28000, growth_percentage: 190, trending_rank: 4 },
-    { name: 'Marrakech', country: 'Morocco', guides_count: 14, total_views: 24000, growth_percentage: 165, trending_rank: 5 }
-  ]);
+  const [trendingLocations, setTrendingLocations] = useState<TrendingLocation[]>([]);
 
-  const [viralCategories] = useState([
-    { name: 'TikTok Famous Spots', count: 45, growth: '+420%' },
-    { name: 'Instagram Backdrops', count: 38, growth: '+315%' },
-    { name: 'Celebrity Locations', count: 29, growth: '+280%' },
-    { name: 'Movie Film Sites', count: 52, growth: '+245%' },
-    { name: 'Viral Food Spots', count: 34, growth: '+220%' }
-  ]);
+  const [viralCategories] = useState([]);
 
   const getTrendingBadge = (score: number) => {
     if (score >= 95) return { text: 'VIRAL', color: 'bg-red-500 text-white animate-pulse' };
@@ -158,21 +103,8 @@ export const TrendingContent: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {viralCategories.map((category, index) => (
-              <div
-                key={category.name}
-                className="p-3 lg:p-4 rounded-lg bg-gradient-card border border-tourism-warm/20 hover:shadow-tourism transition-all cursor-pointer"
-              >
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-2">
-                  <h4 className="font-medium text-foreground text-sm lg:text-base truncate">{category.name}</h4>
-                  <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs self-start sm:self-auto flex-shrink-0">
-                    {category.growth}
-                  </Badge>
-                </div>
-                <p className="text-xs lg:text-sm text-muted-foreground">{category.count} guides</p>
-              </div>
-            ))}
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">No viral categories available</p>
           </div>
         </CardContent>
       </Card>
@@ -189,77 +121,8 @@ export const TrendingContent: React.FC = () => {
           </p>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {trendingGuides.map((guide, index) => {
-              const badge = getTrendingBadge(guide.trending_score);
-              return (
-                  <div
-                    key={guide.id}
-                    className="flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-4 p-3 lg:p-4 rounded-lg bg-gradient-card border border-border hover:shadow-card transition-all"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="text-lg lg:text-2xl font-bold text-tourism-warm min-w-[30px] lg:min-w-[40px]">
-                        #{index + 1}
-                      </div>
-                      <img
-                        src={guide.image_url}
-                        alt={guide.title}
-                        className="w-12 h-12 lg:w-16 lg:h-16 rounded-lg object-cover flex-shrink-0"
-                      />
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-col lg:flex-row lg:items-center gap-1 lg:gap-2 mb-1">
-                        <h4 className="font-semibold text-foreground text-sm lg:text-base truncate">{guide.title}</h4>
-                        <Badge className={`${badge.color} text-xs self-start lg:self-auto`}>{badge.text}</Badge>
-                      </div>
-                      
-                      <div className="flex flex-wrap gap-2 lg:gap-4 text-xs lg:text-sm text-muted-foreground mb-2">
-                        <div className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3 flex-shrink-0" />
-                          <span className="truncate">{guide.location}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-3 w-3 flex-shrink-0" />
-                          <span>{guide.duration}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 flex-shrink-0" />
-                          <span>{guide.rating}</span>
-                        </div>
-                      </div>
-                      
-                      <div className="flex flex-wrap gap-2 lg:gap-4 text-xs lg:text-sm">
-                        <div className="flex items-center gap-1 text-tourism-sky">
-                          <Eye className="h-3 w-3 flex-shrink-0" />
-                          <span>{formatNumber(guide.views)}</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-tourism-earth">
-                          <Share2 className="h-3 w-3 flex-shrink-0" />
-                          <span>{formatNumber(guide.shares)}</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-accent">
-                          <Users className="h-3 w-3 flex-shrink-0" />
-                          <span>{formatNumber(guide.listeners_count)}</span>
-                        </div>
-                        <span className="text-muted-foreground hidden lg:inline">
-                          {getDaysAgo(guide.created_at)} days ago
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex lg:flex-col gap-2 self-start lg:self-auto">
-                      <Button size="sm" className="bg-tourism-warm hover:bg-tourism-warm/90 text-xs lg:text-sm flex-1 lg:flex-none">
-                        <Play className="h-3 w-3 lg:h-4 lg:w-4 mr-1" />
-                        <span className="lg:inline">Listen</span>
-                      </Button>
-                      <Button variant="outline" size="sm" className="text-xs lg:text-sm flex-1 lg:flex-none lg:px-3">
-                        <Share2 className="h-3 w-3 lg:h-4 lg:w-4" />
-                      </Button>
-                    </div>
-                  </div>
-              );
-            })}
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">No trending guides available</p>
           </div>
         </CardContent>
       </Card>
@@ -276,38 +139,8 @@ export const TrendingContent: React.FC = () => {
           </p>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
-            {trendingLocations.map((location) => (
-              <Card
-                key={location.name}
-                className="p-3 lg:p-4 bg-gradient-card border-tourism-warm/20 hover:shadow-tourism transition-all cursor-pointer"
-              >
-                <div className="flex justify-between items-start mb-3">
-                  <div className="min-w-0 flex-1">
-                    <h4 className="font-semibold text-foreground text-sm lg:text-base truncate">{location.name}</h4>
-                    <p className="text-xs lg:text-sm text-muted-foreground truncate">{location.country}</p>
-                  </div>
-                  <Badge className="bg-gradient-tourism text-primary-foreground text-xs flex-shrink-0 ml-2">
-                    #{location.trending_rank}
-                  </Badge>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs lg:text-sm">
-                    <span className="text-muted-foreground">Growth:</span>
-                    <span className="font-bold text-green-600">+{location.growth_percentage}%</span>
-                  </div>
-                  <div className="flex justify-between text-xs lg:text-sm">
-                    <span className="text-muted-foreground">Guides:</span>
-                    <span className="text-foreground">{location.guides_count}</span>
-                  </div>
-                  <div className="flex justify-between text-xs lg:text-sm">
-                    <span className="text-muted-foreground">Views:</span>
-                    <span className="text-foreground">{formatNumber(location.total_views)}</span>
-                  </div>
-                </div>
-              </Card>
-            ))}
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">No trending destinations available</p>
           </div>
         </CardContent>
       </Card>
