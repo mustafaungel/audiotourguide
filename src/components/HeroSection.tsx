@@ -60,29 +60,50 @@ export const HeroSection: React.FC = () => {
             </Button>
           </div>
 
-          {/* Features */}
+          {/* Interactive Features */}
           <div className="mobile-grid gap-mobile-padding mt-8 sm:mt-16">{/* Mobile-first grid */}
             {[
               {
                 icon: "🏛️",
                 title: "UNESCO World Heritage",
-                description: "Explore ancient sites and cultural treasures with expert narration"
+                description: "Explore ancient sites and cultural treasures with expert narration",
+                path: "/unesco-sites"
               },
               {
                 icon: "🎭",
                 title: "Cultural Experiences",
-                description: "Immerse in local traditions, art, and centuries-old customs"
+                description: "Immerse in local traditions, art, and centuries-old customs",
+                path: "/category/cultural"
               },
               {
                 icon: "🗺️",
                 title: "Hidden Stories",
-                description: "Uncover secrets and legends behind iconic landmarks"
+                description: "Uncover secrets and legends behind iconic landmarks",
+                path: "/category/historical"
               }
             ].map((feature, index) => (
-              <div key={index} className="mobile-card text-center mobile-spacing hover:bg-card/15 transition-all duration-300 backdrop-blur-sm">
-                <div className="text-4xl sm:text-5xl">{feature.icon}</div>
-                <h3 className="mobile-subheading text-foreground">{feature.title}</h3>
-                <p className="mobile-caption">{feature.description}</p>
+              <div 
+                key={index} 
+                className="mobile-card text-center mobile-spacing hover:bg-card/25 hover:scale-105 transition-all duration-300 backdrop-blur-sm cursor-pointer group touch-target"
+                onClick={() => navigate(feature.path)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    navigate(feature.path);
+                  }
+                }}
+              >
+                <div className="text-4xl sm:text-5xl group-hover:scale-110 transition-transform duration-200">
+                  {feature.icon}
+                </div>
+                <h3 className="mobile-subheading text-foreground group-hover:text-primary transition-colors duration-200">
+                  {feature.title}
+                </h3>
+                <p className="mobile-caption group-hover:text-foreground transition-colors duration-200">
+                  {feature.description}
+                </p>
               </div>
             ))}
           </div>
