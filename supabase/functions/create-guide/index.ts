@@ -41,6 +41,7 @@ serve(async (req) => {
     script, 
     audio_content, 
     image_content, 
+    image_urls = [],
     best_time,
     sections = [],
     generate_audio = false
@@ -114,10 +115,11 @@ serve(async (req) => {
         duration: duration || Math.max(sections.reduce((total: number, section: any) => total + (section.duration_seconds || 300), 0), 45),
         difficulty: difficulty || 'Easy',
         languages: languages || ['English'],
-        price_usd: price_usd || 1200, // $12.00 default
+        price_usd: (price_usd || 12) * 100, // Convert to cents
         audio_url: audioUrl,
         transcript: script,
         image_url: imageUrl,
+        image_urls: image_urls,
         preview_url: previewUrl,
         creator_id: user.id,
         best_time,
