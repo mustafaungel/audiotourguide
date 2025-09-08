@@ -1546,6 +1546,10 @@ export type Database = {
         Args: { creator_user_id: string }
         Returns: number
       }
+      can_access_verification_document: {
+        Args: { p_document_type: string; p_verification_request_id: string }
+        Returns: boolean
+      }
       can_access_verification_documents: {
         Args: { p_user_id: string }
         Returns: boolean
