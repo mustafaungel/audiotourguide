@@ -4,13 +4,14 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCw, ExternalLink, QrCode } from "lucide-react";
+import { RefreshCw, ExternalLink, QrCode, Copy } from "lucide-react";
 
 interface Guide {
   id: string;
   title: string;
   qr_code_url: string | null;
   share_url: string | null;
+  price_usd: number;
 }
 
 export function AdminQRCodeRegenerator() {
@@ -25,7 +26,7 @@ export function AdminQRCodeRegenerator() {
     try {
       const { data, error } = await supabase
         .from('audio_guides')
-        .select('id, title, qr_code_url, share_url')
+        .select('id, title, qr_code_url, share_url, price_usd')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -56,7 +57,7 @@ export function AdminQRCodeRegenerator() {
 
       toast({
         title: "Success",
-        description: "QR code regenerated successfully!",
+        description: `QR code regenerated successfully! URL: ${data?.share_url}`,
       });
     } catch (error) {
       console.error('Error regenerating QR code:', error);
@@ -156,6 +157,14 @@ export function AdminQRCodeRegenerator() {
               <div className="flex-1">
                 <div className="font-medium">{guide.title}</div>
                 <div className="text-sm text-muted-foreground">{guide.id}</div>
+                {guide.share_url && (
+                  <div className="text-xs text-blue-600 mt-1 break-all">
+                    Share URL: {guide.share_url}
+                  </div>
+                )}
+                <div className="text-xs text-muted-foreground">
+                  Price: ${(guide.price_usd / 100).toFixed(2)}
+                </div>
               </div>
               
               <div className="flex items-center gap-2">
@@ -169,9 +178,27 @@ export function AdminQRCodeRegenerator() {
                   size="sm"
                   variant="outline"
                   onClick={() => openGuidePreview(guide.id)}
+                  title="Preview guide"
                 >
                   <ExternalLink className="h-4 w-4" />
                 </Button>
+                
+                {guide.share_url && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      navigator.clipboard.writeText(guide.share_url!);
+                      toast({
+                        title: "Success",
+                        description: "Share URL copied to clipboard",
+                      });
+                    }}
+                    title="Copy share URL"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                )}
                 
                 <Button
                   size="sm"

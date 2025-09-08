@@ -74,6 +74,13 @@ serve(async (req) => {
     // Ensure baseUrl doesn't have trailing slash
     baseUrl = baseUrl.replace(/\/$/, '');
     
+    // For development, use the current origin if available in headers
+    const origin = req.headers.get('origin');
+    if (origin && origin.includes('sandbox.lovable.dev')) {
+      baseUrl = origin;
+      console.log('Using development origin from request:', baseUrl);
+    }
+    
     console.log('Final base URL after processing:', baseUrl);
     const shareUrl = `${baseUrl}/guide/${guideId}${accessCode ? `?access_code=${accessCode}` : ''}`;
     console.log('Generated share URL:', shareUrl, 'with access code:', accessCode);
