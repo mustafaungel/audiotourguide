@@ -58,9 +58,6 @@ export const Navigation = () => {
             <Link to="/library" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
               Audio Guides
             </Link>
-            <Link to="/unesco-sites" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
-              UNESCO Sites
-            </Link>
           </nav>
 
           {/* Actions */}
@@ -143,13 +140,6 @@ export const Navigation = () => {
                       className="flex items-center py-3 mobile-text font-medium text-foreground hover:text-primary transition-colors touch-target"
                     >
                       Audio Guides
-                    </Link>
-                    <Link 
-                      to="/unesco-sites" 
-                      onClick={closeMobileMenu}
-                      className="flex items-center py-3 mobile-text font-medium text-foreground hover:text-primary transition-colors touch-target"
-                    >
-                      UNESCO Sites
                     </Link>
                   </nav>
 
