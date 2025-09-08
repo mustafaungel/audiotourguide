@@ -29,8 +29,8 @@ export const ShareLink: React.FC<ShareLinkProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
 
-  // Construct the share URL with access code if available
-  const shareUrl = `${window.location.origin}/guide/${guideId}${accessCode ? `?access_code=${accessCode}` : ''}`;
+  // Construct the share URL for access page with access code if available
+  const shareUrl = `${window.location.origin}/access/${guideId}${accessCode ? `?access_code=${accessCode}` : ''}`;
 
   const handleCopy = async () => {
     try {

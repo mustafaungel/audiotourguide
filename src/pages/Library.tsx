@@ -57,8 +57,8 @@ export default function Library() {
     const accessCode = guide.access_code;
     
     if (guideId) {
-      // Navigate to guide detail page with access code
-      const url = `/guide/${guideId}${accessCode ? `?access=${accessCode}` : ''}`;
+      // Navigate to access page with access code
+      const url = `/access/${guideId}${accessCode ? `?access_code=${accessCode}` : ''}`;
       window.location.href = url;
     } else {
       toast({

@@ -82,7 +82,7 @@ serve(async (req) => {
     }
     
     console.log('Final base URL after processing:', baseUrl);
-    const shareUrl = `${baseUrl}/guide/${guideId}${accessCode ? `?access_code=${accessCode}` : ''}`;
+    const shareUrl = `${baseUrl}/access/${guideId}${accessCode ? `?access_code=${accessCode}` : ''}`;
     console.log('Generated share URL:', shareUrl, 'with access code:', accessCode);
     
     // Validate the share URL format (allow access code query param)

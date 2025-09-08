@@ -27,6 +27,7 @@ import BookingFlow from "./pages/BookingFlow";
 import Category from "./pages/Category";
 import Community from "./pages/Community";
 import Dashboard from "./pages/Dashboard";
+import AudioAccess from "./pages/AudioAccess";
 import NotFound from "./pages/NotFound";
 
 
@@ -62,6 +63,7 @@ const App = () => {
               <Route path="/category/:categoryType" element={<Category />} />
               <Route path="/community" element={<Community />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/access/:guideId" element={<AudioAccess />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/payment-cancelled" element={<PaymentCancelled />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
