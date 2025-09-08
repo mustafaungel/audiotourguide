@@ -4,13 +4,13 @@ import { HeroSection } from '@/components/HeroSection';
 import { AudioPlayer } from '@/components/AudioPlayer';
 import { GuideCard } from '@/components/GuideCard';
 import { Navigation } from '@/components/Navigation';
-import { ViralDashboard } from '@/components/ViralDashboard';
+
 import { CreatorRecommendations } from '@/components/CreatorRecommendations';
 import { Button } from '@/components/ui/button';
 import { Headphones } from 'lucide-react';
 import { SearchHeader } from '@/components/SearchHeader';
 import { EnhancedGuideCard } from '@/components/EnhancedGuideCard';
-import * as CarouselComponents from '@/components/ui/carousel';
+
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -148,82 +148,56 @@ const Index = () => {
 
           {/* Loading State */}
           {loading && (
-            <div className="mobile-padding">
-              <CarouselComponents.Carousel
-                opts={{
-                  align: "start",
-                  loop: false,
-                }}
-                className="w-full max-w-none"
-              >
-                <CarouselComponents.CarouselContent className="-ml-2">
-                  {[...Array(6)].map((_, i) => (
-                    <CarouselComponents.CarouselItem key={i} className="pl-2 basis-[85%] sm:basis-[75%] md:basis-1/2 lg:basis-1/3">
-                      <div className="mobile-card animate-pulse">
-                        <div className="aspect-mobile bg-muted rounded-lg mb-4"></div>
-                        <div className="h-4 bg-muted rounded mb-2"></div>
-                        <div className="h-4 bg-muted rounded w-3/4"></div>
-                      </div>
-                    </CarouselComponents.CarouselItem>
-                  ))}
-                </CarouselComponents.CarouselContent>
-                <CarouselComponents.CarouselPrevious className="left-2" />
-                <CarouselComponents.CarouselNext className="right-2" />
-              </CarouselComponents.Carousel>
+            <div className="grid gap-4 sm:gap-6">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="mobile-card animate-pulse">
+                  <div className="aspect-[16/9] sm:aspect-[4/3] bg-muted rounded-lg mb-4"></div>
+                  <div className="h-4 bg-muted rounded mb-2"></div>
+                  <div className="h-4 bg-muted rounded w-3/4"></div>
+                </div>
+              ))}
             </div>
           )}
 
-          {/* Guides Carousel */}
+          {/* Guides Grid */}
           {!loading && (
-            <div className="mobile-padding">
-              <CarouselComponents.Carousel
-                opts={{
-                  align: "start",
-                  loop: false,
-                }}
-                className="w-full max-w-none"
-              >
-                <CarouselComponents.CarouselContent className="-ml-2">
-                  {filteredGuides.map((guide) => {
-                    const isPurchased = userPurchases.includes(guide.id);
-                    
-                    return (
-                      <CarouselComponents.CarouselItem key={guide.id} className="pl-2 basis-[90%] sm:basis-[80%] md:basis-1/2 lg:basis-1/3 xl:basis-1/4">{/* Enhanced responsive sizing */}
-                      <EnhancedGuideCard
-                        id={guide.id}
-                        title={guide.title}
-                        description={guide.description}
-                        duration={guide.duration}
-                        location={guide.location}
-                        rating={guide.rating || 0}
-                        category={guide.category}
-                        price={guide.price_usd}
-                        difficulty={guide.difficulty}
-                        imageUrl={guide.image_url}
-                        totalPurchases={guide.total_purchases || 0}
-                        creatorName="AI Guide Creator"
-                        isPurchased={isPurchased}
-                        isProcessingPayment={processingPayment === guide.id}
-                        onViewGuide={() => {
-                          if (isPurchased || guide.price_usd === 0) {
-                            handlePlayGuide(guide);
-                          } else {
-                            // Navigate to guide detail page for purchase
-                            navigate(`/guide/${guide.id}`);
-                          }
-                        }}
-                        onPreview={() => {
-                          // Preview functionality - play first 30 seconds
-                          console.log('Playing preview for guide:', guide.id);
-                        }}
-                       />
-                      </CarouselComponents.CarouselItem>
-                    );
-                  })}
-                </CarouselComponents.CarouselContent>
-                <CarouselComponents.CarouselPrevious className="left-2" />
-                <CarouselComponents.CarouselNext className="right-2" />
-              </CarouselComponents.Carousel>
+            <div className="grid gap-4 sm:gap-6">
+              {filteredGuides.map((guide) => {
+                const isPurchased = userPurchases.includes(guide.id);
+                
+                return (
+                  <div key={guide.id} className="w-full">
+                    <EnhancedGuideCard
+                      id={guide.id}
+                      title={guide.title}
+                      description={guide.description}
+                      duration={guide.duration}
+                      location={guide.location}
+                      rating={guide.rating || 0}
+                      category={guide.category}
+                      price={guide.price_usd}
+                      difficulty={guide.difficulty}
+                      imageUrl={guide.image_url}
+                      totalPurchases={guide.total_purchases || 0}
+                      creatorName="AI Guide Creator"
+                      isPurchased={isPurchased}
+                      isProcessingPayment={processingPayment === guide.id}
+                      onViewGuide={() => {
+                        if (isPurchased || guide.price_usd === 0) {
+                          handlePlayGuide(guide);
+                        } else {
+                          // Navigate to guide detail page for purchase
+                          navigate(`/guide/${guide.id}`);
+                        }
+                      }}
+                      onPreview={() => {
+                        // Preview functionality - play first 30 seconds
+                        console.log('Playing preview for guide:', guide.id);
+                      }}
+                     />
+                  </div>
+                );
+              })}
             </div>
           )}
 
@@ -238,8 +212,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Simplified Viral Dashboard Section */}
-      <ViralDashboard />
 
       {/* Audio Player Section */}
       {selectedGuide && (
