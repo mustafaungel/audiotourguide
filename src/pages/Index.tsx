@@ -8,7 +8,7 @@ import { Navigation } from '@/components/Navigation';
 import { CreatorRecommendations } from '@/components/CreatorRecommendations';
 import { Button } from '@/components/ui/button';
 import { Headphones } from 'lucide-react';
-import { SearchHeader } from '@/components/SearchHeader';
+
 import { EnhancedGuideCard } from '@/components/EnhancedGuideCard';
 
 import { supabase } from '@/integrations/supabase/client';
@@ -112,13 +112,6 @@ const Index = () => {
       <Navigation />
       <HeroSection />
       
-      {/* Search Header - positioned after hero */}
-      <SearchHeader 
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        showResults={true}
-        resultsCount={filteredGuides.length}
-      />
       
       {/* Mobile-Optimized Featured Destinations Section */}
       <section className="mobile-padding mobile-spacing">{/* Mobile-first section */}
@@ -242,10 +235,20 @@ const Index = () => {
             Join thousands of travelers exploring UNESCO World Heritage sites and cultural treasures with AI-powered storytelling
           </p>
           <div className="mobile-stack sm:flex-row gap-4 justify-center">
-            <Button variant="hero" size="lg" className="mobile-button px-8 py-4 touch-target">
+            <Button 
+              variant="hero" 
+              size="lg" 
+              className="mobile-button px-8 py-4 touch-target"
+              onClick={() => navigate('/search')}
+            >
               Start Exploring
             </Button>
-            <Button variant="glass" size="lg" className="mobile-button px-8 py-4 touch-target">
+            <Button 
+              variant="glass" 
+              size="lg" 
+              className="mobile-button px-8 py-4 touch-target"
+              onClick={() => navigate('/category/destinations')}
+            >
               View All Destinations
             </Button>
           </div>

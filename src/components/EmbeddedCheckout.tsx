@@ -172,13 +172,8 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
     try {
       console.log('🔧 [REDIRECT] Attempting window.location.href (universal)...');
       
-      if (isSafari || isMobile) {
-        // Safari and mobile browsers prefer href over assign
-        window.location.href = checkoutUrl;
-      } else {
-        // Chrome, Firefox prefer assign
-        window.location.assign(checkoutUrl);
-      }
+      // Use direct redirect for same-tab experience
+      window.location.href = checkoutUrl;
       
       // Don't wait on mobile - redirect immediately
       if (!isMobile) {
