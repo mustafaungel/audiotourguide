@@ -55,7 +55,7 @@ export const Navigation = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link to="/library" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+            <Link to="/guides" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
               Audio Guides
             </Link>
           </nav>
@@ -86,7 +86,7 @@ export const Navigation = () => {
                     <User className="mr-2 h-4 w-4" />
                     <span>Profile</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/library')}>
+                  <DropdownMenuItem onClick={() => navigate('/guides')}>
                     <span>My Library</span>
                   </DropdownMenuItem>
                   {userProfile?.role === 'admin' && (
@@ -135,7 +135,7 @@ export const Navigation = () => {
                   {/* Mobile Navigation Links */}
                   <nav className="mobile-stack">
                     <Link 
-                      to="/library" 
+                      to="/guides" 
                       onClick={closeMobileMenu}
                       className="flex items-center py-3 mobile-text font-medium text-foreground hover:text-primary transition-colors touch-target"
                     >
@@ -172,7 +172,7 @@ export const Navigation = () => {
                           variant="ghost" 
                           className="w-full justify-start"
                           onClick={() => {
-                            navigate('/library');
+                            navigate('/guides');
                             closeMobileMenu();
                           }}
                         >

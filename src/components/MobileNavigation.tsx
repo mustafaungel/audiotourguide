@@ -23,32 +23,21 @@ export const MobileNavigation: React.FC = () => {
       path: "/",
     },
     {
-      icon: Search,
-      label: "Explore",
-      path: "/search",
-    },
-    {
       icon: Headphones,
-      label: "Library",
-      path: "/library",
+      label: "Audio Guides",
+      path: "/guides",
     },
     {
-      icon: Users,
-      label: "Community",
-      path: "/community",
-      badge: "New"
-    },
-    {
-      icon: user ? User : LogIn,
-      label: user ? "Profile" : "Sign In",
-      path: user ? "/profile" : "/auth",
+      icon: Search,
+      label: "Search",
+      path: "/search",
     },
   ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-t border-border md:hidden mobile-safe-area">
       <div className="mobile-container">
-        <div className="grid grid-cols-5 gap-1 py-2">
+        <div className="grid grid-cols-3 gap-1 py-2">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
@@ -68,9 +57,6 @@ export const MobileNavigation: React.FC = () => {
                     "h-5 w-5 transition-colors",
                     isActive ? "text-primary" : "text-muted-foreground"
                   )} />
-                  {item.badge && (
-                    <span className="absolute -top-1 -right-1 h-2 w-2 bg-destructive rounded-full" />
-                  )}
                 </div>
                 <span className={cn(
                   "mobile-caption font-medium mt-1 transition-colors",
