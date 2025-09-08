@@ -1404,7 +1404,7 @@ export type Database = {
       }
     }
     Views: {
-      secure_verification_requests: {
+      verification_requests_safe: {
         Row: {
           admin_notes: string | null
           created_at: string | null
@@ -1412,13 +1412,9 @@ export type Database = {
           document_status: Database["public"]["Enums"]["document_status"] | null
           experience_description: string | null
           full_name: string | null
+          has_id_document: boolean | null
+          has_license_document: boolean | null
           id: string | null
-          id_document_status: string | null
-          id_document_url: string | null
-          id_number: string | null
-          license_document_status: string | null
-          license_document_url: string | null
-          license_number: string | null
           portfolio_url: string | null
           reviewed_at: string | null
           reviewed_by: string | null
@@ -1441,13 +1437,9 @@ export type Database = {
             | null
           experience_description?: string | null
           full_name?: string | null
+          has_id_document?: never
+          has_license_document?: never
           id?: string | null
-          id_document_status?: never
-          id_document_url?: never
-          id_number?: never
-          license_document_status?: never
-          license_document_url?: never
-          license_number?: never
           portfolio_url?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
@@ -1470,13 +1462,9 @@ export type Database = {
             | null
           experience_description?: string | null
           full_name?: string | null
+          has_id_document?: never
+          has_license_document?: never
           id?: string | null
-          id_document_status?: never
-          id_document_url?: never
-          id_number?: never
-          license_document_status?: never
-          license_document_url?: never
-          license_number?: never
           portfolio_url?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
@@ -1599,6 +1587,15 @@ export type Database = {
       get_verification_document_url: {
         Args: { p_document_path: string; p_expires_in?: number }
         Returns: string
+      }
+      get_verification_document_urls: {
+        Args: { p_request_id: string }
+        Returns: {
+          id_document_url: string
+          id_number: string
+          license_document_url: string
+          license_number: string
+        }[]
       }
       has_verification_document_access: {
         Args: { p_document_type?: string; p_verification_request_id: string }
