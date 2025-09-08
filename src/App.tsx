@@ -14,19 +14,10 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancelled from "./pages/PaymentCancelled";
 import Search from "./pages/Search";
 import Profile from "./pages/Profile";
-import CreatorDashboard from "./pages/CreatorDashboard";
-import CreatorProfile from "./pages/CreatorProfile";
-import Creators from "./pages/Creators";
 import UserProfile from "./pages/UserProfile";
-import Experiences from "./pages/Experiences";
-
 import GuideDetail from "./pages/GuideDetail";
 import DestinationDetail from "./pages/DestinationDetail";
-import ExperienceDetail from "./pages/ExperienceDetail";
-import BookingFlow from "./pages/BookingFlow";
 import Category from "./pages/Category";
-import Community from "./pages/Community";
-import Dashboard from "./pages/Dashboard";
 import AudioAccess from "./pages/AudioAccess";
 import NotFound from "./pages/NotFound";
 
@@ -49,20 +40,11 @@ const App = () => {
               <Route path="/admin" element={<AdminPanel />} />
               <Route path="/guides" element={<Library />} />
               <Route path="/profile" element={<Profile />} />
-              <Route path="/creator-dashboard" element={<CreatorDashboard />} />
-              <Route path="/creators" element={<Creators />} />
-              <Route path="/creator/:creatorId" element={<CreatorProfile />} />
               <Route path="/user/:userId" element={<UserProfile />} />
-              <Route path="/experiences" element={<Experiences />} />
-              
               <Route path="/guide/:guideId" element={<GuideDetail />} />
               <Route path="/destination/:location" element={<DestinationDetail />} />
               <Route path="/search" element={<Search />} />
-              <Route path="/experience/:experienceId" element={<ExperienceDetail />} />
-              <Route path="/booking/:experienceId" element={<BookingFlow />} />
               <Route path="/category/:categoryType" element={<Category />} />
-              <Route path="/community" element={<Community />} />
-              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/access/:guideId" element={<AudioAccess />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/payment-cancelled" element={<PaymentCancelled />} />
