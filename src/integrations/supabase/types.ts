@@ -1545,6 +1545,15 @@ export type Database = {
         Args: { admin_notes?: string; destination_id: string }
         Returns: boolean
       }
+      audit_verification_operation: {
+        Args: {
+          p_metadata?: Json
+          p_operation: string
+          p_resource_id?: string
+          p_resource_type: string
+        }
+        Returns: undefined
+      }
       calculate_tier_points: {
         Args: { creator_user_id: string }
         Returns: number
@@ -1591,6 +1600,10 @@ export type Database = {
         Args: { p_document_path: string; p_expires_in?: number }
         Returns: string
       }
+      has_verification_document_access: {
+        Args: { p_document_type?: string; p_verification_request_id: string }
+        Returns: boolean
+      }
       is_admin: {
         Args: { user_id?: string }
         Returns: boolean
@@ -1607,6 +1620,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      mask_verification_data: {
+        Args: { p_data: string; p_field_name: string; p_user_id: string }
+        Returns: string
+      }
       reject_creator_verification: {
         Args: {
           admin_notes_param?: string
@@ -1618,6 +1635,10 @@ export type Database = {
       secure_delete_verification_documents: {
         Args: { p_user_id: string }
         Returns: undefined
+      }
+      secure_verification_document_access: {
+        Args: { p_document_path: string; p_operation?: string }
+        Returns: boolean
       }
       track_guide_view: {
         Args: { p_guide_id: string }
