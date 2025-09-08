@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MapPin, Clock, Star, DollarSign, Globe, Mic, X } from 'lucide-react';
+import { MapPin, Clock, DollarSign, Globe, Mic, X } from 'lucide-react';
 
 interface FilterState {
   location: string;
@@ -195,24 +195,7 @@ export const AdvancedSearchFilters: React.FC<AdvancedSearchFiltersProps> = ({
               </div>
             </div>
 
-            <div>
-              <Label className="flex items-center gap-2 mb-3">
-                <Star className="h-4 w-4" />
-                Minimum Rating: {filters.minRating > 0 ? filters.minRating : 'Any'}
-              </Label>
-              <Slider
-                value={[filters.minRating]}
-                onValueChange={(value) => updateFilter('minRating', value[0])}
-                max={5}
-                min={0}
-                step={0.5}
-                className="w-full"
-              />
-              <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                <span>Any Rating</span>
-                <span>5 Stars</span>
-              </div>
-            </div>
+            {/* Rating filter removed - using text-based reviews only */}
 
             <div>
               <Label className="mb-3 block">Features</Label>

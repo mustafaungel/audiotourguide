@@ -1,9 +1,8 @@
 import React from 'react';
-import { Star, Users, Award } from 'lucide-react';
+import { Users, Award } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { SimpleRatingDisplay } from '@/components/SimpleRatingDisplay';
 
 interface DualRatingDisplayProps {
   serviceRating?: number;
@@ -26,27 +25,6 @@ export const DualRatingDisplay: React.FC<DualRatingDisplayProps> = ({
   variant = 'inline',
   showLabels = true,
 }) => {
-  // Component disabled - no ratings displayed
-  return null;
-  const renderStars = (rating: number, size: 'sm' | 'md' = 'sm') => {
-    const sizeClass = size === 'sm' ? 'h-3 w-3' : 'h-4 w-4';
-    
-    return (
-      <div className="flex items-center gap-0.5">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <Star
-            key={star}
-            className={`${sizeClass} ${
-              star <= rating
-                ? 'fill-warning text-warning'
-                : 'fill-muted text-muted-foreground/30'
-            }`}
-          />
-        ))}
-      </div>
-    );
-  };
-
   if (variant === 'card') {
     return (
       <Card className="p-4">
@@ -55,11 +33,6 @@ export const DualRatingDisplay: React.FC<DualRatingDisplayProps> = ({
             <div className="text-3xl font-bold text-foreground mb-1">
               {combinedRating > 0 ? combinedRating.toFixed(1) : 'New'}
             </div>
-            {combinedRating > 0 && (
-              <div className="flex justify-center mb-2">
-                {renderStars(combinedRating, 'md')}
-              </div>
-            )}
             <p className="text-sm text-muted-foreground">Overall Rating</p>
           </div>
           
@@ -74,8 +47,7 @@ export const DualRatingDisplay: React.FC<DualRatingDisplayProps> = ({
                     </div>
                     <div className="space-y-1">
                       <div className="flex items-center gap-1">
-                        {renderStars(serviceRating)}
-                        <span className="text-sm font-bold ml-1">
+                        <span className="text-sm font-bold">
                           {serviceRating > 0 ? serviceRating.toFixed(1) : 'N/A'}
                         </span>
                       </div>
@@ -103,7 +75,9 @@ export const DualRatingDisplay: React.FC<DualRatingDisplayProps> = ({
                     </div>
                     <div className="space-y-1">
                       <div className="flex items-center gap-1">
-                        <SimpleRatingDisplay rating={platformRating} />
+                        <span className="text-sm font-bold">
+                          {platformRating > 0 ? platformRating.toFixed(1) : 'N/A'}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -126,7 +100,6 @@ export const DualRatingDisplay: React.FC<DualRatingDisplayProps> = ({
           <div className="text-2xl font-bold text-foreground">
             {combinedRating > 0 ? combinedRating.toFixed(1) : 'New'}
           </div>
-          {combinedRating > 0 && renderStars(combinedRating, 'md')}
         </div>
         
         <div className="space-y-2">
@@ -136,7 +109,6 @@ export const DualRatingDisplay: React.FC<DualRatingDisplayProps> = ({
               <span className="text-sm text-muted-foreground">User Reviews</span>
             </div>
             <div className="flex items-center gap-2">
-              {renderStars(serviceRating)}
               <span className="text-sm font-medium">
                 {serviceRating > 0 ? serviceRating.toFixed(1) : 'N/A'}
               </span>
@@ -152,7 +124,9 @@ export const DualRatingDisplay: React.FC<DualRatingDisplayProps> = ({
               <span className="text-sm text-muted-foreground">Platform Rating</span>
             </div>
             <div className="flex items-center gap-2">
-              <SimpleRatingDisplay rating={platformRating} />
+              <span className="text-sm font-medium">
+                {platformRating > 0 ? platformRating.toFixed(1) : 'N/A'}
+              </span>
             </div>
           </div>
         </div>
@@ -165,7 +139,6 @@ export const DualRatingDisplay: React.FC<DualRatingDisplayProps> = ({
     <div className="flex items-center gap-2">
       {combinedRating > 0 ? (
         <>
-          {renderStars(combinedRating)}
           <span className="text-sm font-medium">{combinedRating.toFixed(1)}</span>
           <span className="text-xs text-muted-foreground">
             ({serviceRatingCount + platformRatingCount})

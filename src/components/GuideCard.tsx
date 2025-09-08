@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Star, Clock, MapPin, Users, Heart, Share2, Bookmark, Play, Loader2 } from "lucide-react";
+import { Clock, MapPin, Users, Heart, Share2, Bookmark, Play, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useViralTracking } from "@/hooks/useViralTracking";
 import { useNavigate } from "react-router-dom";

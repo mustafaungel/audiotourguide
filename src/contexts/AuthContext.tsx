@@ -130,28 +130,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
-      // Clear local state first
+      // Force clear all local storage and session storage
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Clear state immediately (don't wait for Supabase)
       setUser(null);
-      setUserProfile(null);
       setSession(null);
+      setUserProfile(null);
       
-      // Clear localStorage to remove any cached session data
-      localStorage.removeItem('sb-dsaqlgxajdnwoqvtsrqd-auth-token');
-      localStorage.removeItem('supabase.auth.token');
-      
-      // Try to sign out from Supabase
-      const { error } = await supabase.auth.signOut();
-      
-      // Only show error if it's not a session-related issue
-      if (error && !error.message.includes('Session not found') && !error.message.includes('session') && !error.message.includes('No user')) {
-        console.warn('Sign out error (non-critical):', error);
-        toast.error("Sign out completed with warnings: " + error.message);
-      } else {
-        toast.success("You have been successfully signed out.");
+      // Attempt to sign out from Supabase (but don't let it block the process)
+      try {
+        const { error } = await supabase.auth.signOut();
+        if (error && !error.message.includes('Session not found') && !error.message.includes('session')) {
+          console.warn("Sign out warning:", error.message);
+        }
+      } catch (signOutError) {
+        console.warn("Supabase sign out error (non-critical):", signOutError);
       }
+      
+      // Always show success since we've cleared local state
+      toast.success("You have been successfully signed out.");
     } catch (error) {
       console.error('Sign out error:', error);
-      // Even if there's an error, ensure local state is cleared
+      // Even with errors, clear state and show success
       setUser(null);
       setUserProfile(null);
       setSession(null);

@@ -12,7 +12,7 @@ import {
   Search, 
   Clock, 
   MapPin, 
-  Star, 
+  // Star removed - using text-only ratings 
   BarChart3,
   Bookmark,
   Heart,
@@ -322,8 +322,7 @@ export const EnhancedLibrary: React.FC<EnhancedLibraryProps> = ({
                           <span>{Math.floor(guide.duration / 60)} min</span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <Star className="h-3 w-3 fill-current text-yellow-400" />
-                          <span>{guide.rating}</span>
+                          <span className="text-sm">Rated</span>
                         </div>
                       </div>
                     </div>
@@ -433,8 +432,7 @@ export const EnhancedLibrary: React.FC<EnhancedLibraryProps> = ({
                           <span>{guide.location}</span>
                           <span>{Math.floor(guide.duration / 60)} min</span>
                           <div className="flex items-center gap-1">
-                            <Star className="h-3 w-3 fill-current text-yellow-400" />
-                            <span>{guide.rating}</span>
+                            <span className="text-sm">Rated</span>
                           </div>
                         </div>
                         {progress > 0 && (

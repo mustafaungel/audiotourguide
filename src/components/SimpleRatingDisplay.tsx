@@ -1,5 +1,4 @@
 import React from 'react';
-import { Star } from 'lucide-react';
 
 interface SimpleRatingDisplayProps {
   rating?: number;
@@ -12,6 +11,11 @@ export const SimpleRatingDisplay: React.FC<SimpleRatingDisplayProps> = ({
   size = 'sm',
   className = ''
 }) => {
-  // Component disabled - no ratings displayed
-  return null;
+  return (
+    <div className={`flex items-center gap-1 ${className}`}>
+      <span className="text-sm font-medium">
+        {rating > 0 ? rating.toFixed(1) : 'New'}
+      </span>
+    </div>
+  );
 };

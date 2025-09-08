@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Star, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { ReviewForm } from './ReviewForm';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -190,9 +190,7 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({
                     <Badge variant="outline" className="text-xs">Verified Purchase</Badge>
                   </div>
                   <div className="flex items-center gap-1">
-                    {Array.from({length: review.rating}).map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    ))}
+                    <span className="text-sm font-medium text-primary">Reviewed</span>
                   </div>
                 </div>
                 {review.comment && (
