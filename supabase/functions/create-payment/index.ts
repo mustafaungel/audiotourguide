@@ -128,7 +128,7 @@ serve(async (req) => {
     const baseUrl = origin.includes('localhost') || origin.includes('sandbox.lovable.dev') 
       ? 'https://audiotourguide.app' 
       : origin;
-    const successUrl = `${baseUrl}/payment-success?session_id={CHECKOUT_SESSION_ID}&guide_id=${guide_id}`;
+    const successUrl = `${baseUrl}/access/${guide_id}?session_id={CHECKOUT_SESSION_ID}`;
     const cancelUrl = `${baseUrl}/guide/${guide_id}`;
     logStep("Constructed URLs", { successUrl, cancelUrl });
 

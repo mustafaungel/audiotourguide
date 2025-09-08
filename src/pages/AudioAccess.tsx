@@ -26,6 +26,7 @@ export default function AudioAccess() {
   const [isAdminAccess, setIsAdminAccess] = useState(false);
 
   const accessCode = searchParams.get('access_code') || searchParams.get('access');
+  const sessionId = searchParams.get('session_id');
 
   useEffect(() => {
     if (!guideId) {
@@ -35,7 +36,7 @@ export default function AudioAccess() {
     }
 
     verifyAccessAndLoadGuide();
-  }, [guideId, accessCode, user]);
+  }, [guideId, accessCode, sessionId, user]);
 
   const verifyAccessAndLoadGuide = async () => {
     if (!guideId) {
@@ -45,8 +46,15 @@ export default function AudioAccess() {
       return;
     }
 
+    // Handle direct payment success redirect with session_id
+    if (sessionId && !accessCode) {
+      console.log('[AUDIO-ACCESS] Verifying payment session:', sessionId);
+      await verifyPaymentAndGrantAccess(sessionId);
+      return;
+    }
+
     // Check if user is admin and no access code provided
-    if (!accessCode && user) {
+    if (!accessCode && !sessionId && user) {
       console.log('[AUDIO-ACCESS] Checking admin access for user:', user.id);
       
       // Check if user is admin
@@ -64,9 +72,9 @@ export default function AudioAccess() {
       }
     }
 
-    if (!accessCode) {
-      console.error('[AUDIO-ACCESS] Missing access code for non-admin user');
-      setError('Access code is required');
+    if (!accessCode && !sessionId) {
+      console.error('[AUDIO-ACCESS] Missing access code or session ID for non-admin user');
+      setError('Access code or payment session is required');
       setIsLoading(false);
       return;
     }
@@ -232,6 +240,96 @@ export default function AudioAccess() {
     }
   };
 
+  const verifyPaymentAndGrantAccess = async (sessionId: string) => {
+    try {
+      console.log('[AUDIO-ACCESS] Verifying payment session:', sessionId);
+      
+      const { data, error } = await supabase.functions.invoke('verify-payment', {
+        body: { sessionId, guideId }
+      });
+
+      if (error) {
+        console.error('[AUDIO-ACCESS] Payment verification error:', error);
+        setError('Failed to verify payment. Please contact support.');
+        setIsLoading(false);
+        return;
+      }
+
+      if (!data.success) {
+        console.error('[AUDIO-ACCESS] Payment not verified');
+        setError('Payment verification failed. Please contact support.');
+        setIsLoading(false);
+        return;
+      }
+
+      console.log('[AUDIO-ACCESS] Payment verified, loading guide');
+      
+      // Load guide data after payment verification
+      await loadGuideAfterVerification();
+      
+      toast({
+        title: "Payment Verified!",
+        description: "Welcome to your audio guide. Enjoy your experience!",
+      });
+
+    } catch (error) {
+      console.error('[AUDIO-ACCESS] Error during payment verification:', error);
+      setError('Failed to verify payment. Please try again.');
+      setIsLoading(false);
+    }
+  };
+
+  const loadGuideAfterVerification = async () => {
+    try {
+      // Load guide details
+      const { data: guideData, error: guideError } = await supabase
+        .from('audio_guides')
+        .select('*')
+        .eq('id', guideId)
+        .maybeSingle();
+
+      if (guideError || !guideData) {
+        setError('Guide not found');
+        setIsLoading(false);
+        return;
+      }
+
+      // Get creator profile separately
+      const { data: creatorProfile } = await supabase
+        .from('profiles')
+        .select('full_name, avatar_url, bio')
+        .eq('user_id', guideData.creator_id)
+        .maybeSingle();
+
+      // Transform guide data
+      const transformedGuide = {
+        ...guideData,
+        creator: creatorProfile ? {
+          name: creatorProfile.full_name || 'Anonymous Creator',
+          avatar: creatorProfile.avatar_url || '',
+          bio: creatorProfile.bio || ''
+        } : {
+          name: 'Anonymous Creator',
+          avatar: '',
+          bio: ''
+        },
+        sections: guideData.sections ? 
+          (typeof guideData.sections === 'string' ? JSON.parse(guideData.sections) : guideData.sections) 
+          : []
+      };
+
+      setGuide(transformedGuide);
+      setHasAccess(true);
+      setAccessGranted(true);
+
+    } catch (error) {
+      console.error('Error loading guide after payment verification:', error);
+      setError('Failed to load guide. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   if (isLoading) {
     return (
@@ -241,7 +339,9 @@ export default function AudioAccess() {
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-muted-foreground">Verifying access...</p>
+              <p className="text-muted-foreground">
+                {sessionId ? 'Verifying payment...' : 'Verifying access...'}
+              </p>
             </div>
           </div>
         </div>
