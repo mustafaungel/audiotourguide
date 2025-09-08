@@ -972,9 +972,7 @@ export type Database = {
         Returns: string
       }
       generate_slug: {
-        Args:
-          | { location_text?: string; title_text: string }
-          | { title_text: string }
+        Args: { location_text?: string; title_text: string }
         Returns: string
       }
       get_guest_purchase_info: {

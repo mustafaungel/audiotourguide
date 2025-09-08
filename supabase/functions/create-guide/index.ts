@@ -169,11 +169,11 @@ serve(async (req) => {
     baseUrl = baseUrl.replace(/\/$/, '');
     
     console.log('Final base URL after processing:', baseUrl);
-    const shareUrl = `${baseUrl}/guide/${guideData.id}`;
+    const shareUrl = `${baseUrl}/guide/${guideData.slug}`;
     console.log('Generated share URL for new guide:', shareUrl);
     
-    // Validate the share URL format
-    if (!shareUrl.match(/^https?:\/\/.+\/guide\/[a-f0-9-]{36}$/)) {
+    // Validate the share URL format (slug can contain letters, numbers, and hyphens)
+    if (!shareUrl.match(/^https?:\/\/.+\/guide\/[a-z0-9-]+$/)) {
       throw new Error('Invalid share URL format generated');
     }
     
