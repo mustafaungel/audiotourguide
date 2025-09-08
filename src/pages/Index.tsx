@@ -6,8 +6,9 @@ import { Navigation } from '@/components/Navigation';
 import { ViralDashboard } from '@/components/ViralDashboard';
 import { CreatorRecommendations } from '@/components/CreatorRecommendations';
 import { Button } from '@/components/ui/button';
-import { Headphones, Search, Filter } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Headphones } from 'lucide-react';
+import { SearchHeader } from '@/components/SearchHeader';
+import { EnhancedGuideCard } from '@/components/EnhancedGuideCard';
 import * as CarouselComponents from '@/components/ui/carousel';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -178,34 +179,13 @@ const Index = () => {
             </p>
           </div>
 
-          {/* Enhanced Search and Filter */}
-          <div className="mobile-stack max-w-2xl mx-auto">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search destinations..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-card/50 backdrop-blur-sm border-border/50 touch-target mobile-text"
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" className="flex-1 sm:flex-none touch-target">
-                <Filter className="h-4 w-4 mr-2" />
-                Filters
-              </Button>
-              {searchTerm && (
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => setSearchTerm('')}
-                  className="text-muted-foreground hover:text-foreground touch-target px-4"
-                >
-                  Clear
-                </Button>
-              )}
-            </div>
-          </div>
+          {/* Enhanced Search Header */}
+          <SearchHeader 
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            showResults={true}
+            resultsCount={filteredGuides.length}
+          />
 
           {/* Search Results Info */}
           {searchTerm && (
@@ -256,12 +236,10 @@ const Index = () => {
                 <CarouselComponents.CarouselContent className="-ml-2">
                   {filteredGuides.map((guide) => {
                     const isPurchased = userPurchases.includes(guide.id);
-                    const formattedPrice = guide.price_usd === 0 ? "Free" : `$${guide.price_usd}`;
-                    const formattedDuration = `${Math.floor(guide.duration / 60)} min`;
                     
                     return (
-                      <CarouselComponents.CarouselItem key={guide.id} className="pl-2 basis-[85%] sm:basis-[75%] md:basis-1/2 lg:basis-1/3">{/* Mobile-first carousel items */}
-                      <GuideCard
+                      <CarouselComponents.CarouselItem key={guide.id} className="pl-2 basis-[90%] sm:basis-[80%] md:basis-1/2 lg:basis-1/3 xl:basis-1/4">{/* Enhanced responsive sizing */}
+                      <EnhancedGuideCard
                         id={guide.id}
                         title={guide.title}
                         description={guide.description}
@@ -273,7 +251,8 @@ const Index = () => {
                         difficulty={guide.difficulty}
                         imageUrl={guide.image_url}
                         totalPurchases={guide.total_purchases || 0}
-                        creatorName="Guide Creator"
+                        creatorName="AI Guide Creator"
+                        isPurchased={isPurchased}
                         isProcessingPayment={processingPayment === guide.id}
                         onViewGuide={() => {
                           if (isPurchased || guide.price_usd === 0) {
@@ -281,6 +260,10 @@ const Index = () => {
                           } else {
                             handlePurchaseGuide(guide.id);
                           }
+                        }}
+                        onPreview={() => {
+                          // Preview functionality - play first 30 seconds
+                          console.log('Playing preview for guide:', guide.id);
                         }}
                        />
                       </CarouselComponents.CarouselItem>
