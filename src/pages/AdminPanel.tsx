@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { Loader2, FileText, BarChart3, Users, UserCheck, UserPlus, Plus, ImageIcon, Copy, QrCode, Edit2 } from 'lucide-react';
+import { Loader2, FileText, BarChart3, Users, UserCheck, UserPlus, Plus, ImageIcon, Copy, QrCode, Edit2, Mail } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -23,6 +23,8 @@ import { AdminMobileNavigation } from '@/components/AdminMobileNavigation';
 import { CountrySelector } from '@/components/CountrySelector';
 import { AudioGuideSectionManager } from '@/components/AudioGuideSectionManager';
 import { AdminGuideEditForm } from '@/components/AdminGuideEditForm';
+import { AdminContactManagement } from '@/components/AdminContactManagement';
+import { ImageUploader } from '@/components/ImageUploader';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const AdminPanel = () => {
@@ -60,7 +62,7 @@ const AdminPanel = () => {
   const [publishLoading, setPublishLoading] = useState(false);
   
   // Generated content
-  const [generatedImage, setGeneratedImage] = useState('');
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [createdGuide, setCreatedGuide] = useState<any>(null);
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
@@ -90,7 +92,8 @@ const AdminPanel = () => {
       if (error) throw error;
       
       if (data.imageContent) {
-        setGeneratedImage(`data:image/webp;base64,${data.imageContent}`);
+        const imageUrl = `data:image/webp;base64,${data.imageContent}`;
+        setUploadedImages([imageUrl]);
         toast.success('AI has created your guide image successfully.');
       } else {
         throw new Error('No image received');
@@ -207,7 +210,7 @@ const AdminPanel = () => {
           difficulty: 'beginner',
           languages: ['English'],
           sections: sections,
-          image_content: generatedImage ? generatedImage.split(',')[1] : null,
+          image_urls: uploadedImages,
           generate_audio: true
         }
       });
@@ -223,7 +226,7 @@ const AdminPanel = () => {
       // Reset form
       setFormData({ title: '', description: '', city: '', country: '', category: 'Cultural Heritage', price: '12' });
       setSections([]);
-      setGeneratedImage('');
+      setUploadedImages([]);
     } catch (error: any) {
       console.error('Error creating guide:', error);
       toast.error('Failed to create guide. Please try again.');
@@ -269,7 +272,7 @@ const AdminPanel = () => {
         <AdminMobileNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="hidden md:grid grid-cols-4 lg:grid-cols-8 w-full max-w-6xl gap-2">
+          <TabsList className="hidden md:grid grid-cols-4 lg:grid-cols-9 w-full max-w-7xl gap-2">
             <TabsTrigger value="dashboard" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
               <BarChart3 className="h-3 w-3 lg:h-4 lg:w-4" />
               <span className="hidden lg:inline">Dashboard</span>
@@ -281,6 +284,10 @@ const AdminPanel = () => {
             <TabsTrigger value="content-management" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
               <FileText className="h-3 w-3 lg:h-4 lg:w-4" />
               <span className="hidden lg:inline">Content</span>
+            </TabsTrigger>
+            <TabsTrigger value="contact-management" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
+              <Mail className="h-3 w-3 lg:h-4 lg:w-4" />
+              <span className="hidden lg:inline">Contact</span>
             </TabsTrigger>
             <TabsTrigger value="homepage-stats" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
               <BarChart3 className="h-3 w-3 lg:h-4 lg:w-4" />
@@ -339,6 +346,10 @@ const AdminPanel = () => {
               <h2 className="text-xl sm:text-2xl font-bold">Content Management</h2>
               <GuideManagement />
             </div>
+          </TabsContent>
+
+          <TabsContent value="contact-management">
+            <AdminContactManagement />
           </TabsContent>
 
           <TabsContent value="homepage-stats">
@@ -453,32 +464,14 @@ const AdminPanel = () => {
                     />
                   </div>
 
-                  <div className="flex gap-4">
-                    <Button
-                      onClick={generateImage}
-                      disabled={imageLoading || !formData.title || !formData.city || !formData.country}
-                      variant="outline"
-                    >
-                      {imageLoading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Generating (15-30s)...
-                        </>
-                      ) : (
-                        <>
-                          <ImageIcon className="w-4 h-4 mr-2" />
-                          Generate AI Image
-                        </>
-                      )}
-                    </Button>
+                  <div className="space-y-2">
+                    <Label>Guide Images</Label>
+                    <ImageUploader
+                      onImagesUploaded={setUploadedImages}
+                      currentImages={uploadedImages}
+                      maxImages={5}
+                    />
                   </div>
-
-                  {generatedImage && (
-                    <div className="space-y-2">
-                      <Label>Generated Image</Label>
-                      <img src={generatedImage} alt="Generated guide image" className="w-full h-48 object-cover rounded-lg" />
-                    </div>
-                  )}
 
                   <AudioGuideSectionManager
                     sections={sections}

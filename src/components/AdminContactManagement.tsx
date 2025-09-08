@@ -70,9 +70,13 @@ export const AdminContactManagement: React.FC = () => {
 
   const fetchSubmissions = async () => {
     try {
-      // For now, we'll use mock data since the tables aren't in types yet
-      console.log('Contact submissions feature will be available after database types update');
-      setSubmissions([]);
+      const { data, error } = await supabase
+        .from('contact_submissions')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setSubmissions(data || []);
     } catch (error) {
       console.error('Error fetching contact submissions:', error);
       toast.error('Failed to load contact submissions');
@@ -83,9 +87,14 @@ export const AdminContactManagement: React.FC = () => {
 
   const fetchTemplates = async () => {
     try {
-      // For now, we'll use mock data since the tables aren't in types yet
-      console.log('Email templates feature will be available after database types update');
-      setTemplates([]);
+      const { data, error } = await supabase
+        .from('email_templates')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setTemplates(data || []);
     } catch (error) {
       console.error('Error fetching email templates:', error);
     }
@@ -93,9 +102,25 @@ export const AdminContactManagement: React.FC = () => {
 
   const updateSubmissionStatus = async (id: string, status: string, adminNotes?: string) => {
     try {
-      console.log('Update submission status:', { id, status, adminNotes });
-      toast.success('Feature will be available after database types update');
+      const updateData: any = { status };
+      if (adminNotes !== undefined) {
+        updateData.admin_notes = adminNotes;
+      }
+      if (status === 'resolved' || status === 'closed') {
+        updateData.responded_at = new Date().toISOString();
+        updateData.responded_by = (await supabase.auth.getUser()).data.user?.id;
+      }
+
+      const { error } = await supabase
+        .from('contact_submissions')
+        .update(updateData)
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast.success('Submission updated successfully');
       setSelectedSubmission(null);
+      fetchSubmissions(); // Refresh the list
     } catch (error) {
       console.error('Error updating submission:', error);
       toast.error('Failed to update submission');
@@ -104,10 +129,37 @@ export const AdminContactManagement: React.FC = () => {
 
   const updateTemplate = async (template: Partial<EmailTemplate>) => {
     try {
-      console.log('Update template:', template);
-      toast.success('Feature will be available after database types update');
+      if (editingTemplate) {
+        // Update existing template
+        const { error } = await supabase
+          .from('email_templates')
+          .update(template)
+          .eq('id', editingTemplate.id);
+
+        if (error) throw error;
+        toast.success('Template updated successfully');
+      } else {
+        // Create new template - ensure required fields are present
+        const templateData = {
+          name: template.name || '',
+          subject: template.subject || '',
+          html_content: template.html_content || '',
+          text_content: template.text_content || '',
+          template_type: template.template_type || 'contact',
+          is_active: template.is_active ?? true
+        };
+
+        const { error } = await supabase
+          .from('email_templates')
+          .insert(templateData);
+
+        if (error) throw error;
+        toast.success('Template created successfully');
+      }
+
       setShowTemplateEditor(false);
       setEditingTemplate(null);
+      fetchTemplates(); // Refresh the list
     } catch (error) {
       console.error('Error saving template:', error);
       toast.error('Failed to save template');

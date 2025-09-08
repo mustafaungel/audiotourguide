@@ -153,6 +153,54 @@ export type Database = {
           },
         ]
       }
+      contact_submissions: {
+        Row: {
+          admin_notes: string | null
+          category: string
+          created_at: string
+          email: string
+          id: string
+          message: string
+          name: string
+          priority: string
+          responded_at: string | null
+          responded_by: string | null
+          status: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          category?: string
+          created_at?: string
+          email: string
+          id?: string
+          message: string
+          name: string
+          priority?: string
+          responded_at?: string | null
+          responded_by?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          category?: string
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          priority?: string
+          responded_at?: string | null
+          responded_by?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       destinations: {
         Row: {
           approved_at: string | null
@@ -218,6 +266,42 @@ export type Database = {
           name?: string
           popular_attractions?: string[] | null
           suggested_by?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      email_templates: {
+        Row: {
+          created_at: string
+          html_content: string
+          id: string
+          is_active: boolean
+          name: string
+          subject: string
+          template_type: string
+          text_content: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          html_content: string
+          id?: string
+          is_active?: boolean
+          name: string
+          subject: string
+          template_type?: string
+          text_content?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          html_content?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          subject?: string
+          template_type?: string
+          text_content?: string | null
           updated_at?: string
         }
         Relationships: []

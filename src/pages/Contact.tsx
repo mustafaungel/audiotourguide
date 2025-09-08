@@ -1,98 +1,71 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Navigation } from '@/components/Navigation';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { Navigation } from '@/components/Navigation';
-import { Mail, MessageCircle, Phone } from 'lucide-react';
+import { toast } from 'sonner';
+import { Mail, Phone, MapPin, Clock, Loader2 } from 'lucide-react';
 
-interface ContactFormData {
-  name: string;
-  email: string;
-  subject: string;
-  message: string;
-  category: string;
-}
-
-const CONTACT_CATEGORIES = [
-  { value: 'general', label: 'General Inquiry' },
-  { value: 'technical', label: 'Technical Support' },
-  { value: 'billing', label: 'Billing & Payments' },
-  { value: 'content', label: 'Content Issues' },
-  { value: 'partnership', label: 'Partnership' },
-  { value: 'feedback', label: 'Feedback & Suggestions' },
-];
-
-const Contact: React.FC = () => {
-  const [formData, setFormData] = useState<ContactFormData>({
+const Contact = () => {
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
     name: '',
     email: '',
     subject: '',
     message: '',
-    category: '',
+    category: 'general'
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const handleInputChange = (field: keyof ContactFormData, value: string) => {
+  const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
-  };
-
-  const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
-    }
-
-    if (!formData.subject.trim()) {
-      newErrors.subject = 'Subject is required';
-    }
-
-    if (!formData.message.trim()) {
-      newErrors.message = 'Message is required';
-    } else if (formData.message.length < 10) {
-      newErrors.message = 'Message must be at least 10 characters long';
-    }
-
-    if (!formData.category) {
-      newErrors.category = 'Please select a category';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!validateForm()) {
-      toast.error('Please fix the errors in the form');
+    
+    if (!formData.name || !formData.email || !formData.subject || !formData.message) {
+      toast.error('Please fill in all required fields');
       return;
     }
 
-    setIsSubmitting(true);
+    setLoading(true);
     try {
-      const { error } = await supabase.functions.invoke('send-contact-email', {
-        body: formData
+      // Insert contact submission
+      const { error: submitError } = await supabase
+        .from('contact_submissions')
+        .insert({
+          name: formData.name,
+          email: formData.email,
+          subject: formData.subject,
+          message: formData.message,
+          category: formData.category,
+          status: 'pending',
+          priority: 'normal'
+        });
+
+      if (submitError) throw submitError;
+
+      // Send confirmation email to user
+      const { error: emailError } = await supabase.functions.invoke('send-contact-email', {
+        body: {
+          name: formData.name,
+          email: formData.email,
+          subject: formData.subject,
+          message: formData.message,
+          category: formData.category
+        }
       });
 
-      if (error) throw error;
+      if (emailError) {
+        console.error('Email error:', emailError);
+        // Don't fail the whole submission if email fails
+      }
 
-      toast.success('Your message has been sent successfully! We\'ll get back to you soon.');
+      toast.success('Thank you for your message! We\'ll get back to you soon.');
       
       // Reset form
       setFormData({
@@ -100,13 +73,13 @@ const Contact: React.FC = () => {
         email: '',
         subject: '',
         message: '',
-        category: '',
+        category: 'general'
       });
     } catch (error) {
-      console.error('Error sending contact email:', error);
-      toast.error('Failed to send message. Please try again.');
+      console.error('Error submitting contact form:', error);
+      toast.error('Failed to submit your message. Please try again.');
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
@@ -114,12 +87,12 @@ const Contact: React.FC = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <main className="container mx-auto px-4 py-8 space-y-8">
-        {/* Header */}
-        <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold text-foreground">Contact Us</h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Have a question or need help? We're here to assist you. Send us a message and we'll get back to you as soon as possible.
+      <main className="container mx-auto px-4 py-8 md:py-16 max-w-6xl">
+        <div className="text-center mb-12">
+          <h1 className="text-3xl md:text-4xl font-bold mb-4">Contact Us</h1>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Have questions about our audio guides or need support? We're here to help! 
+            Get in touch with our team and we'll respond within 24-48 hours.
           </p>
         </div>
 
@@ -129,50 +102,55 @@ const Contact: React.FC = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <MessageCircle className="h-5 w-5" />
+                  <Mail className="h-5 w-5" />
                   Get in Touch
                 </CardTitle>
+                <CardDescription>
+                  We're committed to providing excellent support for all our users.
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
                 <div className="flex items-start gap-3">
-                  <Mail className="h-5 w-5 text-primary mt-1" />
+                  <Mail className="h-5 w-5 text-primary mt-0.5" />
                   <div>
                     <p className="font-medium">Email Support</p>
                     <p className="text-sm text-muted-foreground">support@audioguides.com</p>
-                    <p className="text-xs text-muted-foreground mt-1">We typically respond within 24 hours</p>
                   </div>
                 </div>
                 
                 <div className="flex items-start gap-3">
-                  <Phone className="h-5 w-5 text-primary mt-1" />
+                  <Clock className="h-5 w-5 text-primary mt-0.5" />
                   <div>
-                    <p className="font-medium">Phone Support</p>
-                    <p className="text-sm text-muted-foreground">Available for premium subscribers</p>
-                    <p className="text-xs text-muted-foreground mt-1">Mon-Fri, 9 AM - 6 PM EST</p>
+                    <p className="font-medium">Response Time</p>
+                    <p className="text-sm text-muted-foreground">Within 24-48 hours</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-3">
+                  <MapPin className="h-5 w-5 text-primary mt-0.5" />
+                  <div>
+                    <p className="font-medium">Support Coverage</p>
+                    <p className="text-sm text-muted-foreground">Global - All time zones</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
+            {/* FAQ Quick Links */}
             <Card>
               <CardHeader>
-                <CardTitle>FAQ</CardTitle>
+                <CardTitle>Quick Help</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div>
-                    <p className="font-medium text-sm">How do I access my purchased guides?</p>
-                    <p className="text-xs text-muted-foreground">Check your email for access codes or visit your library.</p>
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm">Can I get a refund?</p>
-                    <p className="text-xs text-muted-foreground">Yes, within 7 days of purchase if you're not satisfied.</p>
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm">How do I become a content creator?</p>
-                    <p className="text-xs text-muted-foreground">Apply through our creator program in your profile.</p>
-                  </div>
-                </div>
+              <CardContent className="space-y-3">
+                <Button variant="outline" className="w-full justify-start" asChild>
+                  <a href="/guides">Browse Audio Guides</a>
+                </Button>
+                <Button variant="outline" className="w-full justify-start" asChild>
+                  <a href="/auth">Account Issues</a>
+                </Button>
+                <Button variant="outline" className="w-full justify-start" asChild>
+                  <a href="/library">Access Your Library</a>
+                </Button>
               </CardContent>
             </Card>
           </div>
@@ -182,107 +160,117 @@ const Contact: React.FC = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Send us a Message</CardTitle>
+                <CardDescription>
+                  Fill out the form below and we'll get back to you as soon as possible.
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                      <Label htmlFor="name">Name *</Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Full Name *</Label>
                       <Input
                         id="name"
                         value={formData.name}
                         onChange={(e) => handleInputChange('name', e.target.value)}
                         placeholder="Your full name"
-                        className={errors.name ? 'border-destructive' : ''}
+                        required
                       />
-                      {errors.name && (
-                        <p className="text-sm text-destructive mt-1">{errors.name}</p>
-                      )}
                     </div>
-
-                    <div>
-                      <Label htmlFor="email">Email *</Label>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email Address *</Label>
                       <Input
                         id="email"
                         type="email"
                         value={formData.email}
                         onChange={(e) => handleInputChange('email', e.target.value)}
-                        placeholder="your@email.com"
-                        className={errors.email ? 'border-destructive' : ''}
+                        placeholder="your.email@example.com"
+                        required
                       />
-                      {errors.email && (
-                        <p className="text-sm text-destructive mt-1">{errors.email}</p>
-                      )}
                     </div>
                   </div>
 
-                  <div>
-                    <Label htmlFor="category">Category *</Label>
-                    <Select
-                      value={formData.category}
-                      onValueChange={(value) => handleInputChange('category', value)}
-                    >
-                      <SelectTrigger className={errors.category ? 'border-destructive' : ''}>
-                        <SelectValue placeholder="Select inquiry type" />
+                  <div className="space-y-2">
+                    <Label htmlFor="category">Category</Label>
+                    <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
+                      <SelectTrigger>
+                        <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {CONTACT_CATEGORIES.map((category) => (
-                          <SelectItem key={category.value} value={category.value}>
-                            {category.label}
-                          </SelectItem>
-                        ))}
+                        <SelectItem value="general">General Inquiry</SelectItem>
+                        <SelectItem value="technical">Technical Support</SelectItem>
+                        <SelectItem value="billing">Billing & Payments</SelectItem>
+                        <SelectItem value="content">Content Issues</SelectItem>
+                        <SelectItem value="feature">Feature Request</SelectItem>
+                        <SelectItem value="partnership">Business Partnership</SelectItem>
+                        <SelectItem value="press">Press & Media</SelectItem>
                       </SelectContent>
                     </Select>
-                    {errors.category && (
-                      <p className="text-sm text-destructive mt-1">{errors.category}</p>
-                    )}
                   </div>
 
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="subject">Subject *</Label>
                     <Input
                       id="subject"
                       value={formData.subject}
                       onChange={(e) => handleInputChange('subject', e.target.value)}
                       placeholder="Brief description of your inquiry"
-                      className={errors.subject ? 'border-destructive' : ''}
+                      required
                     />
-                    {errors.subject && (
-                      <p className="text-sm text-destructive mt-1">{errors.subject}</p>
-                    )}
                   </div>
 
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="message">Message *</Label>
                     <Textarea
                       id="message"
                       value={formData.message}
                       onChange={(e) => handleInputChange('message', e.target.value)}
-                      placeholder="Please provide as much detail as possible..."
-                      className={`min-h-[120px] ${errors.message ? 'border-destructive' : ''}`}
-                      maxLength={2000}
+                      placeholder="Please describe your inquiry in detail. The more information you provide, the better we can assist you."
+                      rows={6}
+                      required
                     />
-                    <div className="flex justify-between items-center mt-1">
-                      {errors.message && (
-                        <p className="text-sm text-destructive">{errors.message}</p>
-                      )}
-                      <span className="text-xs text-muted-foreground ml-auto">
-                        {formData.message.length}/2000 characters
-                      </span>
-                    </div>
                   </div>
 
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full"
+                  <Button 
+                    type="submit" 
+                    className="w-full" 
                     size="lg"
+                    disabled={loading}
                   >
-                    {isSubmitting ? 'Sending...' : 'Send Message'}
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Sending Message...
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="w-4 h-4 mr-2" />
+                        Send Message
+                      </>
+                    )}
                   </Button>
                 </form>
               </CardContent>
             </Card>
+          </div>
+        </div>
+
+        {/* Additional Information */}
+        <div className="mt-16 text-center">
+          <h2 className="text-2xl font-bold mb-4">Other Ways to Connect</h2>
+          <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
+            Looking for immediate help? Check out our comprehensive guide library or 
+            browse our most popular audio tours to get started right away.
+          </p>
+          
+          <div className="flex flex-wrap justify-center gap-4">
+            <Button variant="outline" asChild>
+              <a href="/guides">Explore Guides</a>
+            </Button>
+            <Button variant="outline" asChild>
+              <a href="/search">Search Destinations</a>
+            </Button>
           </div>
         </div>
       </main>
