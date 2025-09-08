@@ -94,7 +94,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
 
     // Upload to Supabase Storage
     const { error: uploadError } = await supabase.storage
-      .from('guide-images-uploads')
+      .from('guide-images')
       .upload(filePath, resizedFile);
 
     if (uploadError) {
@@ -103,7 +103,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
 
     // Get public URL
     const { data } = supabase.storage
-      .from('guide-images-uploads')
+      .from('guide-images')
       .getPublicUrl(filePath);
 
     return data.publicUrl;
