@@ -1404,7 +1404,7 @@ export type Database = {
       }
     }
     Views: {
-      verification_requests_safe: {
+      verification_requests_public_view: {
         Row: {
           admin_notes: string | null
           created_at: string | null
