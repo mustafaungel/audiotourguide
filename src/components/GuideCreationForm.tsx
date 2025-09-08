@@ -9,7 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { InputWithCounter } from "@/components/ui/character-counter";
 import { toast } from "sonner";
 import { supabase } from '@/integrations/supabase/client';
-import { Sparkles, X, Plus } from 'lucide-react';
+import { Sparkles, X, Plus, Image as ImageIcon } from 'lucide-react';
+import { ImageUploader } from './ImageUploader';
 
 interface GuideCreationFormProps {
   onSubmit: (data: GuideFormData) => Promise<void>;
@@ -26,6 +27,7 @@ export interface GuideFormData {
   duration: number;
   languages: string[];
   bestTime: string;
+  image_urls: string[];
 }
 
 interface Destination {
@@ -74,6 +76,7 @@ export const GuideCreationForm: React.FC<GuideCreationFormProps> = ({
     duration: 0,
     languages: ['English'],
     bestTime: "",
+    image_urls: [],
   });
   const [newLanguage, setNewLanguage] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -434,6 +437,19 @@ export const GuideCreationForm: React.FC<GuideCreationFormProps> = ({
               </div>
               {errors.languages && <p className="text-red-500 text-sm mt-1">{errors.languages}</p>}
             </div>
+          </div>
+
+          {/* Images */}
+          <div>
+            <Label>Guide Images</Label>
+            <ImageUploader
+              onImagesUploaded={(urls) => setFormData(prev => ({ ...prev, image_urls: urls }))}
+              currentImages={formData.image_urls}
+              maxImages={5}
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Upload images to showcase your guide. The first image will be the primary image.
+            </p>
           </div>
 
           {/* Best Time to Visit */}

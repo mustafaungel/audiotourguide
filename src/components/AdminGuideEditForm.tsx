@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Save, ArrowLeft, QrCode, ExternalLink, Copy } from 'lucide-react';
+import { ImageUploader } from './ImageUploader';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { GuideSectionsManager } from './GuideSectionsManager';
@@ -44,6 +45,7 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
     location: '',
     category: '',
     price_usd: 0,
+    image_urls: [] as string[],
   });
 
   useEffect(() => {
@@ -58,11 +60,12 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
         location: guideData.location,
         category: guideData.category,
         price_usd: guideData.price_usd / 100, // Convert from cents to dollars
+        image_urls: guideData.image_urls || [],
       });
     }
   }, []);
 
-  const handleInputChange = (field: string, value: string | number) => {
+  const handleInputChange = (field: string, value: string | number | string[]) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -82,6 +85,7 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
           location: formData.location,
           category: formData.category,
           price_usd: Math.round(formData.price_usd * 100), // Convert to cents
+          image_urls: formData.image_urls,
           updated_at: new Date().toISOString(),
         })
         .eq('id', guide.id);
@@ -247,6 +251,16 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
               <p className="text-xs text-muted-foreground">
                 Minimum price: $0.50 (Stripe requirement)
               </p>
+            </div>
+
+            {/* Image Management */}
+            <div className="space-y-2">
+              <Label>Guide Images</Label>
+              <ImageUploader
+                onImagesUploaded={(urls) => handleInputChange('image_urls', urls)}
+                currentImages={formData.image_urls}
+                maxImages={5}
+              />
             </div>
 
             <Button

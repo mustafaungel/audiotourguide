@@ -19,6 +19,8 @@ import GuideDetail from "./pages/GuideDetail";
 import DestinationDetail from "./pages/DestinationDetail";
 import Category from "./pages/Category";
 import AudioAccess from "./pages/AudioAccess";
+import Contact from "./pages/Contact";
+import Guides from "./pages/Guides";
 import NotFound from "./pages/NotFound";
 
 
@@ -38,7 +40,9 @@ const App = () => {
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/admin" element={<AdminPanel />} />
-              <Route path="/guides" element={<Library />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/guides" element={<Guides />} />
+              <Route path="/library" element={<Library />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/user/:userId" element={<UserProfile />} />
               <Route path="/guide/:guideId" element={<GuideDetail />} />

@@ -64,6 +64,7 @@ export type Database = {
           duration: number
           id: string
           image_url: string | null
+          image_urls: string[] | null
           is_approved: boolean
           is_published: boolean
           languages: string[]
@@ -94,6 +95,7 @@ export type Database = {
           duration: number
           id?: string
           image_url?: string | null
+          image_urls?: string[] | null
           is_approved?: boolean
           is_published?: boolean
           languages?: string[]
@@ -124,6 +126,7 @@ export type Database = {
           duration?: number
           id?: string
           image_url?: string | null
+          image_urls?: string[] | null
           is_approved?: boolean
           is_published?: boolean
           languages?: string[]
