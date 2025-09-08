@@ -18,7 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useViralTracking } from "@/hooks/useViralTracking";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useInvisibleAudioPlayer } from "@/hooks/useInvisibleAudioPlayer";
+import { ChapterPreviewButton } from "@/components/ChapterPreviewButton";
 import { toast } from "sonner";
 
 // Demo guide data
@@ -131,13 +131,7 @@ const GuideDetail = () => {
     creator: realGuideData.creator || {}
   } : null;
 
-  // Initialize invisible audio player (moved after all state definitions)
-  const audioPlayer = useInvisibleAudioPlayer({
-    guideId: guide?.id,
-    audioSrc: guide?.audio_url,
-    title: guide?.title || 'Audio Guide',
-    isPreview: !isPurchased
-  });
+  // No global audio player - each chapter will manage its own
 
   const handlePurchase = () => {
     setShowPaymentModal(true);
@@ -551,17 +545,12 @@ const GuideDetail = () => {
                               </p>
                             </div>
                           </div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => {
-                              console.log('🔧 Chapter play clicked', { isPurchased, audioUrl: guide.audio_url });
-                              audioPlayer.play();
-                            }}
-                            disabled={!guide.audio_url || audioPlayer.loading}
-                          >
-                            <Play className="w-4 h-4" />
-                          </Button>
+                          <ChapterPreviewButton 
+                            chapter={chapter}
+                            index={index}
+                            guide={guide}
+                            isPurchased={isPurchased}
+                          />
                         </div>
                       </Card>
                     ))}
@@ -599,15 +588,12 @@ const GuideDetail = () => {
                               </p>
                             </div>
                           </div>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => audioPlayer.play()}
-                            disabled={audioPlayer.loading}
-                          >
-                            <Play className="w-3 h-3 mr-1" />
-                            {audioPlayer.loading ? 'Loading...' : '30s Preview'}
-                          </Button>
+                          <ChapterPreviewButton 
+                            chapter={chapter}
+                            index={index}
+                            guide={guide}
+                            isPurchased={isPurchased}
+                          />
                         </div>
                       ))}
                       {(guide.chapters || guide.sections || []).length > 3 && (

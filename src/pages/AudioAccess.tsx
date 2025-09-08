@@ -43,8 +43,14 @@ export default function AudioAccess() {
   }, [guideId, accessCode, user]);
 
   const verifyAccessAndLoadGuide = async () => {
-    if (!guideId || !accessCode) return;
+    if (!guideId || !accessCode) {
+      console.error('[AUDIO-ACCESS] Missing required parameters:', { guideId, accessCode });
+      setError('Guide ID and access code are required');
+      setIsLoading(false);
+      return;
+    }
 
+    console.log('[AUDIO-ACCESS] Verifying access:', { guideId, accessCode });
     setIsLoading(true);
     setError(null);
 
@@ -57,7 +63,10 @@ export default function AudioAccess() {
         .eq('access_code', accessCode)
         .maybeSingle();
 
+      console.log('[AUDIO-ACCESS] Purchase verification:', { purchaseData, purchaseError });
+
       if (purchaseError || !purchaseData) {
+        console.error('[AUDIO-ACCESS] Access verification failed:', purchaseError);
         setError('Invalid access code or guide not found');
         setIsLoading(false);
         return;
@@ -307,7 +316,7 @@ export default function AudioAccess() {
             <AudioPlayer
               title={guide.title}
               description={guide.description}
-              audioSrc={guide.audio_url}
+              audioSrc={guide.audio_url || `/tmp/${guide.id}.mp3`}
               guideId={guide.id}
               transcript={guide.transcript}
             />
@@ -323,13 +332,24 @@ export default function AudioAccess() {
               <CardContent>
                 <div className="space-y-3">
                   {guide.sections.map((section: any, index: number) => (
-                    <button 
+                     <button 
                       key={index} 
                       onClick={() => {
                         // Find audio element and seek to timestamp if available
                         const audioElement = document.querySelector('audio');
-                        if (audioElement && section.timestamp) {
-                          audioElement.currentTime = section.timestamp;
+                        console.log('[AUDIO-ACCESS] Chapter clicked:', { index, section, audioElement });
+                        if (audioElement) {
+                          if (section.timestamp !== undefined) {
+                            console.log('[AUDIO-ACCESS] Seeking to timestamp:', section.timestamp);
+                            audioElement.currentTime = section.timestamp;
+                          } else if (section.start_time !== undefined) {
+                            console.log('[AUDIO-ACCESS] Seeking to start_time:', section.start_time);
+                            audioElement.currentTime = section.start_time;
+                          } else {
+                            console.log('[AUDIO-ACCESS] No timestamp found in section');
+                          }
+                        } else {
+                          console.error('[AUDIO-ACCESS] Audio element not found');
                         }
                       }}
                       className="w-full flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted cursor-pointer transition-colors"

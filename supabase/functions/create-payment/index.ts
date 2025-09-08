@@ -8,8 +8,11 @@ const corsHeaders = {
 };
 
 const logStep = (step: string, details?: any) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[CREATE-PAYMENT] ${step}${detailsStr}`);
+  // Reduced logging for performance - only log critical steps
+  if (step.includes('ERROR') || step.includes('started') || step.includes('session created')) {
+    const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+    console.log(`[CREATE-PAYMENT] ${step}${detailsStr}`);
+  }
 };
 
 serve(async (req) => {
