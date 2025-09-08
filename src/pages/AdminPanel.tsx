@@ -207,7 +207,7 @@ const AdminPanel = () => {
           location: `${formData.city}, ${formData.country}`,
           category: formData.category,
           price_usd: parseInt(formData.price),
-          difficulty: 'beginner',
+          difficulty: 'intermediate',
           languages: ['English'],
           sections: sections,
           image_urls: uploadedImages,

@@ -184,7 +184,6 @@ export const DIFFICULTY_LEVELS = [
 ];
 
 export const EXPERIENCE_TIERS = [
-  { label: "Beginner (0-2 years)", value: "beginner" },
   { label: "Intermediate (3-5 years)", value: "intermediate" },
   { label: "Advanced (6-10 years)", value: "advanced" },
   { label: "Expert (10+ years)", value: "expert" }

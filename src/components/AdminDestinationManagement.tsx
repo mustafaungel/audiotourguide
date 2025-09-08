@@ -34,7 +34,7 @@ const CATEGORIES = [
   'religious', 'architecture', 'entertainment', 'shopping'
 ];
 
-const DIFFICULTY_LEVELS = ['beginner', 'intermediate', 'advanced'];
+const DIFFICULTY_LEVELS = ['intermediate', 'advanced'];
 
 export const AdminDestinationManagement = () => {
   const [destinations, setDestinations] = useState<Destination[]>([]);
@@ -53,7 +53,7 @@ export const AdminDestinationManagement = () => {
     latitude: '',
     longitude: '',
     best_time_to_visit: '',
-    difficulty_level: 'beginner',
+    difficulty_level: 'intermediate',
     popular_attractions: '',
     cultural_significance: '',
     image_url: ''
@@ -249,7 +249,7 @@ export const AdminDestinationManagement = () => {
       latitude: '',
       longitude: '',
       best_time_to_visit: '',
-      difficulty_level: 'beginner',
+      difficulty_level: 'intermediate',
       popular_attractions: '',
       cultural_significance: '',
       image_url: ''

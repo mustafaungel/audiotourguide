@@ -741,7 +741,7 @@ const GuideDetail = () => {
               <CardHeader>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-primary mb-2">
-                    {guide.price || '$0'} {guide.currency || 'USD'}
+                    {guide.price || '$0'}
                   </div>
                 </div>
               </CardHeader>

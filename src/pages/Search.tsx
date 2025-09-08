@@ -308,7 +308,7 @@ const SearchResults = () => {
                   rating={guide.rating}
                   duration={guide.duration}
                   category={guide.category}
-                  difficulty={guide.difficulty_level || 'Beginner'}
+                  difficulty={guide.difficulty_level || 'Intermediate'}
                   imageUrl={guide.image_url}
                   totalPurchases={guide.total_purchases}
                   creatorName={guide.creator_name}

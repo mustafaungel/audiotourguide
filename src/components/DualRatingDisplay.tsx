@@ -26,6 +26,8 @@ export const DualRatingDisplay: React.FC<DualRatingDisplayProps> = ({
   variant = 'inline',
   showLabels = true,
 }) => {
+  // Component disabled - no ratings displayed
+  return null;
   const renderStars = (rating: number, size: 'sm' | 'md' = 'sm') => {
     const sizeClass = size === 'sm' ? 'h-3 w-3' : 'h-4 w-4';
     
