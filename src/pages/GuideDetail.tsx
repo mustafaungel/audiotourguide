@@ -522,39 +522,99 @@ const GuideDetail = () => {
               </TabsList>
               
               <TabsContent value="chapters" className="space-y-4">
-                {(guide.chapters || guide.sections || []).map((chapter, index) => (
-                  <Card key={index} className="p-4 hover:bg-muted/50 cursor-pointer transition-colors">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium">
-                          {index + 1}
+                {isPurchased || hasAccessCode ? (
+                  <div className="space-y-3">
+                    {(guide.chapters || guide.sections || []).map((chapter, index) => (
+                      <Card key={index} className="p-4 hover:bg-muted/50 cursor-pointer transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium">
+                              {index + 1}
+                            </div>
+                            <div>
+                              <h4 className="font-medium">{chapter.title}</h4>
+                              <p className="text-sm text-muted-foreground">
+                                {chapter.duration_seconds 
+                                  ? `${Math.floor(chapter.duration_seconds / 60)}:${(chapter.duration_seconds % 60).toString().padStart(2, '0')}`
+                                  : chapter.duration 
+                                    ? `${Math.floor(chapter.duration / 60)}:${((chapter.duration * 60) % 60).toString().padStart(2, '0')}`
+                                    : 'N/A'
+                                }
+                              </p>
+                            </div>
+                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => {
+                              console.log('🔧 Chapter play clicked', { isPurchased, audioUrl: guide.audio_url });
+                              setPlayingGuide(true);
+                            }}
+                            disabled={!guide.audio_url}
+                          >
+                            <Play className="w-4 h-4" />
+                          </Button>
                         </div>
-                        <div>
-                          <h4 className="font-medium">{chapter.title}</h4>
-                          <p className="text-sm text-muted-foreground">
-                            {chapter.duration_seconds 
-                              ? `${Math.floor(chapter.duration_seconds / 60)}:${(chapter.duration_seconds % 60).toString().padStart(2, '0')}`
-                              : chapter.duration 
-                                ? `${Math.floor(chapter.duration / 60)}:${((chapter.duration * 60) % 60).toString().padStart(2, '0')}`
-                                : 'N/A'
-                            }
-                          </p>
-                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <Card className="p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2 bg-muted rounded-lg">
+                        <Lock className="w-5 h-5 text-muted-foreground" />
                       </div>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => {
-                          console.log('🔧 Chapter play clicked', { isPurchased, audioUrl: guide.audio_url });
-                          setPlayingGuide(true);
-                        }}
-                        disabled={!guide.audio_url}
-                      >
-                        <Play className="w-4 h-4" />
-                      </Button>
+                      <div>
+                        <h3 className="text-lg font-semibold">Chapters Locked</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Full access requires purchase
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-3 mb-4">
+                      {(guide.chapters || guide.sections || []).slice(0, 3).map((chapter, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium">
+                              {index + 1}
+                            </div>
+                            <div>
+                              <h4 className="font-medium text-sm">{chapter.title}</h4>
+                              <p className="text-xs text-muted-foreground">
+                                {chapter.duration_seconds 
+                                  ? `${Math.floor(chapter.duration_seconds / 60)}:${(chapter.duration_seconds % 60).toString().padStart(2, '0')}`
+                                  : chapter.duration 
+                                    ? `${Math.floor(chapter.duration / 60)}:${((chapter.duration * 60) % 60).toString().padStart(2, '0')}`
+                                    : 'N/A'
+                                } min
+                              </p>
+                            </div>
+                          </div>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => setPlayingGuide(true)}
+                          >
+                            <Play className="w-3 h-3 mr-1" />
+                            30s Preview
+                          </Button>
+                        </div>
+                      ))}
+                      {(guide.chapters || guide.sections || []).length > 3 && (
+                        <p className="text-xs text-muted-foreground text-center">
+                          +{(guide.chapters || guide.sections || []).length - 3} more chapters available
+                        </p>
+                      )}
+                    </div>
+                    
+                    <div className="text-center">
+                      <p className="text-sm text-muted-foreground">
+                        → Purchase the full guide in the sidebar for complete access
+                      </p>
                     </div>
                   </Card>
-                ))}
+                )}
               </TabsContent>
               
               <TabsContent value="qrcode" className="space-y-4">
@@ -660,13 +720,11 @@ const GuideDetail = () => {
                             </div>
                           </div>
                           
-                          <Button 
-                            onClick={() => setShowPaymentModal(true)}
-                            className="w-full mt-4"
-                          >
-                            <Lock className="w-4 h-4 mr-2" />
-                            Unlock QR Code - {guide.price || '$0'} USD
-                          </Button>
+                          <div className="text-center">
+                            <p className="text-sm text-muted-foreground">
+                              → Purchase the full guide in the sidebar to unlock QR code
+                            </p>
+                          </div>
                         </div>
                       </div>
                     )}
