@@ -104,7 +104,7 @@ export const ShareLink: React.FC<ShareLinkProps> = ({
               value={shareUrl}
               readOnly
               className="flex-1"
-              onClick={(e) => e.target.select()}
+              onClick={(e) => (e.target as HTMLInputElement).select()}
             />
             <Button
               type="button"
