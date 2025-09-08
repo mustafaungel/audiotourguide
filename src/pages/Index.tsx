@@ -184,7 +184,7 @@ const Index = () => {
             </div>}
 
           {/* Loading State */}
-          {loading && <div className="space-y-4">
+          {loading && <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {[...Array(6)].map((_, i) => (
                 <div key={i} className="mobile-card animate-pulse">
                   <div className="aspect-mobile bg-muted rounded-lg mb-4"></div>
@@ -195,7 +195,7 @@ const Index = () => {
             </div>}
 
           {/* Guides Grid */}
-          {!loading && <div className="space-y-4">
+          {!loading && <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredGuides.map(guide => {
                 const isPurchased = userPurchases.includes(guide.id);
                 const formattedPrice = guide.price_usd === 0 ? "Free" : `$${guide.price_usd}`;
