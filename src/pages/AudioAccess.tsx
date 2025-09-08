@@ -84,47 +84,34 @@ export default function AudioAccess() {
     setError(null);
 
     try {
-      // First verify access with the access code (works for both guest and authenticated users)
-      console.log('[AUDIO-ACCESS] Querying with:', { 
+      // Use secure function to verify access code without exposing sensitive data
+      console.log('[AUDIO-ACCESS] Verifying access with secure function:', { 
         guide_id: guideId, 
-        access_code: accessCode,
-        accessCodeTrimmed: accessCode.trim(),
+        access_code: accessCode?.trim(),
         user: user?.id || 'guest'
       });
       
-      const { data: purchaseData, error: purchaseError } = await supabase
-        .from('user_purchases')
-        .select('id, user_id, guide_id, access_code, guest_email')
-        .eq('guide_id', guideId)
-        .eq('access_code', accessCode.trim())
-        .maybeSingle();
+      // First, verify if the access code is valid using the secure function
+      const { data: isValidAccess, error: verifyError } = await supabase
+        .rpc('verify_access_code_secure', {
+          p_access_code: accessCode?.trim(),
+          p_guide_id: guideId
+        });
 
-      console.log('[AUDIO-ACCESS] Purchase verification result:', { 
-        purchaseData, 
-        purchaseError,
-        queryDetails: {
-          guide_id: guideId,
-          access_code: accessCode,
-          trimmed_access_code: accessCode.trim()
-        }
+      console.log('[AUDIO-ACCESS] Access verification result:', { 
+        isValidAccess, 
+        verifyError
       });
 
-      if (purchaseError) {
-        console.error('[AUDIO-ACCESS] Database error:', purchaseError);
-        setError(`Database error: ${purchaseError.message}`);
+      if (verifyError) {
+        console.error('[AUDIO-ACCESS] Access verification error:', verifyError);
+        setError(`Access verification failed: ${verifyError.message}`);
         setIsLoading(false);
         return;
       }
 
-      if (!purchaseData) {
-        console.error('[AUDIO-ACCESS] No purchase found for access code');
-        // Let's also check if there are any purchases for this guide
-        const { data: allPurchases } = await supabase
-          .from('user_purchases')
-          .select('id, access_code, guide_id')
-          .eq('guide_id', guideId);
-        
-        console.log('[AUDIO-ACCESS] All purchases for this guide:', allPurchases);
+      if (!isValidAccess) {
+        console.error('[AUDIO-ACCESS] Invalid access code');
         setError('Invalid access code or guide not found');
         setIsLoading(false);
         return;

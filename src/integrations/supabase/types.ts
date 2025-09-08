@@ -1478,6 +1478,17 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_guest_purchase_info: {
+        Args: { p_access_code: string; p_guide_id: string }
+        Returns: {
+          access_code: string
+          currency: string
+          guide_id: string
+          id: string
+          price_paid: number
+          purchase_date: string
+        }[]
+      }
       get_safe_verification_request: {
         Args: { request_id: string }
         Returns: {
@@ -1581,6 +1592,10 @@ export type Database = {
       }
       validate_verification_document_access: {
         Args: { p_document_path: string }
+        Returns: boolean
+      }
+      verify_access_code_secure: {
+        Args: { p_access_code: string; p_guide_id: string }
         Returns: boolean
       }
     }
