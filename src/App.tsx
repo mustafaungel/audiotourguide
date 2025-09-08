@@ -28,7 +28,6 @@ import Category from "./pages/Category";
 import Community from "./pages/Community";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
-import { MobileNavigation } from "@/components/MobileNavigation";
 
 const queryClient = new QueryClient();
 
@@ -67,7 +66,6 @@ const App = () => {
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-            <MobileNavigation />
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>

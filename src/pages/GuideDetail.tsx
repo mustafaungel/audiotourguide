@@ -4,6 +4,7 @@ import { Navigation } from "@/components/Navigation";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { SocialShare } from "@/components/SocialShare";
 import { EmbeddedCheckout } from "@/components/EmbeddedCheckout";
+import { DemoAudioPlayer } from "@/components/DemoAudioPlayer";
 import { StripeConfigHelper } from "@/components/StripeConfigHelper";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -132,6 +133,7 @@ const GuideDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [realGuideData, setRealGuideData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [selectedGuide, setSelectedGuide] = useState<any>(null);
   const { toast: showToast } = useToast();
 
   // Use real guide data if available, with fallbacks for essential properties
@@ -881,6 +883,18 @@ const GuideDetail = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Demo Audio Player */}
+      {selectedGuide?.isDemo && (
+        <DemoAudioPlayer
+          guide={selectedGuide}
+          onClose={() => setSelectedGuide(null)}
+          onPurchase={() => {
+            setSelectedGuide(null);
+            setShowPaymentModal(true);
+          }}
+        />
+      )}
     </div>
   );
 };
