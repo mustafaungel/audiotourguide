@@ -117,12 +117,7 @@ export default function PaymentSuccess() {
         description: "Your audio guide is now available in your library.",
       });
 
-      // Show "Meet Your Creator" modal after successful purchase
-      if (user && guideData.creator_id) {
-        setTimeout(() => {
-          setShowCreatorModal(true);
-        }, 1500); // Show after success message
-      }
+      // Modal is now optional, no longer auto-triggered
     } catch (error: any) {
       console.error('[PAYMENT-SUCCESS] Payment verification error:', error);
       toast({
@@ -192,7 +187,7 @@ export default function PaymentSuccess() {
 
         <div className="space-y-4">
           <Button asChild className="w-full" size="lg">
-            <Link to={`/guide/${guideId}`}>
+            <Link to={`/access/${guideId}${purchaseData?.access_code ? `?access_code=${purchaseData.access_code}` : ''}`}>
               <Play className="h-4 w-4 mr-2" />
               Start Listening Now
             </Link>

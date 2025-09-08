@@ -323,19 +323,34 @@ export default function AudioAccess() {
               <CardContent>
                 <div className="space-y-3">
                   {guide.sections.map((section: any, index: number) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                      <div className="flex-1">
-                        <h4 className="font-medium">{section.title}</h4>
-                        {section.description && (
-                          <p className="text-sm text-muted-foreground mt-1">{section.description}</p>
-                        )}
+                    <button 
+                      key={index} 
+                      onClick={() => {
+                        // Find audio element and seek to timestamp if available
+                        const audioElement = document.querySelector('audio');
+                        if (audioElement && section.timestamp) {
+                          audioElement.currentTime = section.timestamp;
+                        }
+                      }}
+                      className="w-full flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted cursor-pointer transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-primary/10 text-primary rounded-full flex items-center justify-center text-sm font-medium">
+                          {index + 1}
+                        </div>
+                        <div className="flex-1 text-left">
+                          <h4 className="font-medium">{section.title}</h4>
+                          {section.description && (
+                            <p className="text-sm text-muted-foreground mt-1">{section.description}</p>
+                          )}
+                        </div>
                       </div>
                       {section.duration_seconds && (
                         <div className="text-sm text-muted-foreground">
                           {Math.floor(section.duration_seconds / 60)}:{(section.duration_seconds % 60).toString().padStart(2, '0')}
                         </div>
                       )}
-                    </div>
+                    </button>
                   ))}
                 </div>
               </CardContent>
