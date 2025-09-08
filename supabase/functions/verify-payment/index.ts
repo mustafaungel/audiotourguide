@@ -155,13 +155,24 @@ serve(async (req) => {
       // Don't fail the whole process if QR generation fails
     }
 
+    // Fetch guide data for email
+    const { data: guideData, error: guideError } = await supabaseService
+      .from('audio_guides')
+      .select('title')
+      .eq('id', guide_id)
+      .single();
+
+    const guideTitle = guideData?.title || 'Audio Guide Purchase';
+    const userEmail = guestEmail || userId ? `user-${userId}@example.com` : 'guest@example.com';
+
     // Send confirmation email
     try {
+      logStep("Sending confirmation email", { email: userEmail, guideTitle, accessCode: purchase.access_code });
       const emailResponse = await supabaseService.functions.invoke('send-confirmation-email', {
         body: {
-          email: guestEmail || 'placeholder@example.com', // Use guest email or placeholder
+          email: userEmail,
           guideId: guide_id,
-          guideTitle: 'Audio Guide Purchase', // This will be fetched in the email function
+          guideTitle: guideTitle,
           accessCode: purchase.access_code
         }
       });
@@ -169,10 +180,10 @@ serve(async (req) => {
       if (emailResponse.error) {
         logStep("Email sending failed", { error: emailResponse.error });
       } else {
-        logStep("Confirmation email sent successfully");
+        logStep("Confirmation email sent successfully", { emailId: emailResponse.data?.emailId });
       }
     } catch (emailError) {
-      logStep("Email error", { error: emailError });
+      logStep("Email function error", { error: emailError });
       // Don't fail the whole process if email fails
     }
 

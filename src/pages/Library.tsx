@@ -53,19 +53,57 @@ export default function Library() {
   };
 
   const handlePlayGuide = (guide: any) => {
-    // Placeholder for play functionality
-    toast({
-      title: "Playing Guide",
-      description: `Now playing: ${guide.audio_guides?.title}`,
-    });
+    const guideId = guide.audio_guides?.id || guide.guide_id;
+    const accessCode = guide.access_code;
+    
+    if (guideId) {
+      // Navigate to guide detail page with access code
+      const url = `/guide/${guideId}${accessCode ? `?access=${accessCode}` : ''}`;
+      window.location.href = url;
+    } else {
+      toast({
+        title: "Error",
+        description: "Guide not found",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDownloadGuide = (guide: any) => {
-    // Placeholder for download functionality
-    toast({
-      title: "Download Started",
-      description: `Downloading: ${guide.audio_guides?.title}`,
-    });
+  const handleDownloadGuide = async (guide: any) => {
+    try {
+      const guideData = guide.audio_guides;
+      if (!guideData?.audio_url) {
+        toast({
+          title: "Download Unavailable",
+          description: "Audio file not available for download",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Create download link
+      const link = document.createElement('a');
+      link.href = guideData.audio_url;
+      link.download = `${guideData.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.mp3`;
+      link.target = '_blank';
+      
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast({
+        title: "Download Started",
+        description: `Downloading ${guideData.title}`,
+      });
+    } catch (error) {
+      console.error('Download error:', error);
+      toast({
+        title: "Download Failed",
+        description: "Unable to download the audio guide",
+        variant: "destructive",
+      });
+    }
   };
 
   if (!user) {

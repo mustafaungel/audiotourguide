@@ -314,7 +314,7 @@ const GuideDetail = () => {
     if (!guideId) return;
 
     // Check for access code in URL (for guest users)
-    const accessCode = searchParams.get('access_code');
+    const accessCode = searchParams.get('access') || searchParams.get('access_code');
     if (accessCode) {
       try {
         const { data, error } = await supabase

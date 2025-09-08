@@ -22,7 +22,7 @@ import {
   TrendingUp,
   Award
 } from 'lucide-react';
-import { AudioPlayer } from './AudioPlayer';
+import { LibraryAudioPlayer } from './LibraryAudioPlayer';
 import { SocialShare } from './SocialShare';
 
 interface PurchasedGuide {
@@ -360,7 +360,7 @@ export const EnhancedLibrary: React.FC<EnhancedLibraryProps> = ({
                     <div className="flex gap-2">
                       <Button 
                         className="flex-1"
-                        onClick={() => handlePlayGuide(purchase)}
+                        onClick={() => onPlayGuide(purchase)}
                       >
                         <Play className="h-4 w-4 mr-2" />
                         {progress > 0 ? 'Continue' : 'Play'}
@@ -541,15 +541,15 @@ export const EnhancedLibrary: React.FC<EnhancedLibraryProps> = ({
 
       {/* Audio Player */}
       {showPlayer && currentlyPlaying && (
-        <div className="fixed bottom-0 left-0 right-0 z-50">
-          <AudioPlayer
-            title={filteredGuides.find(g => g.id === currentlyPlaying)?.audio_guides?.title}
-            description={filteredGuides.find(g => g.id === currentlyPlaying)?.audio_guides?.description}
-            audioSrc={filteredGuides.find(g => g.id === currentlyPlaying)?.audio_guides?.audio_url}
-            guideId={filteredGuides.find(g => g.id === currentlyPlaying)?.audio_guides?.id}
-            transcript={filteredGuides.find(g => g.id === currentlyPlaying)?.audio_guides?.transcript}
-          />
-        </div>
+        <LibraryAudioPlayer
+          guide={{
+            id: filteredGuides.find(g => g.id === currentlyPlaying)?.audio_guides?.id || '',
+            title: filteredGuides.find(g => g.id === currentlyPlaying)?.audio_guides?.title || '',
+            audio_url: filteredGuides.find(g => g.id === currentlyPlaying)?.audio_guides?.audio_url
+          }}
+          accessCode={filteredGuides.find(g => g.id === currentlyPlaying)?.access_code}
+          onClose={() => setShowPlayer(false)}
+        />
       )}
     </div>
   );
