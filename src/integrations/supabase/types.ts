@@ -51,6 +51,8 @@ export type Database = {
       }
       audio_guides: {
         Row: {
+          admin_qr_code_url: string | null
+          admin_share_url: string | null
           audio_url: string | null
           best_time: string | null
           category: string
@@ -80,6 +82,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          admin_qr_code_url?: string | null
+          admin_share_url?: string | null
           audio_url?: string | null
           best_time?: string | null
           category: string
@@ -109,6 +113,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          admin_qr_code_url?: string | null
+          admin_share_url?: string | null
           audio_url?: string | null
           best_time?: string | null
           category?: string

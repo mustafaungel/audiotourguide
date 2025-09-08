@@ -11,6 +11,8 @@ interface Guide {
   title: string;
   qr_code_url: string | null;
   share_url: string | null;
+  admin_qr_code_url: string | null;
+  admin_share_url: string | null;
   price_usd: number;
 }
 
@@ -26,7 +28,7 @@ export function AdminQRCodeRegenerator() {
     try {
       const { data, error } = await supabase
         .from('audio_guides')
-        .select('id, title, qr_code_url, share_url, price_usd')
+        .select('id, title, qr_code_url, share_url, admin_qr_code_url, admin_share_url, price_usd')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -57,13 +59,13 @@ export function AdminQRCodeRegenerator() {
 
       toast({
         title: "Success",
-        description: `QR code regenerated successfully! URL: ${data?.share_url}`,
+        description: `User QR code regenerated successfully! URL: ${data?.share_url}`,
       });
     } catch (error) {
-      console.error('Error regenerating QR code:', error);
+      console.error('Error regenerating user QR code:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to regenerate QR code",
+        description: error.message || "Failed to regenerate user QR code",
         variant: "destructive",
       });
     } finally {
@@ -71,27 +73,55 @@ export function AdminQRCodeRegenerator() {
     }
   };
 
-  const regenerateAllQRCodes = async () => {
+  const generateAdminQRCode = async (guideId: string) => {
+    setRegenerating(guideId);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-admin-qr-code', {
+        body: { guideId }
+      });
+
+      if (error) throw error;
+
+      // Refresh the guide data
+      await loadGuides();
+
+      toast({
+        title: "Success",
+        description: `Admin QR code generated successfully! URL: ${data?.admin_share_url}`,
+      });
+    } catch (error) {
+      console.error('Error generating admin QR code:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to generate admin QR code",
+        variant: "destructive",
+      });
+    } finally {
+      setRegenerating(null);
+    }
+  };
+
+  const generateAllAdminQRCodes = async () => {
     setLoading(true);
     try {
-      const guidesWithoutQR = guides.filter(guide => !guide.qr_code_url);
+      const guidesWithoutAdminQR = guides.filter(guide => !guide.admin_qr_code_url);
       
-      for (const guide of guidesWithoutQR) {
+      for (const guide of guidesWithoutAdminQR) {
         setRegenerating(guide.id);
-        await regenerateQRCode(guide.id);
+        await generateAdminQRCode(guide.id);
         // Add a small delay to avoid overwhelming the server
         await new Promise(resolve => setTimeout(resolve, 500));
       }
 
       toast({
         title: "Success",
-        description: `Regenerated QR codes for ${guidesWithoutQR.length} guides`,
+        description: `Generated admin QR codes for ${guidesWithoutAdminQR.length} guides`,
       });
     } catch (error) {
-      console.error('Error regenerating all QR codes:', error);
+      console.error('Error generating all admin QR codes:', error);
       toast({
         title: "Error",
-        description: "Failed to regenerate all QR codes",
+        description: "Failed to generate all admin QR codes",
         variant: "destructive",
       });
     } finally {
@@ -109,8 +139,10 @@ export function AdminQRCodeRegenerator() {
     loadGuides();
   }, []);
 
-  const guidesWithoutQR = guides.filter(guide => !guide.qr_code_url);
-  const guidesWithQR = guides.filter(guide => guide.qr_code_url);
+  const guidesWithoutAdminQR = guides.filter(guide => !guide.admin_qr_code_url);
+  const guidesWithAdminQR = guides.filter(guide => guide.admin_qr_code_url);
+  const guidesWithoutUserQR = guides.filter(guide => !guide.qr_code_url);
+  const guidesWithUserQR = guides.filter(guide => guide.qr_code_url);
 
   return (
     <Card>
@@ -120,7 +152,7 @@ export function AdminQRCodeRegenerator() {
           QR Code Management
         </CardTitle>
         <CardDescription>
-          Regenerate QR codes and share links for audio guides with the correct domain
+          Manage two types of QR codes: Admin QR codes (permanent, for marketing) and User QR codes (access-specific, after purchase)
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -133,20 +165,21 @@ export function AdminQRCodeRegenerator() {
             <RefreshCw className={`h-4 w-4 mr-2 ${loadingGuides ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          {guidesWithoutQR.length > 0 && (
+          {guidesWithoutAdminQR.length > 0 && (
             <Button 
-              onClick={regenerateAllQRCodes} 
+              onClick={generateAllAdminQRCodes} 
               disabled={loading}
             >
               <QrCode className="h-4 w-4 mr-2" />
-              Regenerate All Missing QR Codes ({guidesWithoutQR.length})
+              Generate All Missing Admin QR Codes ({guidesWithoutAdminQR.length})
             </Button>
           )}
         </div>
 
         <div className="grid gap-2">
-          <div className="text-sm text-muted-foreground mb-2">
-            Total guides: {guides.length} | With QR codes: {guidesWithQR.length} | Missing QR codes: {guidesWithoutQR.length}
+          <div className="text-sm text-muted-foreground mb-2 space-y-1">
+            <div>Total guides: {guides.length}</div>
+            <div>Admin QR codes: {guidesWithAdminQR.length} / {guides.length} | User QR codes: {guidesWithUserQR.length} / {guides.length}</div>
           </div>
           
           {guides.map((guide) => (
@@ -157,21 +190,37 @@ export function AdminQRCodeRegenerator() {
               <div className="flex-1">
                 <div className="font-medium">{guide.title}</div>
                 <div className="text-sm text-muted-foreground">{guide.id}</div>
-                {guide.share_url && (
-                  <div className="text-xs text-blue-600 mt-1 break-all">
-                    Share URL: {guide.share_url}
+                
+                {guide.admin_share_url && (
+                  <div className="text-xs text-green-600 mt-1 break-all">
+                    Admin URL (Purchase): {guide.admin_share_url}
                   </div>
                 )}
+                
+                {guide.share_url && (
+                  <div className="text-xs text-blue-600 mt-1 break-all">
+                    User URL (Access): {guide.share_url}
+                  </div>
+                )}
+                
                 <div className="text-xs text-muted-foreground">
                   Price: ${(guide.price_usd / 100).toFixed(2)}
                 </div>
               </div>
               
-              <div className="flex items-center gap-2">
-                {guide.qr_code_url ? (
-                  <Badge variant="secondary">QR Code Ready</Badge>
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* Admin QR Code Status */}
+                {guide.admin_qr_code_url ? (
+                  <Badge variant="secondary">Admin QR ✓</Badge>
                 ) : (
-                  <Badge variant="destructive">Missing QR Code</Badge>
+                  <Badge variant="destructive">No Admin QR</Badge>
+                )}
+                
+                {/* User QR Code Status */}
+                {guide.qr_code_url ? (
+                  <Badge variant="outline">User QR ✓</Badge>
+                ) : (
+                  <Badge variant="outline" className="opacity-50">No User QR</Badge>
                 )}
                 
                 <Button
@@ -183,6 +232,26 @@ export function AdminQRCodeRegenerator() {
                   <ExternalLink className="h-4 w-4" />
                 </Button>
                 
+                {/* Copy Admin URL */}
+                {guide.admin_share_url && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      navigator.clipboard.writeText(guide.admin_share_url!);
+                      toast({
+                        title: "Success",
+                        description: "Admin URL copied to clipboard",
+                      });
+                    }}
+                    title="Copy admin URL (purchase page)"
+                    className="border-green-200 text-green-700 hover:bg-green-50"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                )}
+                
+                {/* Copy User URL */}
                 {guide.share_url && (
                   <Button
                     size="sm"
@@ -191,19 +260,38 @@ export function AdminQRCodeRegenerator() {
                       navigator.clipboard.writeText(guide.share_url!);
                       toast({
                         title: "Success",
-                        description: "Share URL copied to clipboard",
+                        description: "User access URL copied to clipboard",
                       });
                     }}
-                    title="Copy share URL"
+                    title="Copy user access URL"
+                    className="border-blue-200 text-blue-700 hover:bg-blue-50"
                   >
                     <Copy className="h-4 w-4" />
                   </Button>
                 )}
                 
+                {/* Generate Admin QR Code */}
+                <Button
+                  size="sm"
+                  onClick={() => generateAdminQRCode(guide.id)}
+                  disabled={regenerating === guide.id}
+                  title="Generate/regenerate admin QR code"
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  {regenerating === guide.id ? (
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <QrCode className="h-4 w-4" />
+                  )}
+                </Button>
+                
+                {/* Generate User QR Code */}
                 <Button
                   size="sm"
                   onClick={() => regenerateQRCode(guide.id)}
                   disabled={regenerating === guide.id}
+                  title="Generate/regenerate user access QR code"
+                  variant="outline"
                 >
                   {regenerating === guide.id ? (
                     <RefreshCw className="h-4 w-4 animate-spin" />
