@@ -324,14 +324,14 @@ const GuideDetail = () => {
     const accessCode = searchParams.get('access') || searchParams.get('access_code');
     if (accessCode) {
       try {
-        const { data, error } = await supabase
-          .from('user_purchases')
-          .select('id, access_code')
-          .eq('guide_id', guideId)
-          .eq('access_code', accessCode)
-          .single();
+        // Use secure function to verify access code without exposing guest emails
+        const { data: isValidAccess, error } = await supabase
+          .rpc('verify_access_code_secure', {
+            p_access_code: accessCode.trim(),
+            p_guide_id: guideId
+          });
 
-        if (data && !error) {
+        if (isValidAccess && !error) {
           setHasAccessCode(true);
           setIsPurchased(true);
           return;
