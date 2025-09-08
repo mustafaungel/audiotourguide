@@ -9,6 +9,7 @@ interface AudioPreviewPlayerProps {
   guideId?: string;
   audioSrc?: string;
   onClose: () => void;
+  isPreview?: boolean;
 }
 
 export const AudioPreviewPlayer: React.FC<AudioPreviewPlayerProps> = ({
@@ -16,6 +17,7 @@ export const AudioPreviewPlayer: React.FC<AudioPreviewPlayerProps> = ({
   guideId,
   audioSrc,
   onClose,
+  isPreview = true,
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -27,7 +29,7 @@ export const AudioPreviewPlayer: React.FC<AudioPreviewPlayerProps> = ({
   const [actualAudioSrc, setActualAudioSrc] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  const PREVIEW_DURATION = 30; // 30 seconds preview
+  const PREVIEW_DURATION = isPreview ? 30 : null; // 30 seconds preview or unlimited
 
   // Load audio source
   useEffect(() => {
@@ -61,16 +63,22 @@ export const AudioPreviewPlayer: React.FC<AudioPreviewPlayerProps> = ({
   const handleTimeUpdate = () => {
     if (audioRef.current) {
       const current = audioRef.current.currentTime;
-      const duration = audioRef.current.duration || PREVIEW_DURATION;
+      const duration = audioRef.current.duration;
       
       setCurrentTime(current);
-      setProgress((current / Math.min(duration, PREVIEW_DURATION)) * 100);
       
-      // Stop after 30 seconds
-      if (current >= PREVIEW_DURATION) {
-        audioRef.current.pause();
-        setIsPlaying(false);
-        setProgress(100);
+      if (isPreview && PREVIEW_DURATION) {
+        setProgress((current / PREVIEW_DURATION) * 100);
+        
+        // Stop after 30 seconds for preview
+        if (current >= PREVIEW_DURATION) {
+          audioRef.current.pause();
+          setIsPlaying(false);
+          setProgress(100);
+        }
+      } else {
+        // Full audio for purchased users
+        setProgress(duration ? (current / duration) * 100 : 0);
       }
     }
   };
@@ -163,7 +171,12 @@ export const AudioPreviewPlayer: React.FC<AudioPreviewPlayerProps> = ({
           </div>
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>{formatTime(currentTime)}</span>
-            <span>0:{PREVIEW_DURATION}</span>
+            <span>
+              {isPreview && PREVIEW_DURATION 
+                ? `0:${PREVIEW_DURATION.toString().padStart(2, '0')}`
+                : formatTime(audioRef.current?.duration || 0)
+              }
+            </span>
           </div>
         </div>
 
@@ -194,9 +207,11 @@ export const AudioPreviewPlayer: React.FC<AudioPreviewPlayerProps> = ({
           </div>
         </div>
 
-        <p className="text-xs text-muted-foreground text-center">
-          30-second preview • Purchase for full access
-        </p>
+        {isPreview && (
+          <p className="text-xs text-muted-foreground text-center">
+            30-second preview • Purchase for full access
+          </p>
+        )}
 
         {/* Hidden Audio Element */}
         <audio

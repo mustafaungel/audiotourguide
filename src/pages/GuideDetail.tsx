@@ -3,7 +3,8 @@ import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { AudioPreviewPlayer } from "@/components/AudioPreviewPlayer";
-
+import { ChapterCard } from "@/components/ChapterCard";
+import { ReviewsSection } from "@/components/ReviewsSection";
 import { EmbeddedCheckout } from "@/components/EmbeddedCheckout";
 import { StripeConfigHelper } from "@/components/StripeConfigHelper";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -229,7 +230,7 @@ const GuideDetail = () => {
           'Offline access',
           'Multiple languages available'
         ],
-        duration: `${Math.floor(guideData.duration / 60)} min`,
+        duration: guideData.duration,
         // Keep both formatted price for display AND original price_usd for payment
         price: `$${(guideData.price_usd / 100).toFixed(2)}`,
         price_usd: guideData.price_usd, // Preserve original price_usd as number for payment
@@ -438,7 +439,7 @@ const GuideDetail = () => {
       
       <div className="container mx-auto px-4 py-6">
         {/* Back Button */}
-        <Button variant="ghost" size="sm" className="mb-4" onClick={() => window.history.back()}>
+        <Button variant="ghost" size="sm" className="mb-4" onClick={() => navigate('/search')}>
           <ChevronLeft className="w-4 h-4 mr-2" />
           Back to Guides
         </Button>
@@ -479,7 +480,7 @@ const GuideDetail = () => {
                       </div>
                       <div className="flex items-center gap-1">
                         <Clock className="w-4 h-4" />
-                        {guide.duration} min
+                        {Math.floor(guide.duration / 60)} min
                       </div>
                       <div className="flex items-center gap-1">
                         <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
@@ -522,22 +523,14 @@ const GuideDetail = () => {
               
               <TabsContent value="chapters" className="space-y-3">
                 {(guide.chapters || guide.sections || []).map((chapter, index) => (
-                  <Card key={index} className="p-4 hover:bg-muted/50 cursor-pointer transition-colors">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium">
-                          {index + 1}
-                        </div>
-                        <div>
-                          <h4 className="font-medium">{chapter.title}</h4>
-                          <p className="text-sm text-muted-foreground">{chapter.duration} minutes</p>
-                        </div>
-                      </div>
-                      <Button variant="ghost" size="sm">
-                        <Play className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </Card>
+                  <ChapterCard 
+                    key={index} 
+                    chapter={chapter} 
+                    index={index} 
+                    isPurchased={isPurchased}
+                    guideId={guide.id}
+                    audioUrl={guide.audio_url}
+                  />
                 ))}
               </TabsContent>
               
@@ -546,12 +539,18 @@ const GuideDetail = () => {
                   <Card className="p-4">
                     <h4 className="font-medium mb-3">What You'll Discover</h4>
                     <ul className="space-y-2">
-                      {(guide.highlights || []).map((highlight, index) => (
-                        <li key={index} className="flex items-center gap-2 text-sm">
-                          <div className="w-2 h-2 rounded-full bg-primary" />
-                          {highlight}
+                      {(guide.highlights || []).length > 0 ? (
+                        (guide.highlights || []).map((highlight, index) => (
+                          <li key={index} className="flex items-center gap-2 text-sm">
+                            <div className="w-2 h-2 rounded-full bg-primary" />
+                            {highlight}
+                          </li>
+                        ))
+                      ) : (
+                        <li className="text-sm text-muted-foreground italic">
+                          Highlights will be available soon
                         </li>
-                      ))}
+                      )}
                     </ul>
                   </Card>
                   
@@ -570,25 +569,7 @@ const GuideDetail = () => {
               </TabsContent>
               
               <TabsContent value="reviews" className="space-y-4">
-                {(reviews || []).map((review) => (
-                  <Card key={review.id} className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <h5 className="font-medium">{review.user}</h5>
-                        {review.verified && (
-                          <Badge variant="outline" className="text-xs">Verified</Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        {Array.from({length: review.rating || 0}).map((_, i) => (
-                          <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                        ))}
-                      </div>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-2">{review.comment}</p>
-                    <p className="text-xs text-muted-foreground">{review.date}</p>
-                  </Card>
-                ))}
+                <ReviewsSection guideId={guide.id} isPurchased={isPurchased} />
               </TabsContent>
             </Tabs>
           </div>
@@ -620,12 +601,8 @@ const GuideDetail = () => {
                       Download for Offline
                     </Button>
                   </>
-                 ) : (
+                  ) : (
                    <>
-                     <Button variant="outline" className="w-full mb-2" size="sm">
-                       <Play className="w-4 h-4 mr-2" />
-                       Preview (30s)
-                     </Button>
                      <Button className="w-full" onClick={handlePurchase}>
                        Purchase Guide
                      </Button>
