@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { AudioPreviewPlayer } from "@/components/AudioPreviewPlayer";
-import { ChapterCard } from "@/components/ChapterCard";
 import { ReviewsSection } from "@/components/ReviewsSection";
 import { EmbeddedCheckout } from "@/components/EmbeddedCheckout";
 import { StripeConfigHelper } from "@/components/StripeConfigHelper";
@@ -102,6 +101,7 @@ const reviews = [
 // Related guides will be fetched dynamically
 
 const GuideDetail = () => {
+  console.log('🔧 GuideDetail component loading');
   const { guideId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -523,14 +523,49 @@ const GuideDetail = () => {
               
               <TabsContent value="chapters" className="space-y-3">
                 {(guide.chapters || guide.sections || []).map((chapter, index) => (
-                  <ChapterCard 
-                    key={index} 
-                    chapter={chapter} 
-                    index={index} 
-                    isPurchased={isPurchased}
-                    guideId={guide.id}
-                    audioUrl={guide.audio_url}
-                  />
+                  <Card key={index} className="p-4 hover:bg-muted/50 cursor-pointer transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <h4 className="font-medium">{chapter.title}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {chapter.duration_seconds 
+                              ? `${Math.floor(chapter.duration_seconds / 60)}:${(chapter.duration_seconds % 60).toString().padStart(2, '0')}`
+                              : chapter.duration 
+                                ? `${Math.floor(chapter.duration / 60)}:${((chapter.duration * 60) % 60).toString().padStart(2, '0')}`
+                                : 'N/A'
+                            }
+                            {!isPurchased && " • Preview available"}
+                          </p>
+                        </div>
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => {
+                          if (isPurchased) {
+                            setPlayingGuide(true);
+                          } else {
+                            // 30s preview functionality can be added here
+                            setPlayingGuide(true);
+                          }
+                        }}
+                        disabled={!guide.audio_url}
+                      >
+                        {isPurchased ? (
+                          <Play className="w-4 h-4" />
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            <Play className="w-4 h-4" />
+                            <span className="text-xs">30s</span>
+                          </div>
+                        )}
+                      </Button>
+                    </div>
+                  </Card>
                 ))}
               </TabsContent>
               
