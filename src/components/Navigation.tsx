@@ -111,7 +111,16 @@ export const Navigation = () => {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            ) : null}
+            ) : (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="hidden sm:flex"
+                onClick={() => navigate('/auth')}
+              >
+                Sign In
+              </Button>
+            )}
 
             {/* Mobile Navigation Sheet */}
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -227,7 +236,20 @@ export const Navigation = () => {
                         </Button>
                       </div>
                     </div>
-                  ) : null}
+                  ) : (
+                    <div className="space-y-4 pt-6 border-t">
+                      <Button 
+                        variant="default" 
+                        className="w-full"
+                        onClick={() => {
+                          navigate('/auth');
+                          closeMobileMenu();
+                        }}
+                      >
+                        Sign In
+                      </Button>
+                    </div>
+                  )}
 
                   {/* Theme Toggle */}
                   <div className="pt-4 border-t">
