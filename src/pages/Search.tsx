@@ -67,7 +67,7 @@ const SearchResults = () => {
         .from('audio_guides')
         .select(`
           *,
-          profiles!audio_guides_creator_id_fkey (
+          profiles!creator_id (
             full_name,
             avatar_url,
             verification_status
