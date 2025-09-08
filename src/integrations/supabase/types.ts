@@ -1404,7 +1404,109 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      secure_verification_requests: {
+        Row: {
+          admin_notes: string | null
+          created_at: string | null
+          creator_type: Database["public"]["Enums"]["creator_type"] | null
+          document_status: Database["public"]["Enums"]["document_status"] | null
+          experience_description: string | null
+          full_name: string | null
+          id: string | null
+          id_document_status: string | null
+          id_document_url: string | null
+          id_number: string | null
+          license_document_status: string | null
+          license_document_url: string | null
+          license_number: string | null
+          portfolio_url: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          social_media_links: Json | null
+          social_verification_data: Json | null
+          status: string | null
+          submitted_at: string | null
+          updated_at: string | null
+          user_id: string | null
+          verification_level:
+            | Database["public"]["Enums"]["verification_level"]
+            | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string | null
+          creator_type?: Database["public"]["Enums"]["creator_type"] | null
+          document_status?:
+            | Database["public"]["Enums"]["document_status"]
+            | null
+          experience_description?: string | null
+          full_name?: string | null
+          id?: string | null
+          id_document_status?: never
+          id_document_url?: never
+          id_number?: never
+          license_document_status?: never
+          license_document_url?: never
+          license_number?: never
+          portfolio_url?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          social_media_links?: Json | null
+          social_verification_data?: Json | null
+          status?: string | null
+          submitted_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          verification_level?:
+            | Database["public"]["Enums"]["verification_level"]
+            | null
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string | null
+          creator_type?: Database["public"]["Enums"]["creator_type"] | null
+          document_status?:
+            | Database["public"]["Enums"]["document_status"]
+            | null
+          experience_description?: string | null
+          full_name?: string | null
+          id?: string | null
+          id_document_status?: never
+          id_document_url?: never
+          id_number?: never
+          license_document_status?: never
+          license_document_url?: never
+          license_number?: never
+          portfolio_url?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          social_media_links?: Json | null
+          social_verification_data?: Json | null
+          status?: string | null
+          submitted_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          verification_level?:
+            | Database["public"]["Enums"]["verification_level"]
+            | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "verification_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "verification_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
     }
     Functions: {
       admin_get_verification_requests: {
@@ -1446,6 +1548,10 @@ export type Database = {
       calculate_tier_points: {
         Args: { creator_user_id: string }
         Returns: number
+      }
+      can_access_verification_documents: {
+        Args: { p_user_id: string }
+        Returns: boolean
       }
       cleanup_verification_documents: {
         Args: { p_user_id: string }
@@ -1509,6 +1615,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      secure_delete_verification_documents: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
       track_guide_view: {
         Args: { p_guide_id: string }
         Returns: undefined
@@ -1520,6 +1630,10 @@ export type Database = {
       update_creator_tier: {
         Args: { creator_user_id: string }
         Returns: string
+      }
+      validate_verification_document_access: {
+        Args: { p_document_path: string }
+        Returns: boolean
       }
     }
     Enums: {
