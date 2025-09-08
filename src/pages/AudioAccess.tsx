@@ -56,17 +56,45 @@ export default function AudioAccess() {
 
     try {
       // First verify access with the access code
+      console.log('[AUDIO-ACCESS] Querying with:', { 
+        guide_id: guideId, 
+        access_code: accessCode,
+        accessCodeTrimmed: accessCode.trim()
+      });
+      
       const { data: purchaseData, error: purchaseError } = await supabase
         .from('user_purchases')
-        .select('id, user_id, guide_id, access_code')
+        .select('id, user_id, guide_id, access_code, guest_email')
         .eq('guide_id', guideId)
-        .eq('access_code', accessCode)
+        .eq('access_code', accessCode.trim())
         .maybeSingle();
 
-      console.log('[AUDIO-ACCESS] Purchase verification:', { purchaseData, purchaseError });
+      console.log('[AUDIO-ACCESS] Purchase verification result:', { 
+        purchaseData, 
+        purchaseError,
+        queryDetails: {
+          guide_id: guideId,
+          access_code: accessCode,
+          trimmed_access_code: accessCode.trim()
+        }
+      });
 
-      if (purchaseError || !purchaseData) {
-        console.error('[AUDIO-ACCESS] Access verification failed:', purchaseError);
+      if (purchaseError) {
+        console.error('[AUDIO-ACCESS] Database error:', purchaseError);
+        setError(`Database error: ${purchaseError.message}`);
+        setIsLoading(false);
+        return;
+      }
+
+      if (!purchaseData) {
+        console.error('[AUDIO-ACCESS] No purchase found for access code');
+        // Let's also check if there are any purchases for this guide
+        const { data: allPurchases } = await supabase
+          .from('user_purchases')
+          .select('id, access_code, guide_id')
+          .eq('guide_id', guideId);
+        
+        console.log('[AUDIO-ACCESS] All purchases for this guide:', allPurchases);
         setError('Invalid access code or guide not found');
         setIsLoading(false);
         return;
