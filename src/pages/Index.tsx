@@ -5,7 +5,6 @@ import StatsSection from '@/components/StatsSection';
 import { AudioPlayer } from '@/components/AudioPlayer';
 import { GuideCard } from '@/components/GuideCard';
 import { Navigation } from '@/components/Navigation';
-
 import { Button } from '@/components/ui/button';
 import { Headphones, Search, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -155,9 +154,7 @@ const Index = () => {
               <Headphones className="h-4 w-4 text-primary" />
               
             </div>
-            <h2 className="mobile-heading sm:text-3xl lg:text-4xl text-foreground mb-3">
-              Iconic Destinations Await
-            </h2>
+            
           </div>
 
           {/* Enhanced Search and Filter */}
@@ -186,47 +183,27 @@ const Index = () => {
 
           {/* Loading State */}
           {loading && <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="mobile-card animate-pulse">
+              {[...Array(6)].map((_, i) => <div key={i} className="mobile-card animate-pulse">
                   <div className="aspect-mobile bg-muted rounded-lg mb-4"></div>
                   <div className="h-4 bg-muted rounded mb-2"></div>
                   <div className="h-4 bg-muted rounded w-3/4"></div>
-                </div>
-              ))}
+                </div>)}
             </div>}
 
           {/* Guides Grid */}
           {!loading && <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredGuides.map(guide => {
-                const isPurchased = userPurchases.includes(guide.id);
-                const formattedPrice = guide.price_usd === 0 ? "Free" : `$${guide.price_usd}`;
-                const formattedDuration = `${Math.floor(guide.duration / 60)} min`;
-                return (
-                  <GuideCard 
-                    key={guide.id}
-                    id={guide.id} 
-                    title={guide.title} 
-                    description={guide.description} 
-                    duration={guide.duration} 
-                    location={guide.location} 
-                    rating={guide.rating || 0} 
-                    category={guide.category} 
-                    price={guide.price_usd} 
-                    difficulty={guide.difficulty} 
-                    imageUrl={guide.image_url} 
-                    totalPurchases={guide.total_purchases || 0} 
-                    creatorName="Guide Creator" 
-                    isProcessingPayment={processingPayment === guide.id} 
-                    onViewGuide={() => {
-                      if (isPurchased || guide.price_usd === 0) {
-                        handlePlayGuide(guide);
-                      } else {
-                        handlePurchaseGuide(guide.id);
-                      }
-                    }} 
-                  />
-                );
-              })}
+            const isPurchased = userPurchases.includes(guide.id);
+            const formattedPrice = guide.price_usd === 0 ? "Free" : `$${guide.price_usd}`;
+            const formattedDuration = `${Math.floor(guide.duration / 60)} min`;
+            return <GuideCard key={guide.id} id={guide.id} title={guide.title} description={guide.description} duration={guide.duration} location={guide.location} rating={guide.rating || 0} category={guide.category} price={guide.price_usd} difficulty={guide.difficulty} imageUrl={guide.image_url} totalPurchases={guide.total_purchases || 0} creatorName="Guide Creator" isProcessingPayment={processingPayment === guide.id} onViewGuide={() => {
+              if (isPurchased || guide.price_usd === 0) {
+                handlePlayGuide(guide);
+              } else {
+                handlePurchaseGuide(guide.id);
+              }
+            }} />;
+          })}
             </div>}
 
           {/* No Results */}
@@ -261,12 +238,7 @@ const Index = () => {
             Join thousands of travelers exploring UNESCO World Heritage sites and cultural treasures with AI-powered storytelling
           </p>
           <div className="mobile-stack sm:flex-row gap-4 justify-center">
-            <Button 
-              variant="hero" 
-              size="lg" 
-              className="mobile-button px-8 py-4 touch-target"
-              onClick={() => navigate('/search')}
-            >
+            <Button variant="hero" size="lg" className="mobile-button px-8 py-4 touch-target" onClick={() => navigate('/search')}>
               Start Exploring
             </Button>
           </div>
