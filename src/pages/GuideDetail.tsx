@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Star, MapPin, Clock, Users, Play, Download, Share2, Bookmark, ChevronLeft, Lock, Copy, QrCode } from "lucide-react";
+import { Star, MapPin, Clock, Users, Play, Download, Share2, Bookmark, ChevronLeft, Lock, Copy, QrCode, ShoppingCart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useViralTracking } from "@/hooks/useViralTracking";
 import { useAuth } from "@/contexts/AuthContext";
@@ -594,10 +594,10 @@ const GuideDetail = () => {
                       Purchase Guide
                     </Button>
                     {!user && (
-                      <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
-                        <Lock className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">
-                          Sign in to purchase and access guides
+                      <div className="flex items-center gap-2 p-3 bg-primary/10 rounded-lg">
+                        <ShoppingCart className="h-4 w-4 text-primary" />
+                        <span className="text-sm text-foreground">
+                          Guest checkout available - no signup required
                         </span>
                       </div>
                     )}

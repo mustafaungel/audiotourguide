@@ -336,7 +336,7 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
             Purchase Audio Guide
           </CardTitle>
           <CardDescription>
-            Buy instantly or create an account for better tracking
+            <span className="text-primary font-medium">✓ No signup required</span> - Buy instantly with email
           </CardDescription>
         </CardHeader>
       <CardContent className="space-y-6">
