@@ -23,6 +23,7 @@ export default function AudioAccess() {
   const [hasAccess, setHasAccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [accessGranted, setAccessGranted] = useState(false);
+  const [isAdminAccess, setIsAdminAccess] = useState(false);
 
   const accessCode = searchParams.get('access_code') || searchParams.get('access');
 
@@ -33,19 +34,39 @@ export default function AudioAccess() {
       return;
     }
 
-    if (!accessCode) {
-      setError('Access code is required');
-      setIsLoading(false);
-      return;
-    }
-
     verifyAccessAndLoadGuide();
   }, [guideId, accessCode, user]);
 
   const verifyAccessAndLoadGuide = async () => {
-    if (!guideId || !accessCode) {
-      console.error('[AUDIO-ACCESS] Missing required parameters:', { guideId, accessCode });
-      setError('Guide ID and access code are required');
+    if (!guideId) {
+      console.error('[AUDIO-ACCESS] Missing guide ID');
+      setError('Guide ID is required');
+      setIsLoading(false);
+      return;
+    }
+
+    // Check if user is admin and no access code provided
+    if (!accessCode && user) {
+      console.log('[AUDIO-ACCESS] Checking admin access for user:', user.id);
+      
+      // Check if user is admin
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (profile?.role === 'admin') {
+        console.log('[AUDIO-ACCESS] Admin access granted');
+        setIsAdminAccess(true);
+        await loadGuideDirectly();
+        return;
+      }
+    }
+
+    if (!accessCode) {
+      console.error('[AUDIO-ACCESS] Missing access code for non-admin user');
+      setError('Access code is required');
       setIsLoading(false);
       return;
     }
@@ -155,6 +176,62 @@ export default function AudioAccess() {
     }
   };
 
+  const loadGuideDirectly = async () => {
+    try {
+      // Load guide details directly for admin access
+      const { data: guideData, error: guideError } = await supabase
+        .from('audio_guides')
+        .select('*')
+        .eq('id', guideId)
+        .maybeSingle();
+
+      if (guideError || !guideData) {
+        setError('Guide not found');
+        setIsLoading(false);
+        return;
+      }
+
+      // Get creator profile separately
+      const { data: creatorProfile } = await supabase
+        .from('profiles')
+        .select('full_name, avatar_url, bio')
+        .eq('user_id', guideData.creator_id)
+        .maybeSingle();
+
+      // Transform guide data
+      const transformedGuide = {
+        ...guideData,
+        creator: creatorProfile ? {
+          name: creatorProfile.full_name || 'Anonymous Creator',
+          avatar: creatorProfile.avatar_url || '',
+          bio: creatorProfile.bio || ''
+        } : {
+          name: 'Anonymous Creator',
+          avatar: '',
+          bio: ''
+        },
+        sections: guideData.sections ? 
+          (typeof guideData.sections === 'string' ? JSON.parse(guideData.sections) : guideData.sections) 
+          : []
+      };
+
+      setGuide(transformedGuide);
+      setHasAccess(true);
+      setAccessGranted(true);
+
+      toast({
+        title: "Admin Access Granted",
+        description: "You are viewing this guide with admin privileges",
+      });
+
+    } catch (error) {
+      console.error('Error loading guide for admin:', error);
+      setError('Failed to load guide. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   if (isLoading) {
     return (
@@ -219,13 +296,25 @@ export default function AudioAccess() {
         <div className="max-w-4xl mx-auto">
           {/* Access Verified Header */}
           {accessGranted && (
-            <Card className="mb-6 border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20">
+            <Card className={`mb-6 ${isAdminAccess 
+              ? 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/20' 
+              : 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20'}`}>
               <CardContent className="py-4">
                 <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <CheckCircle className={`w-5 h-5 ${isAdminAccess ? 'text-blue-600' : 'text-green-600'}`} />
                   <div>
-                    <p className="font-medium text-green-800 dark:text-green-200">Access Verified</p>
-                    <p className="text-sm text-green-600 dark:text-green-400">You have full access to this audio guide</p>
+                    <p className={`font-medium ${isAdminAccess 
+                      ? 'text-blue-800 dark:text-blue-200' 
+                      : 'text-green-800 dark:text-green-200'}`}>
+                      {isAdminAccess ? 'Admin Access' : 'Access Verified'}
+                    </p>
+                    <p className={`text-sm ${isAdminAccess 
+                      ? 'text-blue-600 dark:text-blue-400' 
+                      : 'text-green-600 dark:text-green-400'}`}>
+                      {isAdminAccess 
+                        ? 'You are viewing this guide with administrator privileges' 
+                        : 'You have full access to this audio guide'}
+                    </p>
                   </div>
                 </div>
               </CardContent>
