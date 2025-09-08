@@ -37,10 +37,6 @@ export const HeroSection: React.FC = () => {
               <Play className="h-4 w-4 mr-2" />
               Explore Destinations
             </Button>
-            <Button variant="glass" size="default" className="w-full sm:w-auto px-6 py-3" onClick={() => navigate('/unesco-sites')}>
-              <Headphones className="h-4 w-4 mr-2" />
-              World Heritage Sites
-            </Button>
           </div>
 
           {/* Features */}
