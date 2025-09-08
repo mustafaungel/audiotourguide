@@ -98,39 +98,6 @@ export const AdminCreatorCreation = () => {
     handleInputChange('certifications', formData.certifications.filter((_, i) => i !== index));
   };
 
-  const fillSampleCreatorData = () => {
-    setFormData({
-      email: 'creator@example.com',
-      fullName: 'Maria Rodriguez',
-      password: 'CreatorPass123!',
-      bio: 'Professional local guide with 8 years of experience showing travelers the hidden gems of Barcelona. Specialized in cultural heritage tours and food experiences.',
-      avatarUrl: '',
-      creatorType: 'local_guide',
-      experienceYears: 8,
-      specialties: ['Historical Tours', 'Food & Culinary', 'Cultural Heritage'],
-      languagesSpoken: ['English', 'Spanish', 'Catalan', 'French'],
-      guideCountry: 'Spain',
-      licenseCountry: 'Spain',
-      licenseType: 'Official Tour Guide License',
-      licenseNumber: 'TG-BCN-2016-1234',
-      verificationStatus: 'verified',
-      creatorBadge: true,
-      blueTickVerified: true,
-      localGuideVerified: true,
-      socialProfiles: {
-        instagram: '@maria_barcelona_guide',
-        twitter: '@mariabcnguide',
-        linkedin: 'maria-rodriguez-guide',
-        website: 'https://barcelonawithmaria.com'
-      },
-      certifications: [
-        { name: 'Certified Tour Guide', issuer: 'Barcelona Tourism Board', year: 2016 },
-        { name: 'Food Safety Certificate', issuer: 'Spanish Health Ministry', year: 2020 }
-      ],
-      currentTier: 'gold',
-      tierPoints: 750
-    });
-  };
 
   const createCreator = async () => {
     if (!formData.email || !formData.fullName) {
@@ -240,10 +207,6 @@ export const AdminCreatorCreation = () => {
           <h2 className="text-2xl font-bold">Creator Management</h2>
           <p className="text-muted-foreground">Create comprehensive creator profiles with all necessary details</p>
         </div>
-        <Button variant="outline" onClick={fillSampleCreatorData}>
-          <Users className="h-4 w-4 mr-2" />
-          Fill Sample Creator Data
-        </Button>
       </div>
 
       <Card>

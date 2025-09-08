@@ -44,33 +44,13 @@ export default function PaymentSuccess() {
 
   const handleDemoMode = async () => {
     try {
-      // Demo mode for admin - show sample guide
-      const { data: sampleGuide, error } = await supabase
-        .from('audio_guides')
-        .select('*')
-        .limit(1)
-        .single();
-
-      if (!error && sampleGuide) {
-        setGuide(sampleGuide);
-        setPurchaseData({ accessCode: 'DEMO-ACCESS-CODE' });
-      } else {
-        // Create a demo guide if none exists
-        setGuide({
-          id: 'demo-guide',
-          title: 'Demo Audio Guide',
-          description: 'This is a demo guide for testing purposes',
-          location: 'Demo Location',
-          duration: 30,
-          image_url: null
-        });
-        setPurchaseData({ accessCode: 'DEMO-ACCESS-CODE' });
-      }
-
+      // Admin demo mode - show error instead of fake data
       toast({
-        title: "Demo Mode Active",
-        description: "You're viewing the payment success page in demo mode.",
+        title: "Invalid Access",
+        description: "Please use a valid payment session to access this page.",
+        variant: "destructive",
       });
+      setTimeout(() => window.location.href = '/', 2000);
     } catch (error) {
       console.error('Demo mode error:', error);
     } finally {

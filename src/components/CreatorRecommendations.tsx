@@ -79,87 +79,8 @@ export function CreatorRecommendations({
       let processedCreators: Creator[] = [];
 
       if (!profilesData || profilesData.length === 0) {
-        // Create demo viral creators to showcase
-        processedCreators = [
-          {
-            id: 'demo-elena',
-            full_name: 'Elena Rossi',
-            bio: 'Art historian specializing in Renaissance masterpieces. Author of "Hidden Stories of the Louvre" with 15 years guiding experience.',
-            avatar_url: 'https://images.unsplash.com/photo-1494790108755-2616c819e3f5?w=400&h=400&fit=crop&crop=face',
-            verification_status: 'verified',
-            specialties: ['Art History', 'Museums', 'Renaissance'],
-            location: 'Italy',
-            totalGuides: 8,
-            avgRating: 4.9,
-            totalPurchases: 245,
-            isConnected: false
-          },
-          {
-            id: 'demo-kenji',
-            full_name: 'Kenji Tanaka',
-            bio: 'Local Kyoto guide born and raised in the ancient capital. Expert in traditional Japanese culture, temples, and authentic experiences.',
-            avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face',
-            verification_status: 'verified',
-            specialties: ['Japanese Culture', 'Temples', 'Traditional Arts'],
-            location: 'Japan',
-            totalGuides: 6,
-            avgRating: 4.8,
-            totalPurchases: 184,
-            isConnected: false
-          },
-          {
-            id: 'demo-maria',
-            full_name: 'Dr. Maria Garcia',
-            bio: 'Archaeological researcher and Machu Picchu expert. PhD in Andean Studies with exclusive access to archaeological sites.',
-            avatar_url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face',
-            verification_status: 'verified',
-            specialties: ['Archaeology', 'Inca History', 'Adventure'],
-            location: 'Peru',
-            totalGuides: 4,
-            avgRating: 4.9,
-            totalPurchases: 290,
-            isConnected: false
-          },
-          {
-            id: 'demo-pierre',
-            full_name: 'Pierre Dubois',
-            bio: 'Licensed Parisian architect revealing the secrets of Gothic cathedrals and Haussmann boulevards with insider stories.',
-            avatar_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face',
-            verification_status: 'verified',
-            specialties: ['Architecture', 'French History', 'Gothic Art'],
-            location: 'France',
-            totalGuides: 5,
-            avgRating: 4.7,
-            totalPurchases: 156,
-            isConnected: false
-          },
-          {
-            id: 'demo-sofia',
-            full_name: 'Sofia Andersson',
-            bio: 'Marine biologist and photographer capturing the hidden beauty of Greek islands with conservation insights.',
-            avatar_url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=face',
-            verification_status: 'verified',
-            specialties: ['Marine Biology', 'Photography', 'Conservation'],
-            location: 'Greece',
-            totalGuides: 3,
-            avgRating: 4.8,
-            totalPurchases: 89,
-            isConnected: false
-          },
-          {
-            id: 'demo-ahmed',
-            full_name: 'Ahmed Hassan',
-            bio: 'Street art enthusiast and cultural anthropologist showcasing Istanbul\'s vibrant underground scene.',
-            avatar_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face',
-            verification_status: 'verified',
-            specialties: ['Street Art', 'Ottoman History', 'Urban Culture'],
-            location: 'Turkey',
-            totalGuides: 4,
-            avgRating: 4.6,
-            totalPurchases: 75,
-            isConnected: false
-          }
-        ];
+        // No creators found - use empty array
+        processedCreators = [];
       } else {
         // Get creator stats and guides data
         const creatorIds = profilesData.map(p => p.user_id);
@@ -237,61 +158,8 @@ export function CreatorRecommendations({
 
     } catch (error) {
       console.error('Error fetching recommended creators:', error);
-      // Use demo creators as fallback when there's an error
-      setCreators([
-        {
-          id: 'demo-elena',
-          full_name: 'Elena Rossi',
-          bio: 'Art historian specializing in Renaissance masterpieces. Author of "Hidden Stories of the Louvre" with 15 years guiding experience.',
-          avatar_url: 'https://images.unsplash.com/photo-1494790108755-2616c819e3f5?w=400&h=400&fit=crop&crop=face',
-          verification_status: 'verified',
-          specialties: ['Art History', 'Museums', 'Renaissance'],
-          location: 'Italy',
-          totalGuides: 8,
-          avgRating: 4.9,
-          totalPurchases: 245,
-          isConnected: false
-        },
-        {
-          id: 'demo-kenji',
-          full_name: 'Kenji Tanaka',
-          bio: 'Local Kyoto guide born and raised in the ancient capital. Expert in traditional Japanese culture, temples, and authentic experiences.',
-          avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face',
-          verification_status: 'verified',
-          specialties: ['Japanese Culture', 'Temples', 'Traditional Arts'],
-          location: 'Japan',
-          totalGuides: 6,
-          avgRating: 4.8,
-          totalPurchases: 184,
-          isConnected: false
-        },
-        {
-          id: 'demo-maria',
-          full_name: 'Dr. Maria Garcia',
-          bio: 'Archaeological researcher and Machu Picchu expert. PhD in Andean Studies with exclusive access to archaeological sites.',
-          avatar_url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face',
-          verification_status: 'verified',
-          specialties: ['Archaeology', 'Inca History', 'Adventure'],
-          location: 'Peru',
-          totalGuides: 4,
-          avgRating: 4.9,
-          totalPurchases: 290,
-          isConnected: false
-        },
-        {
-          id: 'demo-ahmed',
-          full_name: 'Ahmed Hassan',
-          bio: 'Street art enthusiast and cultural anthropologist showcasing Istanbul\'s vibrant underground scene.',
-          avatar_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face',
-          verification_status: 'verified',
-          specialties: ['Street Art', 'Ottoman History', 'Urban Culture'],
-          location: 'Turkey',
-          totalGuides: 4,
-          avgRating: 4.6,
-          totalPurchases: 75,
-          isConnected: false
-        }
-      ]);
+      // No fallback creators - let it show empty state
+      setCreators([]);
     } finally {
       setLoading(false);
     }
@@ -329,7 +197,24 @@ export function CreatorRecommendations({
     );
   }
 
-  // Always show the component, demo creators will be displayed as fallback
+  if (creators.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5" />
+            {title}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">No recommended creators available at the moment.</p>
+            <p className="text-sm text-muted-foreground mt-2">Check back soon for new creators to discover!</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>

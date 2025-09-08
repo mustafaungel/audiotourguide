@@ -23,6 +23,7 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const Category = () => {
   const { categoryType } = useParams<{ categoryType: string }>();
@@ -81,174 +82,80 @@ const Category = () => {
 
   const fetchCategoryContent = async () => {
     try {
-      // Demo data for each category
-      const demoGuides = {
-        museums: [
-          {
-            id: 'demo-guide-1',
-            title: 'Masterpieces of the Louvre',
-            description: 'Discover the stories behind the world\'s most famous artworks including the Mona Lisa, Venus de Milo, and Winged Victory.',
-            location: 'Paris, France',
-            duration: 120,
-            price_usd: 25,
-            rating: 4.8,
-            total_purchases: 89,
-            image_url: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=800',
-            category: 'Museums',
-            difficulty: 'Beginner',
-            creator: { id: 'demo-1', full_name: 'Elena Rossi', avatar_url: 'https://images.unsplash.com/photo-1494790108755-2616c819e3f5?w=400&h=400&fit=crop&crop=face' }
-          },
-          {
-            id: 'demo-guide-2',
-            title: 'Vatican Museums Deep Dive',
-            description: 'An intimate journey through the Vatican\'s treasures, from Michelangelo\'s Sistine Chapel to the Renaissance Rooms.',
-            location: 'Vatican City',
-            duration: 180,
-            price_usd: 35,
-            rating: 4.9,
-            total_purchases: 156,
-            image_url: 'https://images.unsplash.com/photo-1478436127897-769e1b3f0f36?w=800',
-            category: 'Museums',
-            difficulty: 'Intermediate',
-            creator: { id: 'demo-1', full_name: 'Elena Rossi', avatar_url: 'https://images.unsplash.com/photo-1494790108755-2616c819e3f5?w=400&h=400&fit=crop&crop=face' }
-          }
-        ],
-        historical: [
-          {
-            id: 'demo-guide-4',
-            title: 'Mysteries of Machu Picchu',
-            description: 'Uncover the secrets of the Lost City of the Incas with insights from recent archaeological discoveries.',
-            location: 'Machu Picchu, Peru',
-            duration: 240,
-            price_usd: 45,
-            rating: 4.9,
-            total_purchases: 201,
-            image_url: 'https://images.unsplash.com/photo-1587595431973-160d0d94add1?w=800',
-            category: 'Archaeology',
-            difficulty: 'Intermediate',
-            creator: { id: 'demo-3', full_name: 'Dr. Maria Garcia', avatar_url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face' }
-          },
-          {
-            id: 'demo-guide-5',
-            title: 'Secrets of the Great Pyramid',
-            description: 'Explore the engineering marvels and hidden chambers of the last surviving Wonder of the Ancient World.',
-            location: 'Giza, Egypt',
-            duration: 150,
-            price_usd: 32,
-            rating: 4.8,
-            total_purchases: 145,
-            image_url: 'https://images.unsplash.com/photo-1539650116574-75c0c6d73702?w=800',
-            category: 'Archaeology',
-            difficulty: 'Intermediate',
-            creator: { id: 'demo-4', full_name: 'Ahmed Hassan', avatar_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face' }
-          }
-        ],
-        nature: [
-          {
-            id: 'demo-guide-6',
-            title: 'Viking Heritage Trail',
-            description: 'Follow in the footsteps of Norse explorers and discover authentic Viking settlements and artifacts.',
-            location: 'Bergen, Norway',
-            duration: 180,
-            price_usd: 30,
-            rating: 4.7,
-            total_purchases: 98,
-            image_url: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800',
-            category: 'History',
-            difficulty: 'Intermediate',
-            creator: { id: 'demo-5', full_name: 'Sofia Andersson', avatar_url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=face' }
-          }
-        ],
-        cultural: [
-          {
-            id: 'demo-guide-3',
-            title: 'Zen Temples of Kyoto',
-            description: 'Experience tranquility in Kyoto\'s most sacred temples while learning about Buddhist philosophy and Japanese spirituality.',
-            location: 'Kyoto, Japan',
-            duration: 180,
-            price_usd: 28,
-            rating: 4.9,
-            total_purchases: 112,
-            image_url: 'https://images.unsplash.com/photo-1478436127897-769e1b3f0f36?w=800',
-            category: 'Temples',
-            difficulty: 'Beginner',
-            creator: { id: 'demo-2', full_name: 'Kenji Tanaka', avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face' }
-          }
-        ],
-        culinary: [
-          {
-            id: 'demo-guide-10',
-            title: 'Spice Markets of Mumbai',
-            description: 'Navigate the bustling spice markets and learn the secrets behind India\'s most aromatic treasures.',
-            location: 'Mumbai, India',
-            duration: 120,
-            price_usd: 26,
-            rating: 4.9,
-            total_purchases: 189,
-            image_url: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=800',
-            category: 'Culinary',
-            difficulty: 'Beginner',
-            creator: { id: 'demo-6', full_name: 'Rajesh Patel', avatar_url: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&h=400&fit=crop&crop=face' }
-          }
-        ]
-      };
+      setLoading(true);
+      
+      // Fetch guides from Supabase
+      const { data: guidesData, error: guidesError } = await supabase
+        .from('audio_guides')
+        .select('*')
+        .eq('category', categoryType)
+        .eq('is_published', true)
+        .eq('is_approved', true);
 
-      const demoExperiences = {
-        museums: [
-          {
-            id: 'exp-1',
-            title: 'Virtual Vatican Museums Tour',
-            description: 'Take an exclusive virtual tour through the Vatican Museums with art historian Elena Rossi.',
-            creator_id: 'demo-1',
-            price_usd: 35,
-            duration_minutes: 90,
-            max_participants: 15,
-            location: 'Vatican City (Virtual)',
-            category: 'Museums',
-            experience_type: 'virtual_tour',
-            image_url: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=800',
-            creator: { id: 'demo-1', full_name: 'Elena Rossi', avatar_url: 'https://images.unsplash.com/photo-1494790108755-2616c819e3f5?w=400&h=400&fit=crop&crop=face' }
-          }
-        ],
-        cultural: [
-          {
-            id: 'exp-2',
-            title: 'Japanese Tea Ceremony Experience',
-            description: 'Learn the ancient art of Japanese tea ceremony in an authentic virtual setting.',
-            creator_id: 'demo-2',
-            price_usd: 28,
-            duration_minutes: 75,
-            max_participants: 8,
-            location: 'Kyoto, Japan (Virtual)',
-            category: 'Cultural',
-            experience_type: 'cooking_class',
-            image_url: 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=800',
-            creator: { id: 'demo-2', full_name: 'Kenji Tanaka', avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face' }
-          }
-        ],
-        historical: [
-          {
-            id: 'exp-3',
-            title: 'Machu Picchu Archaeological Deep Dive',
-            description: 'Join Dr. Maria Garcia for an in-depth exploration of Machu Picchu\'s mysteries.',
-            creator_id: 'demo-3',
-            price_usd: 42,
-            duration_minutes: 120,
-            max_participants: 20,
-            location: 'Machu Picchu, Peru (Virtual)',
-            category: 'Archaeology',
-            experience_type: 'educational',
-            image_url: 'https://images.unsplash.com/photo-1587595431973-160d0d94add1?w=800',
-            creator: { id: 'demo-3', full_name: 'Dr. Maria Garcia', avatar_url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face' }
-          }
-        ]
-      };
+      if (guidesError) {
+        console.error('Error fetching guides:', guidesError);
+        setGuides([]);
+      } else {
+        // Get creator info separately for each guide
+        const guidesWithCreators = await Promise.all(
+          (guidesData || []).map(async (guide) => {
+            if (guide.creator_id) {
+              const { data: creatorData } = await supabase
+                .from('profiles')
+                .select('user_id, full_name, avatar_url')
+                .eq('user_id', guide.creator_id)
+                .single();
+              
+              return {
+                ...guide,
+                creator: creatorData ? {
+                  id: creatorData.user_id,
+                  full_name: creatorData.full_name,
+                  avatar_url: creatorData.avatar_url
+                } : null
+              };
+            }
+            return { ...guide, creator: null };
+          })
+        );
+        setGuides(guidesWithCreators);
+      }
 
-      const categoryGuides = demoGuides[categoryType as keyof typeof demoGuides] || [];
-      const categoryExperiences = demoExperiences[categoryType as keyof typeof demoExperiences] || [];
+      // Fetch experiences from Supabase
+      const { data: experiencesData, error: experiencesError } = await supabase
+        .from('live_experiences')
+        .select('*')
+        .eq('category', categoryType)
+        .eq('is_active', true);
 
-      setGuides(categoryGuides);
-      setExperiences(categoryExperiences);
+      if (experiencesError) {
+        console.error('Error fetching experiences:', experiencesError);
+        setExperiences([]);
+      } else {
+        // Get creator info separately for each experience
+        const experiencesWithCreators = await Promise.all(
+          (experiencesData || []).map(async (exp) => {
+            if (exp.creator_id) {
+              const { data: creatorData } = await supabase
+                .from('profiles')
+                .select('user_id, full_name, avatar_url')
+                .eq('user_id', exp.creator_id)
+                .single();
+              
+              return {
+                ...exp,
+                creator: creatorData ? {
+                  id: creatorData.user_id,
+                  full_name: creatorData.full_name,
+                  avatar_url: creatorData.avatar_url
+                } : null
+              };
+            }
+            return { ...exp, creator: null };
+          })
+        );
+        setExperiences(experiencesWithCreators);
+      }
     } catch (error) {
       console.error('Error fetching category content:', error);
       toast({
@@ -256,6 +163,8 @@ const Category = () => {
         title: "Error",
         description: "Failed to load category content.",
       });
+      setGuides([]);
+      setExperiences([]);
     } finally {
       setLoading(false);
     }
@@ -294,10 +203,14 @@ const Category = () => {
             <div className="flex items-center gap-2">
               <span>{guides.length + experiences.length} experiences</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Star className="h-4 w-4 fill-current" />
-              <span>4.8 average rating</span>
-            </div>
+            {guides.length > 0 && (
+              <div className="flex items-center gap-2">
+                <Star className="h-4 w-4 fill-current" />
+                <span>
+                  {(guides.reduce((sum, g) => sum + (g.rating || 0), 0) / guides.length).toFixed(1)} average rating
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -367,77 +280,95 @@ const Category = () => {
             </TabsList>
             
             <TabsContent value="all" className="mt-6">
-              <div className={`grid gap-6 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
-                {guides.map((guide) => (
-                  <GuideCard 
-                    key={guide.id}
-                    id={guide.id}
-                    title={guide.title}
-                    description={guide.description}
-                    location={guide.location}
-                    price={guide.price_usd}
-                    rating={guide.rating}
-                    duration={guide.duration}
-                    category={guide.category}
-                    difficulty={guide.difficulty}
-                    imageUrl={guide.image_url}
-                    creatorId={guide.creator.id}
-                    creatorName={guide.creator.full_name}
-                    creatorAvatar={guide.creator.avatar_url}
-                    totalPurchases={guide.total_purchases}
-                  />
-                ))}
-                {experiences.map((experience) => (
-                  <LiveExperienceCard key={experience.id} experience={experience} />
-                ))}
-              </div>
+              {guides.length === 0 && experiences.length === 0 ? (
+                <div className="text-center py-12">
+                  <h3 className="text-xl font-semibold mb-2">No Content Available</h3>
+                  <p className="text-muted-foreground mb-4">
+                    There are no guides or experiences in this category yet.
+                  </p>
+                  <Button onClick={() => navigate('/')} variant="outline">
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Explore Other Categories
+                  </Button>
+                </div>
+              ) : (
+                <div className={`grid gap-6 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
+                  {guides.map((guide) => (
+                    <GuideCard 
+                      key={guide.id}
+                      id={guide.id}
+                      title={guide.title}
+                      description={guide.description}
+                      location={guide.location}
+                      price={guide.price_usd}
+                      rating={guide.rating}
+                      duration={guide.duration}
+                      category={guide.category}
+                      difficulty={guide.difficulty}
+                      imageUrl={guide.image_url}
+                      creatorId={guide.creator?.id}
+                      creatorName={guide.creator?.full_name}
+                      creatorAvatar={guide.creator?.avatar_url}
+                      totalPurchases={guide.total_purchases}
+                    />
+                  ))}
+                  {experiences.map((experience) => (
+                    <LiveExperienceCard key={experience.id} experience={experience} />
+                  ))}
+                </div>
+              )}
             </TabsContent>
             
             <TabsContent value="guides" className="mt-6">
-              <div className={`grid gap-6 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
-                {guides.map((guide) => (
-                  <GuideCard 
-                    key={guide.id}
-                    id={guide.id}
-                    title={guide.title}
-                    description={guide.description}
-                    location={guide.location}
-                    price={guide.price_usd}
-                    rating={guide.rating}
-                    duration={guide.duration}
-                    category={guide.category}
-                    difficulty={guide.difficulty}
-                    imageUrl={guide.image_url}
-                    creatorId={guide.creator.id}
-                    creatorName={guide.creator.full_name}
-                    creatorAvatar={guide.creator.avatar_url}
-                    totalPurchases={guide.total_purchases}
-                  />
-                ))}
-              </div>
+              {guides.length === 0 ? (
+                <div className="text-center py-12">
+                  <h3 className="text-xl font-semibold mb-2">No Audio Guides</h3>
+                  <p className="text-muted-foreground">
+                    No audio guides are available in this category yet.
+                  </p>
+                </div>
+              ) : (
+                <div className={`grid gap-6 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
+                  {guides.map((guide) => (
+                    <GuideCard 
+                      key={guide.id}
+                      id={guide.id}
+                      title={guide.title}
+                      description={guide.description}
+                      location={guide.location}
+                      price={guide.price_usd}
+                      rating={guide.rating}
+                      duration={guide.duration}
+                      category={guide.category}
+                      difficulty={guide.difficulty}
+                      imageUrl={guide.image_url}
+                      creatorId={guide.creator?.id}
+                      creatorName={guide.creator?.full_name}
+                      creatorAvatar={guide.creator?.avatar_url}
+                      totalPurchases={guide.total_purchases}
+                    />
+                  ))}
+                </div>
+              )}
             </TabsContent>
             
             <TabsContent value="experiences" className="mt-6">
-              <div className={`grid gap-6 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
-                {experiences.map((experience) => (
-                  <LiveExperienceCard key={experience.id} experience={experience} />
-                ))}
-              </div>
+              {experiences.length === 0 ? (
+                <div className="text-center py-12">
+                  <h3 className="text-xl font-semibold mb-2">No Live Experiences</h3>
+                  <p className="text-muted-foreground">
+                    No live experiences are available in this category yet.
+                  </p>
+                </div>
+              ) : (
+                <div className={`grid gap-6 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
+                  {experiences.map((experience) => (
+                    <LiveExperienceCard key={experience.id} experience={experience} />
+                  ))}
+                </div>
+              )}
             </TabsContent>
           </Tabs>
-        )}
-
-        {!loading && guides.length === 0 && experiences.length === 0 && (
-          <div className="text-center py-12">
-            <IconComponent className={`h-16 w-16 mx-auto mb-4 ${currentCategory.textColor}`} />
-            <h3 className="text-xl font-semibold mb-2">No content available yet</h3>
-            <p className="text-muted-foreground mb-4">
-              We're working on adding more {currentCategory.title.toLowerCase()} to this category.
-            </p>
-            <Button onClick={() => navigate('/')}>
-              Explore Other Categories
-            </Button>
-          </div>
         )}
       </div>
     </div>

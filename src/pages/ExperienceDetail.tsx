@@ -25,6 +25,7 @@ import {
   Play
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const ExperienceDetail = () => {
   const { experienceId } = useParams<{ experienceId: string }>();
@@ -43,141 +44,41 @@ const ExperienceDetail = () => {
 
   const fetchExperienceDetail = async () => {
     try {
-      // Demo experience data
-      const demoExperiences = {
-        'exp-1': {
-          id: 'exp-1',
-          title: 'Virtual Vatican Museums Tour',
-          description: 'Take an exclusive virtual tour through the Vatican Museums with art historian Elena Rossi. Explore the Sistine Chapel, Raphael Rooms, and discover hidden treasures normally closed to the public. This interactive experience includes live Q&A and behind-the-scenes stories.',
-          creator_id: 'demo-1',
-          price_usd: 35,
-          duration_minutes: 90,
-          max_participants: 15,
-          location: 'Vatican City (Virtual)',
-          category: 'Museums',
-          experience_type: 'virtual_tour',
-          difficulty_level: 'beginner',
-          language: 'English',
-          image_url: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=800',
-          requirements: 'Stable internet connection, computer or tablet with camera/microphone',
-          included_items: 'Digital guide materials, exclusive photos, recording access for 48 hours',
-          rating: 4.8,
-          total_bookings: 234,
-          is_active: true
-        },
-        'exp-2': {
-          id: 'exp-2',
-          title: 'Japanese Tea Ceremony Experience',
-          description: 'Learn the ancient art of Japanese tea ceremony in an authentic virtual setting. Kenji will guide you through the traditional steps, share the philosophy behind each movement, and help you understand the spiritual significance of this beautiful practice.',
-          creator_id: 'demo-2',
-          price_usd: 28,
-          duration_minutes: 75,
-          max_participants: 8,
-          location: 'Kyoto, Japan (Virtual)',
-          category: 'Cultural',
-          experience_type: 'cooking_class',
-          difficulty_level: 'beginner',
-          language: 'English',
-          image_url: 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=800',
-          requirements: 'Basic tea set (provided shopping list), quiet space',
-          included_items: 'Tea ceremony guide, equipment list, follow-up resources',
-          rating: 4.9,
-          total_bookings: 156,
-          is_active: true
-        },
-        'exp-3': {
-          id: 'exp-3',
-          title: 'Machu Picchu Archaeological Deep Dive',
-          description: 'Join Dr. Maria Garcia for an in-depth exploration of Machu Picchu\'s mysteries. Using latest archaeological findings and 3D models, discover how the Incas built this incredible citadel and what recent excavations have revealed.',
-          creator_id: 'demo-3',
-          price_usd: 42,
-          duration_minutes: 120,
-          max_participants: 20,
-          location: 'Machu Picchu, Peru (Virtual)',
-          category: 'Archaeology',
-          experience_type: 'educational',
-          difficulty_level: 'intermediate',
-          language: 'English',
-          image_url: 'https://images.unsplash.com/photo-1587595431973-160d0d94add1?w=800',
-          requirements: 'Interest in archaeology, notebook for taking notes',
-          included_items: '3D model access, research papers, certificate of completion',
-          rating: 4.9,
-          total_bookings: 189,
-          is_active: true
-        }
-      };
+      // Fetch real experience data
+      const { data: experienceData, error: experienceError } = await supabase
+        .from('live_experiences')
+        .select('*')
+        .eq('id', experienceId)
+        .eq('is_active', true)
+        .single();
 
-      const demoCreators = {
-        'demo-1': {
-          id: 'demo-1',
-          full_name: 'Elena Rossi',
-          bio: 'Passionate art historian with 15 years of experience guiding visitors through Europe\'s greatest museums.',
-          avatar_url: 'https://images.unsplash.com/photo-1494790108755-2616c819e3f5?w=400&h=400&fit=crop&crop=face',
-          verification_status: 'verified',
-          specialties: ['Art History', 'Museums', 'Renaissance'],
-          location: 'Rome, Italy',
-          experience_years: 15,
-          service_rating: 4.7,
-          service_rating_count: 234
-        },
-        'demo-2': {
-          id: 'demo-2',
-          full_name: 'Kenji Tanaka',
-          bio: 'Born and raised in Kyoto, sharing the secrets of traditional Japanese culture for over a decade.',
-          avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face',
-          verification_status: 'verified',
-          specialties: ['Japanese Culture', 'Temples', 'Food Tours'],
-          location: 'Kyoto, Japan',
-          experience_years: 12,
-          service_rating: 4.6,
-          service_rating_count: 189
-        },
-        'demo-3': {
-          id: 'demo-3',
-          full_name: 'Dr. Maria Garcia',
-          bio: 'Archaeological researcher turned tour guide with expertise in ancient civilizations.',
-          avatar_url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face',
-          verification_status: 'verified',
-          specialties: ['Archaeology', 'Ancient History', 'Inca Culture'],
-          location: 'Cusco, Peru',
-          experience_years: 18,
-          service_rating: 4.8,
-          service_rating_count: 320
-        }
-      };
-
-      const experience = demoExperiences[experienceId as keyof typeof demoExperiences];
-      const creator = demoCreators[experience?.creator_id as keyof typeof demoCreators];
-
-      if (experience && creator) {
-        setExperience(experience);
-        setCreator(creator);
-        
-        // Demo reviews
-        setReviews([
-          {
-            id: '1',
-            user_name: 'Sarah M.',
-            rating: 5,
-            comment: 'Absolutely incredible experience! Elena\'s knowledge is amazing and she made the Vatican come alive.',
-            created_at: '2024-03-15'
-          },
-          {
-            id: '2',
-            user_name: 'John D.',
-            rating: 5,
-            comment: 'Worth every penny. Learned so much about art history in such an engaging way.',
-            created_at: '2024-03-10'
-          }
-        ]);
-      } else {
+      if (experienceError || !experienceData) {
         toast({
           variant: "destructive",
           title: "Experience not found",
           description: "The experience you're looking for doesn't exist.",
         });
         navigate('/experiences');
+        return;
       }
+
+      setExperience(experienceData);
+
+      // Fetch creator data
+      const { data: creatorData, error: creatorError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', experienceData.creator_id)
+        .single();
+
+      if (creatorError) {
+        console.error('Error fetching creator:', creatorError);
+      } else {
+        setCreator(creatorData);
+      }
+
+      // Fetch real reviews - leave empty for now as table structure needs adjustment
+      setReviews([]);
     } catch (error) {
       console.error('Error fetching experience:', error);
       toast({

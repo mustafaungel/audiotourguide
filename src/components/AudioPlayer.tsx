@@ -14,8 +14,8 @@ interface AudioPlayerProps {
 }
 
 export const AudioPlayer: React.FC<AudioPlayerProps> = ({
-  title = "Sample Audio Guide",
-  description = "Discover the fascinating history behind this location",
+  title = "Audio Guide",
+  description = "Audio guide content",
   audioSrc,
   guideId,
   transcript,

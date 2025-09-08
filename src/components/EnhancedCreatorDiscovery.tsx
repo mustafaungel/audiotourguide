@@ -102,8 +102,8 @@ export const EnhancedCreatorDiscovery = () => {
 
       if (error) {
         console.error('Error fetching creators:', error);
-        // Fallback to demo data
-        setCreators(getDemoCreators());
+        // No fallback - use empty array
+        setCreators([]);
         return;
       }
 
@@ -134,11 +134,10 @@ export const EnhancedCreatorDiscovery = () => {
         })
       );
 
-      const combinedCreators = [...creatorsWithStats, ...getDemoCreators()];
-      setCreators(combinedCreators);
+      setCreators(creatorsWithStats);
     } catch (error) {
       console.error('Error in fetchCreators:', error);
-      setCreators(getDemoCreators());
+      setCreators([]);
     } finally {
       setLoading(false);
     }
@@ -354,134 +353,25 @@ export const EnhancedCreatorDiscovery = () => {
       .slice(0, 3);
   };
 
-  const getDemoCreators = (): Creator[] => [
-    {
-      id: 'demo-1',
-      full_name: 'Sofia Rodriguez',
-      bio: 'Local Barcelona expert specializing in Gaudí architecture and hidden tapas spots. 15+ years of guiding experience.',
-      avatar_url: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-      verification_status: 'verified',
-      specialties: ['Architecture', 'Food Culture', 'Art History'],
-      location: 'Barcelona, Spain',
-      current_tier: 'gold',
-      creator_type: 'local_guide',
-      tier_points: 2850,
-      experience_years: 15,
-      languages_spoken: ['Spanish', 'English', 'Catalan', 'French'],
-      followers_count: 12500,
-      total_guides: 28,
-      avg_rating: 4.9,
-      total_plays: 45000,
-      social_profiles: {},
-      verified_at: '2023-01-15',
-      creator_badge: true
-    },
-    {
-      id: 'demo-2',
-      full_name: 'Hiroshi Tanaka',
-      bio: 'Traditional Japanese culture expert and tea ceremony master. Discover authentic Kyoto through centuries-old traditions.',
-      avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-      verification_status: 'verified',
-      specialties: ['Traditional Culture', 'Tea Ceremony', 'Temples & Shrines'],
-      location: 'Kyoto, Japan',
-      current_tier: 'platinum',
-      creator_type: 'cultural_expert',
-      tier_points: 4200,
-      experience_years: 22,
-      languages_spoken: ['Japanese', 'English', 'Mandarin'],
-      followers_count: 18700,
-      total_guides: 35,
-      avg_rating: 4.8,
-      total_plays: 62000,
-      social_profiles: {},
-      verified_at: '2022-08-20',
-      creator_badge: true
-    },
-    {
-      id: 'demo-3',
-      full_name: 'Alessandro Moretti',
-      bio: 'Renaissance art historian and Vatican expert. Unlock the secrets of Rome\'s masterpieces and hidden courtyards.',
-      avatar_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      verification_status: 'verified',
-      specialties: ['Renaissance Art', 'History', 'Vatican Tours'],
-      location: 'Rome, Italy',
-      current_tier: 'gold',
-      creator_type: 'historian',
-      tier_points: 3100,
-      experience_years: 18,
-      languages_spoken: ['Italian', 'English', 'Spanish', 'German'],
-      followers_count: 15200,
-      total_guides: 42,
-      avg_rating: 4.7,
-      total_plays: 58000,
-      social_profiles: {},
-      verified_at: '2022-11-10',
-      creator_badge: true
-    },
-    {
-      id: 'demo-4',
-      full_name: 'Amélie Dubois',
-      bio: 'Parisian lifestyle expert and vintage fashion connoisseur. Experience Paris like a true local with insider knowledge.',
-      avatar_url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-      verification_status: 'verified',
-      specialties: ['Lifestyle', 'Fashion', 'Local Markets'],
-      location: 'Paris, France',
-      current_tier: 'silver',
-      creator_type: 'local_guide',
-      tier_points: 1850,
-      experience_years: 8,
-      languages_spoken: ['French', 'English', 'Italian'],
-      followers_count: 9800,
-      total_guides: 19,
-      avg_rating: 4.6,
-      total_plays: 28000,
-      social_profiles: {},
-      verified_at: '2023-03-22',
-      creator_badge: true
-    },
-    {
-      id: 'demo-5',
-      full_name: 'Carlos Mendoza',
-      bio: 'Archaeological guide specializing in Mayan civilization and Mexican heritage. Explore ancient mysteries with expert insight.',
-      avatar_url: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&h=150&fit=crop&crop=face',
-      verification_status: 'verified',
-      specialties: ['Archaeology', 'Ancient History', 'Mexican Heritage'],
-      location: 'Cancún, Mexico',
-      current_tier: 'gold',
-      creator_type: 'historian',
-      tier_points: 2950,
-      experience_years: 12,
-      languages_spoken: ['Spanish', 'English', 'Mayan'],
-      followers_count: 11400,
-      total_guides: 25,
-      avg_rating: 4.8,
-      total_plays: 38000,
-      social_profiles: {},
-      verified_at: '2023-05-08',
-      creator_badge: true
-    },
-    {
-      id: 'demo-6',
-      full_name: 'Anya Petrov',
-      bio: 'Photography expert and urban explorer capturing Moscow\'s hidden architecture and Soviet-era stories.',
-      avatar_url: 'https://images.unsplash.com/photo-1544725176-7c40e5a71c5e?w=150&h=150&fit=crop&crop=face',
-      verification_status: 'verified',
-      specialties: ['Photography', 'Urban Exploration', 'Soviet History'],
-      location: 'Moscow, Russia',
-      current_tier: 'silver',
-      creator_type: 'photographer',
-      tier_points: 1600,
-      experience_years: 6,
-      languages_spoken: ['Russian', 'English'],
-      followers_count: 7300,
-      total_guides: 14,
-      avg_rating: 4.5,
-      total_plays: 22000,
-      social_profiles: {},
-      verified_at: '2023-07-12',
-      creator_badge: true
-    }
-  ];
+  // Show empty state when no creators found
+  if (!loading && filteredCreators.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <Users className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+        <h3 className="text-xl font-semibold mb-2">No Creators Found</h3>
+        <p className="text-muted-foreground mb-4">
+          {creators.length === 0 
+            ? "No verified creators are available at the moment." 
+            : "No creators match your current filters."}
+        </p>
+        {creators.length > 0 && (
+          <Button onClick={clearAllFilters} variant="outline">
+            Clear All Filters
+          </Button>
+        )}
+      </div>
+    );
+  }
 
   if (loading) {
     return (
