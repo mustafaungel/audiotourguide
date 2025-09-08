@@ -1410,7 +1410,50 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      safe_user_purchases: {
+        Row: {
+          access_code: string | null
+          currency: string | null
+          guest_email: string | null
+          guide_id: string | null
+          id: string | null
+          price_paid: number | null
+          purchase_date: string | null
+          stripe_payment_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          access_code?: string | null
+          currency?: string | null
+          guest_email?: never
+          guide_id?: string | null
+          id?: string | null
+          price_paid?: number | null
+          purchase_date?: string | null
+          stripe_payment_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          access_code?: string | null
+          currency?: string | null
+          guest_email?: never
+          guide_id?: string | null
+          id?: string | null
+          price_paid?: number | null
+          purchase_date?: string | null
+          stripe_payment_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_purchases_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "audio_guides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       admin_get_verification_requests: {
