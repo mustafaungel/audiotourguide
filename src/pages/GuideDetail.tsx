@@ -517,7 +517,7 @@ const GuideDetail = () => {
             <Tabs defaultValue="chapters" className="w-full">
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="chapters">Chapters</TabsTrigger>
-                <TabsTrigger value="highlights">Highlights</TabsTrigger>
+                <TabsTrigger value="qrcode">QR Code</TabsTrigger>
                 <TabsTrigger value="reviews">Reviews</TabsTrigger>
               </TabsList>
               
@@ -546,12 +546,8 @@ const GuideDetail = () => {
                         variant="ghost" 
                         size="sm"
                         onClick={() => {
-                          if (isPurchased) {
-                            setPlayingGuide(true);
-                          } else {
-                            // 30s preview functionality can be added here
-                            setPlayingGuide(true);
-                          }
+                          console.log('🔧 Chapter play clicked', { isPurchased, audioUrl: guide.audio_url });
+                          setPlayingGuide(true);
                         }}
                         disabled={!guide.audio_url}
                       >
@@ -569,42 +565,125 @@ const GuideDetail = () => {
                 ))}
               </TabsContent>
               
-              <TabsContent value="highlights" className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Card className="p-4">
-                    <h4 className="font-medium mb-3">What You'll Discover</h4>
-                    <ul className="space-y-2">
-                      {(guide.highlights || []).length > 0 ? (
-                        (guide.highlights || []).map((highlight, index) => (
-                          <li key={index} className="flex items-center gap-2 text-sm">
-                            <div className="w-2 h-2 rounded-full bg-primary" />
-                            {highlight}
-                          </li>
-                        ))
-                      ) : (
-                        <li className="text-sm text-muted-foreground italic">
-                          Highlights will be available soon
-                        </li>
-                      )}
-                    </ul>
-                  </Card>
-                  
-                  <Card className="p-4">
-                    <h4 className="font-medium mb-3">What's Included</h4>
-                    <ul className="space-y-2">
-                      {(guide.included || guide.features || []).map((item, index) => (
-                        <li key={index} className="flex items-center gap-2 text-sm">
-                          <div className="w-2 h-2 rounded-full bg-secondary" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </Card>
-                </div>
+              <TabsContent value="qrcode" className="space-y-4">
+                <Card className="p-6">
+                  <div className="text-center space-y-4">
+                    <div className="flex items-center justify-center gap-2 mb-4">
+                      <QrCode className="w-5 h-5 text-primary" />
+                      <h3 className="text-lg font-semibold">QR Code Access</h3>
+                    </div>
+                    
+                    {isPurchased || showQRCode ? (
+                      <div className="space-y-4">
+                        {guide.qr_code_url && (
+                          <div className="flex justify-center">
+                            <div className="inline-block p-6 bg-white rounded-xl border-2 border-border shadow-sm">
+                              <img 
+                                src={guide.qr_code_url} 
+                                alt="QR Code for guide access"
+                                className="w-48 h-48 mx-auto"
+                              />
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div className="space-y-3">
+                          <p className="text-sm text-muted-foreground">
+                            Scan this QR code to access your audio guide on any device
+                          </p>
+                          
+                          {paymentSuccess && (
+                            <div className="space-y-2 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                <label className="text-sm font-medium text-green-700 dark:text-green-300">Your Access Code</label>
+                              </div>
+                              <div className="flex gap-2">
+                                <div className="flex-1 p-3 bg-white dark:bg-gray-800 rounded-md border border-green-200 dark:border-green-700 text-lg font-mono text-center">
+                                  {searchParams.get('access_code') || 'Loading...'}
+                                </div>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => copyToClipboard(searchParams.get('access_code') || '', 'Access code')}
+                                  className="border-green-200 dark:border-green-700"
+                                >
+                                  <Copy className="w-4 h-4" />
+                                </Button>
+                              </div>
+                              <p className="text-sm text-green-600 dark:text-green-400">
+                                Save this code - you'll need it to access your audio guide
+                              </p>
+                            </div>
+                          )}
+                          
+                          {guide.share_url && (
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium">Share Link</label>
+                              <div className="flex gap-2">
+                                <div className="flex-1 p-3 bg-muted rounded-md text-sm font-mono truncate">
+                                  {guide.share_url}
+                                </div>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => copyToClipboard(guide.share_url, 'Share link')}
+                                >
+                                  <Copy className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-6">
+                        <div className="inline-block p-12 bg-muted/30 rounded-xl border-2 border-dashed border-border">
+                          <div className="relative">
+                            <QrCode className="w-32 h-32 mx-auto text-muted-foreground/20" />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <Lock className="w-12 h-12 text-muted-foreground/50" />
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <h4 className="text-lg font-medium">QR Code Locked</h4>
+                          <p className="text-muted-foreground">
+                            Purchase this guide to unlock your personal QR code for easy access and sharing
+                          </p>
+                          
+                          <div className="flex flex-col gap-2 mt-4">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <div className="w-2 h-2 bg-primary rounded-full" />
+                              Access your guide on any device
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <div className="w-2 h-2 bg-primary rounded-full" />
+                              Share with friends and family
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <div className="w-2 h-2 bg-primary rounded-full" />
+                              No internet required after download
+                            </div>
+                          </div>
+                          
+                          <Button 
+                            onClick={() => setShowPaymentModal(true)}
+                            className="w-full mt-4"
+                          >
+                            <Lock className="w-4 h-4 mr-2" />
+                            Unlock QR Code - {guide.price || '$0'} USD
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </Card>
               </TabsContent>
               
               <TabsContent value="reviews" className="space-y-4">
-                <ReviewsSection guideId={guide.id} isPurchased={isPurchased} />
+                <ReviewsSection guideId={guide.id} isPurchased={isPurchased} showAllReviews={true} />
               </TabsContent>
             </Tabs>
           </div>
@@ -796,6 +875,7 @@ const GuideDetail = () => {
               guideId={guide.id}
               audioSrc={guide.audio_url}
               onClose={() => setPlayingGuide(false)}
+              isPreview={!isPurchased}
             />
           </div>
         </div>

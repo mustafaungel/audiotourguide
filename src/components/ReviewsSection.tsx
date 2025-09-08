@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 interface ReviewsSectionProps {
   guideId: string;
   isPurchased: boolean;
+  showAllReviews?: boolean;
 }
 
 interface Review {
@@ -25,7 +26,8 @@ interface Review {
 
 export const ReviewsSection: React.FC<ReviewsSectionProps> = ({
   guideId,
-  isPurchased
+  isPurchased,
+  showAllReviews = false
 }) => {
   const { user } = useAuth();
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -157,7 +159,7 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({
       )}
 
       {/* Notice for non-purchased users */}
-      {!isPurchased && (
+      {!isPurchased && !showAllReviews && (
         <Card className="p-4 bg-muted/30 border-dashed">
           <div className="flex items-center gap-2 text-muted-foreground">
             <AlertCircle className="w-4 h-4" />
@@ -168,8 +170,8 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({
         </Card>
       )}
 
-      {/* Reviews List */}
-      {isPurchased && (
+      {/* Reviews List - Show to everyone or only purchased users based on showAllReviews */}
+      {(showAllReviews || isPurchased) && (
         <>
           {reviews.length === 0 ? (
             <Card className="p-6 text-center">

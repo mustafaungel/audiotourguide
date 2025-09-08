@@ -19,6 +19,7 @@ export const AudioPreviewPlayer: React.FC<AudioPreviewPlayerProps> = ({
   onClose,
   isPreview = true,
 }) => {
+  console.log('🔧 AudioPreviewPlayer initialized', { title, guideId, audioSrc, isPreview });
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
