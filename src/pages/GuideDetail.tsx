@@ -453,9 +453,9 @@ const GuideDetail = () => {
             <div className="relative aspect-video rounded-xl overflow-hidden">
               <img 
                 src={
-                  guide.image_url?.startsWith('data:image') 
-                    ? guide.image_url 
-                    : guide.image_url || guide.image || '/hero-audio-guide.jpg'
+                  (guide.image_urls?.[0] || guide.image_url)?.startsWith('data:image') 
+                    ? (guide.image_urls?.[0] || guide.image_url)
+                    : (guide.image_urls?.[0] || guide.image_url) || guide.image || '/hero-audio-guide.jpg'
                 } 
                 alt={guide.title}
                 className="w-full h-full object-cover"

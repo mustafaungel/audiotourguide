@@ -196,7 +196,7 @@ const Index = () => {
             const isPurchased = userPurchases.includes(guide.id);
             const formattedPrice = guide.price_usd === 0 ? "Free" : `$${guide.price_usd}`;
             const formattedDuration = `${Math.floor(guide.duration / 60)} min`;
-            return <GuideCard key={guide.id} id={guide.id} title={guide.title} description={guide.description} duration={guide.duration} location={guide.location} rating={guide.rating || 0} category={guide.category} price={guide.price_usd} difficulty={guide.difficulty} imageUrl={guide.image_url} totalPurchases={guide.total_purchases || 0} creatorName="Guide Creator" isProcessingPayment={processingPayment === guide.id} onViewGuide={() => {
+            return <GuideCard key={guide.id} id={guide.id} title={guide.title} description={guide.description} duration={guide.duration} location={guide.location} rating={guide.rating || 0} category={guide.category} price={guide.price_usd} difficulty={guide.difficulty} imageUrl={guide.image_urls?.[0] || guide.image_url} totalPurchases={guide.total_purchases || 0} creatorName="Guide Creator" isProcessingPayment={processingPayment === guide.id} onViewGuide={() => {
               if (isPurchased || guide.price_usd === 0) {
                 handlePlayGuide(guide);
               } else {

@@ -43,6 +43,7 @@ interface PurchasedGuide {
     duration: number;
     rating: number;
     image_url?: string;
+    image_urls?: string[];
     audio_url?: string;
     transcript?: string;
   };
@@ -262,13 +263,13 @@ export const EnhancedLibrary: React.FC<EnhancedLibraryProps> = ({
                 <Card key={purchase.id} className="overflow-hidden group hover:shadow-lg transition-all duration-300">
                   {/* Image */}
                   <div className="relative h-48 overflow-hidden">
-                    {guide.image_url ? (
+                     {(guide.image_urls?.[0] || guide.image_url) ? (
                       <img 
-                        src={guide.image_url} 
+                        src={guide.image_urls?.[0] || guide.image_url} 
                         alt={guide.title}
                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                       />
-                    ) : (
+                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
                         <div className="text-6xl opacity-20">🎧</div>
                       </div>
@@ -413,9 +414,9 @@ export const EnhancedLibrary: React.FC<EnhancedLibraryProps> = ({
                       className="flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors border-b border-border/50 last:border-0"
                     >
                       <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-                        {guide.image_url ? (
+                        {(guide.image_urls?.[0] || guide.image_url) ? (
                           <img 
-                            src={guide.image_url} 
+                            src={guide.image_urls?.[0] || guide.image_url} 
                             alt={guide.title}
                             className="w-full h-full object-cover"
                           />

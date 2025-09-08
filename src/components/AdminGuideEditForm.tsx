@@ -86,6 +86,7 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
           category: formData.category,
           price_usd: Math.round(formData.price_usd * 100), // Convert to cents
           image_urls: formData.image_urls,
+          image_url: formData.image_urls[0] || null, // Update image_url for backward compatibility
           updated_at: new Date().toISOString(),
         })
         .eq('id', guide.id);

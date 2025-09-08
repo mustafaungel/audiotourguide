@@ -423,9 +423,9 @@ export default function AudioAccess() {
                 <div className="w-full md:w-48 h-48 rounded-lg overflow-hidden flex-shrink-0">
                   <img 
                     src={
-                      guide.image_url?.startsWith('data:image') 
-                        ? guide.image_url 
-                        : guide.image_url || '/hero-audio-guide.jpg'
+                      (guide.image_urls?.[0] || guide.image_url)?.startsWith('data:image') 
+                        ? (guide.image_urls?.[0] || guide.image_url)
+                        : (guide.image_urls?.[0] || guide.image_url) || '/hero-audio-guide.jpg'
                     } 
                     alt={guide.title}
                     className="w-full h-full object-cover"
