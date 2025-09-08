@@ -47,9 +47,6 @@ const App = () => {
               <Route path="/admin" element={<AdminPanel />} />
               <Route path="/library" element={<Library />} />
               <Route path="/profile" element={<Profile />} />
-              <Route path="/creator-dashboard" element={<CreatorDashboard />} />
-              <Route path="/creators" element={<Creators />} />
-              <Route path="/creator/:creatorId" element={<CreatorProfile />} />
               <Route path="/user/:userId" element={<UserProfile />} />
               <Route path="/experiences" element={<Experiences />} />
               <Route path="/unesco-sites" element={<UnescoSites />} />

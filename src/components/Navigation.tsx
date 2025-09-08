@@ -61,9 +61,6 @@ export const Navigation = () => {
             <Link to="/experiences" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
               Live Experiences
             </Link>
-            <Link to="/creators" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
-              Creators
-            </Link>
             <Link to="/unesco-sites" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
               UNESCO Sites
             </Link>
@@ -101,16 +98,6 @@ export const Navigation = () => {
                   {userProfile?.role === 'admin' && (
                     <DropdownMenuItem onClick={() => navigate('/admin')}>
                       <span>Admin Panel</span>
-                    </DropdownMenuItem>
-                  )}
-                  {(userProfile?.role === 'content_creator' || userProfile?.verification_status === 'verified') && (
-                    <DropdownMenuItem onClick={() => navigate('/creator-dashboard')}>
-                      <span>Creator Dashboard</span>
-                    </DropdownMenuItem>
-                  )}
-                  {userProfile?.role === 'traveler' && (
-                    <DropdownMenuItem onClick={() => navigate('/profile')}>
-                      <span>Become a Creator</span>
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
@@ -171,13 +158,6 @@ export const Navigation = () => {
                       Live Experiences
                     </Link>
                     <Link 
-                      to="/creators" 
-                      onClick={closeMobileMenu}
-                      className="flex items-center py-3 mobile-text font-medium text-foreground hover:text-primary transition-colors touch-target"
-                    >
-                      Creators
-                    </Link>
-                    <Link 
                       to="/unesco-sites" 
                       onClick={closeMobileMenu}
                       className="flex items-center py-3 mobile-text font-medium text-foreground hover:text-primary transition-colors touch-target"
@@ -231,30 +211,6 @@ export const Navigation = () => {
                             }}
                           >
                             Admin Panel
-                          </Button>
-                        )}
-                        {(userProfile?.role === 'content_creator' || userProfile?.verification_status === 'verified') && (
-                          <Button 
-                            variant="ghost" 
-                            className="w-full justify-start"
-                            onClick={() => {
-                              navigate('/creator-dashboard');
-                              closeMobileMenu();
-                            }}
-                          >
-                            Creator Dashboard
-                          </Button>
-                        )}
-                        {userProfile?.role === 'traveler' && (
-                          <Button 
-                            variant="ghost" 
-                            className="w-full justify-start"
-                            onClick={() => {
-                              navigate('/profile');
-                              closeMobileMenu();
-                            }}
-                          >
-                            Become a Creator
                           </Button>
                         )}
                         <Button 
