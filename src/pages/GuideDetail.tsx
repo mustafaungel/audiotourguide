@@ -726,12 +726,16 @@ const GuideDetail = () => {
             {(isPurchased || hasAccessCode) && (
               <div className="mt-8">
                 <EnhancedAudioPlayer
-                  guideId={guide.id}
-                  guideTitle={guide.title}
+                  guide={{
+                    id: guide.id,
+                    title: guide.title,
+                    description: guide.description,
+                    audio_url: guide.audio_url || guide.audioUrl,
+                    image_url: guide.image_url
+                  }}
                   sections={guide.sections || guide.chapters || []}
-                  mainAudioUrl={guide.audio_url || guide.audioUrl}
                   accessCode={searchParams.get('access_code') || undefined}
-                  isPurchased={isPurchased}
+                  defaultStyle="spotify"
                 />
               </div>
             )}
