@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { Loader2, Save, ArrowLeft, QrCode, ExternalLink, Copy, Link2, Edit3 } from 'lucide-react';
 import { ImageUploader } from './ImageUploader';
 import { supabase } from '@/integrations/supabase/client';
@@ -52,6 +53,7 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
     category: '',
     price_usd: 0,
     image_urls: [] as string[],
+    is_featured: false,
   });
 
   useEffect(() => {
@@ -67,6 +69,7 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
         category: guideData.category,
         price_usd: guideData.price_usd / 100, // Convert from cents to dollars
         image_urls: guideData.image_urls || [],
+        is_featured: guideData.is_featured || false,
       });
       setCustomSlug(guideData.slug || '');
     }
@@ -80,7 +83,7 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
     }
   }, [formData.title, formData.location, editingSlug]);
 
-  const handleInputChange = (field: string, value: string | number | string[]) => {
+  const handleInputChange = (field: string, value: string | number | string[] | boolean) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -140,6 +143,7 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
         price_usd: Math.round(formData.price_usd * 100), // Convert to cents
         image_urls: formData.image_urls,
         image_url: formData.image_urls[0] || null, // Update image_url for backward compatibility
+        is_featured: formData.is_featured,
         updated_at: new Date().toISOString(),
       };
 
@@ -315,6 +319,23 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
               />
               <p className="text-xs text-muted-foreground">
                 Minimum price: $0.50 (Stripe requirement)
+              </p>
+            </div>
+
+            {/* Featured Toggle */}
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="featured"
+                  checked={formData.is_featured}
+                  onCheckedChange={(checked) => handleInputChange('is_featured', checked)}
+                />
+                <Label htmlFor="featured" className="font-medium">
+                  Featured Guide
+                </Label>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Featured guides appear prominently on the homepage and get more visibility.
               </p>
             </div>
 

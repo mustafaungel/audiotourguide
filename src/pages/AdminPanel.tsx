@@ -51,7 +51,8 @@ const AdminPanel = () => {
     city: '',
     country: '',
     category: 'Cultural Heritage',
-    price: '12'
+    price: '0',
+    is_featured: false
   });
 
   // Section management
@@ -216,6 +217,7 @@ const AdminPanel = () => {
           sections: sections,
           image_urls: uploadedImages,
           is_published: !isHidden,
+          is_featured: formData.is_featured,
           generate_audio: true
         }
       });
@@ -234,7 +236,7 @@ const AdminPanel = () => {
       }
       
       // Reset form
-      setFormData({ title: '', description: '', city: '', country: '', category: 'Cultural Heritage', price: '12' });
+      setFormData({ title: '', description: '', city: '', country: '', category: 'Cultural Heritage', price: '0', is_featured: false });
       setSections([]);
       setUploadedImages([]);
       setIsHidden(false);
@@ -457,9 +459,29 @@ const AdminPanel = () => {
                       type="number"
                       value={formData.price}
                       onChange={(e) => handleInputChange('price', e.target.value)}
-                      placeholder="12"
+                      placeholder="9.99"
                       className="mt-1"
                     />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Set your guide price. Recommended: $3-15 for most guides
+                    </p>
+                  </div>
+
+                  {/* Featured Toggle */}
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="featured"
+                        checked={formData.is_featured}
+                        onCheckedChange={(checked) => handleInputChange('is_featured', checked)}
+                      />
+                      <Label htmlFor="featured" className="font-medium">
+                        Featured Guide
+                      </Label>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Featured guides appear prominently on the homepage and get more visibility.
+                    </p>
                   </div>
 
                   <div className="space-y-2">

@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { InputWithCounter } from "@/components/ui/character-counter";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { supabase } from '@/integrations/supabase/client';
 import { Sparkles, X, Plus, Image as ImageIcon, Link2 } from 'lucide-react';
@@ -29,6 +30,7 @@ export interface GuideFormData {
   languages: string[];
   bestTime: string;
   image_urls: string[];
+  is_featured: boolean;
 }
 
 interface Destination {
@@ -78,6 +80,7 @@ export const GuideCreationForm: React.FC<GuideCreationFormProps> = ({
     languages: ['English'],
     bestTime: "",
     image_urls: [],
+    is_featured: false,
   });
   const [newLanguage, setNewLanguage] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -338,7 +341,7 @@ export const GuideCreationForm: React.FC<GuideCreationFormProps> = ({
               />
               {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}
               <p className="text-xs text-muted-foreground mt-1">
-                Recommended: $3-15 for most guides
+                Set your guide price. Recommended: $3-15 for most guides
               </p>
             </div>
 
@@ -476,6 +479,23 @@ export const GuideCreationForm: React.FC<GuideCreationFormProps> = ({
             />
             <p className="text-xs text-muted-foreground mt-1">
               Upload images to showcase your guide. The first image will be the primary image.
+            </p>
+          </div>
+
+          {/* Featured Toggle (Admin Only) */}
+          <div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="featured"
+                checked={formData.is_featured}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_featured: checked }))}
+              />
+              <Label htmlFor="featured" className="font-medium">
+                Featured Guide
+              </Label>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Featured guides appear prominently on the homepage and get more visibility.
             </p>
           </div>
 
