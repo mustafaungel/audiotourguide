@@ -65,6 +65,10 @@ export const LibraryAudioPlayer: React.FC<LibraryAudioPlayerProps> = ({
     setIsMuted(vol === 0);
   };
 
+  const handleVolumeSliderChange = (newVolume: number[]) => {
+    handleVolumeChange(newVolume);
+  };
+
   const handleMute = () => {
     if (isMuted) {
       setVolume(0.5);
@@ -191,44 +195,54 @@ export const LibraryAudioPlayer: React.FC<LibraryAudioPlayerProps> = ({
 
         {/* Advanced Controls */}
         {showAdvanced && (
-          <div className="space-y-3 pt-3 border-t border-border/50">
+          <div className="space-y-5 pt-4 border-t border-border/50">
             {/* Speed Controls */}
-            <div className="flex items-center justify-center gap-1">
-              <span className="text-xs text-muted-foreground mr-2">Speed:</span>
-              {[0.5, 0.75, 1, 1.25, 1.5].map((speed) => (
-                <Button
-                  key={speed}
-                  variant={playbackSpeed === speed ? "secondary" : "ghost"}
-                  size="sm"
-                  onClick={() => handleSpeedChange(speed)}
-                  className="h-7 px-2 text-xs touch-manipulation"
-                >
-                  {speed}x
-                </Button>
-              ))}
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-center">Playback Speed</p>
+              <div className="grid grid-cols-3 gap-2">
+                {[0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => (
+                  <Button
+                    key={speed}
+                    variant={playbackSpeed === speed ? "secondary" : "outline"}
+                    size="sm"
+                    onClick={() => handleSpeedChange(speed)}
+                    className="h-9 text-xs touch-manipulation"
+                  >
+                    {speed}x
+                  </Button>
+                ))}
+              </div>
             </div>
 
             {/* Volume Control */}
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleMute}
-                className="h-10 w-10 min-h-[40px] touch-manipulation flex-shrink-0"
-              >
-                {isMuted || volume === 0 ? (
-                  <VolumeX className="h-4 w-4" />
-                ) : (
-                  <Volume2 className="h-4 w-4" />
-                )}
-              </Button>
-              <Slider
-                value={[volume * 100]}
-                onValueChange={handleVolumeChange}
-                max={100}
-                step={1}
-                className="flex-1 h-2 touch-manipulation"
-              />
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-center">Volume</p>
+              <div className="flex items-center gap-3 px-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleMute}
+                  className="h-10 w-10 min-h-[40px] touch-manipulation flex-shrink-0"
+                >
+                  {isMuted || volume === 0 ? (
+                    <VolumeX className="h-4 w-4" />
+                  ) : (
+                    <Volume2 className="h-4 w-4" />
+                  )}
+                </Button>
+                <div className="flex-1">
+                  <Slider
+                    value={[volume * 100]}
+                    onValueChange={handleVolumeSliderChange}
+                    max={100}
+                    step={1}
+                    className="w-full h-3 touch-manipulation"
+                  />
+                </div>
+                <span className="text-xs text-muted-foreground w-10 text-right">
+                  {Math.round(volume * 100)}%
+                </span>
+              </div>
             </div>
           </div>
         )}

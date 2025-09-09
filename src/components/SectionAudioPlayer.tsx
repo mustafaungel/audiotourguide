@@ -112,6 +112,15 @@ export const SectionAudioPlayer: React.FC<SectionAudioPlayerProps> = ({
   const playSection = async (sectionIndex: number) => {
     if (sectionIndex < 0 || sectionIndex >= sections.length) return;
     
+    // Smart toggle: if same section is playing, pause it
+    if (sectionIndex === currentSectionIndex && isPlaying) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      }
+      return;
+    }
+    
     setLoading(true);
     setCurrentSectionIndex(sectionIndex);
     
@@ -205,6 +214,10 @@ export const SectionAudioPlayer: React.FC<SectionAudioPlayerProps> = ({
     }
   };
 
+  const handleVolumeSliderChange = (newVolume: number[]) => {
+    handleVolumeChange(newVolume);
+  };
+
   const toggleMute = () => {
     if (isMuted) {
       setVolume(0.5);
@@ -295,20 +308,35 @@ export const SectionAudioPlayer: React.FC<SectionAudioPlayerProps> = ({
             </div>
           </div>
 
-          {/* Skip Controls */}
-          <div className="flex items-center justify-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => skip(-15)}
-              disabled={loading}
-              className="h-12 w-12 min-h-[48px] touch-manipulation rounded-full"
-              title="Skip back 15 seconds"
-            >
-              <SkipBack className="h-4 w-4" />
-              <span className="sr-only">15s</span>
-            </Button>
-            <div className="text-xs text-muted-foreground font-medium">15s</div>
+          {/* Skip Controls Row */}
+          <div className="flex items-center justify-center gap-8">
+            <div className="flex flex-col items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => skip(-15)}
+                disabled={loading}
+                className="h-12 w-12 min-h-[48px] touch-manipulation rounded-full"
+                title="Skip back 15 seconds"
+              >
+                <SkipBack className="h-4 w-4" />
+              </Button>
+              <span className="text-xs text-muted-foreground font-medium">15s</span>
+            </div>
+            
+            <div className="flex flex-col items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => skip(15)}
+                disabled={loading}
+                className="h-12 w-12 min-h-[48px] touch-manipulation rounded-full"
+                title="Skip forward 15 seconds"
+              >
+                <SkipForward className="h-4 w-4" />
+              </Button>
+              <span className="text-xs text-muted-foreground font-medium">15s</span>
+            </div>
           </div>
 
           {/* Main Controls */}
@@ -351,20 +379,6 @@ export const SectionAudioPlayer: React.FC<SectionAudioPlayerProps> = ({
             </Button>
           </div>
 
-          <div className="flex items-center justify-center gap-3">
-            <div className="text-xs text-muted-foreground font-medium">15s</div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => skip(15)}
-              disabled={loading}
-              className="h-12 w-12 min-h-[48px] touch-manipulation rounded-full"
-              title="Skip forward 15 seconds"
-            >
-              <SkipForward className="h-4 w-4" />
-              <span className="sr-only">15s</span>
-            </Button>
-          </div>
 
           {/* Quick Actions */}
           <div className="flex items-center justify-center gap-3 pt-2">
@@ -380,44 +394,54 @@ export const SectionAudioPlayer: React.FC<SectionAudioPlayerProps> = ({
 
           {/* Advanced Controls */}
           {showAdvanced && (
-            <div className="space-y-4 pt-4 border-t border-border/50">
+            <div className="space-y-6 pt-4 border-t border-border/50">
               {/* Speed Controls */}
-              <div className="flex items-center justify-center gap-2">
-                <span className="text-xs text-muted-foreground mr-2">Speed:</span>
-                {[0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => (
-                  <Button
-                    key={speed}
-                    variant={playbackSpeed === speed ? "secondary" : "ghost"}
-                    size="sm"
-                    onClick={() => handleSpeedChange(speed)}
-                    className="h-8 px-3 text-xs touch-manipulation"
-                  >
-                    {speed}x
-                  </Button>
-                ))}
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-center">Playback Speed</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {[0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => (
+                    <Button
+                      key={speed}
+                      variant={playbackSpeed === speed ? "secondary" : "outline"}
+                      size="sm"
+                      onClick={() => handleSpeedChange(speed)}
+                      className="h-10 text-sm touch-manipulation"
+                    >
+                      {speed}x
+                    </Button>
+                  ))}
+                </div>
               </div>
 
               {/* Volume Control */}
-              <div className="flex items-center gap-4">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={toggleMute}
-                  className="h-12 w-12 min-h-[48px] touch-manipulation flex-shrink-0"
-                >
-                  {isMuted || volume === 0 ? (
-                    <VolumeX className="h-5 w-5" />
-                  ) : (
-                    <Volume2 className="h-5 w-5" />
-                  )}
-                </Button>
-                <Slider
-                  value={[volume * 100]}
-                  onValueChange={handleVolumeChange}
-                  max={100}
-                  step={1}
-                  className="flex-1 h-2 touch-manipulation"
-                />
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-center">Volume</p>
+                <div className="flex items-center gap-4 px-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleMute}
+                    className="h-12 w-12 min-h-[48px] touch-manipulation flex-shrink-0"
+                  >
+                    {isMuted || volume === 0 ? (
+                      <VolumeX className="h-5 w-5" />
+                    ) : (
+                      <Volume2 className="h-5 w-5" />
+                    )}
+                  </Button>
+                  <div className="flex-1">
+                    <Slider
+                      value={[volume * 100]}
+                      onValueChange={handleVolumeSliderChange}
+                      max={100}
+                      step={1}
+                      className="w-full h-3 touch-manipulation"
+                    />
+                  </div>
+                  <span className="text-sm text-muted-foreground w-12 text-right">
+                    {Math.round(volume * 100)}%
+                  </span>
+                </div>
               </div>
             </div>
           )}
@@ -436,10 +460,10 @@ export const SectionAudioPlayer: React.FC<SectionAudioPlayerProps> = ({
                 <button
                   key={index}
                   onClick={() => playSection(index)}
-                  className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors ${
+                  className={`w-full flex items-center justify-between p-4 rounded-lg transition-colors touch-manipulation ${
                     index === currentSectionIndex
                       ? 'bg-primary/10 text-primary border border-primary/20'
-                      : 'bg-muted/50 hover:bg-muted'
+                      : 'bg-muted/50 hover:bg-muted active:bg-muted/80'
                   }`}
                 >
                   <div className="flex items-center gap-3">
