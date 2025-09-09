@@ -69,41 +69,22 @@ export const Navigation = () => {
             </SearchModal>
             <ThemeToggle />
             
-            {user ? (
+            {user && userProfile?.role === 'admin' ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="flex items-center space-x-2 px-2 touch-target">
                     <User className="h-5 w-5" />
                     <span className="hidden sm:inline mobile-caption truncate max-w-[100px]">
-                      {user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'}
+                      Admin
                     </span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuLabel>Admin Panel</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate('/profile')}>
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
+                  <DropdownMenuItem onClick={() => navigate('/admin')}>
+                    <span>Dashboard</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/guides')}>
-                    <span>My Library</span>
-                  </DropdownMenuItem>
-                  {userProfile?.role === 'admin' && (
-                    <DropdownMenuItem onClick={() => navigate('/admin')}>
-                      <span>Admin Panel</span>
-                    </DropdownMenuItem>
-                  )}
-                  {(userProfile?.role === 'content_creator' || userProfile?.verification_status === 'verified') && (
-                    <DropdownMenuItem onClick={() => navigate('/creator-dashboard')}>
-                      <span>Creator Dashboard</span>
-                    </DropdownMenuItem>
-                  )}
-                  {userProfile?.role === 'traveler' && (
-                    <DropdownMenuItem onClick={() => navigate('/profile')}>
-                      <span>Become a Creator</span>
-                    </DropdownMenuItem>
-                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut}>
                     <LogOut className="mr-2 h-4 w-4" />
@@ -116,9 +97,9 @@ export const Navigation = () => {
                 variant="outline" 
                 size="sm" 
                 className="hidden sm:flex"
-                onClick={() => navigate('/auth')}
+                onClick={() => navigate('/admin-login')}
               >
-                Sign In
+                Admin Login
               </Button>
             )}
 
@@ -153,14 +134,12 @@ export const Navigation = () => {
                   </nav>
 
                   {/* User Section */}
-                  {user ? (
+                  {user && userProfile?.role === 'admin' ? (
                     <div className="space-y-4 pt-6 border-t">
                       <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
                         <User className="h-8 w-8 text-muted-foreground" />
                         <div>
-                          <p className="font-medium text-sm">
-                            {user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'}
-                          </p>
+                          <p className="font-medium text-sm">Admin</p>
                           <p className="text-xs text-muted-foreground">{user.email}</p>
                         </div>
                       </div>
@@ -170,59 +149,12 @@ export const Navigation = () => {
                           variant="ghost" 
                           className="w-full justify-start"
                           onClick={() => {
-                            navigate('/profile');
+                            navigate('/admin');
                             closeMobileMenu();
                           }}
                         >
-                          <User className="mr-2 h-4 w-4" />
-                          Profile
+                          Admin Dashboard
                         </Button>
-                        <Button 
-                          variant="ghost" 
-                          className="w-full justify-start"
-                          onClick={() => {
-                            navigate('/guides');
-                            closeMobileMenu();
-                          }}
-                        >
-                          My Library
-                        </Button>
-                        {userProfile?.role === 'admin' && (
-                          <Button 
-                            variant="ghost" 
-                            className="w-full justify-start"
-                            onClick={() => {
-                              navigate('/admin');
-                              closeMobileMenu();
-                            }}
-                          >
-                            Admin Panel
-                          </Button>
-                        )}
-                        {(userProfile?.role === 'content_creator' || userProfile?.verification_status === 'verified') && (
-                          <Button 
-                            variant="ghost" 
-                            className="w-full justify-start"
-                            onClick={() => {
-                              navigate('/creator-dashboard');
-                              closeMobileMenu();
-                            }}
-                          >
-                            Creator Dashboard
-                          </Button>
-                        )}
-                        {userProfile?.role === 'traveler' && (
-                          <Button 
-                            variant="ghost" 
-                            className="w-full justify-start"
-                            onClick={() => {
-                              navigate('/profile');
-                              closeMobileMenu();
-                            }}
-                          >
-                            Become a Creator
-                          </Button>
-                        )}
                         <Button 
                           variant="ghost" 
                           className="w-full justify-start text-destructive hover:text-destructive"
@@ -242,11 +174,11 @@ export const Navigation = () => {
                         variant="default" 
                         className="w-full"
                         onClick={() => {
-                          navigate('/auth');
+                          navigate('/admin-login');
                           closeMobileMenu();
                         }}
                       >
-                        Sign In
+                        Admin Login
                       </Button>
                     </div>
                   )}

@@ -11,15 +11,8 @@ import AdminPanel from "./pages/AdminPanel";
 import Library from "./pages/Library";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancelled from "./pages/PaymentCancelled";
-import Search from "./pages/Search";
-import Profile from "./pages/Profile";
-import UserProfile from "./pages/UserProfile";
 import GuideDetail from "./pages/GuideDetail";
-import DestinationDetail from "./pages/DestinationDetail";
-import Category from "./pages/Category";
 import AudioAccess from "./pages/AudioAccess";
-import Contact from "./pages/Contact";
-import Guides from "./pages/Guides";
 import NotFound from "./pages/NotFound";
 
 
@@ -36,18 +29,10 @@ const App = () => {
           <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <Routes>
               <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
               <Route path="/admin-login" element={<Auth />} />
               <Route path="/admin" element={<AdminPanel />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/guides" element={<Guides />} />
               <Route path="/library" element={<Library />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/user/:userId" element={<UserProfile />} />
               <Route path="/guide/:slug" element={<GuideDetail />} />
-              <Route path="/destination/:location" element={<DestinationDetail />} />
-              <Route path="/search" element={<Search />} />
-              <Route path="/category/:categoryType" element={<Category />} />
               <Route path="/access/:guideId" element={<AudioAccess />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/payment-cancelled" element={<PaymentCancelled />} />
