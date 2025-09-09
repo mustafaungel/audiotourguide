@@ -15,7 +15,7 @@ export const useAudioProgress = ({ guideId }: UseAudioProgressProps) => {
   const [autoAdvanceEnabled, setAutoAdvanceEnabled] = useState(false);
 
   const storageKey = `audioGuide_${guideId}_progress`;
-  const settingsKey = `audioGuide_settings`;
+  const settingsKey = `audioGuide_${guideId}_settings`;
 
   // Load progress from localStorage
   useEffect(() => {

@@ -37,6 +37,7 @@ interface ChapterListProps {
   onPreviousSection?: () => void;
   onNextSection?: () => void;
   onToggleMute?: () => void;
+  onVolumeChange?: (volume: number[]) => void;
   onSpeedChange?: (speed: number) => void;
   onAutoAdvanceChange?: (enabled: boolean) => void;
 }
@@ -62,6 +63,7 @@ export const ChapterList: React.FC<ChapterListProps> = ({
   onPreviousSection,
   onNextSection,
   onToggleMute,
+  onVolumeChange,
   onSpeedChange,
   onAutoAdvanceChange
 }) => {
@@ -252,21 +254,6 @@ export const ChapterList: React.FC<ChapterListProps> = ({
                           <span className="text-xs font-medium">{playbackSpeed}x</span>
                         </Button>
 
-                        {/* Mute Toggle */}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={onToggleMute}
-                          className="h-10 w-10 touch-manipulation"
-                          title="Mute/Unmute"
-                        >
-                          {isMuted || volume === 0 ? (
-                            <VolumeX className="h-4 w-4" />
-                          ) : (
-                            <Volume2 className="h-4 w-4" />
-                          )}
-                        </Button>
-
                         {/* Skip Forward */}
                         <Button
                           variant="ghost"
@@ -279,6 +266,44 @@ export const ChapterList: React.FC<ChapterListProps> = ({
                           <span className="text-xs">15s</span>
                           <SkipForward className="h-4 w-4 ml-1" />
                         </Button>
+                      </div>
+
+                      {/* Volume Controls Row - Mobile Only */}
+                      <div className="flex items-center gap-3 px-4">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={onToggleMute}
+                          className="h-10 w-10 touch-manipulation shrink-0"
+                          title="Mute/Unmute"
+                        >
+                          {isMuted || volume === 0 ? (
+                            <VolumeX className="h-4 w-4" />
+                          ) : (
+                            <Volume2 className="h-4 w-4" />
+                          )}
+                        </Button>
+                        <div className="flex-1">
+                          <Slider
+                            value={[isMuted ? 0 : volume * 100]}
+                            onValueChange={(value) => {
+                              const newVolume = value[0] / 100;
+                              if (newVolume > 0 && isMuted) {
+                                // Auto-unmute when adjusting volume up
+                                onToggleMute?.();
+                              }
+                              // Handle volume change via parent
+                              const event = { target: { value: value[0] } };
+                              onVolumeChange?.(value);
+                            }}
+                            max={100}
+                            step={1}
+                            className="w-full"
+                          />
+                        </div>
+                        <span className="text-xs text-muted-foreground w-8 text-right shrink-0">
+                          {Math.round((isMuted ? 0 : volume) * 100)}%
+                        </span>
                       </div>
                     </div>
                   ) : (

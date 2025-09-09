@@ -325,6 +325,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
         onPreviousSection={previousSection}
         onNextSection={nextSection}
         onToggleMute={toggleMute}
+        onVolumeChange={handleVolumeChange}
         onSpeedChange={handleSpeedChange}
         onAutoAdvanceChange={setAutoAdvance}
       />
