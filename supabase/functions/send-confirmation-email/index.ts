@@ -94,10 +94,11 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
     const emailResponse = await resend.emails.send({
-      from: "AudioGuide Premium <onboarding@resend.dev>",
+      from: "AudioGuide Premium <noreply@audiotourguide.app>",
       to: [email],
       subject: `🎧 Your ${guideTitle} Audio Guide is Ready!`,
       html: html,
+      reply_to: "support@audiotourguide.app",
     });
 
     console.log("[SEND-CONFIRMATION-EMAIL] Email sent successfully:", emailResponse);
