@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useAudioSource } from '@/hooks/useAudioSource';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface UseAudioPlayerProps {
   guideId?: string;
@@ -27,6 +28,7 @@ export const useAudioPlayer = ({
   const audioRef = useRef<HTMLAudioElement>(null);
   const toastRef = useRef<{ dismiss: () => void } | null>(null);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   
   const { audioSrc: resolvedAudioSrc, loading, error, setError, tryFallback } = useAudioSource({
     guideId,
@@ -146,7 +148,16 @@ export const useAudioPlayer = ({
     if (audioRef.current) {
       audioRef.current.volume = newVolume;
     }
-  }, []);
+    
+    // Show mobile volume feedback
+    if (isMobile) {
+      toast({
+        title: `Volume: ${Math.round(newVolume * 100)}%`,
+        description: "Use device volume buttons for hardware control",
+        duration: 1500,
+      });
+    }
+  }, [isMobile, toast]);
 
   const toggleMute = useCallback(() => {
     const newMuted = !isMuted;
@@ -154,7 +165,16 @@ export const useAudioPlayer = ({
     if (audioRef.current) {
       audioRef.current.muted = newMuted;
     }
-  }, [isMuted]);
+    
+    // Show mobile mute feedback
+    if (isMobile) {
+      toast({
+        title: newMuted ? "Audio Muted" : "Audio Unmuted",
+        description: newMuted ? "Audio is now muted" : "Audio is now playing",
+        duration: 1500,
+      });
+    }
+  }, [isMuted, isMobile, toast]);
 
   const seek = useCallback((time: number) => {
     if (audioRef.current) {
@@ -182,6 +202,7 @@ export const useAudioPlayer = ({
     loading,
     error,
     audioSrc: resolvedAudioSrc,
+    isMobile,
     
     // Actions
     play,

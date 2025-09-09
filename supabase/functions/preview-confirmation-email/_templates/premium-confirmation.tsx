@@ -92,12 +92,12 @@ export const PremiumConfirmationEmail = ({
             <Column>
               <Text style={featureItem}>🎧 High-quality audio narration</Text>
               <Text style={featureItem}>📱 Mobile-friendly experience</Text>
-              <Text style={featureItem}>🗺️ Interactive location guide</Text>
+              <Text style={featureItem}>🎯 Professional storytelling</Text>
             </Column>
             <Column>
               <Text style={featureItem}>⏰ Lifetime access</Text>
-              <Text style={featureItem}>📥 Offline download option</Text>
-              <Text style={featureItem}>🌟 Expert local insights</Text>
+              <Text style={featureItem}>🏛️ Cultural insights</Text>
+              <Text style={featureItem}>📍 Location-specific content</Text>
             </Column>
           </Row>
         </Section>
@@ -114,21 +114,10 @@ export const PremiumConfirmationEmail = ({
         {/* Pro Tips */}
         <Section style={tipsSection}>
           <Heading style={tipsTitle}>💡 Pro Tips</Heading>
-          <Text style={tipItem}>• Download the audio for offline listening</Text>
           <Text style={tipItem}>• Use headphones for the best experience</Text>
           <Text style={tipItem}>• Follow the suggested route for optimal flow</Text>
           <Text style={tipItem}>• Take your time - this is your personal tour</Text>
-        </Section>
-
-        {/* Social Share */}
-        <Section style={socialSection}>
-          <Heading style={socialTitle}>📱 Share Your Experience</Heading>
-          <Text style={socialText}>
-            Loved your audio guide? Share it with friends and family!
-          </Text>
-          <Link href={guideUrl} style={shareButton}>
-            🔗 Share This Guide
-          </Link>
+          <Text style={tipItem}>• Save your place with the pause feature</Text>
         </Section>
 
         {/* Footer */}

@@ -67,7 +67,7 @@ export const AdminEmailTesting = () => {
         guideId: selectedGuide.id,
         guideTitle: selectedGuide.title,
         guideLocation: selectedGuide.location,
-        guidePrice: selectedGuide.price_usd * 100 // Convert to cents
+        guidePrice: selectedGuide.price_usd // Already in cents from database
       }));
     }
   };
@@ -223,7 +223,7 @@ export const AdminEmailTesting = () => {
               <SelectContent>
                 {availableGuides.map((guide) => (
                   <SelectItem key={guide.id} value={guide.id}>
-                    {guide.title} - {guide.location} (${guide.price_usd})
+                    {guide.title} - {guide.location} (${(guide.price_usd / 100).toFixed(2)})
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -251,17 +251,7 @@ export const AdminEmailTesting = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="guidePrice">Price (cents)</Label>
-              <Input
-                id="guidePrice"
-                type="number"
-                value={testData.guidePrice}
-                onChange={(e) => setTestData(prev => ({ ...prev, guidePrice: parseInt(e.target.value) || 0 }))}
-                className="mt-1"
-              />
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="guideCurrency">Currency</Label>
               <Select value={testData.guideCurrency} onValueChange={(value) => setTestData(prev => ({ ...prev, guideCurrency: value }))}>
@@ -292,6 +282,14 @@ export const AdminEmailTesting = () => {
               </div>
             </div>
           </div>
+          
+          {testData.guideId && (
+            <div className="bg-muted/50 p-3 rounded-lg">
+              <p className="text-sm font-medium text-muted-foreground">
+                Guide Price: <span className="font-semibold text-foreground">${(testData.guidePrice / 100).toFixed(2)} {testData.guideCurrency}</span>
+              </p>
+            </div>
+          )}
         </div>
 
         <Separator />
