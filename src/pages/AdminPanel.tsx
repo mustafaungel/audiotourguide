@@ -24,6 +24,7 @@ import { CountrySelector } from '@/components/CountrySelector';
 import { AudioGuideSectionManager } from '@/components/AudioGuideSectionManager';
 import { AdminGuideEditForm } from '@/components/AdminGuideEditForm';
 import { AdminContactManagement } from '@/components/AdminContactManagement';
+import { AdminEmailTesting } from '@/components/AdminEmailTesting';
 import { ImageUploader } from '@/components/ImageUploader';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -272,7 +273,7 @@ const AdminPanel = () => {
         <AdminMobileNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="hidden md:grid grid-cols-4 lg:grid-cols-9 w-full max-w-7xl gap-2">
+          <TabsList className="hidden md:grid grid-cols-4 lg:grid-cols-10 w-full max-w-7xl gap-2">
             <TabsTrigger value="dashboard" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
               <BarChart3 className="h-3 w-3 lg:h-4 lg:w-4" />
               <span className="hidden lg:inline">Dashboard</span>
@@ -304,6 +305,10 @@ const AdminPanel = () => {
             <TabsTrigger value="analytics" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
               <BarChart3 className="h-3 w-3 lg:h-4 lg:w-4" />
               <span className="hidden lg:inline">Analytics</span>
+            </TabsTrigger>
+            <TabsTrigger value="email-testing" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
+              <Mail className="h-3 w-3 lg:h-4 lg:w-4" />
+              <span className="hidden lg:inline">Email</span>
             </TabsTrigger>
           </TabsList>
 
@@ -586,6 +591,14 @@ const AdminPanel = () => {
 
           <TabsContent value="analytics">
             <AdminAnalytics />
+          </TabsContent>
+
+          <TabsContent value="email-testing">
+            <div className="space-y-6">
+              <h2 className="text-xl sm:text-2xl font-bold">Email Template Testing</h2>
+              <p className="text-muted-foreground">Test and preview the premium confirmation email template</p>
+              <AdminEmailTesting />
+            </div>
           </TabsContent>
         </Tabs>
       </div>
