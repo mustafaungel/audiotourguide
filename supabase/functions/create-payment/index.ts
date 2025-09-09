@@ -8,11 +8,9 @@ const corsHeaders = {
 };
 
 const logStep = (step: string, details?: any) => {
-  // Reduced logging for performance - only log critical steps
-  if (step.includes('ERROR') || step.includes('started') || step.includes('session created')) {
-    const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-    console.log(`[CREATE-PAYMENT] ${step}${detailsStr}`);
-  }
+  // Enhanced logging for debugging Buy Now issues
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  console.log(`[CREATE-PAYMENT] ${step}${detailsStr}`);
 };
 
 serve(async (req) => {
@@ -34,8 +32,13 @@ serve(async (req) => {
     const origin = req.headers.get("origin") || req.headers.get("referer") || "http://localhost:3000";
     logStep("Origin header", { origin, referer: req.headers.get("referer") });
 
-    const { guide_id, guest_email, is_guest } = await req.json();
+    const requestBody = await req.json();
+    logStep("Request body received", requestBody);
+    
+    const { guide_id, guest_email, is_guest } = requestBody;
     if (!guide_id) throw new Error("Guide ID is required");
+    
+    logStep("Request validated", { guide_id, has_guest_email: !!guest_email, is_guest });
 
     let user = null;
     let userEmail = guest_email;

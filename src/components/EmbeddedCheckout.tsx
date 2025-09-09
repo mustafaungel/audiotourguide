@@ -70,19 +70,54 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
   }
 
   const handlePayment = async (isGuest: boolean = false) => {
+    console.log('[PAYMENT DEBUG] Starting payment process', {
+      guide: guide.id,
+      user: user?.id,
+      userEmail: user?.email,
+      inputEmail: email,
+      isGuest,
+      loading,
+      timestamp: new Date().toISOString()
+    });
+
     const targetEmail = user?.email || email;
     
-    if (!targetEmail) {
+    // Enhanced email validation
+    if (!targetEmail || targetEmail.trim() === '') {
+      console.log('[PAYMENT DEBUG] Email validation failed', { targetEmail, user: !!user, inputEmail: email });
       toast({
         variant: "destructive",
-        title: "Email required",
-        description: "Please enter your email address to continue"
+        title: "Email Required",
+        description: "Please enter a valid email address to continue"
       });
       return;
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(targetEmail)) {
+      console.log('[PAYMENT DEBUG] Email format validation failed', { targetEmail });
+      toast({
+        variant: "destructive",
+        title: "Invalid Email",
+        description: "Please enter a valid email address"
+      });
+      return;
+    }
+
+    // Prevent double submission
+    if (loading) {
+      console.log('[PAYMENT DEBUG] Already processing, ignoring duplicate request');
+      return;
+    }
+
     setLoading(true);
-    console.log('[PAYMENT] Starting payment process for guide:', guide.id, { email: targetEmail, isGuest });
+    console.log('[PAYMENT DEBUG] Payment process starting', { 
+      targetEmail, 
+      isGuest, 
+      guidePrice: guide.price_usd,
+      guidePriceUSD: guide.price_usd / 100
+    });
 
     try {
       // Validate minimum price on frontend
@@ -90,6 +125,7 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
       const priceInDollars = guide.price_usd / 100;
       
       if (priceInDollars < MINIMUM_PRICE_USD) {
+        console.log('[PAYMENT DEBUG] Price below minimum', { priceInDollars, minimum: MINIMUM_PRICE_USD });
         toast({
           title: "Price Too Low",
           description: `This guide's price ($${priceInDollars.toFixed(2)}) is below the minimum payment threshold of $${MINIMUM_PRICE_USD.toFixed(2)}. Please contact support.`,
@@ -98,20 +134,34 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
         return;
       }
 
-      // Enhanced logging before API call
-      console.log('[PAYMENT] Invoking create-payment function...');
+      // Log function call details
+      const functionPayload = {
+        guide_id: guide.id,
+        guest_email: isGuest ? email : undefined,
+        is_guest: isGuest,
+      };
+      console.log('[PAYMENT DEBUG] Calling create-payment function with payload:', functionPayload);
       
       const { data, error } = await supabase.functions.invoke('create-payment', {
-        body: {
-          guide_id: guide.id,
-          guest_email: isGuest ? email : undefined,
-          is_guest: isGuest,
-        },
+        body: functionPayload,
+      });
+
+      console.log('[PAYMENT DEBUG] Function response received', { 
+        hasData: !!data, 
+        hasError: !!error,
+        data: data ? { hasUrl: !!data.url, urlLength: data.url?.length } : null,
+        error: error ? { message: error.message, details: error } : null
       });
 
       if (error) {
-        console.error('[PAYMENT] Supabase function error:', error);
-        // Enhanced error message handling
+        console.error('[PAYMENT DEBUG] Supabase function error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+          fullError: error
+        });
+        
         const errorMessage = error.message || 'Failed to start payment process';
         
         // Check for specific Stripe minimum amount error
@@ -132,147 +182,93 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
       }
 
       if (!data?.url) {
-        console.error('[PAYMENT] No checkout URL received:', data);
-        throw new Error('Failed to create payment session');
+        console.error('[PAYMENT DEBUG] No checkout URL in response:', { data, hasData: !!data });
+        toast({
+          title: "Payment Session Error",
+          description: "Failed to create payment session. Please try again.",
+          variant: "destructive",
+        });
+        return;
       }
 
-      console.log('[PAYMENT] Checkout URL received:', data.url);
+      console.log('[PAYMENT DEBUG] Checkout URL received, starting redirect:', {
+        url: data.url,
+        urlLength: data.url.length,
+        urlHost: new URL(data.url).hostname
+      });
       
-      // Progressive redirect strategy with enhanced logging
-      await handleStripeRedirect(data.url);
+      // Simplified redirect strategy
+      handleSimpleRedirect(data.url);
       
     } catch (err: any) {
-      console.error('[PAYMENT] Payment process failed:', err);
+      console.error('[PAYMENT DEBUG] Payment process exception:', {
+        message: err.message,
+        stack: err.stack,
+        name: err.name,
+        fullError: err
+      });
       toast({
         title: "Payment Error",
-        description: err.message || 'Failed to start payment process.',
+        description: err.message || 'Failed to start payment process. Please try again.',
         variant: "destructive",
       });
     } finally {
       setLoading(false);
+      console.log('[PAYMENT DEBUG] Payment process completed, loading set to false');
     }
   };
 
-  const handleStripeRedirect = async (checkoutUrl: string): Promise<void> => {
-    console.log('🔧 [REDIRECT] Starting browser-compatible redirect to:', checkoutUrl);
+  const handleSimpleRedirect = (checkoutUrl: string): void => {
+    console.log('[REDIRECT DEBUG] Starting simple redirect to:', checkoutUrl);
     
-    // Detect browser type for compatibility
-    const userAgent = navigator.userAgent;
-    const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
-    const isFirefox = userAgent.toLowerCase().indexOf('firefox') > -1;
-    const isChrome = userAgent.toLowerCase().indexOf('chrome') > -1;
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
-    
-    console.log('🔧 [REDIRECT] Browser detection:', { isSafari, isFirefox, isChrome, isMobile });
-    
-    // Enhanced Strategy 1: Direct assignment with browser-specific handling
     try {
-      console.log('🔧 [REDIRECT] Attempting window.location.href (universal)...');
+      // Simple, reliable redirect strategy
+      window.location.href = checkoutUrl;
       
-      if (isSafari || isMobile) {
-        // Safari and mobile browsers prefer href over assign
-        window.location.href = checkoutUrl;
-      } else {
-        // Chrome, Firefox prefer assign
-        window.location.assign(checkoutUrl);
-      }
-      
-      // Don't wait on mobile - redirect immediately
-      if (!isMobile) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
-      
-      return; // Exit if redirect successful
+      // Show loading message while redirecting
+      toast({
+        title: "Redirecting to Payment",
+        description: "Taking you to Stripe checkout...",
+        duration: 3000,
+      });
       
     } catch (redirectError) {
-      console.error('🔧 [REDIRECT] Primary redirect failed:', redirectError);
-    }
-    
-    // Strategy 2: Enhanced fallback with better browser support
-    try {
-      console.log('🔧 [REDIRECT] Fallback: Enhanced new tab strategy...');
+      console.error('[REDIRECT DEBUG] Redirect failed, trying new tab:', redirectError);
       
-      // Try multiple window.open approaches
-      let newWindow: Window | null = null;
-      
-      if (isSafari) {
-        // Safari-specific approach
-        newWindow = window.open(checkoutUrl, '_blank');
-      } else {
-        // Standard approach for other browsers
-        newWindow = window.open(checkoutUrl, '_blank', 'noopener,noreferrer,width=800,height=600');
-      }
-      
-      if (!newWindow || newWindow.closed) {
-        console.error('🔧 [REDIRECT] Popup blocked or failed, using clipboard fallback...');
-        throw new Error('Popup blocked');
-      }
-      
-      console.log('🔧 [REDIRECT] New tab opened successfully');
-      toast({
-        title: "Payment Window Opened",
-        description: "Complete your payment in the new tab. The window should open automatically.",
-        duration: 4000,
-      });
-      
-      return;
-      
-    } catch (popupError) {
-      console.error('🔧 [REDIRECT] Popup strategy failed:', popupError);
-    }
-    
-    // Strategy 3: Clipboard + manual redirect with enhanced UX
-    try {
-      console.log('🔧 [REDIRECT] Final fallback: clipboard + manual navigation...');
-      
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(checkoutUrl);
-        toast({
-          title: "Popup Blocked - URL Copied!",
-          description: "Payment URL copied to clipboard. Please paste in a new browser tab.",
-          duration: 8000,
-        });
-      } else {
-        // Fallback for non-secure contexts or older browsers
-        const textarea = document.createElement('textarea');
-        textarea.value = checkoutUrl;
-        textarea.style.position = 'fixed';
-        textarea.style.opacity = '0';
-        document.body.appendChild(textarea);
-        textarea.focus();
-        textarea.select();
+      // Fallback to new tab
+      try {
+        const newWindow = window.open(checkoutUrl, '_blank');
+        if (!newWindow) {
+          throw new Error('Popup blocked');
+        }
         
+        toast({
+          title: "Payment Window Opened",
+          description: "Complete your payment in the new tab.",
+          duration: 4000,
+        });
+        
+      } catch (popupError) {
+        console.error('[REDIRECT DEBUG] New tab failed, using clipboard:', popupError);
+        
+        // Final fallback - copy to clipboard
         try {
-          document.execCommand('copy');
+          navigator.clipboard.writeText(checkoutUrl);
           toast({
-            title: "URL Copied (Compatibility Mode)",
-            description: "Payment URL copied. Please paste in a new tab to complete payment.",
+            title: "URL Copied",
+            description: "Payment URL copied to clipboard. Please paste in a new tab.",
             duration: 8000,
           });
-        } catch (copyError) {
+        } catch (clipboardError) {
+          console.error('[REDIRECT DEBUG] All redirect methods failed:', clipboardError);
           toast({
             title: "Manual Navigation Required",
-            description: `Please manually visit: ${checkoutUrl.substring(0, 50)}...`,
-            duration: 10000,
+            description: "Please copy this URL to complete payment: " + checkoutUrl,
+            variant: "destructive",
+            duration: 12000,
           });
-        } finally {
-          document.body.removeChild(textarea);
         }
       }
-      
-    } catch (finalError) {
-      console.error('🔧 [REDIRECT] All strategies failed:', finalError);
-      
-      // Ultimate fallback - show the URL
-      toast({
-        title: "Browser Compatibility Issue",
-        description: "Please check the browser console for the payment URL and navigate manually.",
-        variant: "destructive",
-        duration: 10000,
-      });
-      
-      // Log URL to console for manual access
-      console.log('🔧 [REDIRECT] MANUAL PAYMENT URL:', checkoutUrl);
     }
   };
 
