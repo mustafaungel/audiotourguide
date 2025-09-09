@@ -77,7 +77,7 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
     const emailResponse = await resend.emails.send({
-      from: "AudioGuide Premium <premium@audioguide.app>",
+      from: "AudioGuide Premium <onboarding@resend.dev>",
       to: [email],
       subject: `🎧 Your ${guideTitle} Audio Guide is Ready!`,
       html: html,
