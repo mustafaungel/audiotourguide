@@ -157,7 +157,7 @@ serve(async (req) => {
       }
     }
 
-    // Generate QR code and share link with detailed logging
+    // Generate master access code and share link for ALL guides (published and hidden)
     let baseUrl = Deno.env.get('SITE_URL');
     console.log('Raw SITE_URL environment variable:', baseUrl);
     
@@ -169,13 +169,14 @@ serve(async (req) => {
     // Ensure baseUrl doesn't have trailing slash
     baseUrl = baseUrl.replace(/\/$/, '');
     
-    // Generate master access code for QR code access
+    // Generate master access code for all guides (unified access system)
     const masterAccessCodeResult = await supabaseServiceClient.rpc('generate_access_code');
     const masterAccessCode = masterAccessCodeResult.data;
     
     console.log('Final base URL after processing:', baseUrl);
     const shareUrl = `${baseUrl}/access/${guideData.id}?access_code=${masterAccessCode}`;
     console.log('Generated share URL with master access code:', shareUrl);
+    console.log('Guide will be:', is_published ? 'PUBLISHED (discoverable + payment required)' : 'HIDDEN (access link only)');
     
     // Validate the share URL format (must have access code for direct access)
     if (!shareUrl.match(/^https?:\/\/.+\/access\/[a-f0-9-]+\?access_code=.+$/)) {
@@ -191,7 +192,7 @@ serve(async (req) => {
       throw new Error('QR code generation resulted in base64 encoding, which is invalid');
     }
     
-    // Update guide with master access code, QR code and share URL
+    // Update guide with master access code, QR code and share URL (all guides get these)
     const { error: updateError } = await supabaseServiceClient
       .from('audio_guides')
       .update({
@@ -202,17 +203,25 @@ serve(async (req) => {
       .eq('id', guideData.id);
 
     if (updateError) {
-      console.error('Failed to update guide with QR code:', updateError);
-      throw new Error('Failed to update guide with QR code');
+      console.error('Failed to update guide with access link:', updateError);
+      throw new Error('Failed to update guide with access link');
     }
 
     console.log('Successfully created audio guide:', guideData.id);
-    console.log('Share URL:', shareUrl);
+    console.log('Access Link:', shareUrl);
     console.log('QR Code URL:', qrCodeUrl);
+    console.log('Status:', is_published ? 'Published (discoverable on main page)' : 'Hidden (access link only)');
 
     return new Response(JSON.stringify({ 
-      guide: { ...guideData, qr_code_url: qrCodeUrl, share_url: shareUrl },
-      message: 'Audio guide created successfully and is now published!'
+      guide: { ...guideData, qr_code_url: qrCodeUrl, share_url: shareUrl, master_access_code: masterAccessCode },
+      message: `Audio guide created successfully and is now ${is_published ? 'published' : 'hidden'}!`,
+      access_info: {
+        type: is_published ? 'published' : 'hidden',
+        share_url: shareUrl,
+        description: is_published 
+          ? 'Guide is discoverable on main page and requires payment. Access link provides direct access.'
+          : 'Guide is hidden from main page. Only accessible via the access link.'
+      }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,

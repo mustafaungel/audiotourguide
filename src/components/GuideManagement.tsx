@@ -254,38 +254,52 @@ export const GuideManagement = () => {
               <CardContent>
                 <p className="text-muted-foreground mb-4">{guide.description}</p>
                 
-                {/* QR Code and Share Link Section */}
-                {(guide.qr_code_url || guide.share_url) && (
-                  <div className="mb-4 p-3 border rounded-lg bg-muted/50">
-                    <h4 className="text-sm font-medium mb-2">Share & Access</h4>
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      {guide.qr_code_url && (
-                        <div className="flex items-center gap-2">
-                          <img src={guide.qr_code_url} alt="QR Code" className="w-12 h-12 rounded border" />
-                          <span className="text-xs text-muted-foreground">QR Code</span>
-                        </div>
-                      )}
-                      {guide.share_url && (
-                        <div className="flex-1">
-                          <div className="flex items-center gap-1">
-                            <input 
-                              readOnly 
-                              value={guide.share_url} 
-                              className="text-xs bg-background border rounded px-2 py-1 flex-1 min-w-0"
-                            />
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => copyToClipboard(guide.share_url!, 'Share link')}
-                            >
-                              <Copy className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                {/* Access Link Section - Always Show */}
+                <div className="mb-4 p-3 border rounded-lg bg-muted/50">
+                  <h4 className="text-sm font-medium mb-2">
+                    {guide.is_published ? 'Published Guide Access' : 'Hidden Guide Access Link'}
+                  </h4>
+                  <div className="space-y-2">
+                    {guide.is_published ? (
+                      <div className="text-sm text-muted-foreground">
+                        <p><strong>Main Page:</strong> Discoverable and requires payment</p>
+                        <p><strong>Direct Access:</strong> Use access link below for instant access</p>
+                      </div>
+                    ) : (
+                      <div className="text-sm text-muted-foreground">
+                        <p><strong>Hidden:</strong> Not shown on main page, only accessible via link below</p>
+                      </div>
+                    )}
+                    
+                    {guide.share_url ? (
+                      <div className="flex items-center gap-1">
+                        <input 
+                          readOnly 
+                          value={guide.share_url} 
+                          className="text-xs bg-background border rounded px-2 py-1 flex-1 min-w-0"
+                        />
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => copyToClipboard(guide.share_url!, 'Access link')}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="text-xs text-orange-600">
+                        Access link not generated - guide may need to be recreated
+                      </div>
+                    )}
+                    
+                    {guide.qr_code_url && (
+                      <div className="flex items-center gap-2 pt-2 border-t">
+                        <img src={guide.qr_code_url} alt="QR Code" className="w-12 h-12 rounded border" />
+                        <span className="text-xs text-muted-foreground">QR Code available</span>
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
                 
                 <div className="flex flex-wrap gap-2">
                   <Button 
@@ -306,14 +320,14 @@ export const GuideManagement = () => {
                     Edit
                   </Button>
                   
-                  {!guide.qr_code_url && (
+                  {(!guide.qr_code_url || !guide.share_url) && (
                     <Button 
                       variant="outline" 
                       size="sm"
                       onClick={() => generateQRCode(guide.id)}
                     >
                       <QrCode className="h-4 w-4 mr-1" />
-                      Generate QR
+                      {guide.qr_code_url ? 'Regenerate' : 'Generate'} Access Link
                     </Button>
                   )}
 

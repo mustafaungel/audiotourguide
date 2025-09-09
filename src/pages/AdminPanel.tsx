@@ -227,7 +227,12 @@ const AdminPanel = () => {
       setQrCodeUrl(data.guide.qr_code_url);
       setShareUrl(data.guide.share_url);
       
-      toast.success(isHidden ? 'Audio guide created (hidden) with QR code and share link!' : 'Audio guide published successfully with QR code and share link!');
+      // Show appropriate success message based on access type
+      if (isHidden) {
+        toast.success('Hidden guide created! Only accessible via access link - perfect for private sharing.');
+      } else {
+        toast.success('Published guide created! Discoverable on main page with payment required. Access link available for direct access.');
+      }
       
       // Reset form
       setFormData({ title: '', description: '', city: '', country: '', category: 'Cultural Heritage', price: '12' });
@@ -516,8 +521,14 @@ const AdminPanel = () => {
                         <CardHeader>
                           <CardTitle className="text-green-800 flex items-center gap-2">
                             <QrCode className="h-5 w-5" />
-                            Guide Created Successfully!
+                            {isHidden ? 'Hidden Guide Created!' : 'Published Guide Created!'}
                           </CardTitle>
+                          <CardDescription className="text-green-700">
+                            {isHidden 
+                              ? 'Guide is hidden from main page - only accessible via this access link'
+                              : 'Guide is discoverable on main page with payment required - access link provides direct access'
+                            }
+                          </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -537,7 +548,9 @@ const AdminPanel = () => {
                             
                             <div className="space-y-4">
                               <div className="space-y-2">
-                                <Label className="text-green-700 font-medium">Share Link</Label>
+                                <Label className="text-green-700 font-medium">
+                                  {isHidden ? 'Direct Access Link' : 'Access Link (Bypass Payment)'}
+                                </Label>
                                 <div className="flex gap-2">
                                   <Input 
                                     value={shareUrl} 
@@ -547,12 +560,18 @@ const AdminPanel = () => {
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => copyToClipboard(shareUrl, 'Share link')}
+                                    onClick={() => copyToClipboard(shareUrl, 'Access link')}
                                     className="shrink-0"
                                   >
                                     <Copy className="h-4 w-4" />
                                   </Button>
                                 </div>
+                                <p className="text-xs text-green-600">
+                                  {isHidden 
+                                    ? 'Share this link for instant access to the hidden guide'
+                                    : 'This link bypasses payment and provides instant access'
+                                  }
+                                </p>
                               </div>
                               
                               <div className="space-y-2">
@@ -561,7 +580,8 @@ const AdminPanel = () => {
                                   <p><strong>Title:</strong> {createdGuide.title}</p>
                                   <p><strong>Location:</strong> {createdGuide.location}</p>
                                   <p><strong>Price:</strong> ${(createdGuide.price_usd / 100).toFixed(2)}</p>
-                                  <p><strong>Status:</strong> Published & Approved</p>
+                                  <p><strong>Visibility:</strong> {isHidden ? 'Hidden (Link Only)' : 'Published (Main Page + Link)'}</p>
+                                  <p><strong>Status:</strong> Approved & Ready</p>
                                 </div>
                               </div>
                               
