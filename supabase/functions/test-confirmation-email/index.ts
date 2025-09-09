@@ -43,7 +43,7 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { recipientEmail, recipientName, guideId, testData }: TestEmailRequest = await req.json();
 
-    console.log('Testing email with data:', {
+    console.log('Testing email with master access code:', {
       recipientEmail,
       recipientName,
       guideId,
@@ -115,7 +115,7 @@ const handler = async (req: Request): Promise<Response> => {
       headers: {
         'X-Test-Email': 'true',
         'X-Guide-ID': guideId,
-        'X-Access-Code': testData.access_code
+        'X-Master-Access-Code': testData.access_code
       }
     });
 

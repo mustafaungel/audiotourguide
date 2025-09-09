@@ -18,6 +18,7 @@ interface TestEmailData {
   guideLocation: string;
   includeQRCode: boolean;
   languages: string[];
+  masterAccessCode: string;
 }
 
 export const AdminEmailTesting = () => {
@@ -28,7 +29,8 @@ export const AdminEmailTesting = () => {
     guideTitle: 'Sample Audio Guide',
     guideLocation: 'Paris, France',
     includeQRCode: true,
-    languages: ['English']
+    languages: ['English'],
+    masterAccessCode: ''
   });
 
   const [availableGuides, setAvailableGuides] = useState<any[]>([]);
@@ -44,7 +46,7 @@ export const AdminEmailTesting = () => {
     try {
       const { data: guides, error } = await supabase
         .from('audio_guides')
-        .select('id, title, location, price_usd, languages')
+        .select('id, title, location, price_usd, languages, master_access_code')
         .eq('is_published', true)
         .eq('is_approved', true)
         .limit(10);
@@ -64,17 +66,14 @@ export const AdminEmailTesting = () => {
         guideId: selectedGuide.id,
         guideTitle: selectedGuide.title,
         guideLocation: selectedGuide.location,
-        languages: selectedGuide.languages || ['English']
+        languages: selectedGuide.languages || ['English'],
+        masterAccessCode: selectedGuide.master_access_code || ''
       }));
     }
   };
 
-  const generateTestAccessCode = () => {
-    return 'TEST-' + Math.random().toString(36).substr(2, 8).toUpperCase();
-  };
-
   const sendTestEmail = async () => {
-    if (!testData.recipientEmail || !testData.guideId) {
+    if (!testData.recipientEmail || !testData.guideId || !testData.masterAccessCode) {
       toast.error('Please fill in recipient email and select a guide');
       return;
     }
@@ -83,8 +82,6 @@ export const AdminEmailTesting = () => {
     setEmailResult(null);
 
     try {
-      const testAccessCode = generateTestAccessCode();
-      
       const { data, error } = await supabase.functions.invoke('test-confirmation-email', {
         body: {
           recipientEmail: testData.recipientEmail,
@@ -93,7 +90,7 @@ export const AdminEmailTesting = () => {
           testData: {
             title: testData.guideTitle,
             location: testData.guideLocation,
-            access_code: testAccessCode,
+            access_code: testData.masterAccessCode,
             include_qr_code: testData.includeQRCode,
             languages: testData.languages
           }
@@ -120,7 +117,7 @@ export const AdminEmailTesting = () => {
   };
 
   const previewEmail = async () => {
-    if (!testData.guideId) {
+    if (!testData.guideId || !testData.masterAccessCode) {
       toast.error('Please select a guide first');
       return;
     }
@@ -128,15 +125,13 @@ export const AdminEmailTesting = () => {
     setPreviewLoading(true);
 
     try {
-      const testAccessCode = generateTestAccessCode();
-      
       const { data, error } = await supabase.functions.invoke('preview-confirmation-email', {
         body: {
           guideId: testData.guideId,
           testData: {
             title: testData.guideTitle,
             location: testData.guideLocation,
-            access_code: testAccessCode,
+            access_code: testData.masterAccessCode,
             include_qr_code: testData.includeQRCode,
             languages: testData.languages
           }
@@ -269,7 +264,7 @@ export const AdminEmailTesting = () => {
           <Button
             onClick={previewEmail}
             variant="outline"
-            disabled={previewLoading || !testData.guideId}
+            disabled={previewLoading || !testData.guideId || !testData.masterAccessCode}
             className="flex-1"
           >
             {previewLoading ? (
@@ -287,7 +282,7 @@ export const AdminEmailTesting = () => {
           
           <Button
             onClick={sendTestEmail}
-            disabled={loading || !testData.recipientEmail || !testData.guideId}
+            disabled={loading || !testData.recipientEmail || !testData.guideId || !testData.masterAccessCode}
             className="flex-1"
           >
             {loading ? (
