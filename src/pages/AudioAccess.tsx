@@ -87,85 +87,51 @@ export default function AudioAccess() {
       let isValidAccess = false;
       let accessType = '';
 
-      console.log('[AUDIO-ACCESS] Starting access verification:', { 
+      console.log('[AUDIO-ACCESS] Starting secure access verification and guide loading:', { 
         guide_id: guideId, 
         access_code: accessCode?.trim(),
         user: user?.id || 'guest'
       });
 
-      // First check if it's a master access code using secure RPC function
-      const { data: isMasterValid, error: masterError } = await supabase
-        .rpc('verify_master_access_code', {
+      // Use the secure function that verifies access and returns guide data in one call
+      const { data: guideData, error: accessError } = await supabase
+        .rpc('get_guide_with_access', {
           p_guide_id: guideId,
           p_access_code: accessCode?.trim()
         });
 
-      if (masterError) {
-        console.error('[AUDIO-ACCESS] Error verifying master access code:', masterError);
+      if (accessError) {
+        console.error('[AUDIO-ACCESS] Error verifying access:', accessError);
+        setError('Access verification failed');
+        setIsLoading(false);
+        return;
       }
 
-      if (isMasterValid) {
-        isValidAccess = true;
-        accessType = 'master';
-        console.log('[AUDIO-ACCESS] Valid master access code');
-      } else {
-        console.log('[AUDIO-ACCESS] Not a master access code, checking purchase codes...');
-        
-        // If not a master access code, check if it's a purchase code
-        const { data: isValidPurchase, error: verifyError } = await supabase
-          .rpc('verify_access_code_secure', {
-            p_access_code: accessCode?.trim(),
-            p_guide_id: guideId
-          });
-
-        console.log('[AUDIO-ACCESS] Purchase access verification result:', { 
-          isValidPurchase, 
-          verifyError
-        });
-
-        if (isValidPurchase) {
-          isValidAccess = true;
-          accessType = 'purchase';
-          console.log('[AUDIO-ACCESS] Valid purchase access code');
-        } else if (verifyError) {
-          console.warn('[AUDIO-ACCESS] Purchase verification error (not fatal):', verifyError);
-        }
-      }
-
-      if (!isValidAccess) {
-        console.error('[AUDIO-ACCESS] No valid access found for code:', accessCode?.trim());
+      if (!guideData || guideData.length === 0) {
+        console.log('[AUDIO-ACCESS] Invalid access code');
         setError('Invalid access code or guide not found');
         setIsLoading(false);
         return;
       }
 
-      console.log('[AUDIO-ACCESS] Access verified via:', accessType);
-
-      // Access verified, now load guide details
-      const { data: guideData, error: guideError } = await supabase
-        .from('audio_guides')
-        .select('*')
-        .eq('id', guideId)
-        .maybeSingle();
-
-      if (guideError || !guideData) {
-        setError('Guide not found');
-        setIsLoading(false);
-        return;
-      }
+      const guide = guideData[0]; // RPC returns array
+      console.log('[AUDIO-ACCESS] Access verified and guide loaded successfully', {
+        title: guide.title,
+        isPublished: guide.is_published
+      });
 
       // Creator profile removed - no longer available
 
       // Transform guide data
       const transformedGuide = {
-        ...guideData,
+        ...guide,
         creator: {
           name: 'Anonymous Creator',
           avatar: '',
           bio: ''
         },
-        sections: guideData.sections ? 
-          (typeof guideData.sections === 'string' ? JSON.parse(guideData.sections) : guideData.sections) 
+        sections: guide.sections ? 
+          (typeof guide.sections === 'string' ? JSON.parse(guide.sections) : guide.sections) 
           : []
       };
 

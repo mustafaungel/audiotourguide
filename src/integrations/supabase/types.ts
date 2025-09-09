@@ -989,6 +989,34 @@ export type Database = {
           purchase_date: string
         }[]
       }
+      get_guide_with_access: {
+        Args: { p_access_code: string; p_guide_id: string }
+        Returns: {
+          audio_url: string
+          best_time: string
+          category: string
+          created_at: string
+          creator_id: string
+          currency: string
+          description: string
+          difficulty: string
+          duration: number
+          id: string
+          image_url: string
+          image_urls: string[]
+          is_approved: boolean
+          is_published: boolean
+          languages: string[]
+          location: string
+          price_usd: number
+          rating: number
+          sections: Json
+          title: string
+          total_reviews: number
+          transcript: string
+          updated_at: string
+        }[]
+      }
       get_masked_guest_email: {
         Args: { p_guest_email: string; p_user_id: string }
         Returns: string

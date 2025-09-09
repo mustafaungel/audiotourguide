@@ -135,9 +135,13 @@ export const useLibraryAudio = ({ guideId, accessCode, title }: UseLibraryAudioP
   };
 
   const setVolumeLevel = (newVolume: number) => {
+    console.log('[AUDIO] Setting volume to:', newVolume);
     setVolume(newVolume);
     if (audioRef.current) {
       audioRef.current.volume = newVolume;
+      // Force update on mobile devices
+      audioRef.current.muted = false;
+      console.log('[AUDIO] Volume set on audio element:', audioRef.current.volume);
     }
   };
 

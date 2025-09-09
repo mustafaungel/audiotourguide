@@ -61,8 +61,11 @@ export const LibraryAudioPlayer: React.FC<LibraryAudioPlayerProps> = ({
 
   const handleVolumeChange = (newVolume: number[]) => {
     const vol = newVolume[0] / 100;
+    console.log('[LIBRARY-AUDIO] Volume change requested:', vol);
     setVolume(vol);
     setIsMuted(vol === 0);
+    // Immediately apply volume to audio element
+    setVolume(vol);
   };
 
   const handleVolumeSliderChange = (newVolume: number[]) => {
@@ -70,12 +73,18 @@ export const LibraryAudioPlayer: React.FC<LibraryAudioPlayerProps> = ({
   };
 
   const handleMute = () => {
+    console.log('[LIBRARY-AUDIO] Mute toggle requested, current state:', isMuted);
     if (isMuted) {
-      setVolume(0.5);
+      const newVolume = volume > 0 ? volume : 0.5;
+      setVolume(newVolume);
       setIsMuted(false);
+      // Immediately apply volume to audio element
+      setVolume(newVolume);
     } else {
       setVolume(0);
       setIsMuted(true);
+      // Immediately apply volume to audio element
+      setVolume(0);
     }
   };
 
