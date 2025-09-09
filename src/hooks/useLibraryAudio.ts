@@ -14,6 +14,7 @@ export const useLibraryAudio = ({ guideId, accessCode, title }: UseLibraryAudioP
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [audioSrc, setAudioSrc] = useState<string | null>(null);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -64,6 +65,7 @@ export const useLibraryAudio = ({ guideId, accessCode, title }: UseLibraryAudioP
         
         audio.addEventListener('loadedmetadata', () => {
           setDuration(audio.duration);
+          audio.playbackRate = playbackSpeed;
         });
         
         audio.addEventListener('ended', () => {
@@ -89,6 +91,7 @@ export const useLibraryAudio = ({ guideId, accessCode, title }: UseLibraryAudioP
       if (audioRef.current && audioSrc) {
         audioRef.current.src = audioSrc;
         audioRef.current.volume = volume;
+        audioRef.current.playbackRate = playbackSpeed;
         
         await audioRef.current.play();
         setIsPlaying(true);
@@ -138,6 +141,13 @@ export const useLibraryAudio = ({ guideId, accessCode, title }: UseLibraryAudioP
     }
   };
 
+  const setSpeedLevel = (newSpeed: number) => {
+    setPlaybackSpeed(newSpeed);
+    if (audioRef.current) {
+      audioRef.current.playbackRate = newSpeed;
+    }
+  };
+
   const cleanup = () => {
     if (audioRef.current) {
       audioRef.current.pause();
@@ -154,11 +164,13 @@ export const useLibraryAudio = ({ guideId, accessCode, title }: UseLibraryAudioP
     currentTime,
     duration,
     volume,
+    playbackSpeed,
     play,
     pause,
     stop,
     seek,
     setVolume: setVolumeLevel,
+    setSpeed: setSpeedLevel,
     cleanup,
   };
 };

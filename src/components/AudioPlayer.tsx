@@ -436,7 +436,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
             {/* Playback Speed Controls */}
             <div className="flex items-center justify-center gap-2">
               <span className="text-xs text-muted-foreground mr-2">Speed:</span>
-              {[0.75, 1, 1.25, 1.5].map((speed) => (
+              {[0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => (
                 <Button
                   key={speed}
                   variant={playbackSpeed === speed ? "secondary" : "ghost"}

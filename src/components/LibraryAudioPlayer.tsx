@@ -22,6 +22,8 @@ export const LibraryAudioPlayer: React.FC<LibraryAudioPlayerProps> = ({
   onClose
 }) => {
   const [isMuted, setIsMuted] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   
   const {
     isPlaying,
@@ -29,11 +31,13 @@ export const LibraryAudioPlayer: React.FC<LibraryAudioPlayerProps> = ({
     currentTime,
     duration,
     volume,
+    playbackSpeed: hookPlaybackSpeed,
     play,
     pause,
     stop,
     seek,
     setVolume,
+    setSpeed,
     cleanup
   } = useLibraryAudio({
     guideId: guide.id,
@@ -81,6 +85,13 @@ export const LibraryAudioPlayer: React.FC<LibraryAudioPlayerProps> = ({
     seek(newTime);
   };
 
+  const handleSpeedChange = (speed: number) => {
+    setPlaybackSpeed(speed);
+    if (setSpeed) {
+      setSpeed(speed);
+    }
+  };
+
   React.useEffect(() => {
     return () => {
       cleanup();
@@ -119,23 +130,27 @@ export const LibraryAudioPlayer: React.FC<LibraryAudioPlayerProps> = ({
         </div>
 
         {/* Enhanced Controls */}
-        <div className="flex items-center justify-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => skip(-15)}
-            disabled={loading}
-            className="h-12 w-12 min-h-[48px] touch-manipulation rounded-full"
-            title="Skip back 15 seconds"
-          >
-            <SkipBack className="h-5 w-5" />
-          </Button>
+        <div className="flex items-center justify-center gap-2">
+          {/* Skip Back with Label */}
+          <div className="flex flex-col items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => skip(-15)}
+              disabled={loading}
+              className="h-12 w-12 min-h-[48px] touch-manipulation rounded-full"
+              title="Skip back 15 seconds"
+            >
+              <SkipBack className="h-5 w-5" />
+            </Button>
+            <span className="text-xs text-muted-foreground font-medium">15s</span>
+          </div>
           
           <Button
             onClick={handlePlayPause}
             disabled={loading}
             size="lg"
-            className="h-14 w-14 min-h-[56px] touch-manipulation rounded-full bg-gradient-primary hover:bg-gradient-primary/90 shadow-lg"
+            className="h-14 w-14 min-h-[56px] touch-manipulation rounded-full bg-gradient-primary hover:bg-gradient-primary/90 shadow-lg mx-4"
           >
             {loading ? (
               <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -146,40 +161,77 @@ export const LibraryAudioPlayer: React.FC<LibraryAudioPlayerProps> = ({
             )}
           </Button>
           
+          {/* Skip Forward with Label */}
+          <div className="flex flex-col items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => skip(15)}
+              disabled={loading}
+              className="h-12 w-12 min-h-[48px] touch-manipulation rounded-full"
+              title="Skip forward 15 seconds"
+            >
+              <SkipForward className="h-5 w-5" />
+            </Button>
+            <span className="text-xs text-muted-foreground font-medium">15s</span>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="flex items-center justify-center gap-3">
           <Button
             variant="ghost"
-            size="icon"
-            onClick={() => skip(15)}
-            disabled={loading}
-            className="h-12 w-12 min-h-[48px] touch-manipulation rounded-full"
-            title="Skip forward 15 seconds"
+            size="sm"
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            className="text-xs touch-manipulation"
           >
-            <SkipForward className="h-5 w-5" />
+            {showAdvanced ? 'Less' : 'More'}
           </Button>
         </div>
 
-        {/* Volume Control */}
-        <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleMute}
-            className="h-10 w-10 min-h-[40px] touch-manipulation flex-shrink-0"
-          >
-            {isMuted || volume === 0 ? (
-              <VolumeX className="h-4 w-4" />
-            ) : (
-              <Volume2 className="h-4 w-4" />
-            )}
-          </Button>
-          <Slider
-            value={[volume * 100]}
-            onValueChange={handleVolumeChange}
-            max={100}
-            step={1}
-            className="flex-1 h-2 touch-manipulation"
-          />
-        </div>
+        {/* Advanced Controls */}
+        {showAdvanced && (
+          <div className="space-y-3 pt-3 border-t border-border/50">
+            {/* Speed Controls */}
+            <div className="flex items-center justify-center gap-1">
+              <span className="text-xs text-muted-foreground mr-2">Speed:</span>
+              {[0.5, 0.75, 1, 1.25, 1.5].map((speed) => (
+                <Button
+                  key={speed}
+                  variant={playbackSpeed === speed ? "secondary" : "ghost"}
+                  size="sm"
+                  onClick={() => handleSpeedChange(speed)}
+                  className="h-7 px-2 text-xs touch-manipulation"
+                >
+                  {speed}x
+                </Button>
+              ))}
+            </div>
+
+            {/* Volume Control */}
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleMute}
+                className="h-10 w-10 min-h-[40px] touch-manipulation flex-shrink-0"
+              >
+                {isMuted || volume === 0 ? (
+                  <VolumeX className="h-4 w-4" />
+                ) : (
+                  <Volume2 className="h-4 w-4" />
+                )}
+              </Button>
+              <Slider
+                value={[volume * 100]}
+                onValueChange={handleVolumeChange}
+                max={100}
+                step={1}
+                className="flex-1 h-2 touch-manipulation"
+              />
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
