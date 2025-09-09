@@ -267,6 +267,22 @@ All colors MUST be HSL.
   }
 }
 
+/* Mobile optimizations */
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.touch-manipulation {
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 @layer base {
   * {
     @apply border-border;
