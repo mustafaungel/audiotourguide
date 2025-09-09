@@ -6,10 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Star, MapPin, Clock, ChevronLeft, Lock, CheckCircle } from "lucide-react";
+import { Star, MapPin, Clock, ChevronLeft, Lock, CheckCircle, Wifi, WifiOff, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { withRetry, isNetworkError, getRegionalErrorMessage, getErrorRecoveryActions } from "@/utils/networkUtils";
 
 export default function AudioAccess() {
   const { guideId } = useParams();
@@ -24,6 +25,9 @@ export default function AudioAccess() {
   const [error, setError] = useState<string | null>(null);
   const [accessGranted, setAccessGranted] = useState(false);
   const [isAdminAccess, setIsAdminAccess] = useState(false);
+  const [isRetrying, setIsRetrying] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const [isNetworkIssue, setIsNetworkIssue] = useState(false);
 
   const accessCode = searchParams.get('access_code') || searchParams.get('access');
   const sessionId = searchParams.get('session_id');
@@ -62,9 +66,10 @@ export default function AudioAccess() {
       return;
     }
 
-    console.log('[AUDIO-ACCESS] Verifying access:', { guideId, accessCode });
+    console.log('[AUDIO-ACCESS] Verifying access:', { guideId, accessCode, retryCount });
     setIsLoading(true);
     setError(null);
+    setIsNetworkIssue(false);
 
     try {
       let isValidAccess = false;
@@ -75,15 +80,22 @@ export default function AudioAccess() {
         access_code: accessCode?.trim(),
         user: user?.id || 'guest',
         isAuthenticated: !!user,
-        supabaseAuth: !!supabase.auth.getUser
+        supabaseAuth: !!supabase.auth.getUser,
+        attempt: retryCount + 1
       });
 
-      // Use the secure function that verifies access and returns guide data in one call
-      const { data: guideData, error: accessError } = await supabase
-        .rpc('get_guide_with_access', {
-          p_guide_id: guideId,
-          p_access_code: accessCode?.trim()
-        });
+      // Use retry mechanism for network resilience
+      const result = await withRetry(
+        async () => {
+          return await supabase.rpc('get_guide_with_access', {
+            p_guide_id: guideId,
+            p_access_code: accessCode?.trim()
+          });
+        },
+        { maxAttempts: 3, baseDelay: 2000 }
+      );
+      
+      const { data: guideData, error: accessError } = result;
 
       console.log('[AUDIO-ACCESS] RPC Response:', { 
         hasData: !!guideData, 
@@ -97,7 +109,14 @@ export default function AudioAccess() {
 
       if (accessError) {
         console.error('[AUDIO-ACCESS] Error verifying access:', accessError);
-        setError(`Access verification failed: ${accessError.message || accessError.code || 'Unknown error'}`);
+        const isNetwork = isNetworkError(accessError);
+        setIsNetworkIssue(isNetwork);
+        
+        if (isNetwork) {
+          setError(getRegionalErrorMessage(accessError));
+        } else {
+          setError(`Access verification failed: ${accessError.message || accessError.code || 'Unknown error'}`);
+        }
         setIsLoading(false);
         return;
       }
@@ -141,9 +160,17 @@ export default function AudioAccess() {
 
     } catch (error) {
       console.error('Error verifying access:', error);
-      setError('Failed to verify access. Please try again.');
+      const isNetwork = isNetworkError(error);
+      setIsNetworkIssue(isNetwork);
+      
+      if (isNetwork) {
+        setError(getRegionalErrorMessage(error));
+      } else {
+        setError('Failed to verify access. Please try again.');
+      }
     } finally {
       setIsLoading(false);
+      setIsRetrying(false);
     }
   };
 
@@ -198,9 +225,16 @@ export default function AudioAccess() {
     try {
       console.log('[AUDIO-ACCESS] Verifying payment session:', sessionId);
       
-      const { data, error } = await supabase.functions.invoke('verify-payment', {
-        body: { session_id: sessionId, guide_id: guideId }
-      });
+      const result = await withRetry(
+        async () => {
+          return await supabase.functions.invoke('verify-payment', {
+            body: { session_id: sessionId, guide_id: guideId }
+          });
+        },
+        { maxAttempts: 3, baseDelay: 2000 }
+      );
+      
+      const { data, error } = result;
 
       console.log('[AUDIO-ACCESS] Payment verification response:', { data, error });
 
@@ -246,7 +280,14 @@ export default function AudioAccess() {
 
     } catch (error) {
       console.error('[AUDIO-ACCESS] Error during payment verification:', error);
-      setError(`Verification failed: ${error instanceof Error ? error.message : String(error)}`);
+      const isNetwork = isNetworkError(error);
+      setIsNetworkIssue(isNetwork);
+      
+      if (isNetwork) {
+        setError(`Payment verification failed due to connection issues: ${getRegionalErrorMessage(error)}`);
+      } else {
+        setError(`Verification failed: ${error instanceof Error ? error.message : String(error)}`);
+      }
       setIsLoading(false);
     }
   };
@@ -333,7 +374,47 @@ export default function AudioAccess() {
               
               {/* Show different actions based on the error type */}
               <div className="flex flex-col gap-3 items-center">
-                {sessionId && error?.includes('payment') && (
+                {/* Network-aware retry button */}
+                {isNetworkIssue && (
+                  <div className="mb-4 p-4 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
+                    <div className="flex items-center gap-2 mb-3">
+                      <WifiOff className="w-5 h-5 text-blue-600" />
+                      <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                        Connection Issue Detected
+                      </p>
+                    </div>
+                    <p className="text-xs text-blue-600 dark:text-blue-400 mb-3">
+                      This error commonly occurs in certain regions due to network restrictions. 
+                      We'll automatically retry with optimized settings.
+                    </p>
+                    <Button 
+                      onClick={async () => {
+                        console.log('[AUDIO-ACCESS] Manual retry triggered');
+                        setIsRetrying(true);
+                        setRetryCount(prev => prev + 1);
+                        setError(null);
+                        await verifyAccessAndLoadGuide();
+                      }}
+                      disabled={isRetrying}
+                      size="sm"
+                      className="w-full"
+                    >
+                      {isRetrying ? (
+                        <>
+                          <RotateCcw className="w-4 h-4 mr-2 animate-spin" />
+                          Retrying Connection...
+                        </>
+                      ) : (
+                        <>
+                          <Wifi className="w-4 h-4 mr-2" />
+                          Retry Connection (Attempt {retryCount + 1})
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
+
+                {sessionId && error?.includes('payment') && !isNetworkIssue && (
                   <Button 
                     onClick={() => {
                       console.log('[AUDIO-ACCESS] Retrying payment verification');
@@ -360,6 +441,21 @@ export default function AudioAccess() {
                     If you just completed a payment and are seeing this error, 
                     please contact support with session ID: {sessionId.slice(-8)}
                   </p>
+                )}
+                
+                {/* Regional troubleshooting info */}
+                {isNetworkIssue && (
+                  <div className="mt-4 p-3 rounded-lg bg-gray-50 dark:bg-gray-900 border">
+                    <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Troubleshooting Tips for Regional Access:
+                    </p>
+                    <ul className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                      <li>• Try switching to a different network (mobile data vs WiFi)</li>
+                      <li>• Check if you can access other websites normally</li>
+                      <li>• If using a VPN, try disabling it temporarily</li>
+                      <li>• Clear your browser cache and try again</li>
+                    </ul>
+                  </div>
                 )}
               </div>
             </div>
