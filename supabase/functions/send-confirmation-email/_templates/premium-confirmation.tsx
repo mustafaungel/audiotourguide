@@ -63,7 +63,39 @@ export const PremiumConfirmationEmail = ({
           <Section style={header}>
             <Row>
               <Column>
-                <Heading style={headerTitle}>AudioGuide</Heading>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{
+                    width: '32px',
+                    height: '32px',
+                    background: 'linear-gradient(135deg, #059669, #047857)',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    position: 'relative'
+                  }}>
+                    <div style={{ 
+                      position: 'absolute',
+                      top: '-4px',
+                      right: '-4px',
+                      width: '12px',
+                      height: '12px',
+                      background: 'linear-gradient(135deg, #fb923c, #ea580c)',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <div style={{
+                        width: '4px',
+                        height: '4px',
+                        backgroundColor: 'white',
+                        borderRadius: '50%'
+                      }}></div>
+                    </div>
+                  </div>
+                  <Heading style={headerTitle}>Audio Tour Guides</Heading>
+                </div>
               </Column>
               <Column align="right">
                 <Text style={headerSubtext}>Premium Experience</Text>
@@ -230,13 +262,13 @@ export const PremiumConfirmationEmail = ({
           <Section style={footer}>
             <Hr style={divider} />
             <Text style={footerText}>
-              Thank you for choosing AudioGuide for your travel adventures!
+              Thank you for choosing Audio Tour Guides for your travel adventures!
             </Text>
             <Text style={footerSubtext}>
               Need help? Contact us at {supportEmail}
             </Text>
             <Text style={footerCopyright}>
-              © 2024 AudioGuide. All rights reserved.
+              © 2024 Audio Tour Guides. All rights reserved.
             </Text>
           </Section>
         </Container>

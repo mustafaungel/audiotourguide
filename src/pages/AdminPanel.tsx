@@ -22,6 +22,7 @@ import { CountrySelector } from '@/components/CountrySelector';
 import { AudioGuideSectionManager } from '@/components/AudioGuideSectionManager';
 import { AdminGuideEditForm } from '@/components/AdminGuideEditForm';
 import { AdminContactManagement } from '@/components/AdminContactManagement';
+import { EmailSystemTest } from '@/components/EmailSystemTest';
 
 import { ImageUploader } from '@/components/ImageUploader';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -281,7 +282,7 @@ const AdminPanel = () => {
         <AdminMobileNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="hidden md:grid grid-cols-5 w-full max-w-4xl gap-2">
+          <TabsList className="hidden md:grid grid-cols-6 w-full max-w-5xl gap-1">
             <TabsTrigger value="dashboard" className="flex items-center gap-2 text-sm">
               <FileText className="h-4 w-4" />
               <span>Dashboard</span>
@@ -293,6 +294,10 @@ const AdminPanel = () => {
             <TabsTrigger value="contact-management" className="flex items-center gap-2 text-sm">
               <Mail className="h-4 w-4" />
               <span>Contact</span>
+            </TabsTrigger>
+            <TabsTrigger value="email-test" className="flex items-center gap-2 text-sm">
+              <Mail className="h-4 w-4" />
+              <span>Email</span>
             </TabsTrigger>
             <TabsTrigger value="create-guide" className="flex items-center gap-2 text-sm">
               <Plus className="h-4 w-4" />
@@ -318,6 +323,13 @@ const AdminPanel = () => {
 
           <TabsContent value="contact-management">
             <AdminContactManagement />
+          </TabsContent>
+
+          <TabsContent value="email-test">
+            <div className="space-y-6">
+              <h2 className="text-xl sm:text-2xl font-bold">Email System Testing</h2>
+              <EmailSystemTest />
+            </div>
           </TabsContent>
 
 
