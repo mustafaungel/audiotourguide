@@ -428,7 +428,7 @@ export default function AudioAccess() {
                 )}
                 
                 <div className="flex gap-2 justify-center">
-                  <Button onClick={() => navigate('/search')}>
+                  <Button onClick={() => navigate('/guides')}>
                     Browse Guides
                   </Button>
                   <Button variant="outline" onClick={() => navigate('/')}>

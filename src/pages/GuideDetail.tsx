@@ -417,7 +417,7 @@ const GuideDetail = () => {
               <p className="text-muted-foreground mb-4">
                 {error || "The guide you're looking for doesn't exist or is not available."}
               </p>
-              <Button onClick={() => navigate('/search')}>
+              <Button onClick={() => navigate('/guides')}>
                 Browse Other Guides
               </Button>
             </div>
@@ -433,10 +433,10 @@ const GuideDetail = () => {
       
       <div className="container mx-auto px-4 py-6">
         {/* Back Button */}
-        <Button variant="ghost" size="sm" className="mb-4" onClick={() => navigate('/search')}>
-          <ChevronLeft className="w-4 h-4 mr-2" />
-          Back to Guides
-        </Button>
+                <Button variant="ghost" size="sm" className="mb-4" onClick={() => navigate('/guides')}>
+                  <ChevronLeft className="w-4 h-4 mr-2" />
+                  Back to Guides
+                </Button>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
@@ -739,12 +739,7 @@ const GuideDetail = () => {
           <div className="space-y-6">
             {/* Purchase Card */}
             <Card>
-              <CardHeader>
-                <CardTitle className="text-center text-lg">
-                  Purchase Guide
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-3 pt-6">
                 {isPurchased ? (
                   <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
                     <div className="flex items-center justify-center gap-2 mb-2">
@@ -756,29 +751,17 @@ const GuideDetail = () => {
                     </p>
                   </div>
                   ) : (
-                    <div className="space-y-4">
-                      {/* Price Display */}
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-primary mb-2">
-                          ${(guide.price_usd / 100).toFixed(2)}
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          Get instant access to this premium audio guide
-                        </p>
-                      </div>
-                      
-                      <EmbeddedCheckout
-                        guide={{
-                          id: guide.id,
-                          title: guide.title,
-                          price_usd: guide.price_usd,
-                          creator_name: guide.creator?.name,
-                          image_url: guide.image_url
-                        }}
-                        onSuccess={handlePaymentSuccess}
-                        onCancel={() => setShowPaymentModal(false)}
-                      />
-                    </div>
+                    <EmbeddedCheckout
+                      guide={{
+                        id: guide.id,
+                        title: guide.title,
+                        price_usd: guide.price_usd,
+                        creator_name: guide.creator?.name !== 'Anonymous Creator' ? guide.creator?.name : undefined,
+                        image_url: guide.image_url
+                      }}
+                      onSuccess={handlePaymentSuccess}
+                      onCancel={() => setShowPaymentModal(false)}
+                    />
                   )}
                </CardContent>
              </Card>

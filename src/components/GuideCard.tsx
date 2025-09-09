@@ -206,7 +206,7 @@ export function GuideCard({
                 </AvatarFallback>
               </Avatar>
               <span className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors truncate">
-                {creatorName}
+                {creatorName !== 'Anonymous Creator' ? creatorName : 'Guide Creator'}
               </span>
             </div>
             <div className="text-right flex-shrink-0 ml-2">
