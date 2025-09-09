@@ -50,6 +50,7 @@ export const AdminEmailTesting = () => {
         .from('audio_guides')
         .select('id, title, location, price_usd')
         .eq('is_published', true)
+        .eq('is_approved', true)
         .limit(10);
 
       if (error) throw error;
@@ -215,7 +216,7 @@ export const AdminEmailTesting = () => {
           <h3 className="font-semibold">Guide Information</h3>
           
           <div>
-            <Label htmlFor="guideSelect">Select Published Guide *</Label>
+            <Label htmlFor="guideSelect">Select Published & Approved Guide *</Label>
             <Select value={testData.guideId} onValueChange={handleGuideSelection}>
               <SelectTrigger className="mt-1">
                 <SelectValue placeholder="Choose a guide to test with..." />

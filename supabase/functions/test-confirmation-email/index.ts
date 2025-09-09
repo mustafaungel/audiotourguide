@@ -51,6 +51,10 @@ const handler = async (req: Request): Promise<Response> => {
       testData
     });
 
+    // Get base URL and ensure no double slashes
+    const siteUrl = Deno.env.get('SITE_URL') || 'https://audiotourguide.app';
+    const baseUrl = siteUrl.endsWith('/') ? siteUrl.slice(0, -1) : siteUrl;
+
     // Prepare email template data
     const emailData = {
       guideName: testData.title,
@@ -61,8 +65,8 @@ const handler = async (req: Request): Promise<Response> => {
       purchaseAmount: testData.price_paid,
       currency: testData.currency,
       purchaseDate: new Date().toISOString(),
-      guideUrl: `${Deno.env.get('SITE_URL')}/guide/${guideId}`,
-      accessUrl: `${Deno.env.get('SITE_URL')}/audio-access?code=${testData.access_code}&guide=${guideId}`,
+      guideUrl: `${baseUrl}/guide/${guideId}`,
+      accessUrl: `${baseUrl}/audio-access?code=${testData.access_code}&guide=${guideId}`,
       supportEmail: 'support@audioguides.com',
       qrCodeUrl: testData.include_qr_code ? `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==` : undefined
     };

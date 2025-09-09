@@ -17,31 +17,41 @@ import {
 import * as React from 'npm:react@18.3.1';
 
 interface PremiumConfirmationEmailProps {
-  guideTitle: string;
+  guideName: string;
   guideLocation: string;
-  guideImageUrl?: string;
-  guideDuration: number;
-  guideUrl: string;
-  accessCode?: string;
   customerName?: string;
-  purchaseDate: string;
-  price: string;
+  customerEmail: string;
+  accessCode?: string;
+  purchaseAmount: number;
   currency: string;
+  purchaseDate: string;
+  guideUrl: string;
+  accessUrl: string;
+  supportEmail: string;
+  qrCodeUrl?: string;
 }
 
 export const PremiumConfirmationEmail = ({
-  guideTitle,
+  guideName,
   guideLocation,
-  guideImageUrl,
-  guideDuration,
-  guideUrl,
-  accessCode,
   customerName,
+  customerEmail,
+  accessCode,
+  purchaseAmount,
+  currency,
   purchaseDate,
-  price,
-  currency
+  guideUrl,
+  accessUrl,
+  supportEmail,
+  qrCodeUrl
 }: PremiumConfirmationEmailProps) => {
-  const previewText = `Your ${guideTitle} audio guide is ready! Start your immersive journey now.`;
+  const previewText = `Your ${guideName} audio guide is ready! Start your immersive journey now.`;
+  const formattedPrice = (purchaseAmount / 100).toFixed(2);
+  const formattedDate = new Date(purchaseDate).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
 
   return (
     <Html>
@@ -63,17 +73,10 @@ export const PremiumConfirmationEmail = ({
 
           {/* Hero Section */}
           <Section style={heroSection}>
-            {guideImageUrl && (
-              <Img
-                src={guideImageUrl}
-                alt={guideTitle}
-                style={heroImage}
-              />
-            )}
             <div style={heroOverlay}>
               <Heading style={heroTitle}>🎉 Purchase Confirmed!</Heading>
               <Text style={heroSubtext}>
-                Thank you {customerName ? customerName : 'valued customer'}! Your premium audio guide is ready.
+                Thank you {customerName || 'valued customer'}! Your premium audio guide is ready.
               </Text>
             </div>
           </Section>
@@ -82,23 +85,23 @@ export const PremiumConfirmationEmail = ({
           <Section style={guideCard}>
             <Row>
               <Column style={guideInfo}>
-                <Heading style={guideTitle}>{guideTitle}</Heading>
+                <Heading style={guideTitle}>{guideName}</Heading>
                 <Text style={guideLocation}>📍 {guideLocation}</Text>
-                <Text style={guideDurationText}>⏱️ {Math.floor(guideDuration / 60)} minutes of premium content</Text>
+                <Text style={guideDurationText}>🎧 Premium audio experience</Text>
               </Column>
             </Row>
           </Section>
 
           {/* Access Section */}
           <Section style={accessSection}>
-            <Heading style={accessTitle}>🎧 Start Your Journey</Heading>
+            <Heading style={accessTitle}>🎧 Start Listening Now</Heading>
             <Text style={accessText}>
               Your personalized audio experience is ready. Click below to begin your immersive adventure.
             </Text>
             
             <div style={buttonContainer}>
-              <Button style={primaryButton} href={guideUrl}>
-                🎵 Listen Now
+              <Button style={primaryButton} href={accessUrl}>
+                🎵 Start Listening Now
               </Button>
             </div>
 
@@ -111,6 +114,17 @@ export const PremiumConfirmationEmail = ({
                 <Text style={accessCodeHint}>
                   💡 Save this code for offline access or sharing with travel companions
                 </Text>
+              </div>
+            )}
+
+            {qrCodeUrl && (
+              <div style={qrCodeSection}>
+                <Text style={qrCodeLabel}>Quick Access QR Code:</Text>
+                <Img
+                  src={qrCodeUrl}
+                  alt="QR Code for quick access"
+                  style={qrCodeImage}
+                />
               </div>
             )}
           </Section>
@@ -157,7 +171,7 @@ export const PremiumConfirmationEmail = ({
                 <Text style={purchaseLabel}>Guide:</Text>
               </Column>
               <Column align="right">
-                <Text style={purchaseValue}>{guideTitle}</Text>
+                <Text style={purchaseValue}>{guideName}</Text>
               </Column>
             </Row>
             <Row style={purchaseRow}>
@@ -165,7 +179,7 @@ export const PremiumConfirmationEmail = ({
                 <Text style={purchaseLabel}>Date:</Text>
               </Column>
               <Column align="right">
-                <Text style={purchaseValue}>{purchaseDate}</Text>
+                <Text style={purchaseValue}>{formattedDate}</Text>
               </Column>
             </Row>
             <Row style={purchaseRow}>
@@ -173,7 +187,7 @@ export const PremiumConfirmationEmail = ({
                 <Text style={purchaseLabel}>Amount:</Text>
               </Column>
               <Column align="right">
-                <Text style={purchaseValueBold}>{price} {currency}</Text>
+                <Text style={purchaseValueBold}>{formattedPrice} {currency}</Text>
               </Column>
             </Row>
           </Section>
@@ -203,7 +217,7 @@ export const PremiumConfirmationEmail = ({
               Love your experience? Share it with fellow travelers!
             </Text>
             <div style={socialButtons}>
-              <Link style={socialButton} href={`https://twitter.com/intent/tweet?text=Just got an amazing audio guide for ${guideTitle}! 🎧✨&url=${guideUrl}`}>
+              <Link style={socialButton} href={`https://twitter.com/intent/tweet?text=Just got an amazing audio guide for ${guideName}! 🎧✨&url=${guideUrl}`}>
                 🐦 Twitter
               </Link>
               <Link style={socialButton} href={`https://www.facebook.com/sharer/sharer.php?u=${guideUrl}`}>
@@ -219,7 +233,7 @@ export const PremiumConfirmationEmail = ({
               Thank you for choosing AudioGuide for your travel adventures!
             </Text>
             <Text style={footerSubtext}>
-              Need help? Contact us at support@audioguide.app
+              Need help? Contact us at {supportEmail}
             </Text>
             <Text style={footerCopyright}>
               © 2024 AudioGuide. All rights reserved.
@@ -231,80 +245,100 @@ export const PremiumConfirmationEmail = ({
   );
 };
 
-// Styles
+// Responsive, mobile-first styles using website color palette
 const main = {
-  backgroundColor: '#f8fafc',
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+  backgroundColor: '#fef7f3', // Light warm background from website
+  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif',
+  lineHeight: '1.6',
+  margin: '0',
+  padding: '0',
 };
 
 const container = {
   margin: '0 auto',
-  padding: '20px',
+  padding: '16px',
   maxWidth: '600px',
+  width: '100%',
+  '@media (min-width: 600px)': {
+    padding: '20px',
+  },
 };
 
 const header = {
-  padding: '20px 0',
-  borderBottom: '2px solid #e2e8f0',
+  padding: '16px 0 20px 0',
+  borderBottom: '2px solid hsl(22, 88%, 52%)', // Primary color from website
   marginBottom: '20px',
 };
 
 const headerTitle = {
-  color: '#1e293b',
-  fontSize: '28px',
+  color: 'hsl(22, 88%, 52%)', // Primary brand color
+  fontSize: '24px',
   fontWeight: 'bold',
   margin: '0',
+  '@media (min-width: 600px)': {
+    fontSize: '28px',
+  },
 };
 
 const headerSubtext = {
-  color: '#64748b',
-  fontSize: '14px',
+  color: 'hsl(25, 20%, 42%)', // Muted foreground from website
+  fontSize: '12px',
   fontWeight: '500',
   margin: '0',
+  '@media (min-width: 600px)': {
+    fontSize: '14px',
+  },
 };
 
 const heroSection = {
-  position: 'relative' as const,
-  borderRadius: '16px',
+  borderRadius: '12px',
   overflow: 'hidden',
-  marginBottom: '24px',
-  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-};
-
-const heroImage = {
-  width: '100%',
-  height: '200px',
-  objectFit: 'cover' as const,
+  marginBottom: '20px',
+  background: 'linear-gradient(135deg, hsl(22, 88%, 52%), hsl(18, 85%, 62%))', // Tourism gradient
+  padding: '24px 16px',
+  textAlign: 'center' as const,
+  '@media (min-width: 600px)': {
+    padding: '32px 24px',
+    marginBottom: '24px',
+  },
 };
 
 const heroOverlay = {
-  padding: '32px 24px',
   textAlign: 'center' as const,
-  background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%)',
 };
 
 const heroTitle = {
   color: '#ffffff',
-  fontSize: '32px',
+  fontSize: '24px',
   fontWeight: 'bold',
   margin: '0 0 12px 0',
   textShadow: '0 2px 4px rgba(0,0,0,0.1)',
+  '@media (min-width: 600px)': {
+    fontSize: '32px',
+  },
 };
 
 const heroSubtext = {
   color: '#ffffff',
-  fontSize: '18px',
+  fontSize: '16px',
   margin: '0',
   opacity: '0.95',
+  '@media (min-width: 600px)': {
+    fontSize: '18px',
+  },
 };
 
 const guideCard = {
   backgroundColor: '#ffffff',
   borderRadius: '12px',
-  padding: '24px',
-  marginBottom: '24px',
+  padding: '16px',
+  marginBottom: '20px',
   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-  border: '1px solid #e2e8f0',
+  border: '1px solid hsl(25, 15%, 88%)', // Border from website
+  '@media (min-width: 600px)': {
+    padding: '24px',
+    marginBottom: '24px',
+  },
 };
 
 const guideInfo = {
@@ -312,273 +346,436 @@ const guideInfo = {
 };
 
 const guideTitle = {
-  color: '#1e293b',
-  fontSize: '24px',
+  color: 'hsl(25, 30%, 12%)', // Foreground from website
+  fontSize: '20px',
   fontWeight: 'bold',
   margin: '0 0 8px 0',
+  lineHeight: '1.3',
+  '@media (min-width: 600px)': {
+    fontSize: '24px',
+  },
 };
 
 const guideLocation = {
-  color: '#64748b',
-  fontSize: '16px',
+  color: 'hsl(25, 20%, 42%)', // Muted foreground
+  fontSize: '14px',
   margin: '0 0 8px 0',
+  '@media (min-width: 600px)': {
+    fontSize: '16px',
+  },
 };
 
 const guideDurationText = {
-  color: '#64748b',
-  fontSize: '16px',
+  color: 'hsl(25, 20%, 42%)',
+  fontSize: '14px',
   margin: '0',
+  '@media (min-width: 600px)': {
+    fontSize: '16px',
+  },
 };
 
 const accessSection = {
   backgroundColor: '#ffffff',
   borderRadius: '12px',
-  padding: '32px 24px',
-  marginBottom: '24px',
+  padding: '20px 16px',
+  marginBottom: '20px',
   textAlign: 'center' as const,
   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-  border: '1px solid #e2e8f0',
+  border: '1px solid hsl(25, 15%, 88%)',
+  '@media (min-width: 600px)': {
+    padding: '32px 24px',
+    marginBottom: '24px',
+  },
 };
 
 const accessTitle = {
-  color: '#1e293b',
-  fontSize: '24px',
+  color: 'hsl(25, 30%, 12%)',
+  fontSize: '20px',
   fontWeight: 'bold',
-  margin: '0 0 16px 0',
+  margin: '0 0 12px 0',
+  '@media (min-width: 600px)': {
+    fontSize: '24px',
+    margin: '0 0 16px 0',
+  },
 };
 
 const accessText = {
-  color: '#64748b',
-  fontSize: '16px',
-  margin: '0 0 24px 0',
+  color: 'hsl(25, 20%, 42%)',
+  fontSize: '14px',
+  margin: '0 0 20px 0',
   lineHeight: '1.6',
+  '@media (min-width: 600px)': {
+    fontSize: '16px',
+    margin: '0 0 24px 0',
+  },
 };
 
 const buttonContainer = {
-  margin: '24px 0',
+  margin: '20px 0',
+  '@media (min-width: 600px)': {
+    margin: '24px 0',
+  },
 };
 
 const primaryButton = {
-  backgroundColor: '#3b82f6',
+  backgroundColor: 'hsl(22, 88%, 52%)', // Primary color from website
   borderRadius: '8px',
   color: '#ffffff',
-  fontSize: '18px',
+  fontSize: '16px',
   fontWeight: 'bold',
   textDecoration: 'none',
   textAlign: 'center' as const,
   display: 'inline-block',
-  padding: '16px 32px',
+  padding: '14px 24px',
   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+  border: 'none',
+  cursor: 'pointer',
+  '@media (min-width: 600px)': {
+    fontSize: '18px',
+    padding: '16px 32px',
+  },
 };
 
 const accessCodeSection = {
-  marginTop: '24px',
+  marginTop: '20px',
   textAlign: 'center' as const,
+  '@media (min-width: 600px)': {
+    marginTop: '24px',
+  },
 };
 
 const accessCodeLabel = {
-  color: '#374151',
-  fontSize: '16px',
+  color: 'hsl(25, 25%, 15%)',
+  fontSize: '14px',
   fontWeight: '600',
   margin: '0 0 8px 0',
+  '@media (min-width: 600px)': {
+    fontSize: '16px',
+  },
 };
 
 const accessCodeBox = {
-  backgroundColor: '#f3f4f6',
-  border: '2px dashed #d1d5db',
+  backgroundColor: 'hsl(25, 20%, 94%)', // Secondary from website
+  border: '2px dashed hsl(25, 15%, 88%)',
   borderRadius: '8px',
-  padding: '16px',
+  padding: '12px',
   margin: '8px 0 12px 0',
+  '@media (min-width: 600px)': {
+    padding: '16px',
+  },
 };
 
 const accessCodeText = {
-  color: '#1f2937',
-  fontSize: '24px',
+  color: 'hsl(25, 30%, 12%)',
+  fontSize: '18px',
   fontWeight: 'bold',
-  fontFamily: 'monospace',
+  fontFamily: 'Monaco, Consolas, "Courier New", monospace',
   margin: '0',
   letterSpacing: '2px',
+  '@media (min-width: 600px)': {
+    fontSize: '24px',
+  },
 };
 
 const accessCodeHint = {
-  color: '#6b7280',
-  fontSize: '14px',
+  color: 'hsl(25, 20%, 42%)',
+  fontSize: '12px',
   margin: '0',
   fontStyle: 'italic',
+  '@media (min-width: 600px)': {
+    fontSize: '14px',
+  },
+};
+
+const qrCodeSection = {
+  marginTop: '20px',
+  textAlign: 'center' as const,
+  padding: '16px',
+  backgroundColor: 'hsl(25, 20%, 94%)',
+  borderRadius: '8px',
+  '@media (min-width: 600px)': {
+    marginTop: '24px',
+  },
+};
+
+const qrCodeLabel = {
+  color: 'hsl(25, 25%, 15%)',
+  fontSize: '14px',
+  fontWeight: '600',
+  margin: '0 0 12px 0',
+  '@media (min-width: 600px)': {
+    fontSize: '16px',
+  },
+};
+
+const qrCodeImage = {
+  width: '120px',
+  height: '120px',
+  margin: '0 auto',
+  '@media (min-width: 600px)': {
+    width: '150px',
+    height: '150px',
+  },
 };
 
 const featuresSection = {
   backgroundColor: '#ffffff',
   borderRadius: '12px',
-  padding: '24px',
-  marginBottom: '24px',
+  padding: '16px',
+  marginBottom: '20px',
   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-  border: '1px solid #e2e8f0',
+  border: '1px solid hsl(25, 15%, 88%)',
+  '@media (min-width: 600px)': {
+    padding: '24px',
+    marginBottom: '24px',
+  },
 };
 
 const featuresTitle = {
-  color: '#1e293b',
-  fontSize: '20px',
+  color: 'hsl(25, 30%, 12%)',
+  fontSize: '18px',
   fontWeight: 'bold',
-  margin: '0 0 16px 0',
+  margin: '0 0 12px 0',
   textAlign: 'center' as const,
+  '@media (min-width: 600px)': {
+    fontSize: '20px',
+    margin: '0 0 16px 0',
+  },
 };
 
 const featureColumn = {
   width: '50%',
-  padding: '0 8px',
+  padding: '0 4px',
+  '@media (min-width: 600px)': {
+    padding: '0 8px',
+  },
 };
 
 const featureItem = {
   textAlign: 'center' as const,
-  marginBottom: '16px',
+  marginBottom: '12px',
+  '@media (min-width: 600px)': {
+    marginBottom: '16px',
+  },
 };
 
 const featureIcon = {
-  fontSize: '24px',
-  margin: '0 0 8px 0',
+  fontSize: '20px',
+  margin: '0 0 6px 0',
+  '@media (min-width: 600px)': {
+    fontSize: '24px',
+    margin: '0 0 8px 0',
+  },
 };
 
 const featureText = {
-  color: '#64748b',
-  fontSize: '14px',
+  color: 'hsl(25, 20%, 42%)',
+  fontSize: '12px',
   fontWeight: '500',
   margin: '0',
+  lineHeight: '1.4',
+  '@media (min-width: 600px)': {
+    fontSize: '14px',
+  },
 };
 
 const purchaseSection = {
   backgroundColor: '#ffffff',
   borderRadius: '12px',
-  padding: '24px',
-  marginBottom: '24px',
+  padding: '16px',
+  marginBottom: '20px',
   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-  border: '1px solid #e2e8f0',
+  border: '1px solid hsl(25, 15%, 88%)',
+  '@media (min-width: 600px)': {
+    padding: '24px',
+    marginBottom: '24px',
+  },
 };
 
 const purchaseTitle = {
-  color: '#1e293b',
-  fontSize: '18px',
+  color: 'hsl(25, 30%, 12%)',
+  fontSize: '16px',
   fontWeight: 'bold',
-  margin: '0 0 16px 0',
+  margin: '0 0 12px 0',
+  '@media (min-width: 600px)': {
+    fontSize: '18px',
+    margin: '0 0 16px 0',
+  },
 };
 
 const purchaseRow = {
-  marginBottom: '8px',
+  marginBottom: '6px',
+  '@media (min-width: 600px)': {
+    marginBottom: '8px',
+  },
 };
 
 const purchaseLabel = {
-  color: '#64748b',
-  fontSize: '14px',
+  color: 'hsl(25, 20%, 42%)',
+  fontSize: '12px',
   margin: '0',
+  '@media (min-width: 600px)': {
+    fontSize: '14px',
+  },
 };
 
 const purchaseValue = {
-  color: '#374151',
-  fontSize: '14px',
+  color: 'hsl(25, 25%, 15%)',
+  fontSize: '12px',
   margin: '0',
+  '@media (min-width: 600px)': {
+    fontSize: '14px',
+  },
 };
 
 const purchaseValueBold = {
-  color: '#1e293b',
-  fontSize: '16px',
+  color: 'hsl(25, 30%, 12%)',
+  fontSize: '14px',
   fontWeight: 'bold',
   margin: '0',
+  '@media (min-width: 600px)': {
+    fontSize: '16px',
+  },
+};
+
+const divider = {
+  borderColor: 'hsl(25, 15%, 88%)',
+  margin: '16px 0',
+  '@media (min-width: 600px)': {
+    margin: '20px 0',
+  },
 };
 
 const tipsSection = {
-  backgroundColor: '#f8fafc',
+  backgroundColor: 'hsl(25, 20%, 96%)', // Light background from website
   borderRadius: '12px',
-  padding: '24px',
-  marginBottom: '24px',
-  border: '1px solid #e2e8f0',
+  padding: '16px',
+  marginBottom: '20px',
+  border: '1px solid hsl(25, 15%, 88%)',
+  '@media (min-width: 600px)': {
+    padding: '24px',
+    marginBottom: '24px',
+  },
 };
 
 const tipsTitle = {
-  color: '#1e293b',
-  fontSize: '18px',
+  color: 'hsl(25, 30%, 12%)',
+  fontSize: '16px',
   fontWeight: 'bold',
-  margin: '0 0 16px 0',
+  margin: '0 0 12px 0',
+  '@media (min-width: 600px)': {
+    fontSize: '18px',
+    margin: '0 0 16px 0',
+  },
 };
 
 const tipsList = {
   margin: '0',
-  paddingLeft: '0',
+  padding: '0 0 0 16px',
   listStyle: 'none',
 };
 
 const tipsItem = {
-  marginBottom: '12px',
-  paddingLeft: '24px',
+  marginBottom: '8px',
   position: 'relative' as const,
+  paddingLeft: '0',
+  '@media (min-width: 600px)': {
+    marginBottom: '10px',
+  },
 };
 
 const tipsText = {
-  color: '#4b5563',
-  fontSize: '14px',
+  color: 'hsl(25, 20%, 42%)',
+  fontSize: '12px',
   margin: '0',
   lineHeight: '1.5',
+  '@media (min-width: 600px)': {
+    fontSize: '14px',
+  },
 };
 
 const socialSection = {
   backgroundColor: '#ffffff',
   borderRadius: '12px',
-  padding: '24px',
-  marginBottom: '24px',
+  padding: '16px',
+  marginBottom: '20px',
   textAlign: 'center' as const,
   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-  border: '1px solid #e2e8f0',
+  border: '1px solid hsl(25, 15%, 88%)',
+  '@media (min-width: 600px)': {
+    padding: '24px',
+    marginBottom: '24px',
+  },
 };
 
 const socialText = {
-  color: '#374151',
-  fontSize: '16px',
-  margin: '0 0 16px 0',
+  color: 'hsl(25, 20%, 42%)',
+  fontSize: '12px',
+  margin: '0 0 12px 0',
+  '@media (min-width: 600px)': {
+    fontSize: '14px',
+    margin: '0 0 16px 0',
+  },
 };
 
 const socialButtons = {
   display: 'flex',
+  gap: '8px',
   justifyContent: 'center',
-  gap: '12px',
+  flexWrap: 'wrap' as const,
+  '@media (min-width: 600px)': {
+    gap: '12px',
+  },
 };
 
 const socialButton = {
-  backgroundColor: '#f3f4f6',
-  color: '#374151',
+  backgroundColor: 'hsl(205, 88%, 48%)', // Accent color from website
+  color: '#ffffff',
   textDecoration: 'none',
-  fontSize: '14px',
-  fontWeight: '500',
-  padding: '8px 16px',
+  padding: '8px 12px',
   borderRadius: '6px',
-  border: '1px solid #d1d5db',
+  fontSize: '12px',
+  fontWeight: '500',
+  display: 'inline-block',
+  '@media (min-width: 600px)': {
+    padding: '10px 16px',
+    fontSize: '14px',
+  },
 };
 
 const footer = {
+  padding: '16px 0',
   textAlign: 'center' as const,
-  marginTop: '32px',
-};
-
-const divider = {
-  borderColor: '#e2e8f0',
-  margin: '24px 0',
+  '@media (min-width: 600px)': {
+    padding: '20px 0',
+  },
 };
 
 const footerText = {
-  color: '#374151',
-  fontSize: '16px',
-  fontWeight: '500',
+  color: 'hsl(25, 20%, 42%)',
+  fontSize: '12px',
   margin: '0 0 8px 0',
+  '@media (min-width: 600px)': {
+    fontSize: '14px',
+    margin: '0 0 10px 0',
+  },
 };
 
 const footerSubtext = {
-  color: '#6b7280',
-  fontSize: '14px',
-  margin: '0 0 16px 0',
+  color: 'hsl(25, 20%, 42%)',
+  fontSize: '11px',
+  margin: '0 0 8px 0',
+  '@media (min-width: 600px)': {
+    fontSize: '12px',
+    margin: '0 0 10px 0',
+  },
 };
 
 const footerCopyright = {
-  color: '#9ca3af',
-  fontSize: '12px',
+  color: 'hsl(25, 20%, 42%)',
+  fontSize: '10px',
   margin: '0',
+  '@media (min-width: 600px)': {
+    fontSize: '11px',
+  },
 };
-
-export default PremiumConfirmationEmail;
