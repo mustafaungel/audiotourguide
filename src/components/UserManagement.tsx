@@ -38,19 +38,22 @@ export const UserManagement = () => {
 
   const fetchVerificationRequests = async () => {
     try {
-      const { data, error } = await supabase
-        .from('verification_requests')
-        .select(`
-          *,
-          profiles!verification_requests_user_id_fkey (
-            email,
-            full_name
-          )
-        `)
-        .order('submitted_at', { ascending: false });
+      // Use the secure admin function to get verification requests
+      // This ensures sensitive data is properly handled and access is logged
+      const { data, error } = await supabase.rpc('admin_get_verification_requests');
 
       if (error) throw error;
-      setRequests(data || []);
+      
+      // Transform the data to match expected format with profiles
+      const requestsWithProfiles = data?.map((request: any) => ({
+        ...request,
+        profiles: {
+          email: request.email || 'No email provided',
+          full_name: request.full_name
+        }
+      })) || [];
+      
+      setRequests(requestsWithProfiles);
     } catch (error) {
       toast({
         variant: "destructive",

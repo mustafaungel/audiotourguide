@@ -1112,6 +1112,21 @@ export type Database = {
           verification_level: string
         }[]
       }
+      get_user_verification_request_safely: {
+        Args: { request_id: string }
+        Returns: {
+          full_name: string
+          id: string
+          id_document_url: string
+          id_number: string
+          license_document_url: string
+          license_number: string
+          reviewed_at: string
+          status: string
+          submitted_at: string
+          user_id: string
+        }[]
+      }
       get_verification_document_url: {
         Args: { p_document_path: string; p_expires_in?: number }
         Returns: string
