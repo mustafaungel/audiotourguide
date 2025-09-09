@@ -53,24 +53,7 @@ export default function AudioAccess() {
       return;
     }
 
-    // Check if user is admin and no access code provided
-    if (!accessCode && !sessionId && user) {
-      console.log('[AUDIO-ACCESS] Checking admin access for user:', user.id);
-      
-      // Check if user is admin
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (profile?.role === 'admin') {
-        console.log('[AUDIO-ACCESS] Admin access granted');
-        setIsAdminAccess(true);
-        await loadGuideDirectly();
-        return;
-      }
-    }
+    // Admin users must also use access codes for hidden guides
 
     if (!accessCode && !sessionId) {
       console.error('[AUDIO-ACCESS] Missing access code or session ID for non-admin user');
@@ -454,6 +437,15 @@ export default function AudioAccess() {
                       <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                       {guide.rating || 0} ({guide.total_reviews || 0})
                     </div>
+                    {guide.languages && guide.languages.length > 0 && (
+                      <div className="flex items-center gap-2">
+                        {guide.languages.map((language: string, index: number) => (
+                          <Badge key={index} variant="secondary" className="text-xs">
+                            {language}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                 </div>
