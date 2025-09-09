@@ -44,6 +44,7 @@ serve(async (req) => {
     image_urls = [],
     best_time,
     sections = [],
+    is_published = true,
     generate_audio = false
   } = await req.json();
 
@@ -125,7 +126,7 @@ serve(async (req) => {
         best_time,
         sections: JSON.stringify(sections),
         is_approved: true, // Auto-approve for now
-        is_published: true // Auto-publish for now
+        is_published: is_published // Use the passed parameter
       })
       .select()
       .single();

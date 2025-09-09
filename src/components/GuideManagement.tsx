@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { CheckCircle, XCircle, Eye, Clock, Trash2, Edit, Copy, QrCode } from 'lucide-react';
+import { CheckCircle, XCircle, Eye, Clock, Trash2, Edit, Copy, QrCode, EyeOff } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface Guide {
@@ -83,6 +83,32 @@ export const GuideManagement = () => {
         variant: "destructive",
         title: "Error",
         description: "Failed to update guide status"
+      });
+    }
+  };
+
+  const togglePublicationStatus = async (guideId: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('audio_guides')
+        .update({ is_published: !currentStatus })
+        .eq('id', guideId);
+
+      if (error) throw error;
+
+      setGuides(prev => prev.map(guide => 
+        guide.id === guideId ? { ...guide, is_published: !currentStatus } : guide
+      ));
+
+      toast({
+        title: !currentStatus ? "Guide Published" : "Guide Hidden",
+        description: `Guide has been ${!currentStatus ? 'made public' : 'hidden from public view'}.`
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update publication status"
       });
     }
   };
@@ -177,7 +203,7 @@ export const GuideManagement = () => {
       return <Badge variant="destructive">Pending Approval</Badge>;
     }
     if (!guide.is_published) {
-      return <Badge variant="secondary">Approved</Badge>;
+      return <Badge variant="secondary">Hidden</Badge>;
     }
     return <Badge variant="default">Published</Badge>;
   };
@@ -288,6 +314,26 @@ export const GuideManagement = () => {
                     >
                       <QrCode className="h-4 w-4 mr-1" />
                       Generate QR
+                    </Button>
+                  )}
+
+                  {guide.is_approved && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => togglePublicationStatus(guide.id, guide.is_published)}
+                    >
+                      {guide.is_published ? (
+                        <>
+                          <EyeOff className="h-4 w-4 mr-1" />
+                          Hide
+                        </>
+                      ) : (
+                        <>
+                          <Eye className="h-4 w-4 mr-1" />
+                          Publish
+                        </>
+                      )}
                     </Button>
                   )}
                   

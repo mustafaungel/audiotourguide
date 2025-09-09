@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
 import { Loader2, FileText, BarChart3, Users, UserCheck, UserPlus, Plus, ImageIcon, Copy, QrCode, Edit2, Mail } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -56,6 +57,9 @@ const AdminPanel = () => {
 
   // Section management
   const [sections, setSections] = useState<any[]>([]);
+
+  // Publication state
+  const [isHidden, setIsHidden] = useState(false);
 
   // Generation states
   const [imageLoading, setImageLoading] = useState(false);
@@ -212,6 +216,7 @@ const AdminPanel = () => {
           languages: ['English'],
           sections: sections,
           image_urls: uploadedImages,
+          is_published: !isHidden,
           generate_audio: true
         }
       });
@@ -222,12 +227,13 @@ const AdminPanel = () => {
       setQrCodeUrl(data.guide.qr_code_url);
       setShareUrl(data.guide.share_url);
       
-      toast.success('Audio guide has been published successfully with QR code and share link!');
+      toast.success(isHidden ? 'Audio guide created (hidden) with QR code and share link!' : 'Audio guide published successfully with QR code and share link!');
       
       // Reset form
       setFormData({ title: '', description: '', city: '', country: '', category: 'Cultural Heritage', price: '12' });
       setSections([]);
       setUploadedImages([]);
+      setIsHidden(false);
     } catch (error: any) {
       console.error('Error creating guide:', error);
       toast.error('Failed to create guide. Please try again.');
@@ -363,7 +369,22 @@ const AdminPanel = () => {
 
           <TabsContent value="create-guide">
             <div className="space-y-6">
-              <h2 className="text-xl sm:text-2xl font-bold">Create Audio Guide</h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl sm:text-2xl font-bold">Create Audio Guide</h2>
+                <div className="flex items-center space-x-3">
+                  <Label htmlFor="publication-toggle" className="text-sm font-medium">
+                    {isHidden ? 'Hidden' : 'Published'}
+                  </Label>
+                  <Switch
+                    id="publication-toggle"
+                    checked={!isHidden}
+                    onCheckedChange={(checked) => setIsHidden(!checked)}
+                  />
+                  <span className="text-xs text-muted-foreground">
+                    {isHidden ? 'Will be created as hidden (accessible via link only)' : 'Will be published publicly'}
+                  </span>
+                </div>
+              </div>
 
               <Card>
                 <CardHeader>
