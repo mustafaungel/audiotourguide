@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AdminPanel from "./pages/AdminPanel";
 import Library from "./pages/Library";
+import Guides from "./pages/Guides";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancelled from "./pages/PaymentCancelled";
 import GuideDetail from "./pages/GuideDetail";
@@ -34,6 +35,7 @@ const App = () => {
               <Route path="/admin-login" element={<Auth />} />
               <Route path="/admin" element={<AdminPanel />} />
               <Route path="/library" element={<Library />} />
+              <Route path="/guides" element={<Guides />} />
               <Route path="/country" element={<Countries />} />
               <Route path="/country/:countrySlug" element={<CountryDetail />} />
               <Route path="/guide/:slug" element={<GuideDetail />} />

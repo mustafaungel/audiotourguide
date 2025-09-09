@@ -55,8 +55,11 @@ export const Navigation = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link to="/" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+            <Link to="/guides" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
               Audio Guides
+            </Link>
+            <Link to="/country" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+              Destinations
             </Link>
           </nav>
 
@@ -133,7 +136,7 @@ export const Navigation = () => {
                       Destinations
                     </Link>
                     <Link 
-                      to="/library" 
+                      to="/guides" 
                       onClick={closeMobileMenu}
                       className="flex items-center py-3 mobile-text font-medium text-foreground hover:text-primary transition-colors touch-target"
                     >
