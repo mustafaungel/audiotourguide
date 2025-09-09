@@ -158,13 +158,14 @@ serve(async (req) => {
         userEmail = 'unknown@example.com';
       }
 
-      // Generate QR code in background
+      // Generate QR code in background (skip auth for internal calls)
       try {
         logStep("Background: Generating QR code", { guideId: guide_id, accessCode: purchase.access_code });
         await supabaseService.functions.invoke('generate-qr-code', {
           body: {
             guideId: guide_id,
-            accessCode: purchase.access_code
+            accessCode: purchase.access_code,
+            skipAuth: true
           }
         });
         logStep("Background: QR code generated successfully");

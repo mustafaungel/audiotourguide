@@ -49,10 +49,20 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const siteUrl = Deno.env.get("SITE_URL") || "https://audiotourguide.app";
-    const accessUrl = `${siteUrl}/access/${guideId}${accessCode ? `?access_code=${accessCode}` : ''}`;
+    
+    // Use master access code if available, fallback to provided access code
+    let finalAccessCode = accessCode;
+    if (guide.master_access_code) {
+      finalAccessCode = guide.master_access_code;
+    }
+    
+    const accessUrl = `${siteUrl}/access/${guideId}${finalAccessCode ? `?access_code=${finalAccessCode}` : ''}`;
 
-    // Generate QR code for the access URL
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(accessUrl)}`;
+    // Use the QR code from the guide if available, otherwise generate one
+    let qrCodeUrl = guide.qr_code_url;
+    if (!qrCodeUrl) {
+      qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(accessUrl)}`;
+    }
 
     // Format purchase date
     const purchaseDate = new Date().toISOString();

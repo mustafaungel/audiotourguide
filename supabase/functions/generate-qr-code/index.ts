@@ -12,24 +12,33 @@ serve(async (req) => {
   }
 
   try {
-    const authHeader = req.headers.get('Authorization')!;
     const supabaseServiceClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
       { auth: { persistSession: false } }
     );
 
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
-    );
+    const { guideId, accessCode, skipAuth } = await req.json();
 
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(authHeader.replace('Bearer ', ''));
-    if (authError || !user) {
-      throw new Error('Unauthorized');
+    // For internal calls (background tasks), skip user authentication
+    let user = null;
+    if (!skipAuth) {
+      const authHeader = req.headers.get('Authorization');
+      if (!authHeader) {
+        throw new Error('Authorization header required');
+      }
+
+      const supabaseClient = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+      );
+
+      const { data: { user: authUser }, error: authError } = await supabaseClient.auth.getUser(authHeader.replace('Bearer ', ''));
+      if (authError || !authUser) {
+        throw new Error('Unauthorized');
+      }
+      user = authUser;
     }
-
-    const { guideId, accessCode } = await req.json();
 
     if (!guideId) {
       throw new Error('Guide ID is required');
@@ -48,18 +57,20 @@ serve(async (req) => {
       throw new Error('Guide not found');
     }
 
-    // Check permissions (admin or guide owner)
-    const { data: profile } = await supabaseServiceClient
-      .from('profiles')
-      .select('role')
-      .eq('user_id', user.id)
-      .single();
+    // Check permissions only if not skipping auth (for background tasks)
+    if (!skipAuth && user) {
+      const { data: profile } = await supabaseServiceClient
+        .from('profiles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
 
-    const isAdmin = profile?.role === 'admin';
-    const isOwner = guide.creator_id === user.id;
+      const isAdmin = profile?.role === 'admin';
+      const isOwner = guide.creator_id === user.id;
 
-    if (!isAdmin && !isOwner) {
-      throw new Error('Unauthorized to generate QR code for this guide');
+      if (!isAdmin && !isOwner) {
+        throw new Error('Unauthorized to generate QR code for this guide');
+      }
     }
 
     // Get or generate master access code
