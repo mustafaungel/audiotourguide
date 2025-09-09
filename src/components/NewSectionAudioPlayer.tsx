@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChapterList } from '@/components/ChapterList';
-import { MinimalAudioPlayer } from '@/components/MinimalAudioPlayer';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from '@/integrations/supabase/client';
@@ -264,43 +263,28 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Chapter List - Always Visible at Top */}
+      {/* Chapter List with Inline Audio Controls */}
       <ChapterList
         sections={sections}
         currentSectionIndex={currentSectionIndex}
         isPlaying={isPlaying}
         loading={loading}
+        currentTime={currentTime}
+        duration={duration}
+        volume={volume}
+        isMuted={isMuted}
+        playbackSpeed={playbackSpeed}
+        canGoNext={currentSectionIndex < sections.length - 1}
+        canGoPrevious={currentSectionIndex > 0}
         onPlaySection={playSection}
+        onTogglePlayPause={togglePlayPause}
+        onSeek={handleSeek}
+        onSkip={skip}
+        onPreviousSection={previousSection}
+        onNextSection={nextSection}
+        onToggleMute={toggleMute}
+        onSpeedChange={handleSpeedChange}
       />
-
-      {/* Minimal Audio Player - Only Shows When Playing */}
-      {currentSectionIndex >= 0 && (
-        <MinimalAudioPlayer
-          currentSection={sections[currentSectionIndex]}
-          isPlaying={isPlaying}
-          loading={loading}
-          currentTime={currentTime}
-          duration={duration}
-          volume={volume}
-          isMuted={isMuted}
-          playbackSpeed={playbackSpeed}
-          currentSectionIndex={currentSectionIndex}
-          totalSections={sections.length}
-          canGoNext={currentSectionIndex < sections.length - 1}
-          canGoPrevious={currentSectionIndex > 0}
-          showVolumeHelper={showVolumeHelper}
-          onTogglePlayPause={togglePlayPause}
-          onSeek={handleSeek}
-          onSkip={skip}
-          onPreviousSection={previousSection}
-          onNextSection={nextSection}
-          onVolumeChange={handleVolumeChange}
-          onToggleMute={toggleMute}
-          onSpeedChange={handleSpeedChange}
-          onClose={closePlayer}
-          onDismissVolumeHelper={() => setShowVolumeHelper(false)}
-        />
-      )}
     </div>
   );
 };
