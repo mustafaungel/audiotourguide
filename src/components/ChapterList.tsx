@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Play, Pause, ChevronRight, SkipBack, SkipForward, Volume2, VolumeX, Check, Settings } from 'lucide-react';
+import { Play, Pause, ChevronRight, ChevronLeft, Volume2, VolumeX, Check, Settings } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface Section {
@@ -181,90 +181,70 @@ export const ChapterList: React.FC<ChapterListProps> = ({
                     // Mobile Layout: Stacked Controls
                     <div className="space-y-3">
                       {/* Primary Controls Row */}
-                      <div className="flex items-center justify-center gap-6">
+                      <div className="flex items-center justify-center gap-8">
                         {/* Previous Chapter */}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={onPreviousSection}
-                          disabled={loading || !canGoPrevious}
-                          className="h-12 w-12 touch-manipulation"
-                          title="Previous chapter"
-                        >
-                          <SkipBack className="h-5 w-5" />
-                        </Button>
+                        <div className="flex flex-col items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={onPreviousSection}
+                            disabled={loading || !canGoPrevious}
+                            className="h-12 w-12 touch-manipulation"
+                            title="Previous chapter"
+                          >
+                            <ChevronLeft className="h-6 w-6" />
+                          </Button>
+                          <span className="text-xs text-muted-foreground font-medium">Prev</span>
+                        </div>
 
                         {/* Play/Pause */}
                         <Button
                           onClick={onTogglePlayPause}
                           disabled={loading}
                           size="lg"
-                          className="h-14 w-14 touch-manipulation rounded-full bg-gradient-primary hover:bg-gradient-primary/90"
+                          className="h-16 w-16 touch-manipulation rounded-full bg-gradient-primary hover:bg-gradient-primary/90"
                         >
                           {loading ? (
-                            <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                            <div className="h-6 w-6 animate-spin rounded-full border-2 border-current border-t-transparent" />
                           ) : isPlaying ? (
-                            <Pause className="h-5 w-5" />
+                            <Pause className="h-6 w-6" />
                           ) : (
-                            <Play className="h-5 w-5 ml-0.5" />
+                            <Play className="h-6 w-6 ml-0.5" />
                           )}
                         </Button>
 
                         {/* Next Chapter */}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={onNextSection}
-                          disabled={loading || !canGoNext}
-                          className="h-12 w-12 touch-manipulation"
-                          title="Next chapter"
-                        >
-                          <SkipForward className="h-5 w-5" />
-                        </Button>
+                        <div className="flex flex-col items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={onNextSection}
+                            disabled={loading || !canGoNext}
+                            className="h-12 w-12 touch-manipulation"
+                            title="Next chapter"
+                          >
+                            <ChevronRight className="h-6 w-6" />
+                          </Button>
+                          <span className="text-xs text-muted-foreground font-medium">Next</span>
+                        </div>
                       </div>
 
                       {/* Secondary Controls Row */}
-                      <div className="flex items-center justify-between">
-                        {/* Skip Back */}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onSkip?.(-15)}
-                          disabled={loading}
-                          className="h-10 px-3 touch-manipulation"
-                          title="Skip back 15s"
-                        >
-                          <SkipBack className="h-4 w-4 mr-1" />
-                          <span className="text-xs">15s</span>
-                        </Button>
-
+                      <div className="flex items-center justify-center gap-4">
                         {/* Speed Control - Compact Toggle */}
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => {
-                            const speeds = [0.5, 1, 1.5, 2];
+                            const speeds = [0.75, 1, 1.25, 1.5, 2];
                             const currentIndex = speeds.indexOf(playbackSpeed);
                             const nextIndex = (currentIndex + 1) % speeds.length;
                             onSpeedChange?.(speeds[nextIndex]);
                           }}
-                          className="h-10 px-3 touch-manipulation"
+                          className="h-10 px-4 touch-manipulation rounded-lg border border-muted"
                           title={`Speed: ${playbackSpeed}x (tap to change)`}
                         >
-                          <span className="text-xs font-medium">{playbackSpeed}x</span>
-                        </Button>
-
-                        {/* Skip Forward */}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onSkip?.(15)}
-                          disabled={loading}
-                          className="h-10 px-3 touch-manipulation"
-                          title="Skip forward 15s"
-                        >
-                          <span className="text-xs">15s</span>
-                          <SkipForward className="h-4 w-4 ml-1" />
+                          <span className="text-sm font-medium">{playbackSpeed}x</span>
                         </Button>
                       </div>
 
@@ -307,81 +287,63 @@ export const ChapterList: React.FC<ChapterListProps> = ({
                       </div>
                     </div>
                   ) : (
-                    // Desktop Layout: Single Row
-                    <div className="flex items-center justify-between">
-                      {/* Skip Back */}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onSkip?.(-15)}
-                        disabled={loading}
-                        className="h-10 w-10 touch-manipulation"
-                        title="Skip back 15s"
-                      >
-                        <SkipBack className="h-4 w-4" />
-                      </Button>
-
+                    // Desktop Layout: Centered Controls
+                    <div className="flex items-center justify-center gap-6">
                       {/* Previous Chapter */}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={onPreviousSection}
-                        disabled={loading || !canGoPrevious}
-                        className="h-10 w-10 touch-manipulation"
-                        title="Previous chapter"
-                      >
-                        <SkipBack className="h-4 w-4" />
-                      </Button>
+                      <div className="flex flex-col items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={onPreviousSection}
+                          disabled={loading || !canGoPrevious}
+                          className="h-12 w-12 touch-manipulation"
+                          title="Previous chapter"
+                        >
+                          <ChevronLeft className="h-5 w-5" />
+                        </Button>
+                        <span className="text-xs text-muted-foreground font-medium">Prev</span>
+                      </div>
 
                       {/* Play/Pause */}
                       <Button
                         onClick={onTogglePlayPause}
                         disabled={loading}
                         size="lg"
-                        className="h-12 w-12 touch-manipulation rounded-full bg-gradient-primary hover:bg-gradient-primary/90"
+                        className="h-14 w-14 touch-manipulation rounded-full bg-gradient-primary hover:bg-gradient-primary/90"
                       >
                         {loading ? (
-                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                          <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
                         ) : isPlaying ? (
-                          <Pause className="h-4 w-4" />
+                          <Pause className="h-5 w-5" />
                         ) : (
-                          <Play className="h-4 w-4 ml-0.5" />
+                          <Play className="h-5 w-5 ml-0.5" />
                         )}
                       </Button>
 
                       {/* Next Chapter */}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={onNextSection}
-                        disabled={loading || !canGoNext}
-                        className="h-10 w-10 touch-manipulation"
-                        title="Next chapter"
-                      >
-                        <SkipForward className="h-4 w-4" />
-                      </Button>
+                      <div className="flex flex-col items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={onNextSection}
+                          disabled={loading || !canGoNext}
+                          className="h-12 w-12 touch-manipulation"
+                          title="Next chapter"
+                        >
+                          <ChevronRight className="h-5 w-5" />
+                        </Button>
+                        <span className="text-xs text-muted-foreground font-medium">Next</span>
+                      </div>
 
-                      {/* Skip Forward */}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onSkip?.(15)}
-                        disabled={loading}
-                        className="h-10 w-10 touch-manipulation"
-                        title="Skip forward 15s"
-                      >
-                        <SkipForward className="h-4 w-4" />
-                      </Button>
-
-                      {/* Speed Control - Full Buttons */}
-                      <div className="flex items-center gap-1">
-                        {[0.5, 1, 1.5, 2].map((speed) => (
+                      {/* Speed Control */}
+                      <div className="flex items-center gap-1 ml-4">
+                        {[0.75, 1, 1.25, 1.5, 2].map((speed) => (
                           <Button
                             key={speed}
                             variant={playbackSpeed === speed ? "secondary" : "ghost"}
                             size="sm"
                             onClick={() => onSpeedChange?.(speed)}
-                            className="h-8 w-10 text-xs touch-manipulation"
+                            className="h-8 w-12 text-xs touch-manipulation"
                           >
                             {speed}x
                           </Button>
@@ -393,7 +355,7 @@ export const ChapterList: React.FC<ChapterListProps> = ({
                         variant="ghost"
                         size="icon"
                         onClick={onToggleMute}
-                        className="h-10 w-10 touch-manipulation"
+                        className="h-10 w-10 touch-manipulation ml-2"
                         title="Mute/Unmute"
                       >
                         {isMuted || volume === 0 ? (

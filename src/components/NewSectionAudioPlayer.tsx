@@ -97,12 +97,13 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
         markChapterCompleted(currentSectionIndex);
       }
       
-      // Show next chapter notification if auto-advance is disabled and there's a next chapter
+      // Auto-advance to next chapter if enabled and available
       if (audioMode === 'sections' && currentSectionIndex < sections.length - 1) {
         if (autoAdvanceEnabled) {
+          // Small delay for better UX
           setTimeout(() => {
             playSection(currentSectionIndex + 1);
-          }, 1000);
+          }, 500);
         } else {
           // Show next chapter prompt
           const nextChapterTitle = sections[currentSectionIndex + 1]?.title || 'Next Chapter';
@@ -120,6 +121,12 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
             ),
           });
         }
+      } else if (currentSectionIndex >= sections.length - 1) {
+        // All chapters completed
+        toast({
+          title: 'Guide completed!',
+          description: 'You have finished listening to all chapters.',
+        });
       }
     });
     
