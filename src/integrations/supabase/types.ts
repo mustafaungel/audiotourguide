@@ -689,6 +689,8 @@ export type Database = {
         Row: {
           access_code: string
           currency: string
+          email_error: string | null
+          email_sent: boolean | null
           guest_email: string | null
           guide_id: string
           id: string
@@ -700,6 +702,8 @@ export type Database = {
         Insert: {
           access_code: string
           currency?: string
+          email_error?: string | null
+          email_sent?: boolean | null
           guest_email?: string | null
           guide_id: string
           id?: string
@@ -711,6 +715,8 @@ export type Database = {
         Update: {
           access_code?: string
           currency?: string
+          email_error?: string | null
+          email_sent?: boolean | null
           guest_email?: string | null
           guide_id?: string
           id?: string

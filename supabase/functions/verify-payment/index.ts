@@ -135,64 +135,79 @@ serve(async (req) => {
       accessCode: purchase.access_code 
     });
 
-    // Move QR code generation and email sending to background
-    const backgroundTasks = async () => {
-      // Fetch guide data for email
-      const { data: guideData } = await supabaseService
-        .from('audio_guides')
-        .select('title, location')
-        .eq('id', guide_id)
-        .single();
+    // Background tasks - these will run after the response is sent
+    EdgeRuntime.waitUntil(
+      (async () => {
+        try {
+          console.log('[VERIFY-PAYMENT] Starting background email task for:', { guide_id, user_id: userId, guest_email: guestEmail });
+          
+          // Get guide details for email
+          const { data: guideData, error: guideError } = await supabaseService
+            .from('audio_guides')
+            .select('title, location')
+            .eq('id', guide_id)
+            .single();
 
-      const guideTitle = guideData?.title || 'Audio Guide Purchase';
-      const guideLocation = guideData?.location || '';
-      
-      // Use real email addresses from Stripe metadata
-      let userEmail: string;
-      if (guestEmail) {
-        userEmail = guestEmail;
-      } else if (userId) {
-        const { data: userData } = await supabaseService.auth.admin.getUserById(userId);
-        userEmail = userData?.user?.email || `user-${userId}@temporary.com`;
-      } else {
-        userEmail = 'unknown@example.com';
-      }
-
-      // Generate QR code in background (skip auth for internal calls)
-      try {
-        logStep("Background: Generating QR code", { guideId: guide_id, accessCode: purchase.access_code });
-        await supabaseService.functions.invoke('generate-qr-code', {
-          body: {
-            guideId: guide_id,
-            accessCode: purchase.access_code,
-            skipAuth: true
+          if (guideError) {
+            console.error('[VERIFY-PAYMENT] Failed to get guide data:', guideError);
+            return;
           }
-        });
-        logStep("Background: QR code generated successfully");
-      } catch (qrError) {
-        logStep("Background: QR code generation error", { error: qrError });
-      }
 
-      // Send confirmation email in background
-      try {
-        logStep("Background: Sending confirmation email", { email: userEmail, guideTitle });
-        await supabaseService.functions.invoke('send-confirmation-email', {
-          body: {
-            email: userEmail,
-            guideId: guide_id,
-            guideTitle: guideTitle,
-            guideLocation: guideLocation,
-            accessCode: purchase.access_code
+          const userEmail = userId ? 
+            (await supabaseService.from('profiles').select('email').eq('user_id', userId).single())?.data?.email :
+            guestEmail;
+
+          console.log('[VERIFY-PAYMENT] Sending email to:', userEmail);
+
+          if (userEmail && guideData) {
+            // Generate QR code
+            const qrResponse = await supabaseService.functions.invoke('generate-qr-code', {
+              body: { 
+                guideId: guide_id,
+                accessCode: purchase.access_code
+              }
+            });
+            
+            if (qrResponse.error) {
+              console.error('[VERIFY-PAYMENT] QR generation failed:', qrResponse.error);
+            }
+
+            // Send confirmation email
+            const emailResponse = await supabaseService.functions.invoke('send-confirmation-email', {
+              body: {
+                email: userEmail,
+                guideId: guide_id,
+                guideTitle: guideData.title,
+                accessCode: purchase.access_code
+              }
+            });
+
+            if (emailResponse.error) {
+              console.error('[VERIFY-PAYMENT] Email sending failed:', emailResponse.error);
+              
+              // Log failed email for manual retry
+              await supabaseService.from('user_purchases').update({
+                email_sent: false,
+                email_error: emailResponse.error.message
+              }).eq('id', purchase.id);
+            } else {
+              console.log('[VERIFY-PAYMENT] Email sent successfully');
+              await supabaseService.from('user_purchases').update({
+                email_sent: true
+              }).eq('id', purchase.id);
+            }
           }
-        });
-        logStep("Background: Confirmation email sent successfully");
-      } catch (emailError) {
-        logStep("Background: Email function error", { error: emailError });
-      }
-    };
-
-    // Run background tasks without blocking response
-    EdgeRuntime.waitUntil(backgroundTasks());
+        } catch (backgroundError) {
+          console.error('[VERIFY-PAYMENT] Background task error:', backgroundError);
+          
+          // Log the error in the database for admin review
+          await supabaseService.from('user_purchases').update({
+            email_sent: false,
+            email_error: backgroundError.message
+          }).eq('access_code', purchase.access_code);
+        }
+      })()
+    );
 
     return new Response(JSON.stringify({ 
       success: true, 
