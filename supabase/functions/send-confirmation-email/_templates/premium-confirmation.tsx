@@ -623,15 +623,6 @@ const qrCodeImage = {
   },
 };
 
-const qrCodeHint = {
-  color: 'hsl(25, 20%, 42%)',
-  fontSize: '12px',
-  margin: '8px 0 0 0',
-  lineHeight: '1.4',
-  '@media (min-width: 600px)': {
-    fontSize: '14px',
-  },
-};
 
 const divider = {
   borderColor: 'hsl(25, 15%, 88%)',
