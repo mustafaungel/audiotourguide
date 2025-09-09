@@ -993,6 +993,27 @@ export type Database = {
         Args: { p_guest_email: string; p_user_id: string }
         Returns: string
       }
+      get_masked_verification_request: {
+        Args: { request_id: string }
+        Returns: {
+          admin_notes: string
+          creator_type: string
+          experience_description: string
+          full_name: string
+          id: string
+          id_document_url: string
+          id_number: string
+          license_document_url: string
+          license_number: string
+          portfolio_url: string
+          reviewed_at: string
+          social_media_links: Json
+          status: string
+          submitted_at: string
+          user_id: string
+          verification_level: string
+        }[]
+      }
       get_safe_verification_request: {
         Args: { request_id: string }
         Returns: {
