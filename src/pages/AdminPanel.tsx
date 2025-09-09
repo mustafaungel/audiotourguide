@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, FileText, Plus, ImageIcon, Copy, QrCode, Edit2, Mail } from 'lucide-react';
+import { Loader2, FileText, Plus, ImageIcon, Copy, QrCode, Edit2, Mail, Palette } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -22,7 +22,8 @@ import { CountrySelector } from '@/components/CountrySelector';
 import { AudioGuideSectionManager } from '@/components/AudioGuideSectionManager';
 import { AdminGuideEditForm } from '@/components/AdminGuideEditForm';
 import { AdminContactManagement } from '@/components/AdminContactManagement';
-import { EmailSystemTest } from '@/components/EmailSystemTest';
+import { EnhancedEmailTesting } from '@/components/EnhancedEmailTesting';
+import { LogoUploader } from '@/components/LogoUploader';
 
 import { ImageUploader } from '@/components/ImageUploader';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -282,7 +283,7 @@ const AdminPanel = () => {
         <AdminMobileNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="hidden md:grid grid-cols-6 w-full max-w-5xl gap-1">
+          <TabsList className="hidden md:grid grid-cols-7 w-full max-w-6xl gap-1">
             <TabsTrigger value="dashboard" className="flex items-center gap-2 text-sm">
               <FileText className="h-4 w-4" />
               <span>Dashboard</span>
@@ -298,6 +299,10 @@ const AdminPanel = () => {
             <TabsTrigger value="email-test" className="flex items-center gap-2 text-sm">
               <Mail className="h-4 w-4" />
               <span>Email</span>
+            </TabsTrigger>
+            <TabsTrigger value="branding" className="flex items-center gap-2 text-sm">
+              <Palette className="h-4 w-4" />
+              <span>Branding</span>
             </TabsTrigger>
             <TabsTrigger value="create-guide" className="flex items-center gap-2 text-sm">
               <Plus className="h-4 w-4" />
@@ -326,10 +331,11 @@ const AdminPanel = () => {
           </TabsContent>
 
           <TabsContent value="email-test">
-            <div className="space-y-6">
-              <h2 className="text-xl sm:text-2xl font-bold">Email System Testing</h2>
-              <EmailSystemTest />
-            </div>
+            <EnhancedEmailTesting />
+          </TabsContent>
+
+          <TabsContent value="branding">
+            <LogoUploader />
           </TabsContent>
 
 

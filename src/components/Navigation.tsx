@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { MapPin, Menu, Search, User, LogOut, X, Globe } from "lucide-react";
+import { MapPin, Menu, Search, User, LogOut, X, Globe, Headphones } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSiteBranding } from '@/hooks/useSiteBranding';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,6 +27,7 @@ export const Navigation = () => {
   const { user, userProfile, signOut } = useAuth();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { branding } = useSiteBranding();
 
   const handleSignOut = async () => {
     await signOut();
@@ -43,14 +45,24 @@ export const Navigation = () => {
           {/* Logo and Brand */}
           <Link to="/" className="flex items-center space-x-2 min-w-0">
             <div className="flex items-center space-x-2 min-w-0">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-teal-500 to-teal-600 rounded-lg flex items-center justify-center flex-shrink-0 relative">
-                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-teal-100" />
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
-                  <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+              {branding.logoUrl ? (
+                <img 
+                  src={branding.logoUrl} 
+                  alt={branding.companyName}
+                  className="h-8 sm:h-10 w-auto object-contain flex-shrink-0"
+                />
+              ) : (
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-teal-500 to-teal-600 rounded-lg flex items-center justify-center flex-shrink-0 relative">
+                  <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-teal-100" />
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
+                    <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                  </div>
                 </div>
-              </div>
+              )}
               <div className="flex flex-col min-w-0">
-                <span className="mobile-text sm:text-lg font-bold font-playfair text-foreground truncate">Audio Tour Guides</span>
+                <span className="mobile-text sm:text-lg font-bold font-playfair text-foreground truncate">
+                  {branding.companyName}
+                </span>
                 <span className="text-xs text-muted-foreground hidden sm:block">Discover World Heritage</span>
               </div>
             </div>
