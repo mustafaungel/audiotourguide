@@ -1,6 +1,9 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import React from 'npm:react@18.3.1';
+import { renderAsync } from 'npm:@react-email/components@0.0.22';
+import { PremiumConfirmationEmail } from './_templates/premium-confirmation.tsx';
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -48,45 +51,36 @@ const handler = async (req: Request): Promise<Response> => {
     const siteUrl = Deno.env.get("SITE_URL") || "https://audiotourguide.app";
     const guideUrl = `${siteUrl}/access/${guideId}${accessCode ? `?access_code=${accessCode}` : ''}`;
 
+    // Format purchase date
+    const purchaseDate = new Date().toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+
+    // Format price
+    const formattedPrice = guide.price_usd ? `$${(guide.price_usd / 100).toFixed(2)}` : '$12.00';
+
+    // Render premium email template
+    const html = await renderAsync(
+      React.createElement(PremiumConfirmationEmail, {
+        guideTitle: guideTitle,
+        guideLocation: guide.location || 'Unknown Location',
+        guideImageUrl: guide.image_urls?.[0] || guide.image_url,
+        guideDuration: guide.duration || 7200, // Default 2 hours in seconds
+        guideUrl: guideUrl,
+        accessCode: accessCode,
+        purchaseDate: purchaseDate,
+        price: formattedPrice,
+        currency: 'USD'
+      })
+    );
+
     const emailResponse = await resend.emails.send({
-      from: "AudioGuide <onboarding@resend.dev>",
+      from: "AudioGuide Premium <premium@audioguide.app>",
       to: [email],
-      subject: `Your AudioGuide Purchase Confirmation - ${guideTitle}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h1 style="color: #333; text-align: center;">Purchase Confirmation</h1>
-          
-          <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h2 style="color: #333; margin-top: 0;">Thank you for your purchase!</h2>
-            <p>You have successfully purchased the audio guide:</p>
-            <h3 style="color: #0066cc;">${guideTitle}</h3>
-          </div>
-
-          <div style="background: #e8f4fd; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #333; margin-top: 0;">Access Your Guide</h3>
-            <p>Click the button below to access your audio guide:</p>
-            <div style="text-align: center; margin: 20px 0;">
-              <a href="${guideUrl}" 
-                 style="background: #0066cc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
-                Access Your Guide
-              </a>
-            </div>
-            ${accessCode ? `<p style="font-size: 14px; color: #666;">Access Code: <strong>${accessCode}</strong></p>` : ''}
-          </div>
-
-          <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px 0;">
-            <h4 style="color: #856404; margin-top: 0;">📱 QR Code Available</h4>
-            <p style="color: #856404; margin-bottom: 0;">Your QR code for easy access is now available on the guide page.</p>
-          </div>
-
-          <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
-            <p style="color: #666; font-size: 14px;">
-              Thank you for choosing AudioGuide!<br>
-              Enjoy your immersive audio experience.
-            </p>
-          </div>
-        </div>
-      `,
+      subject: `🎧 Your ${guideTitle} Audio Guide is Ready!`,
+      html: html,
     });
 
     console.log("[SEND-CONFIRMATION-EMAIL] Email sent successfully:", emailResponse);

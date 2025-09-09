@@ -123,6 +123,8 @@ All colors MUST be HSL.
     --gradient-overlay: linear-gradient(180deg, transparent 0%, hsl(0 0% 0% / 0.3) 100%);
 
     /* Enhanced Shadow System */
+    --shadow-elegant: 0 10px 30px -10px hsl(var(--primary) / 0.3);
+    --shadow-glow: 0 0 40px hsl(var(--primary-glow) / 0.4);
     --shadow-glow: 0 0 40px hsl(22 88% 52% / 0.25);
     --shadow-accent-glow: 0 0 30px hsl(205 88% 48% / 0.2);
     --shadow-card: 0 4px 20px hsl(25 30% 12% / 0.06);
@@ -414,5 +416,14 @@ All colors MUST be HSL.
   
   .mobile-margin {
     @apply m-mobile-padding;
+  }
+
+  /* Animation delay utilities */
+  .animation-delay-100 {
+    animation-delay: 100ms;
+  }
+  
+  .animation-delay-200 {
+    animation-delay: 200ms;
   }
 }

@@ -1,7 +1,7 @@
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
-import { AudioPlayer } from "@/components/AudioPlayer";
+import { EnhancedAudioPlayer } from "@/components/EnhancedAudioPlayer";
 
 import { ReviewsSection } from "@/components/ReviewsSection";
 import { EmbeddedCheckout } from "@/components/EmbeddedCheckout";
@@ -719,6 +719,20 @@ const GuideDetail = () => {
                 <ReviewsSection guideId={guide.id} isPurchased={isPurchased} showAllReviews={true} />
               </TabsContent>
             </Tabs>
+
+            {/* Enhanced Audio Player - Only show when purchased/has access */}
+            {(isPurchased || hasAccessCode) && (
+              <div className="mt-8">
+                <EnhancedAudioPlayer
+                  guideId={guide.id}
+                  guideTitle={guide.title}
+                  sections={guide.sections || guide.chapters || []}
+                  mainAudioUrl={guide.audio_url || guide.audioUrl}
+                  accessCode={searchParams.get('access_code') || undefined}
+                  isPurchased={isPurchased}
+                />
+              </div>
+            )}
           </div>
 
           {/* Sidebar */}
@@ -734,19 +748,15 @@ const GuideDetail = () => {
               </CardHeader>
               <CardContent className="space-y-3">
                 {isPurchased ? (
-                  <>
-                    <Button 
-                      className="w-full" 
-                      onClick={() => setPlayingGuide(true)}
-                    >
-                      <Play className="w-4 h-4 mr-2" />
-                      Start Audio Guide
-                    </Button>
-                    <Button variant="outline" className="w-full">
-                      <Download className="w-4 h-4 mr-2" />
-                      Download for Offline
-                    </Button>
-                  </>
+                  <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="text-sm font-medium text-green-700 dark:text-green-300">Access Granted</span>
+                    </div>
+                    <p className="text-sm text-green-600 dark:text-green-400">
+                      Your audio guide is ready below!
+                    </p>
+                  </div>
                   ) : (
                    <>
                      <Button className="w-full" onClick={handlePurchase}>
