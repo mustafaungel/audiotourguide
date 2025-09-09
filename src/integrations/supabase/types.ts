@@ -479,81 +479,33 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
-          bio: string | null
-          blue_tick_verified: boolean | null
-          certifications: Json | null
           created_at: string
           email: string
-          experience_years: number | null
           full_name: string | null
-          guide_country: string | null
           id: string
-          languages_spoken: string[] | null
-          license_country: string | null
-          license_type: string | null
-          local_guide_verified: boolean | null
-          rejection_reason: string | null
           role: Database["public"]["Enums"]["user_role"]
-          social_profiles: Json | null
-          specialties: string[] | null
           updated_at: string
           user_id: string
-          verification_badge_type: string | null
-          verification_documents: Json | null
-          verification_status: string | null
-          verified_at: string | null
         }
         Insert: {
           avatar_url?: string | null
-          bio?: string | null
-          blue_tick_verified?: boolean | null
-          certifications?: Json | null
           created_at?: string
           email: string
-          experience_years?: number | null
           full_name?: string | null
-          guide_country?: string | null
           id?: string
-          languages_spoken?: string[] | null
-          license_country?: string | null
-          license_type?: string | null
-          local_guide_verified?: boolean | null
-          rejection_reason?: string | null
           role?: Database["public"]["Enums"]["user_role"]
-          social_profiles?: Json | null
-          specialties?: string[] | null
           updated_at?: string
           user_id: string
-          verification_badge_type?: string | null
-          verification_documents?: Json | null
-          verification_status?: string | null
-          verified_at?: string | null
         }
         Update: {
           avatar_url?: string | null
-          bio?: string | null
-          blue_tick_verified?: boolean | null
-          certifications?: Json | null
           created_at?: string
           email?: string
-          experience_years?: number | null
           full_name?: string | null
-          guide_country?: string | null
           id?: string
-          languages_spoken?: string[] | null
-          license_country?: string | null
-          license_type?: string | null
-          local_guide_verified?: boolean | null
-          rejection_reason?: string | null
           role?: Database["public"]["Enums"]["user_role"]
-          social_profiles?: Json | null
-          specialties?: string[] | null
           updated_at?: string
           user_id?: string
-          verification_badge_type?: string | null
-          verification_documents?: Json | null
-          verification_status?: string | null
-          verified_at?: string | null
         }
         Relationships: []
       }
@@ -777,105 +729,6 @@ export type Database = {
           },
         ]
       }
-      verification_requests: {
-        Row: {
-          admin_notes: string | null
-          created_at: string
-          document_status: Database["public"]["Enums"]["document_status"] | null
-          experience_description: string | null
-          full_name: string
-          id: string
-          id_document_url: string | null
-          id_number: string | null
-          license_document_url: string | null
-          license_number: string | null
-          portfolio_url: string | null
-          reviewed_at: string | null
-          reviewed_by: string | null
-          social_media_links: Json | null
-          social_verification_data: Json | null
-          status: string
-          submitted_at: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          admin_notes?: string | null
-          created_at?: string
-          document_status?:
-            | Database["public"]["Enums"]["document_status"]
-            | null
-          experience_description?: string | null
-          full_name: string
-          id?: string
-          id_document_url?: string | null
-          id_number?: string | null
-          license_document_url?: string | null
-          license_number?: string | null
-          portfolio_url?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          social_media_links?: Json | null
-          social_verification_data?: Json | null
-          status?: string
-          submitted_at?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          admin_notes?: string | null
-          created_at?: string
-          document_status?:
-            | Database["public"]["Enums"]["document_status"]
-            | null
-          experience_description?: string | null
-          full_name?: string
-          id?: string
-          id_document_url?: string | null
-          id_number?: string | null
-          license_document_url?: string | null
-          license_number?: string | null
-          portfolio_url?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          social_media_links?: Json | null
-          social_verification_data?: Json | null
-          status?: string
-          submitted_at?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "verification_requests_reviewed_by_fkey"
-            columns: ["reviewed_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "verification_requests_reviewed_by_fkey"
-            columns: ["reviewed_by"]
-            isOneToOne: false
-            referencedRelation: "safe_creator_profiles"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "verification_requests_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "verification_requests_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "safe_creator_profiles"
-            referencedColumns: ["user_id"]
-          },
-        ]
-      }
       viral_metrics: {
         Row: {
           completion_rate: number | null
@@ -960,65 +813,9 @@ export type Database = {
       }
     }
     Views: {
-      safe_creator_profiles: {
-        Row: {
-          avatar_url: string | null
-          bio: string | null
-          display_name: string | null
-          guide_country: string | null
-          social_profiles: Json | null
-          specialties: string[] | null
-          user_id: string | null
-          verification_status: string | null
-        }
-        Insert: {
-          avatar_url?: never
-          bio?: never
-          display_name?: never
-          guide_country?: string | null
-          social_profiles?: never
-          specialties?: string[] | null
-          user_id?: string | null
-          verification_status?: string | null
-        }
-        Update: {
-          avatar_url?: never
-          bio?: never
-          display_name?: never
-          guide_country?: string | null
-          social_profiles?: never
-          specialties?: string[] | null
-          user_id?: string | null
-          verification_status?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
-      admin_get_verification_requests: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          admin_notes: string | null
-          created_at: string
-          document_status: Database["public"]["Enums"]["document_status"] | null
-          experience_description: string | null
-          full_name: string
-          id: string
-          id_document_url: string | null
-          id_number: string | null
-          license_document_url: string | null
-          license_number: string | null
-          portfolio_url: string | null
-          reviewed_at: string | null
-          reviewed_by: string | null
-          social_media_links: Json | null
-          social_verification_data: Json | null
-          status: string
-          submitted_at: string
-          updated_at: string
-          user_id: string
-        }[]
-      }
       approve_creator_verification: {
         Args: { admin_notes_param?: string; request_id: string }
         Returns: boolean
