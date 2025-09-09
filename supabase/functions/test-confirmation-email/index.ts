@@ -18,8 +18,6 @@ interface TestEmailRequest {
   testData: {
     title: string;
     location: string;
-    price_paid: number;
-    currency: string;
     access_code: string;
     include_qr_code: boolean;
     languages: string[];
@@ -94,8 +92,8 @@ const handler = async (req: Request): Promise<Response> => {
       guideLocation: testData.location,
       customerName: recipientName,
       customerEmail: recipientEmail,
-      purchaseAmount: testData.price_paid,
-      currency: testData.currency,
+      purchaseAmount: 0, // Test email - no actual purchase
+      currency: 'USD',
       purchaseDate: new Date().toISOString(),
       accessUrl: `${baseUrl}/access/${guideId}?access_code=${testData.access_code}`,
       supportEmail: 'support@audiotourguide.app',

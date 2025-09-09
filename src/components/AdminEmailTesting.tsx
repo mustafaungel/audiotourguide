@@ -16,9 +16,6 @@ interface TestEmailData {
   guideId: string;
   guideTitle: string;
   guideLocation: string;
-  guidePrice: number;
-  guideCurrency: string;
-  accessCode: string;
   includeQRCode: boolean;
   languages: string[];
 }
@@ -30,9 +27,6 @@ export const AdminEmailTesting = () => {
     guideId: '',
     guideTitle: 'Sample Audio Guide',
     guideLocation: 'Paris, France',
-    guidePrice: 1500, // in cents
-    guideCurrency: 'USD',
-    accessCode: 'ART-TEST123',
     includeQRCode: true,
     languages: ['English']
   });
@@ -70,16 +64,13 @@ export const AdminEmailTesting = () => {
         guideId: selectedGuide.id,
         guideTitle: selectedGuide.title,
         guideLocation: selectedGuide.location,
-        guidePrice: selectedGuide.price_usd, // Already in cents from database
         languages: selectedGuide.languages || ['English']
       }));
     }
   };
 
   const generateTestAccessCode = () => {
-    const code = 'ART-TEST' + Math.random().toString(36).substr(2, 6).toUpperCase();
-    setTestData(prev => ({ ...prev, accessCode: code }));
-    toast.success('New test access code generated');
+    return 'TEST-' + Math.random().toString(36).substr(2, 8).toUpperCase();
   };
 
   const sendTestEmail = async () => {
@@ -92,6 +83,8 @@ export const AdminEmailTesting = () => {
     setEmailResult(null);
 
     try {
+      const testAccessCode = generateTestAccessCode();
+      
       const { data, error } = await supabase.functions.invoke('test-confirmation-email', {
         body: {
           recipientEmail: testData.recipientEmail,
@@ -100,9 +93,7 @@ export const AdminEmailTesting = () => {
           testData: {
             title: testData.guideTitle,
             location: testData.guideLocation,
-            price_paid: testData.guidePrice,
-            currency: testData.guideCurrency,
-            access_code: testData.accessCode,
+            access_code: testAccessCode,
             include_qr_code: testData.includeQRCode,
             languages: testData.languages
           }
@@ -137,15 +128,15 @@ export const AdminEmailTesting = () => {
     setPreviewLoading(true);
 
     try {
+      const testAccessCode = generateTestAccessCode();
+      
       const { data, error } = await supabase.functions.invoke('preview-confirmation-email', {
         body: {
           guideId: testData.guideId,
           testData: {
             title: testData.guideTitle,
             location: testData.guideLocation,
-            price_paid: testData.guidePrice,
-            currency: testData.guideCurrency,
-            access_code: testData.accessCode,
+            access_code: testAccessCode,
             include_qr_code: testData.includeQRCode,
             languages: testData.languages
           }
@@ -229,7 +220,7 @@ export const AdminEmailTesting = () => {
               <SelectContent>
                 {availableGuides.map((guide) => (
                   <SelectItem key={guide.id} value={guide.id}>
-                    {guide.title} - {guide.location} (${(guide.price_usd / 100).toFixed(2)})
+                    {guide.title} - {guide.location}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -257,45 +248,18 @@ export const AdminEmailTesting = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="guideCurrency">Currency</Label>
-              <Select value={testData.guideCurrency} onValueChange={(value) => setTestData(prev => ({ ...prev, guideCurrency: value }))}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="USD">USD</SelectItem>
-                  <SelectItem value="EUR">EUR</SelectItem>
-                  <SelectItem value="GBP">GBP</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-end">
-              <div className="w-full">
-                <Label htmlFor="accessCode">Access Code</Label>
-                <div className="flex gap-2 mt-1">
-                  <Input
-                    id="accessCode"
-                    value={testData.accessCode}
-                    onChange={(e) => setTestData(prev => ({ ...prev, accessCode: e.target.value }))}
-                    className="flex-1"
-                  />
-                  <Button variant="outline" size="sm" onClick={generateTestAccessCode}>
-                    Generate
-                  </Button>
-                </div>
-              </div>
-            </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="includeQRCode"
+              checked={testData.includeQRCode}
+              onChange={(e) => setTestData(prev => ({ ...prev, includeQRCode: e.target.checked }))}
+              className="rounded"
+            />
+            <Label htmlFor="includeQRCode" className="text-sm">
+              Include QR Code in email
+            </Label>
           </div>
-          
-          {testData.guideId && (
-            <div className="bg-muted/50 p-3 rounded-lg">
-              <p className="text-sm font-medium text-muted-foreground">
-                Guide Price: <span className="font-semibold text-foreground">${(testData.guidePrice / 100).toFixed(2)} {testData.guideCurrency}</span>
-              </p>
-            </div>
-          )}
         </div>
 
         <Separator />
