@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@4.0.0";
 import { renderAsync } from "npm:@react-email/components@0.0.22";
 import React from "npm:react@18.3.1";
-import { PremiumConfirmationEmail } from "./_templates/premium-confirmation.tsx";
+import { PremiumConfirmationEmail } from "../send-confirmation-email/_templates/premium-confirmation.tsx";
 
 const resend = new Resend(Deno.env.get('RESEND_API_KEY') as string);
 
@@ -22,6 +22,7 @@ interface TestEmailRequest {
     currency: string;
     access_code: string;
     include_qr_code: boolean;
+    languages: string[];
   };
 }
 
@@ -55,20 +56,42 @@ const handler = async (req: Request): Promise<Response> => {
     const siteUrl = Deno.env.get('SITE_URL') || 'https://audiotourguide.app';
     const baseUrl = siteUrl.endsWith('/') ? siteUrl.slice(0, -1) : siteUrl;
 
-    // Prepare email template data
+    // Generate QR code for access URL (if requested)
+    let qrCodeUrl = undefined;
+    if (testData.include_qr_code) {
+      try {
+        const qrResponse = await fetch(`${baseUrl}/functions/v1/generate-qr-code`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            data: `${baseUrl}/access/${guideId}?access_code=${testData.access_code}`
+          })
+        });
+        
+        if (qrResponse.ok) {
+          const qrResult = await qrResponse.json();
+          qrCodeUrl = qrResult.qrCodeUrl;
+        }
+      } catch (error) {
+        console.log('Failed to generate QR code for test email:', error);
+      }
+    }
+
+    // Prepare email template data (matching send-confirmation-email format)
     const emailData = {
       guideName: testData.title,
       guideLocation: testData.location,
       customerName: recipientName,
       customerEmail: recipientEmail,
-      accessCode: testData.access_code,
       purchaseAmount: testData.price_paid,
       currency: testData.currency,
       purchaseDate: new Date().toISOString(),
-      guideUrl: `${baseUrl}/guide/${guideId}`,
-      accessUrl: `${baseUrl}/audio-access?code=${testData.access_code}&guide=${guideId}`,
-      supportEmail: 'support@audioguides.com',
-      qrCodeUrl: testData.include_qr_code ? `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==` : undefined
+      accessUrl: `${baseUrl}/access/${guideId}?access_code=${testData.access_code}`,
+      supportEmail: 'support@audiotourguide.app',
+      qrCodeUrl: qrCodeUrl,
+      languages: testData.languages || ['English']
     };
 
     // Render the email template
