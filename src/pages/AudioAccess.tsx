@@ -1,7 +1,7 @@
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
-import { SectionAudioPlayer } from "@/components/SectionAudioPlayer";
+import { NewSectionAudioPlayer } from "@/components/NewSectionAudioPlayer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -445,10 +445,6 @@ export default function AudioAccess() {
                       <Clock className="w-4 h-4" />
                       {Math.floor(guide.duration / 60)} min
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      {guide.rating || 0} ({guide.total_reviews || 0})
-                    </div>
                     {guide.languages && guide.languages.length > 0 && (
                       <div className="flex items-center gap-2">
                         {guide.languages.map((language: string, index: number) => (
@@ -465,9 +461,9 @@ export default function AudioAccess() {
             </CardContent>
           </Card>
 
-          {/* Section-Based Audio Player */}
+          {/* Chapter-First Audio Interface */}
           <div className="mb-6">
-            <SectionAudioPlayer
+            <NewSectionAudioPlayer
               guideId={guide.id}
               guideTitle={guide.title}
               sections={guide.sections || []}
