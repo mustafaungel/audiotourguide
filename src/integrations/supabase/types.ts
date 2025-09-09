@@ -978,6 +978,14 @@ export type Database = {
         Args: { location_text?: string; title_text: string }
         Returns: string
       }
+      get_guest_purchase_basic_info: {
+        Args: { p_access_code: string; p_guide_id: string }
+        Returns: {
+          access_code: string
+          guide_id: string
+          purchase_date: string
+        }[]
+      }
       get_guest_purchase_info: {
         Args: { p_access_code: string; p_guide_id: string }
         Returns: {
@@ -1089,6 +1097,10 @@ export type Database = {
         Args: { user_id?: string }
         Returns: boolean
       }
+      log_purchase_access_attempt: {
+        Args: { p_access_code: string; p_guide_id: string; p_success: boolean }
+        Returns: undefined
+      }
       log_security_event: {
         Args: {
           p_action: string
@@ -1148,6 +1160,10 @@ export type Database = {
         Returns: boolean
       }
       verify_access_code_secure: {
+        Args: { p_access_code: string; p_guide_id: string }
+        Returns: boolean
+      }
+      verify_guest_purchase_access: {
         Args: { p_access_code: string; p_guide_id: string }
         Returns: boolean
       }
