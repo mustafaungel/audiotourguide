@@ -92,17 +92,9 @@ export const ChapterList: React.FC<ChapterListProps> = ({
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-xl">Audio Chapters</CardTitle>
-          {/* Auto-advance setting */}
-          <div className="flex items-center space-x-2">
-            <Settings className="h-4 w-4 text-muted-foreground" />
-            <Switch
-              id="auto-advance"
-              checked={autoAdvanceEnabled}
-              onCheckedChange={onAutoAdvanceChange}
-            />
-            <Label htmlFor="auto-advance" className="text-sm text-muted-foreground">
-              Auto-advance
-            </Label>
+          {/* Chapter progress info */}
+          <div className="text-sm text-muted-foreground">
+            {sections.length} chapters
           </div>
         </div>
       </CardHeader>

@@ -67,6 +67,7 @@ export type Database = {
           image_url: string | null
           image_urls: string[] | null
           is_approved: boolean
+          is_featured: boolean
           is_published: boolean
           languages: string[]
           location: string
@@ -101,6 +102,7 @@ export type Database = {
           image_url?: string | null
           image_urls?: string[] | null
           is_approved?: boolean
+          is_featured?: boolean
           is_published?: boolean
           languages?: string[]
           location: string
@@ -135,6 +137,7 @@ export type Database = {
           image_url?: string | null
           image_urls?: string[] | null
           is_approved?: boolean
+          is_featured?: boolean
           is_published?: boolean
           languages?: string[]
           location?: string

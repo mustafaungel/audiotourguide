@@ -16,6 +16,7 @@ import GuideDetail from "./pages/GuideDetail";
 import AudioAccess from "./pages/AudioAccess";
 import Countries from "./pages/Countries";
 import CountryDetail from "./pages/CountryDetail";
+import FeaturedGuides from "./pages/FeaturedGuides";
 import NotFound from "./pages/NotFound";
 
 
@@ -38,6 +39,7 @@ const App = () => {
               <Route path="/guides" element={<Guides />} />
               <Route path="/country" element={<Countries />} />
               <Route path="/country/:countrySlug" element={<CountryDetail />} />
+              <Route path="/featured-guides" element={<FeaturedGuides />} />
               <Route path="/guide/:slug" element={<GuideDetail />} />
               <Route path="/access/:guideId" element={<AudioAccess />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />

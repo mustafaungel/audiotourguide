@@ -125,7 +125,7 @@ const Countries = () => {
                 >
                   <CardContent className="p-4 text-center">
                     {/* Flag Circle */}
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center text-3xl mb-3 mx-auto group-hover:from-primary/20 group-hover:to-accent/20 transition-colors">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center text-3xl mb-3 mx-auto group-hover:from-primary/20 group-hover:to-accent/20 transition-colors overflow-hidden">
                       {flag}
                     </div>
                     
@@ -185,7 +185,7 @@ const Countries = () => {
             variant="hero"
             size="lg"
             className="mobile-button px-8 py-4 touch-target"
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/featured-guides')}
           >
             Browse Featured Guides
           </Button>
