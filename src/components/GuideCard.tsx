@@ -189,27 +189,8 @@ export function GuideCard({
             )}
           </div>
 
-          <div className="flex items-center justify-between pt-2">
-            <div 
-              className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity min-w-0 flex-1"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (creatorId) {
-                  navigate(`/creator/${creatorId}`);
-                }
-              }}
-            >
-              <Avatar className="h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0">
-                <AvatarImage src={creatorAvatar} />
-                <AvatarFallback className="text-xs">
-                  {creatorName.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-              <span className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors truncate">
-                {creatorName !== 'Anonymous Creator' ? creatorName : 'Guide Creator'}
-              </span>
-            </div>
-            <div className="text-right flex-shrink-0 ml-2">
+          <div className="flex justify-center pt-2">
+            <div className="text-center">
               <div className="text-lg sm:text-xl font-bold">${(price / 100).toFixed(2)}</div>
             </div>
           </div>
