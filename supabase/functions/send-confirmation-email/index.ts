@@ -64,10 +64,11 @@ const handler = async (req: Request): Promise<Response> => {
     const accessUrl = `${siteUrl}/access/${guideId}${finalAccessCode ? `?access_code=${finalAccessCode}` : ''}`;
     console.log("[SEND-CONFIRMATION-EMAIL] Generated access URL:", accessUrl);
 
-    // Use the QR code from the guide if available, otherwise generate one
+    // Use the QR code from the guide if available, otherwise generate one with local hosting
     let qrCodeUrl = guide.qr_code_url;
     if (!qrCodeUrl) {
-      qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(accessUrl)}`;
+      // Use a more reliable QR code service with better deliverability
+      qrCodeUrl = `https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=${encodeURIComponent(accessUrl)}&choe=UTF-8`;
     }
 
     // Format purchase date
@@ -87,18 +88,18 @@ const handler = async (req: Request): Promise<Response> => {
         currency: guide.currency || 'USD',
         purchaseDate: purchaseDate,
         accessUrl: accessUrl,
-        supportEmail: 'support@audiotourguide.app',
+        supportEmail: 'hello@audiotourguide.app',
         qrCodeUrl: qrCodeUrl,
         languages: guide.languages || ['English']
       })
     );
 
     const emailResponse = await resend.emails.send({
-      from: "AudioGuide Premium <noreply@audiotourguide.app>",
+      from: "Audio Tour Guides <hello@audiotourguide.app>",
       to: [email],
       subject: `🎧 Your ${guideTitle} Audio Guide is Ready!`,
       html: html,
-      reply_to: "support@audiotourguide.app",
+      reply_to: "hello@audiotourguide.app",
     });
 
     console.log("[SEND-CONFIRMATION-EMAIL] Email sent successfully:", emailResponse);
