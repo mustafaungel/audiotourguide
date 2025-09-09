@@ -964,34 +964,28 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
-          experience_years: number | null
-          full_name: string | null
+          display_name: string | null
           guide_country: string | null
-          languages_spoken: string[] | null
           social_profiles: Json | null
           specialties: string[] | null
           user_id: string | null
           verification_status: string | null
         }
         Insert: {
-          avatar_url?: string | null
-          bio?: string | null
-          experience_years?: number | null
-          full_name?: string | null
+          avatar_url?: never
+          bio?: never
+          display_name?: never
           guide_country?: string | null
-          languages_spoken?: string[] | null
           social_profiles?: never
           specialties?: string[] | null
           user_id?: string | null
           verification_status?: string | null
         }
         Update: {
-          avatar_url?: string | null
-          bio?: string | null
-          experience_years?: number | null
-          full_name?: string | null
+          avatar_url?: never
+          bio?: never
+          display_name?: never
           guide_country?: string | null
-          languages_spoken?: string[] | null
           social_profiles?: never
           specialties?: string[] | null
           user_id?: string | null
