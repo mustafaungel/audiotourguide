@@ -2,7 +2,9 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Play, Pause, ChevronRight, SkipBack, SkipForward, Volume2, VolumeX } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Play, Pause, ChevronRight, SkipBack, SkipForward, Volume2, VolumeX, Check, Settings } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface Section {
@@ -26,6 +28,8 @@ interface ChapterListProps {
   playbackSpeed?: number;
   canGoNext?: boolean;
   canGoPrevious?: boolean;
+  autoAdvanceEnabled?: boolean;
+  isChapterCompleted?: (index: number) => boolean;
   onPlaySection: (index: number) => void;
   onTogglePlayPause?: () => void;
   onSeek?: (progress: number[]) => void;
@@ -34,6 +38,7 @@ interface ChapterListProps {
   onNextSection?: () => void;
   onToggleMute?: () => void;
   onSpeedChange?: (speed: number) => void;
+  onAutoAdvanceChange?: (enabled: boolean) => void;
 }
 
 export const ChapterList: React.FC<ChapterListProps> = ({
@@ -48,6 +53,8 @@ export const ChapterList: React.FC<ChapterListProps> = ({
   playbackSpeed = 1,
   canGoNext = false,
   canGoPrevious = false,
+  autoAdvanceEnabled = false,
+  isChapterCompleted = () => false,
   onPlaySection,
   onTogglePlayPause,
   onSeek,
@@ -55,7 +62,8 @@ export const ChapterList: React.FC<ChapterListProps> = ({
   onPreviousSection,
   onNextSection,
   onToggleMute,
-  onSpeedChange
+  onSpeedChange,
+  onAutoAdvanceChange
 }) => {
   const isMobile = useIsMobile();
   const formatTime = (seconds: number) => {
@@ -80,7 +88,21 @@ export const ChapterList: React.FC<ChapterListProps> = ({
   return (
     <Card>
       <CardHeader className="pb-4">
-        <CardTitle className="text-xl">Audio Chapters</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-xl">Audio Chapters</CardTitle>
+          {/* Auto-advance setting */}
+          <div className="flex items-center space-x-2">
+            <Settings className="h-4 w-4 text-muted-foreground" />
+            <Switch
+              id="auto-advance"
+              checked={autoAdvanceEnabled}
+              onCheckedChange={onAutoAdvanceChange}
+            />
+            <Label htmlFor="auto-advance" className="text-sm text-muted-foreground">
+              Auto-advance
+            </Label>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
@@ -97,7 +119,7 @@ export const ChapterList: React.FC<ChapterListProps> = ({
                 }`}
               >
                 <div className="flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-medium ${
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-medium relative ${
                     index === currentSectionIndex
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-primary/10 text-primary'
@@ -106,6 +128,12 @@ export const ChapterList: React.FC<ChapterListProps> = ({
                       <Pause className="h-4 w-4" />
                     ) : (
                       <Play className="h-4 w-4" />
+                    )}
+                    {/* Completion indicator */}
+                    {isChapterCompleted(index) && (
+                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                        <Check className="h-3 w-3 text-white" />
+                      </div>
                     )}
                   </div>
                   <div className="flex-1 text-left">

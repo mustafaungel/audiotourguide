@@ -2,7 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ChapterList } from '@/components/ChapterList';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useAudioProgress } from '@/hooks/useAudioProgress';
 import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
 
 interface Section {
   id?: string;
@@ -40,6 +42,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const { markChapterCompleted, isChapterCompleted, autoAdvanceEnabled, setAutoAdvance } = useAudioProgress({ guideId });
 
   // Determine if we have section-based audio or main audio
   const hasIndividualSections = sections.some(section => section.audio_url);
@@ -72,6 +75,14 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   const setupAudioElement = (audioElement: HTMLAudioElement) => {
     audioElement.addEventListener('timeupdate', () => {
       setCurrentTime(audioElement.currentTime);
+      
+      // Check if chapter is 90% complete for progress tracking
+      if (currentSectionIndex >= 0 && audioElement.duration > 0) {
+        const progress = audioElement.currentTime / audioElement.duration;
+        if (progress >= 0.9 && !isChapterCompleted(currentSectionIndex)) {
+          markChapterCompleted(currentSectionIndex);
+        }
+      }
     });
     
     audioElement.addEventListener('loadedmetadata', () => {
@@ -80,11 +91,35 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     
     audioElement.addEventListener('ended', () => {
       setIsPlaying(false);
-      // Auto-advance to next section if available
+      
+      // Mark chapter as completed
+      if (currentSectionIndex >= 0) {
+        markChapterCompleted(currentSectionIndex);
+      }
+      
+      // Show next chapter notification if auto-advance is disabled and there's a next chapter
       if (audioMode === 'sections' && currentSectionIndex < sections.length - 1) {
-        setTimeout(() => {
-          playSection(currentSectionIndex + 1);
-        }, 1000);
+        if (autoAdvanceEnabled) {
+          setTimeout(() => {
+            playSection(currentSectionIndex + 1);
+          }, 1000);
+        } else {
+          // Show next chapter prompt
+          const nextChapterTitle = sections[currentSectionIndex + 1]?.title || 'Next Chapter';
+          toast({
+            title: 'Chapter completed!',
+            description: `Ready to play: ${nextChapterTitle}`,
+            action: (
+              <Button
+                size="sm"
+                onClick={() => playSection(currentSectionIndex + 1)}
+                className="ml-2"
+              >
+                Play Next
+              </Button>
+            ),
+          });
+        }
       }
     });
     
@@ -281,6 +316,8 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
         playbackSpeed={playbackSpeed}
         canGoNext={currentSectionIndex < sections.length - 1}
         canGoPrevious={currentSectionIndex > 0}
+        autoAdvanceEnabled={autoAdvanceEnabled}
+        isChapterCompleted={isChapterCompleted}
         onPlaySection={playSection}
         onTogglePlayPause={togglePlayPause}
         onSeek={handleSeek}
@@ -289,6 +326,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
         onNextSection={nextSection}
         onToggleMute={toggleMute}
         onSpeedChange={handleSpeedChange}
+        onAutoAdvanceChange={setAutoAdvance}
       />
     </div>
   );
