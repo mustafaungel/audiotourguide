@@ -21,14 +21,13 @@ interface PremiumConfirmationEmailProps {
   guideLocation: string;
   customerName?: string;
   customerEmail: string;
-  accessCode?: string;
   purchaseAmount: number;
   currency: string;
   purchaseDate: string;
-  guideUrl: string;
   accessUrl: string;
   supportEmail: string;
   qrCodeUrl?: string;
+  languages?: string[];
 }
 
 export const PremiumConfirmationEmail = ({
@@ -36,14 +35,13 @@ export const PremiumConfirmationEmail = ({
   guideLocation,
   customerName,
   customerEmail,
-  accessCode,
   purchaseAmount,
   currency,
   purchaseDate,
-  guideUrl,
   accessUrl,
   supportEmail,
-  qrCodeUrl
+  qrCodeUrl,
+  languages = ['English']
 }: PremiumConfirmationEmailProps) => {
   const previewText = `Your ${guideName} audio guide is ready! Start your immersive journey now.`;
   const formattedPrice = (purchaseAmount / 100).toFixed(2);
@@ -120,6 +118,7 @@ export const PremiumConfirmationEmail = ({
                 <Heading style={guideTitle}>{guideName}</Heading>
                 <Text style={guideLocation}>📍 {guideLocation}</Text>
                 <Text style={guideDurationText}>🎧 Premium audio experience</Text>
+                <Text style={guideDurationText}>🌐 Available in: {languages.join(', ')}</Text>
               </Column>
             </Row>
           </Section>
@@ -137,26 +136,17 @@ export const PremiumConfirmationEmail = ({
               </Button>
             </div>
 
-            {accessCode && (
-              <div style={accessCodeSection}>
-                <Text style={accessCodeLabel}>Your Access Code:</Text>
-                <div style={accessCodeBox}>
-                  <Text style={accessCodeText}>{accessCode}</Text>
-                </div>
-                <Text style={accessCodeHint}>
-                  💡 Save this code for offline access or sharing with travel companions
-                </Text>
-              </div>
-            )}
-
             {qrCodeUrl && (
               <div style={qrCodeSection}>
-                <Text style={qrCodeLabel}>Quick Access QR Code:</Text>
+                <Text style={qrCodeLabel}>📱 Scan for Instant Access:</Text>
                 <Img
                   src={qrCodeUrl}
-                  alt="QR Code for quick access"
+                  alt="QR Code for quick access to your audio guide"
                   style={qrCodeImage}
                 />
+                <Text style={qrCodeHint}>
+                  Scan with your phone's camera for instant access to your guide
+                </Text>
               </div>
             )}
           </Section>
@@ -175,20 +165,6 @@ export const PremiumConfirmationEmail = ({
                 <div style={featureItem}>
                   <Text style={featureIcon}>📱</Text>
                   <Text style={featureText}>Mobile optimized</Text>
-                </div>
-              </Column>
-            </Row>
-            <Row>
-              <Column style={featureColumn}>
-                <div style={featureItem}>
-                  <Text style={featureIcon}>🌐</Text>
-                  <Text style={featureText}>Offline access</Text>
-                </div>
-              </Column>
-              <Column style={featureColumn}>
-                <div style={featureItem}>
-                  <Text style={featureIcon}>🎯</Text>
-                  <Text style={featureText}>Interactive chapters</Text>
                 </div>
               </Column>
             </Row>
@@ -224,51 +200,14 @@ export const PremiumConfirmationEmail = ({
             </Row>
           </Section>
 
-          {/* Tips Section */}
-          <Section style={tipsSection}>
-            <Heading style={tipsTitle}>💡 Pro Tips</Heading>
-            <ul style={tipsList}>
-              <li style={tipsItem}>
-                <Text style={tipsText}>Download for offline listening before your trip</Text>
-              </li>
-              <li style={tipsItem}>
-                <Text style={tipsText}>Use headphones for the best immersive experience</Text>
-              </li>
-              <li style={tipsItem}>
-                <Text style={tipsText}>Each chapter can be played independently</Text>
-              </li>
-              <li style={tipsItem}>
-                <Text style={tipsText}>Share your access code with travel companions</Text>
-              </li>
-            </ul>
-          </Section>
-
-          {/* Social Section */}
-          <Section style={socialSection}>
-            <Text style={socialText}>
-              Love your experience? Share it with fellow travelers!
-            </Text>
-            <div style={socialButtons}>
-              <Link style={socialButton} href={`https://twitter.com/intent/tweet?text=Just got an amazing audio guide for ${guideName}! 🎧✨&url=${guideUrl}`}>
-                🐦 Twitter
-              </Link>
-              <Link style={socialButton} href={`https://www.facebook.com/sharer/sharer.php?u=${guideUrl}`}>
-                📘 Facebook
-              </Link>
-            </div>
-          </Section>
-
           {/* Footer */}
           <Section style={footer}>
             <Hr style={divider} />
             <Text style={footerText}>
-              Thank you for choosing Audio Tour Guides for your travel adventures!
+              Thank you for choosing Audio Tour Guides!
             </Text>
             <Text style={footerSubtext}>
               Need help? Contact us at {supportEmail}
-            </Text>
-            <Text style={footerCopyright}>
-              © 2024 Audio Tour Guides. All rights reserved.
             </Text>
           </Section>
         </Container>
@@ -667,6 +606,51 @@ const purchaseValueBold = {
   margin: '0',
   '@media (min-width: 600px)': {
     fontSize: '16px',
+  },
+};
+
+const qrCodeSection = {
+  marginTop: '20px',
+  textAlign: 'center' as const,
+  padding: '16px',
+  backgroundColor: 'hsl(25, 20%, 96%)',
+  borderRadius: '8px',
+  border: '1px solid hsl(25, 15%, 88%)',
+  '@media (min-width: 600px)': {
+    marginTop: '24px',
+    padding: '20px',
+  },
+};
+
+const qrCodeLabel = {
+  color: 'hsl(25, 25%, 15%)',
+  fontSize: '16px',
+  fontWeight: '600',
+  margin: '0 0 12px 0',
+  '@media (min-width: 600px)': {
+    fontSize: '18px',
+  },
+};
+
+const qrCodeImage = {
+  width: '140px',
+  height: '140px',
+  margin: '8px 0',
+  border: '2px solid hsl(25, 15%, 88%)',
+  borderRadius: '8px',
+  '@media (min-width: 600px)': {
+    width: '160px',
+    height: '160px',
+  },
+};
+
+const qrCodeHint = {
+  color: 'hsl(25, 20%, 42%)',
+  fontSize: '12px',
+  margin: '8px 0 0 0',
+  lineHeight: '1.4',
+  '@media (min-width: 600px)': {
+    fontSize: '14px',
   },
 };
 

@@ -49,30 +49,31 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const siteUrl = Deno.env.get("SITE_URL") || "https://audiotourguide.app";
-    const guideUrl = `${siteUrl}/access/${guideId}${accessCode ? `?access_code=${accessCode}` : ''}`;
+    const accessUrl = `${siteUrl}/access/${guideId}${accessCode ? `?access_code=${accessCode}` : ''}`;
+
+    // Generate QR code for the access URL
+    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(accessUrl)}`;
 
     // Format purchase date
-    const purchaseDate = new Date().toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    const purchaseDate = new Date().toISOString();
 
-    // Format price
-    const formattedPrice = guide.price_usd ? `$${(guide.price_usd / 100).toFixed(2)}` : '$12.00';
+    // Get purchase amount (convert from cents to display format)
+    const purchaseAmount = guide.price_usd || 1200; // Default to $12.00 if not set
 
     // Render premium email template
     const html = await renderAsync(
       React.createElement(PremiumConfirmationEmail, {
-        guideTitle: guideTitle,
+        guideName: guideTitle,
         guideLocation: guide.location || 'Unknown Location',
-        guideImageUrl: guide.image_urls?.[0] || guide.image_url,
-        guideDuration: guide.duration || 7200, // Default 2 hours in seconds
-        guideUrl: guideUrl,
-        accessCode: accessCode,
+        customerName: undefined, // We don't have customer name from purchase
+        customerEmail: email,
+        purchaseAmount: purchaseAmount,
+        currency: guide.currency || 'USD',
         purchaseDate: purchaseDate,
-        price: formattedPrice,
-        currency: 'USD'
+        accessUrl: accessUrl,
+        supportEmail: 'support@audiotourguide.app',
+        qrCodeUrl: qrCodeUrl,
+        languages: guide.languages || ['English']
       })
     );
 
