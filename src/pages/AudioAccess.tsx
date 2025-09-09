@@ -73,7 +73,9 @@ export default function AudioAccess() {
       console.log('[AUDIO-ACCESS] Starting secure access verification and guide loading:', { 
         guide_id: guideId, 
         access_code: accessCode?.trim(),
-        user: user?.id || 'guest'
+        user: user?.id || 'guest',
+        isAuthenticated: !!user,
+        supabaseAuth: !!supabase.auth.getUser
       });
 
       // Use the secure function that verifies access and returns guide data in one call
@@ -83,15 +85,25 @@ export default function AudioAccess() {
           p_access_code: accessCode?.trim()
         });
 
+      console.log('[AUDIO-ACCESS] RPC Response:', { 
+        hasData: !!guideData, 
+        dataLength: guideData?.length || 0,
+        hasError: !!accessError,
+        errorDetails: accessError,
+        errorCode: accessError?.code,
+        errorMessage: accessError?.message,
+        fullResponse: { data: guideData, error: accessError }
+      });
+
       if (accessError) {
         console.error('[AUDIO-ACCESS] Error verifying access:', accessError);
-        setError('Access verification failed');
+        setError(`Access verification failed: ${accessError.message || accessError.code || 'Unknown error'}`);
         setIsLoading(false);
         return;
       }
 
       if (!guideData || guideData.length === 0) {
-        console.log('[AUDIO-ACCESS] Invalid access code');
+        console.log('[AUDIO-ACCESS] Invalid access code or no data returned');
         setError('Invalid access code or guide not found');
         setIsLoading(false);
         return;
