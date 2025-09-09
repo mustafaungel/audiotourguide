@@ -458,34 +458,13 @@ const accessCodeHint = {
   },
 };
 
-const qrCodeSection = {
-  marginTop: '20px',
-  textAlign: 'center' as const,
-  padding: '16px',
-  backgroundColor: 'hsl(25, 20%, 94%)',
-  borderRadius: '8px',
+const qrCodeHint = {
+  color: 'hsl(25, 20%, 42%)',
+  fontSize: '12px',
+  margin: '8px 0 0 0',
+  lineHeight: '1.4',
   '@media (min-width: 600px)': {
-    marginTop: '24px',
-  },
-};
-
-const qrCodeLabel = {
-  color: 'hsl(25, 25%, 15%)',
-  fontSize: '14px',
-  fontWeight: '600',
-  margin: '0 0 12px 0',
-  '@media (min-width: 600px)': {
-    fontSize: '16px',
-  },
-};
-
-const qrCodeImage = {
-  width: '120px',
-  height: '120px',
-  margin: '0 auto',
-  '@media (min-width: 600px)': {
-    width: '150px',
-    height: '150px',
+    fontSize: '14px',
   },
 };
 

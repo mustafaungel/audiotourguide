@@ -133,6 +133,12 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
   const updateGuide = async () => {
     if (!guide) return;
     
+    // Validate price before updating
+    if (formData.price_usd < 0.50) {
+      toast.error('Price must be at least $0.50 due to Stripe requirements');
+      return;
+    }
+    
     setLoading(true);
     try {
       const updateData: any = {
@@ -314,12 +320,24 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
                 step="0.01"
                 min="0.50"
                 value={formData.price_usd}
-                onChange={(e) => handleInputChange('price_usd', parseFloat(e.target.value) || 0)}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value) || 0;
+                  if (value > 0 && value < 0.50) {
+                    toast.error('Price must be at least $0.50 due to Stripe requirements');
+                  }
+                  handleInputChange('price_usd', value);
+                }}
                 placeholder="0.50"
+                className={formData.price_usd > 0 && formData.price_usd < 0.50 ? 'border-red-500' : ''}
               />
               <p className="text-xs text-muted-foreground">
                 Minimum price: $0.50 (Stripe requirement)
               </p>
+              {formData.price_usd > 0 && formData.price_usd < 0.50 && (
+                <p className="text-xs text-red-500">
+                  Price below $0.50 will cause payment failures
+                </p>
+              )}
             </div>
 
             {/* Featured Toggle */}
