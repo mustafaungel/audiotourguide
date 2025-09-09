@@ -163,7 +163,21 @@ serve(async (req) => {
       .single();
 
     const guideTitle = guideData?.title || 'Audio Guide Purchase';
-    const userEmail = guestEmail || userId ? `user-${userId}@example.com` : 'guest@example.com';
+    
+    // Use real email addresses from Stripe metadata
+    let userEmail: string;
+    if (guestEmail) {
+      // For guest purchases, use the email from Stripe metadata
+      userEmail = guestEmail;
+    } else if (userId) {
+      // For authenticated users, we should get their email from auth.users
+      // Since we can't query auth.users directly, we'll need to get it from the session or user data
+      const { data: userData, error: userError } = await supabaseService.auth.admin.getUserById(userId);
+      userEmail = userData?.user?.email || `user-${userId}@temporary.com`;
+    } else {
+      // Fallback - this shouldn't happen with proper validation
+      userEmail = 'unknown@example.com';
+    }
 
     // Send confirmation email
     try {

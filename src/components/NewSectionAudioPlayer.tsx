@@ -33,6 +33,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
+  const [previousVolume, setPreviousVolume] = useState(1); // Store volume before muting
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [showVolumeHelper, setShowVolumeHelper] = useState(false);
   
@@ -211,10 +212,14 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
 
   const toggleMute = () => {
     if (isMuted) {
-      setVolume(0.5);
+      // Restore previous volume when unmuting
+      const volumeToRestore = previousVolume > 0 ? previousVolume : 0.5;
+      setVolume(volumeToRestore);
       setIsMuted(false);
-      if (audioRef.current) audioRef.current.volume = 0.5;
+      if (audioRef.current) audioRef.current.volume = volumeToRestore;
     } else {
+      // Store current volume before muting
+      setPreviousVolume(volume > 0 ? volume : 0.5);
       setVolume(0);
       setIsMuted(true);
       if (audioRef.current) audioRef.current.volume = 0;
