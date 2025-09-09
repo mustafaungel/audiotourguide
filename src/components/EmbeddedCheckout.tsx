@@ -296,11 +296,8 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
           <div className="bg-muted/50 p-3 rounded-lg">
             <h3 className="font-medium text-sm mb-1">{guide.title}</h3>
             {guide.creator_name && (
-              <p className="text-xs text-muted-foreground mb-2">by {guide.creator_name}</p>
+              <p className="text-xs text-muted-foreground">by {guide.creator_name}</p>
             )}
-            <div className="text-lg font-bold text-primary">
-              ${(guide.price_usd / 100).toFixed(2)}
-            </div>
           </div>
 
           <Button 
@@ -317,7 +314,7 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
             ) : (
               <>
                 <CreditCard className="w-3 h-3 mr-2" />
-                Purchase Now
+                Purchase Now - ${(guide.price_usd / 100).toFixed(2)}
               </>
             )}
           </Button>
@@ -339,16 +336,23 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
             Enter email to buy instantly
           </CardDescription>
         </CardHeader>
-      <CardContent className="space-y-4">
+        <CardContent className="space-y-4">
         {/* Guide Summary */}
         <div className="bg-muted/50 p-3 rounded-lg">
           <h3 className="font-medium text-sm mb-1">{guide.title}</h3>
           {guide.creator_name && (
-            <p className="text-xs text-muted-foreground mb-2">by {guide.creator_name}</p>
+            <p className="text-xs text-muted-foreground">by {guide.creator_name}</p>
           )}
-          <div className="text-lg font-bold text-primary">
+        </div>
+
+        {/* Price Display */}
+        <div className="text-center p-3 bg-primary/5 rounded-lg border">
+          <div className="text-2xl font-bold text-primary">
             ${(guide.price_usd / 100).toFixed(2)}
           </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            One-time purchase
+          </p>
         </div>
 
         {/* Guest Checkout */}
@@ -382,7 +386,7 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
             ) : (
               <>
                 <CreditCard className="w-3 h-3 mr-2" />
-                Buy Now
+                Buy Now - ${(guide.price_usd / 100).toFixed(2)}
               </>
             )}
           </Button>

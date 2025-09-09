@@ -740,11 +740,9 @@ const GuideDetail = () => {
             {/* Purchase Card */}
             <Card>
               <CardHeader>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-primary mb-2">
-                    {guide.price || '$0'}
-                  </div>
-                </div>
+                <CardTitle className="text-center text-lg">
+                  Purchase Guide
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {isPurchased ? (
@@ -758,16 +756,29 @@ const GuideDetail = () => {
                     </p>
                   </div>
                   ) : (
-                   <>
-                     <Button className="w-full" onClick={handlePurchase}>
-                       Purchase Guide
-                     </Button>
-                      <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
-                        <span className="text-sm text-muted-foreground">
-                          Available for immediate purchase - no account required
-                        </span>
+                    <div className="space-y-4">
+                      {/* Price Display */}
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-primary mb-2">
+                          ${(guide.price_usd / 100).toFixed(2)}
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          Get instant access to this premium audio guide
+                        </p>
                       </div>
-                    </>
+                      
+                      <EmbeddedCheckout
+                        guide={{
+                          id: guide.id,
+                          title: guide.title,
+                          price_usd: guide.price_usd,
+                          creator_name: guide.creator?.name,
+                          image_url: guide.image_url
+                        }}
+                        onSuccess={handlePaymentSuccess}
+                        onCancel={() => setShowPaymentModal(false)}
+                      />
+                    </div>
                   )}
                </CardContent>
              </Card>
