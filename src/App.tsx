@@ -13,6 +13,8 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancelled from "./pages/PaymentCancelled";
 import GuideDetail from "./pages/GuideDetail";
 import AudioAccess from "./pages/AudioAccess";
+import Countries from "./pages/Countries";
+import CountryDetail from "./pages/CountryDetail";
 import NotFound from "./pages/NotFound";
 
 
@@ -32,6 +34,8 @@ const App = () => {
               <Route path="/admin-login" element={<Auth />} />
               <Route path="/admin" element={<AdminPanel />} />
               <Route path="/library" element={<Library />} />
+              <Route path="/country" element={<Countries />} />
+              <Route path="/country/:countrySlug" element={<CountryDetail />} />
               <Route path="/guide/:slug" element={<GuideDetail />} />
               <Route path="/access/:guideId" element={<AudioAccess />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />

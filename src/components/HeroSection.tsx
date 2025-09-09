@@ -33,7 +33,7 @@ export const HeroSection: React.FC = () => {
 
           {/* CTA Buttons */}
           <div className="flex flex-col gap-mobile-padding sm:gap-4 justify-center items-center w-full max-w-sm mx-auto sm:max-w-none sm:flex-row">
-            <Button variant="hero" size="default" className="w-full sm:w-auto px-6 py-3" onClick={() => navigate('/search')}>
+            <Button variant="hero" size="default" className="w-full sm:w-auto px-6 py-3" onClick={() => navigate('/country')}>
               <Play className="h-4 w-4 mr-2" />
               Explore Destinations
             </Button>

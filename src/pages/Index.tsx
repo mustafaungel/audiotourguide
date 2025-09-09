@@ -238,7 +238,7 @@ const Index = () => {
             Join thousands of travelers exploring UNESCO World Heritage sites and cultural treasures with AI-powered storytelling
           </p>
           <div className="mobile-stack sm:flex-row gap-4 justify-center">
-            <Button variant="hero" size="lg" className="mobile-button px-8 py-4 touch-target" onClick={() => navigate('/search')}>
+            <Button variant="hero" size="lg" className="mobile-button px-8 py-4 touch-target" onClick={() => navigate('/country')}>
               Start Exploring
             </Button>
           </div>
