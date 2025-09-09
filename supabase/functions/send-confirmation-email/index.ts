@@ -48,7 +48,12 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Guide not found");
     }
 
-    const siteUrl = Deno.env.get("SITE_URL") || "https://audiotourguide.app";
+    let siteUrl = Deno.env.get("SITE_URL") || "https://audiotourguide.app";
+    console.log("[SEND-CONFIRMATION-EMAIL] Raw SITE_URL:", siteUrl);
+    
+    // Ensure siteUrl doesn't have trailing slash
+    siteUrl = siteUrl.replace(/\/$/, '');
+    console.log("[SEND-CONFIRMATION-EMAIL] Cleaned siteUrl:", siteUrl);
     
     // Use master access code if available, fallback to provided access code
     let finalAccessCode = accessCode;
@@ -57,6 +62,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
     
     const accessUrl = `${siteUrl}/access/${guideId}${finalAccessCode ? `?access_code=${finalAccessCode}` : ''}`;
+    console.log("[SEND-CONFIRMATION-EMAIL] Generated access URL:", accessUrl);
 
     // Use the QR code from the guide if available, otherwise generate one
     let qrCodeUrl = guide.qr_code_url;
