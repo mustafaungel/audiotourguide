@@ -93,14 +93,18 @@ export default function AudioAccess() {
         user: user?.id || 'guest'
       });
 
-      // First check if it's a master access code (most common for QR codes)
-      const { data: guide, error: masterCodeError } = await supabase
-        .from('audio_guides')
-        .select('master_access_code')
-        .eq('id', guideId)
-        .single();
+      // First check if it's a master access code using secure RPC function
+      const { data: isMasterValid, error: masterError } = await supabase
+        .rpc('verify_master_access_code', {
+          p_guide_id: guideId,
+          p_access_code: accessCode?.trim()
+        });
 
-      if (!masterCodeError && guide && guide.master_access_code === accessCode?.trim()) {
+      if (masterError) {
+        console.error('[AUDIO-ACCESS] Error verifying master access code:', masterError);
+      }
+
+      if (isMasterValid) {
         isValidAccess = true;
         accessType = 'master';
         console.log('[AUDIO-ACCESS] Valid master access code');

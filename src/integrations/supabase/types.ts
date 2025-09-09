@@ -1123,6 +1123,10 @@ export type Database = {
         Args: { p_access_code: string; p_guide_id: string }
         Returns: boolean
       }
+      verify_master_access_code: {
+        Args: { p_access_code: string; p_guide_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       creator_type: "local_guide" | "influencer" | "hybrid"
