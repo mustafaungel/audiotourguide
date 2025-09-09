@@ -70,9 +70,6 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
   }
 
   const handlePayment = async (isGuest: boolean = false) => {
-    // Clear any existing state before starting
-    resetComponentState();
-    
     const targetEmail = user?.email || email;
     
     if (!targetEmail) {

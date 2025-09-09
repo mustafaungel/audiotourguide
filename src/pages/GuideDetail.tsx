@@ -263,6 +263,7 @@ const GuideDetail = () => {
         .from('audio_guides')
         .select(`
           id, 
+          slug,
           title, 
           price_usd, 
           rating, 
@@ -283,6 +284,7 @@ const GuideDetail = () => {
 
       const transformedRelated = data?.map(guide => ({
         id: guide.id,
+        slug: guide.slug,
         title: guide.title,
         creator: 'Anonymous Creator',
         rating: guide.rating || 0,
@@ -774,7 +776,11 @@ const GuideDetail = () => {
               </CardHeader>
               <CardContent className="space-y-3">
                 {(relatedGuides || []).map((relatedGuide) => (
-                  <div key={relatedGuide.id} className="flex gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
+                  <div 
+                    key={relatedGuide.id} 
+                    className="flex gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer"
+                    onClick={() => navigate(`/guide/${relatedGuide.slug || relatedGuide.id}`)}
+                  >
                     <img 
                       src={relatedGuide.image} 
                       alt={relatedGuide.title}
