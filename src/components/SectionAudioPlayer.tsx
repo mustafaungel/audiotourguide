@@ -278,55 +278,57 @@ export const SectionAudioPlayer: React.FC<SectionAudioPlayerProps> = ({
           </div>
 
           {/* Main Controls */}
-          <div className="flex items-center justify-center gap-3">
+          <div className="flex items-center justify-center gap-4">
             <Button
-              variant="outline"
-              size="lg"
+              variant="ghost"
+              size="icon"
               onClick={previousSection}
               disabled={loading || currentSectionIndex === 0}
-              className="h-12 w-12"
+              className="h-14 w-14 min-h-[56px] touch-manipulation rounded-full"
+              title="Previous chapter"
             >
-              <SkipBack className="h-5 w-5" />
+              <SkipBack className="h-6 w-6" />
             </Button>
             
             <Button
               onClick={togglePlayPause}
               disabled={loading}
               size="lg"
-              className="h-14 w-14"
+              className="h-18 w-18 min-h-[72px] touch-manipulation rounded-full bg-gradient-primary hover:bg-gradient-primary/90 shadow-lg"
             >
               {loading ? (
-                <div className="h-6 w-6 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                <div className="h-7 w-7 animate-spin rounded-full border-2 border-current border-t-transparent" />
               ) : isPlaying ? (
-                <Pause className="h-6 w-6" />
+                <Pause className="h-7 w-7" />
               ) : (
-                <Play className="h-6 w-6 ml-0.5" />
+                <Play className="h-7 w-7 ml-0.5" />
               )}
             </Button>
             
             <Button
-              variant="outline"
-              size="lg"
+              variant="ghost"
+              size="icon"
               onClick={nextSection}
               disabled={loading || currentSectionIndex === sections.length - 1}
-              className="h-12 w-12"
+              className="h-14 w-14 min-h-[56px] touch-manipulation rounded-full"
+              title="Next chapter"
             >
-              <SkipForward className="h-5 w-5" />
+              <SkipForward className="h-6 w-6" />
             </Button>
           </div>
 
           {/* Volume Control */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <Button
               variant="ghost"
-              size="sm"
+              size="icon"
               onClick={toggleMute}
-              className="flex-shrink-0"
+              className="h-12 w-12 min-h-[48px] touch-manipulation flex-shrink-0"
             >
               {isMuted || volume === 0 ? (
-                <VolumeX className="h-4 w-4" />
+                <VolumeX className="h-5 w-5" />
               ) : (
-                <Volume2 className="h-4 w-4" />
+                <Volume2 className="h-5 w-5" />
               )}
             </Button>
             <Slider
@@ -334,7 +336,7 @@ export const SectionAudioPlayer: React.FC<SectionAudioPlayerProps> = ({
               onValueChange={handleVolumeChange}
               max={100}
               step={1}
-              className="flex-1"
+              className="flex-1 h-2 touch-manipulation"
             />
           </div>
         </CardContent>

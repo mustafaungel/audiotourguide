@@ -161,19 +161,19 @@ export const AudioPreviewPlayer: React.FC<AudioPreviewPlayerProps> = ({
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">Preview: {title}</CardTitle>
-        <Button variant="ghost" size="sm" onClick={onClose}>
+    <Card className="w-full max-w-md mx-auto shadow-card bg-gradient-card border border-border/50">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+        <CardTitle className="text-sm font-semibold">Preview: {title}</CardTitle>
+        <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0 touch-manipulation">
           <X className="h-4 w-4" />
         </Button>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Progress Bar */}
         <div className="space-y-2">
-          <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
+          <div className="w-full bg-muted h-3 rounded-full overflow-hidden touch-manipulation">
             <div 
-              className="h-full bg-primary transition-all duration-300"
+              className="h-full bg-gradient-primary transition-all duration-300 rounded-full"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -188,19 +188,20 @@ export const AudioPreviewPlayer: React.FC<AudioPreviewPlayerProps> = ({
           </div>
         </div>
 
-        {/* Controls */}
-        <div className="flex items-center justify-between">
+        {/* Enhanced Controls */}
+        <div className="flex items-center justify-center gap-4">
           <Button 
-            variant="outline" 
-            size="sm"
+            variant="default" 
+            size="lg"
             onClick={togglePlayPause}
             disabled={!actualAudioSrc}
+            className="h-14 w-14 min-h-[56px] touch-manipulation rounded-full bg-gradient-primary hover:bg-gradient-primary/90 shadow-lg"
           >
-            {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+            {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
           </Button>
 
-          <div className="flex items-center gap-2 flex-1 ml-4">
-            <Button variant="ghost" size="sm" onClick={toggleMute}>
+          <div className="flex items-center gap-3 flex-1">
+            <Button variant="ghost" size="icon" onClick={toggleMute} className="h-10 w-10 min-h-[40px] touch-manipulation">
               {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
             </Button>
             <input
@@ -210,15 +211,17 @@ export const AudioPreviewPlayer: React.FC<AudioPreviewPlayerProps> = ({
               step="0.1"
               value={isMuted ? 0 : volume}
               onChange={handleVolumeChange}
-              className="flex-1 h-2 bg-secondary rounded-lg appearance-none cursor-pointer"
+              className="flex-1 h-3 bg-muted rounded-lg appearance-none cursor-pointer touch-manipulation"
             />
           </div>
         </div>
 
         {isPreview && (
-          <p className="text-xs text-muted-foreground text-center">
-            30-second preview • Purchase for full access
-          </p>
+          <div className="text-center">
+            <p className="text-xs text-muted-foreground">
+              30-second preview • Purchase for full access
+            </p>
+          </div>
         )}
 
         {/* Hidden Audio Element */}

@@ -32,6 +32,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const [showTranscript, setShowTranscript] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [savedPosition, setSavedPosition] = useState(0);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const { toast } = useToast();
 
@@ -147,7 +148,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const skipForward = useCallback(() => {
     if (audioRef.current) {
       audioRef.current.currentTime = Math.min(
-        audioRef.current.currentTime + 10,
+        audioRef.current.currentTime + 15,
         audioRef.current.duration
       );
     }
@@ -156,7 +157,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const skipBackward = useCallback(() => {
     if (audioRef.current) {
       audioRef.current.currentTime = Math.max(
-        audioRef.current.currentTime - 10,
+        audioRef.current.currentTime - 15,
         0
       );
     }
@@ -268,20 +269,15 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
     return () => clearInterval(interval);
   }, [isPlaying, savePosition]);
 
-  const WaveformVisualization = () => (
-    <div className="flex items-center gap-1 h-16 justify-center">
-      {Array.from({ length: 40 }, (_, i) => (
-        <div
-          key={i}
-          className={`w-1 bg-gradient-to-t from-audio-waveform to-audio-primary rounded-full transition-all duration-300 ${
-            isPlaying ? 'animate-pulse' : ''
-          }`}
-          style={{
-            height: `${Math.random() * 40 + 10}px`,
-            animationDelay: `${i * 0.1}s`,
-          }}
-        />
-      ))}
+  const SimpleProgressIndicator = () => (
+    <div className="h-12 flex items-center justify-center">
+      <div className={`w-16 h-16 rounded-full border-4 border-primary/20 relative flex items-center justify-center transition-all duration-300 ${
+        isPlaying ? 'border-primary/40 scale-105' : ''
+      }`}>
+        <div className={`w-8 h-8 rounded-full bg-gradient-primary transition-all duration-300 ${
+          isPlaying ? 'animate-pulse' : ''
+        }`} />
+      </div>
     </div>
   );
 
@@ -294,8 +290,8 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
           <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">{description}</p>
         </div>
 
-        {/* Waveform Visualization */}
-        <WaveformVisualization />
+        {/* Progress Indicator */}
+        <SimpleProgressIndicator />
 
         {/* Progress Bar */}
         <div className="space-y-2">
@@ -321,24 +317,25 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
           </div>
         )}
 
-        {/* Controls */}
-        <div className="flex items-center justify-center gap-6 sm:gap-8">
+        {/* Main Controls */}
+        <div className="flex items-center justify-center gap-4 sm:gap-6">
           <Button 
             variant="ghost" 
             size="icon"
             onClick={skipBackward}
             disabled={!actualAudioSrc || loading}
-            className="h-12 w-12 sm:h-14 sm:w-14 min-h-[48px] touch-manipulation"
+            className="h-14 w-14 sm:h-16 sm:w-16 min-h-[56px] touch-manipulation rounded-full"
+            title="Skip back 15 seconds"
           >
             <SkipBack className="h-6 w-6" />
           </Button>
           
           <Button 
-            variant="audio" 
+            variant="default" 
             size="lg"
             onClick={togglePlayPause}
             disabled={!actualAudioSrc || loading}
-            className="h-16 w-16 sm:h-18 sm:w-18 rounded-full min-h-[64px] touch-manipulation"
+            className="h-20 w-20 sm:h-24 sm:w-24 rounded-full min-h-[80px] touch-manipulation bg-gradient-primary hover:bg-gradient-primary/90 shadow-lg"
           >
             {loading ? (
               <div className="animate-spin h-8 w-8 border-2 border-current border-t-transparent rounded-full" />
@@ -354,30 +351,31 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
             size="icon"
             onClick={skipForward}
             disabled={!actualAudioSrc || loading}
-            className="h-12 w-12 sm:h-14 sm:w-14 min-h-[48px] touch-manipulation"
+            className="h-14 w-14 sm:h-16 sm:w-16 min-h-[56px] touch-manipulation rounded-full"
+            title="Skip forward 15 seconds"
           >
             <SkipForward className="h-6 w-6" />
           </Button>
         </div>
 
-        {/* Playback Speed Controls */}
-        <div className="flex items-center justify-center gap-2 pt-2">
-          <span className="text-xs text-muted-foreground mr-2">Speed:</span>
-          {[0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => (
-            <Button
-              key={speed}
-              variant={playbackSpeed === speed ? "secondary" : "ghost"}
-              size="sm"
-              onClick={() => handleSpeedChange(speed)}
-              className="h-7 px-2 text-xs"
-            >
-              {speed}x
-            </Button>
-          ))}
+        {/* Essential Volume Control (Always Visible) */}
+        <div className="flex items-center justify-center gap-4 pt-2 sm:hidden">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleMute}
+            className="h-12 w-12 min-h-[48px] touch-manipulation rounded-full"
+          >
+            {isMuted || volume === 0 ? (
+              <VolumeX className="h-5 w-5" />
+            ) : (
+              <Volume2 className="h-5 w-5" />
+            )}
+          </Button>
         </div>
 
-        {/* Volume Control */}
-        <div className="flex items-center justify-center gap-4 pt-2">
+        {/* Desktop Volume Control */}
+        <div className="hidden sm:flex items-center justify-center gap-4 pt-2">
           <Button
             variant="ghost"
             size="icon"
@@ -406,43 +404,95 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
           </div>
         </div>
 
-        {/* Additional Controls */}
-        <div className="flex items-center justify-center gap-4 pt-2">
-          {transcript && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowTranscript(!showTranscript)}
-              className="text-xs"
-            >
-              {showTranscript ? 'Hide' : 'Show'} Transcript
-            </Button>
-          )}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleDownload}
-            disabled={!actualAudioSrc}
-            className="text-xs"
-          >
-            <Download className="h-3 w-3 mr-1" />
-            Download
-          </Button>
+        {/* Quick Actions */}
+        <div className="flex items-center justify-center gap-3 pt-2">
           {savedPosition > 0 && (
             <Button
-              variant="ghost"
+              variant="secondary"
               size="sm"
               onClick={() => {
                 if (audioRef.current) {
                   audioRef.current.currentTime = savedPosition;
                 }
               }}
-              className="text-xs"
+              className="text-xs touch-manipulation"
             >
-              Continue: {formatTime(savedPosition)}
+              Resume: {formatTime(savedPosition)}
             </Button>
           )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            className="text-xs touch-manipulation"
+          >
+            {showAdvanced ? 'Less' : 'More'}
+          </Button>
         </div>
+
+        {/* Advanced Controls (Progressive Disclosure) */}
+        {showAdvanced && (
+          <div className="space-y-4 pt-4 border-t border-border/50">
+            {/* Playback Speed Controls */}
+            <div className="flex items-center justify-center gap-2">
+              <span className="text-xs text-muted-foreground mr-2">Speed:</span>
+              {[0.75, 1, 1.25, 1.5].map((speed) => (
+                <Button
+                  key={speed}
+                  variant={playbackSpeed === speed ? "secondary" : "ghost"}
+                  size="sm"
+                  onClick={() => handleSpeedChange(speed)}
+                  className="h-8 px-3 text-xs touch-manipulation"
+                >
+                  {speed}x
+                </Button>
+              ))}
+            </div>
+
+            {/* Mobile Volume Slider */}
+            <div className="sm:hidden flex items-center justify-center gap-4">
+              <span className="text-xs text-muted-foreground">Volume:</span>
+              <div 
+                className="w-48 h-3 bg-muted rounded-full cursor-pointer touch-manipulation"
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const clickX = e.clientX - rect.left;
+                  const newVolume = clickX / rect.width;
+                  handleVolumeChange(Math.max(0, Math.min(1, newVolume)));
+                }}
+              >
+                <div 
+                  className="h-full bg-gradient-primary rounded-full transition-all duration-300"
+                  style={{ width: `${isMuted ? 0 : volume * 100}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Additional Controls */}
+            <div className="flex items-center justify-center gap-3">
+              {transcript && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowTranscript(!showTranscript)}
+                  className="text-xs touch-manipulation"
+                >
+                  {showTranscript ? 'Hide' : 'Show'} Transcript
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleDownload}
+                disabled={!actualAudioSrc}
+                className="text-xs touch-manipulation"
+              >
+                <Download className="h-3 w-3 mr-1" />
+                Download
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Transcript Content */}
         {showTranscript && transcript && (

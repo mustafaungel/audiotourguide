@@ -90,27 +90,27 @@ export const LibraryAudioPlayer: React.FC<LibraryAudioPlayerProps> = ({
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
-    <Card className="fixed bottom-4 left-4 right-4 md:left-auto md:w-96 z-50 shadow-lg">
-      <CardHeader className="pb-2">
+    <Card className="fixed bottom-4 left-4 right-4 md:left-auto md:w-96 z-50 shadow-tourism bg-gradient-card border border-border/50">
+      <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-medium truncate">{guide.title}</CardTitle>
+          <CardTitle className="text-sm font-semibold truncate text-foreground">{guide.title}</CardTitle>
           {onClose && (
-            <Button variant="ghost" size="sm" onClick={onClose}>
+            <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0 touch-manipulation">
               ×
             </Button>
           )}
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-4">
         {/* Progress Bar */}
-        <div className="space-y-1">
+        <div className="space-y-2">
           <Slider
             value={[progress]}
             onValueChange={handleSeek}
             max={100}
             step={0.1}
-            className="w-full"
+            className="w-full h-2 touch-manipulation"
           />
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>{formatTime(currentTime)}</span>
@@ -118,49 +118,53 @@ export const LibraryAudioPlayer: React.FC<LibraryAudioPlayerProps> = ({
           </div>
         </div>
 
-        {/* Controls */}
-        <div className="flex items-center justify-center gap-2">
+        {/* Enhanced Controls */}
+        <div className="flex items-center justify-center gap-4">
           <Button
-            variant="outline"
-            size="sm"
-            onClick={() => skip(-10)}
+            variant="ghost"
+            size="icon"
+            onClick={() => skip(-15)}
             disabled={loading}
+            className="h-12 w-12 min-h-[48px] touch-manipulation rounded-full"
+            title="Skip back 15 seconds"
           >
-            <SkipBack className="h-4 w-4" />
+            <SkipBack className="h-5 w-5" />
           </Button>
           
           <Button
             onClick={handlePlayPause}
             disabled={loading}
-            size="sm"
-            className="h-10 w-10"
+            size="lg"
+            className="h-14 w-14 min-h-[56px] touch-manipulation rounded-full bg-gradient-primary hover:bg-gradient-primary/90 shadow-lg"
           >
             {loading ? (
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
             ) : isPlaying ? (
-              <Pause className="h-4 w-4" />
+              <Pause className="h-5 w-5" />
             ) : (
-              <Play className="h-4 w-4 ml-0.5" />
+              <Play className="h-5 w-5 ml-0.5" />
             )}
           </Button>
           
           <Button
-            variant="outline"
-            size="sm"
-            onClick={() => skip(10)}
+            variant="ghost"
+            size="icon"
+            onClick={() => skip(15)}
             disabled={loading}
+            className="h-12 w-12 min-h-[48px] touch-manipulation rounded-full"
+            title="Skip forward 15 seconds"
           >
-            <SkipForward className="h-4 w-4" />
+            <SkipForward className="h-5 w-5" />
           </Button>
         </div>
 
         {/* Volume Control */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <Button
             variant="ghost"
-            size="sm"
+            size="icon"
             onClick={handleMute}
-            className="p-1"
+            className="h-10 w-10 min-h-[40px] touch-manipulation flex-shrink-0"
           >
             {isMuted || volume === 0 ? (
               <VolumeX className="h-4 w-4" />
@@ -173,7 +177,7 @@ export const LibraryAudioPlayer: React.FC<LibraryAudioPlayerProps> = ({
             onValueChange={handleVolumeChange}
             max={100}
             step={1}
-            className="flex-1"
+            className="flex-1 h-2 touch-manipulation"
           />
         </div>
       </CardContent>
