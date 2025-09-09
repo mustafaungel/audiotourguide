@@ -23,7 +23,7 @@ import { AudioGuideSectionManager } from '@/components/AudioGuideSectionManager'
 import { AdminGuideEditForm } from '@/components/AdminGuideEditForm';
 import { AdminContactManagement } from '@/components/AdminContactManagement';
 import { EnhancedEmailTesting } from '@/components/EnhancedEmailTesting';
-import { LogoUploader } from '@/components/LogoUploader';
+import { EnhancedLogoUploader } from '@/components/EnhancedLogoUploader';
 
 import { ImageUploader } from '@/components/ImageUploader';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -337,7 +337,15 @@ const AdminPanel = () => {
           </TabsContent>
 
           <TabsContent value="branding">
-            <LogoUploader />
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-2xl font-bold mb-4">Site Branding</h2>
+                <p className="text-muted-foreground mb-6">
+                  Manage your website's branding with AI-powered logo processing for perfect transparency.
+                </p>
+              </div>
+              <EnhancedLogoUploader />
+            </div>
           </TabsContent>
 
 
