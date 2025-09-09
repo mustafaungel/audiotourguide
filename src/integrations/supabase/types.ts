@@ -854,10 +854,24 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
           {
+            foreignKeyName: "verification_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "safe_creator_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "verification_requests_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "verification_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "safe_creator_profiles"
             referencedColumns: ["user_id"]
           },
         ]
@@ -946,7 +960,45 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      safe_creator_profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          experience_years: number | null
+          full_name: string | null
+          guide_country: string | null
+          languages_spoken: string[] | null
+          social_profiles: Json | null
+          specialties: string[] | null
+          user_id: string | null
+          verification_status: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          experience_years?: number | null
+          full_name?: string | null
+          guide_country?: string | null
+          languages_spoken?: string[] | null
+          social_profiles?: never
+          specialties?: string[] | null
+          user_id?: string | null
+          verification_status?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          experience_years?: number | null
+          full_name?: string | null
+          guide_country?: string | null
+          languages_spoken?: string[] | null
+          social_profiles?: never
+          specialties?: string[] | null
+          user_id?: string | null
+          verification_status?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       admin_get_verification_requests: {
@@ -1000,6 +1052,10 @@ export type Database = {
       }
       can_access_verification_documents: {
         Args: { p_user_id: string }
+        Returns: boolean
+      }
+      check_profile_access_rate_limit: {
+        Args: { accessed_user_id: string }
         Returns: boolean
       }
       cleanup_verification_documents: {
@@ -1084,6 +1140,21 @@ export type Database = {
           submitted_at: string
           user_id: string
           verification_level: string
+        }[]
+      }
+      get_safe_creator_profile: {
+        Args: { creator_user_id: string }
+        Returns: {
+          avatar_url: string
+          bio: string
+          experience_years: number
+          full_name: string
+          guide_country: string
+          languages_spoken: string[]
+          social_profiles: Json
+          specialties: string[]
+          user_id: string
+          verification_status: string
         }[]
       }
       get_safe_verification_request: {
