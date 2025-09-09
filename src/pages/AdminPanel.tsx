@@ -9,23 +9,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, FileText, BarChart3, Users, UserCheck, UserPlus, Plus, ImageIcon, Copy, QrCode, Edit2, Mail } from 'lucide-react';
+import { Loader2, FileText, Plus, ImageIcon, Copy, QrCode, Edit2, Mail } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import QRCode from 'qrcode';
 import { AdminDashboard } from '@/components/AdminDashboard';
 import { GuideManagement } from '@/components/GuideManagement';
-import { UserManagement } from '@/components/UserManagement';
-import { AdminAnalytics } from '@/components/AdminAnalytics';
-import { AdminUserCreation } from '@/components/AdminUserCreation';
-import AdminHomepageStats from '@/components/AdminHomepageStats';
+
 import { AdminMobileNavigation } from '@/components/AdminMobileNavigation';
 import { CountrySelector } from '@/components/CountrySelector';
 import { AudioGuideSectionManager } from '@/components/AudioGuideSectionManager';
 import { AdminGuideEditForm } from '@/components/AdminGuideEditForm';
 import { AdminContactManagement } from '@/components/AdminContactManagement';
-import { AdminEmailTesting } from '@/components/AdminEmailTesting';
+
 import { ImageUploader } from '@/components/ImageUploader';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -284,42 +281,26 @@ const AdminPanel = () => {
         <AdminMobileNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="hidden md:grid grid-cols-4 lg:grid-cols-10 w-full max-w-7xl gap-2">
-            <TabsTrigger value="dashboard" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
-              <BarChart3 className="h-3 w-3 lg:h-4 lg:w-4" />
-              <span className="hidden lg:inline">Dashboard</span>
+          <TabsList className="hidden md:grid grid-cols-5 w-full max-w-4xl gap-2">
+            <TabsTrigger value="dashboard" className="flex items-center gap-2 text-sm">
+              <FileText className="h-4 w-4" />
+              <span>Dashboard</span>
             </TabsTrigger>
-            <TabsTrigger value="user-management" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
-              <Users className="h-3 w-3 lg:h-4 lg:w-4" />
-              <span className="hidden lg:inline">Users</span>
+            <TabsTrigger value="content-management" className="flex items-center gap-2 text-sm">
+              <FileText className="h-4 w-4" />
+              <span>Content</span>
             </TabsTrigger>
-            <TabsTrigger value="content-management" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
-              <FileText className="h-3 w-3 lg:h-4 lg:w-4" />
-              <span className="hidden lg:inline">Content</span>
+            <TabsTrigger value="contact-management" className="flex items-center gap-2 text-sm">
+              <Mail className="h-4 w-4" />
+              <span>Contact</span>
             </TabsTrigger>
-            <TabsTrigger value="contact-management" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
-              <Mail className="h-3 w-3 lg:h-4 lg:w-4" />
-              <span className="hidden lg:inline">Contact</span>
+            <TabsTrigger value="create-guide" className="flex items-center gap-2 text-sm">
+              <Plus className="h-4 w-4" />
+              <span>Create</span>
             </TabsTrigger>
-            <TabsTrigger value="homepage-stats" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
-              <BarChart3 className="h-3 w-3 lg:h-4 lg:w-4" />
-              <span className="hidden lg:inline">Homepage</span>
-            </TabsTrigger>
-            <TabsTrigger value="create-guide" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
-              <Plus className="h-3 w-3 lg:h-4 lg:w-4" />
-              <span className="hidden lg:inline">Create</span>
-            </TabsTrigger>
-            <TabsTrigger value="edit-guide" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm" data-tab="edit-guide">
-              <Edit2 className="h-3 w-3 lg:h-4 lg:w-4" />
-              <span className="hidden lg:inline">Edit</span>
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
-              <BarChart3 className="h-3 w-3 lg:h-4 lg:w-4" />
-              <span className="hidden lg:inline">Analytics</span>
-            </TabsTrigger>
-            <TabsTrigger value="email-testing" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
-              <Mail className="h-3 w-3 lg:h-4 lg:w-4" />
-              <span className="hidden lg:inline">Email</span>
+            <TabsTrigger value="edit-guide" className="flex items-center gap-2 text-sm" data-tab="edit-guide">
+              <Edit2 className="h-4 w-4" />
+              <span>Edit</span>
             </TabsTrigger>
           </TabsList>
 
@@ -327,35 +308,6 @@ const AdminPanel = () => {
             <AdminDashboard />
           </TabsContent>
 
-          <TabsContent value="user-management">
-            <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <h2 className="text-xl sm:text-2xl font-bold">User Management</h2>
-                <Button onClick={() => document.getElementById('create-user-tab')?.click()}>
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Create New User
-                </Button>
-              </div>
-              <div className="grid gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Existing Users</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <UserManagement />
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Create New User</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <AdminUserCreation />
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </TabsContent>
 
           <TabsContent value="content-management">
             <div className="space-y-6">
@@ -368,9 +320,6 @@ const AdminPanel = () => {
             <AdminContactManagement />
           </TabsContent>
 
-          <TabsContent value="homepage-stats">
-            <AdminHomepageStats />
-          </TabsContent>
 
           <TabsContent value="create-guide">
             <div className="space-y-6">
@@ -630,17 +579,6 @@ const AdminPanel = () => {
             <AdminGuideEditForm onBack={() => setActiveTab('content-management')} />
           </TabsContent>
 
-          <TabsContent value="analytics">
-            <AdminAnalytics />
-          </TabsContent>
-
-          <TabsContent value="email-testing">
-            <div className="space-y-6">
-              <h2 className="text-xl sm:text-2xl font-bold">Email Template Testing</h2>
-              <p className="text-muted-foreground">Test and preview the premium confirmation email template</p>
-              <AdminEmailTesting />
-            </div>
-          </TabsContent>
         </Tabs>
       </div>
     </div>
