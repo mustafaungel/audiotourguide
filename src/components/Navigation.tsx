@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { MapPin, Menu, Search, User, LogOut, X } from "lucide-react";
+import { MapPin, Menu, Search, User, LogOut, X, Globe } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -125,16 +125,25 @@ export const Navigation = () => {
                   {/* Mobile Navigation Links */}
                   <nav className="mobile-stack">
                     <Link 
-                      to="/" 
+                      to="/country" 
                       onClick={closeMobileMenu}
                       className="flex items-center py-3 mobile-text font-medium text-foreground hover:text-primary transition-colors touch-target"
                     >
+                      <Globe className="w-5 h-5 mr-3" />
+                      Destinations
+                    </Link>
+                    <Link 
+                      to="/library" 
+                      onClick={closeMobileMenu}
+                      className="flex items-center py-3 mobile-text font-medium text-foreground hover:text-primary transition-colors touch-target"
+                    >
+                      <MapPin className="w-5 h-5 mr-3" />
                       Audio Guides
                     </Link>
                   </nav>
 
-                  {/* User Section */}
-                  {user && userProfile?.role === 'admin' ? (
+                  {/* Admin Section - Only for Admin Users */}
+                  {user && userProfile?.role === 'admin' && (
                     <div className="space-y-4 pt-6 border-t">
                       <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
                         <User className="h-8 w-8 text-muted-foreground" />
@@ -167,19 +176,6 @@ export const Navigation = () => {
                           Sign out
                         </Button>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-4 pt-6 border-t">
-                      <Button 
-                        variant="default" 
-                        className="w-full"
-                        onClick={() => {
-                          navigate('/admin-login');
-                          closeMobileMenu();
-                        }}
-                      >
-                        Admin Login
-                      </Button>
                     </div>
                   )}
 
