@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { supabase } from '@/integrations/supabase/client';
 import { Users, BookOpen, Clock, CheckCircle, DollarSign, TrendingUp } from 'lucide-react';
 import { AdminQRCodeRegenerator } from './AdminQRCodeRegenerator';
+import { PaymentFlowTestPanel } from './PaymentFlowTestPanel';
 
 interface DashboardStats {
   totalUsers: number;
@@ -207,8 +208,11 @@ export const AdminDashboard = () => {
         </Card>
       </div>
 
-      {/* QR Code Management Section */}
-      <AdminQRCodeRegenerator />
+      {/* Testing and QR Code Management */}
+      <div className="grid lg:grid-cols-2 gap-6">
+        <PaymentFlowTestPanel />
+        <AdminQRCodeRegenerator />
+      </div>
     </div>
   );
 };
