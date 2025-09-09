@@ -3,7 +3,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { VerificationBadge } from '@/components/VerificationBadge';
 import { LanguagePreferences } from '@/components/LanguagePreferences';
 import { 
   User, 
@@ -40,22 +39,11 @@ export const EnhancedProfile: React.FC<EnhancedProfileProps> = ({
   }
 
   const getRoleBadge = () => {
-    switch (userProfile?.role) {
-      case 'admin':
-        return (
-          <Badge className="bg-destructive/10 text-destructive border-destructive/20">
-            <Shield className="w-3 h-3 mr-1" />
-            Admin
-          </Badge>
-        );
-      default:
-        return (
-          <Badge variant="outline">
-            <User className="w-3 h-3 mr-1" />
-            Traveler
-          </Badge>
-        );
+    // Simplified role system - only admin and user
+    if (userProfile?.email?.includes('admin') || userProfile?.full_name?.toLowerCase().includes('admin')) {
+      return <Badge variant="destructive" className="flex items-center gap-1"><Shield className="h-3 w-3" />Admin</Badge>;
     }
+    return <Badge variant="outline" className="flex items-center gap-1"><User className="h-3 w-3" />User</Badge>;
   };
 
   const renderAdminProfile = () => (
@@ -139,13 +127,6 @@ export const EnhancedProfile: React.FC<EnhancedProfileProps> = ({
                   {userProfile?.full_name || 'Anonymous User'}
                 </h1>
                 {getRoleBadge()}
-                {userProfile?.verification_status === 'verified' && (
-                  <VerificationBadge 
-                    type={userProfile?.local_guide_verified ? 'local_guide' : 
-                          userProfile?.blue_tick_verified ? 'blue_tick' : 'blue_tick'} 
-                    size="sm"
-                  />
-                )}
               </div>
               
               <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
@@ -155,62 +136,18 @@ export const EnhancedProfile: React.FC<EnhancedProfileProps> = ({
                 </div>
                 <div className="flex items-center gap-1">
                   <Calendar className="w-4 h-4" />
-                  <span>
-                    Joined {userProfile?.created_at ? new Date(userProfile.created_at).toLocaleDateString() : 'N/A'}
-                  </span>
+                  <span>Member since {new Date(userProfile?.created_at || '').toLocaleDateString()}</span>
                 </div>
-                {userProfile?.guide_country && (
-                  <div className="flex items-center gap-1">
-                    <MapPin className="w-4 h-4" />
-                    <span>{userProfile.guide_country}</span>
-                  </div>
-                )}
               </div>
 
-              {userProfile?.bio && (
-                <p className="text-muted-foreground leading-relaxed max-w-2xl">
-                  {userProfile.bio}
-                </p>
-              )}
-
-              {/* Specialties */}
-              {userProfile?.specialties && userProfile.specialties.length > 0 && (
-                <div>
-                  <div className="text-sm font-medium mb-2">Specialties</div>
-                  <div className="flex flex-wrap gap-2">
-                    {userProfile.specialties.map((specialty, index) => (
-                      <Badge key={index} variant="secondary" className="bg-tourism-warm/10 text-tourism-warm">
-                        {specialty}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Languages */}
-              {userProfile?.languages_spoken && userProfile.languages_spoken.length > 0 && (
-                <div>
-                  <div className="text-sm font-medium mb-2 flex items-center gap-1">
-                    <Languages className="w-4 h-4" />
-                    Languages
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {userProfile.languages_spoken.map((language, index) => (
-                      <Badge key={index} variant="outline">
-                        {language}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Role-Specific Content */}
-      {userProfile?.role === 'admin' && renderAdminProfile()}
-      {userProfile?.role === 'traveler' && renderTravelerProfile()}
+      {(userProfile?.email?.includes('admin') || userProfile?.full_name?.toLowerCase().includes('admin')) && renderAdminProfile()}
+      {!(userProfile?.email?.includes('admin') || userProfile?.full_name?.toLowerCase().includes('admin')) && renderTravelerProfile()}
     </div>
   );
 };
