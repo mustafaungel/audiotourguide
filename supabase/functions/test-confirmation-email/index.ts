@@ -60,9 +60,14 @@ const handler = async (req: Request): Promise<Response> => {
     let qrCodeUrl = undefined;
     if (testData.include_qr_code) {
       try {
-        const qrResponse = await fetch(`${baseUrl}/functions/v1/generate-qr-code`, {
+        // Create supabase client for function calls
+        const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+        const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+        
+        const qrResponse = await fetch(`${supabaseUrl}/functions/v1/generate-qr-code`, {
           method: 'POST',
           headers: {
+            'Authorization': `Bearer ${supabaseKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
@@ -73,9 +78,13 @@ const handler = async (req: Request): Promise<Response> => {
         if (qrResponse.ok) {
           const qrResult = await qrResponse.json();
           qrCodeUrl = qrResult.qrCodeUrl;
+          console.log('QR code generated successfully for test email');
+        } else {
+          console.log('QR code generation failed:', await qrResponse.text());
         }
       } catch (error) {
         console.log('Failed to generate QR code for test email:', error);
+        // Continue without QR code - don't fail the email
       }
     }
 

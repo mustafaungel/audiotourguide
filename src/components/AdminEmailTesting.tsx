@@ -20,6 +20,7 @@ interface TestEmailData {
   guideCurrency: string;
   accessCode: string;
   includeQRCode: boolean;
+  languages: string[];
 }
 
 export const AdminEmailTesting = () => {
@@ -32,7 +33,8 @@ export const AdminEmailTesting = () => {
     guidePrice: 1500, // in cents
     guideCurrency: 'USD',
     accessCode: 'ART-TEST123',
-    includeQRCode: true
+    includeQRCode: true,
+    languages: ['English']
   });
 
   const [availableGuides, setAvailableGuides] = useState<any[]>([]);
@@ -48,7 +50,7 @@ export const AdminEmailTesting = () => {
     try {
       const { data: guides, error } = await supabase
         .from('audio_guides')
-        .select('id, title, location, price_usd')
+        .select('id, title, location, price_usd, languages')
         .eq('is_published', true)
         .eq('is_approved', true)
         .limit(10);
@@ -68,7 +70,8 @@ export const AdminEmailTesting = () => {
         guideId: selectedGuide.id,
         guideTitle: selectedGuide.title,
         guideLocation: selectedGuide.location,
-        guidePrice: selectedGuide.price_usd // Already in cents from database
+        guidePrice: selectedGuide.price_usd, // Already in cents from database
+        languages: selectedGuide.languages || ['English']
       }));
     }
   };
@@ -100,7 +103,8 @@ export const AdminEmailTesting = () => {
             price_paid: testData.guidePrice,
             currency: testData.guideCurrency,
             access_code: testData.accessCode,
-            include_qr_code: testData.includeQRCode
+            include_qr_code: testData.includeQRCode,
+            languages: testData.languages
           }
         }
       });
@@ -142,7 +146,8 @@ export const AdminEmailTesting = () => {
             price_paid: testData.guidePrice,
             currency: testData.guideCurrency,
             access_code: testData.accessCode,
-            include_qr_code: testData.includeQRCode
+            include_qr_code: testData.includeQRCode,
+            languages: testData.languages
           }
         }
       });
