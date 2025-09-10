@@ -61,7 +61,8 @@ export const FeaturedGuides = () => {
     return `$${(price / 100).toFixed(2)}`;
   };
 
-  const formatDuration = (minutes: number) => {
+  const formatDuration = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;
     if (hours > 0) {
