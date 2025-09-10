@@ -15,6 +15,7 @@ interface Guide {
   title: string;
   location: string;
   is_published: boolean;
+  is_approved: boolean;
 }
 
 interface SupportedLanguage {
@@ -60,9 +61,7 @@ export default function AdminLanguageManagement() {
   const fetchGuides = async () => {
     const { data, error } = await supabase
       .from('audio_guides')
-      .select('id, title, location, is_published')
-      .eq('is_published', true)
-      .eq('is_approved', true)
+      .select('id, title, location, is_published, is_approved')
       .order('title');
 
     if (error) {
@@ -259,7 +258,7 @@ export default function AdminLanguageManagement() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4">
-            <Label htmlFor="guide-select">Choose a published guide:</Label>
+            <Label htmlFor="guide-select">Choose a guide:</Label>
             <Select onValueChange={(value) => {
               const guide = guides.find(g => g.id === value);
               setSelectedGuide(guide || null);
@@ -272,7 +271,16 @@ export default function AdminLanguageManagement() {
               <SelectContent>
                 {guides.map((guide) => (
                   <SelectItem key={guide.id} value={guide.id}>
-                    {guide.title} - {guide.location}
+                    <div className="flex items-center justify-between w-full">
+                      <span>{guide.title} - {guide.location}</span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ml-2 ${
+                        guide.is_published 
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                          : 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'
+                      }`}>
+                        {guide.is_published ? 'Published' : 'Hidden'}
+                      </span>
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
