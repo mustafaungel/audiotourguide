@@ -1,5 +1,8 @@
 project_id = "dsaqlgxajdnwoqvtsrqd"
 
+[functions.deploy-logo]
+verify_jwt = false
+
 [functions.send-contact-email]
 verify_jwt = false
 
