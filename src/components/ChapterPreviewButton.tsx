@@ -8,9 +8,10 @@ interface ChapterPreviewButtonProps {
   index: number;
   guide: any;
   isPurchased: boolean;
+  selectedLanguage?: string;
 }
 
-export const ChapterPreviewButton = ({ chapter, index, guide, isPurchased }: ChapterPreviewButtonProps) => {
+export const ChapterPreviewButton = ({ chapter, index, guide, isPurchased, selectedLanguage }: ChapterPreviewButtonProps) => {
   // For preview, use chapter-specific audio URL if available, otherwise fallback to guide audio
   const chapterAudioSrc = chapter.audio_url || guide?.audio_url;
   

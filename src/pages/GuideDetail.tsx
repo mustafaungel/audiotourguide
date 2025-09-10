@@ -2,7 +2,7 @@ import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { EnhancedAudioPlayer } from "@/components/EnhancedAudioPlayer";
-
+import { GuideLanguageSelector } from "@/components/GuideLanguageSelector";
 import { ReviewsSection } from "@/components/ReviewsSection";
 import { EmbeddedCheckout } from "@/components/EmbeddedCheckout";
 import { StripeConfigHelper } from "@/components/StripeConfigHelper";
@@ -119,13 +119,15 @@ const GuideDetail = () => {
   const [realGuideData, setRealGuideData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [relatedGuides, setRelatedGuides] = useState<any[]>([]);
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
+  const [guideSections, setGuideSections] = useState<any[]>([]);
   const { toast: showToast } = useToast();
 
   // Use real guide data if available, with fallbacks for essential properties
   const guide = realGuideData ? {
     ...realGuideData,
     languages: realGuideData.languages || [],
-    chapters: realGuideData.chapters || realGuideData.sections || [],
+    chapters: guideSections.length > 0 ? guideSections : (realGuideData.chapters || realGuideData.sections || []),
     highlights: realGuideData.highlights || [],
     included: realGuideData.included || realGuideData.features || [],
     creator: realGuideData.creator || {}
@@ -236,6 +238,9 @@ const GuideDetail = () => {
       setRealGuideData(transformedData);
       setError(null);
       
+      // Fetch multi-language sections
+      await fetchGuideSections(guideData.id, selectedLanguage);
+      
       // Fetch related guides
       await fetchRelatedGuides(transformedData.category, transformedData.location, guideData.id);
       
@@ -254,6 +259,33 @@ const GuideDetail = () => {
       setError('Failed to load guide. Please try again.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchGuideSections = async (guideId: string, languageCode: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('guide_sections')
+        .select('*')
+        .eq('guide_id', guideId)
+        .eq('language_code', languageCode)
+        .order('order_index');
+
+      if (error) {
+        console.error('Error fetching guide sections:', error);
+        return;
+      }
+
+      setGuideSections(data || []);
+    } catch (error) {
+      console.error('Error fetching guide sections:', error);
+    }
+  };
+
+  const handleLanguageChange = async (languageCode: string) => {
+    setSelectedLanguage(languageCode);
+    if (realGuideData?.id) {
+      await fetchGuideSections(realGuideData.id, languageCode);
     }
   };
 
@@ -366,6 +398,13 @@ const GuideDetail = () => {
       handlePaymentSuccess(sessionId);
     }
   }, [slug, user, searchParams]);
+
+  // Fetch sections when language changes
+  useEffect(() => {
+    if (realGuideData?.id && selectedLanguage) {
+      fetchGuideSections(realGuideData.id, selectedLanguage);
+    }
+  }, [selectedLanguage, realGuideData?.id]);
 
 
   const handleShare = () => {
@@ -486,6 +525,18 @@ const GuideDetail = () => {
                     </div>
                   </div>
                   
+                  {/* Language Selector */}
+                  {guide?.id && (
+                    <GuideLanguageSelector
+                      guideId={guide.id}
+                      selectedLanguage={selectedLanguage}
+                      onLanguageChange={handleLanguageChange}
+                    />
+                  )}
+                  
+                  <div className="space-y-2">
+                  </div>
+                  
                   <div className="flex gap-2">
                     <Button variant="outline" size="sm" onClick={handleBookmark}>
                       <Bookmark className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`} />
@@ -539,6 +590,7 @@ const GuideDetail = () => {
                             index={index}
                             guide={guide}
                             isPurchased={isPurchased}
+                            selectedLanguage={selectedLanguage}
                           />
                         </div>
                       </Card>
@@ -582,6 +634,7 @@ const GuideDetail = () => {
                             index={index}
                             guide={guide}
                             isPurchased={isPurchased}
+                            selectedLanguage={selectedLanguage}
                           />
                         </div>
                       ))}
