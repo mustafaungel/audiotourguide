@@ -6,7 +6,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { FaviconUpdater } from "@/components/FaviconUpdater";
-import { AutoLogoDeployment } from "@/components/AutoLogoDeployment";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AdminPanel from "./pages/AdminPanel";
@@ -31,7 +30,6 @@ const App = () => {
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
       <AuthProvider>
         <TooltipProvider>
-          <AutoLogoDeployment />
           <FaviconUpdater />
           <Toaster />
           <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
