@@ -133,6 +133,9 @@ const GuideDetail = () => {
     creator: realGuideData.creator || {}
   } : null;
 
+  // Get the current chapters based on language selection
+  const currentChapters = guideSections.length > 0 ? guideSections : (guide?.chapters || guide?.sections || []);
+
   // No global audio player - each chapter will manage its own
 
   const handlePurchase = () => {
@@ -566,7 +569,7 @@ const GuideDetail = () => {
               <TabsContent value="chapters" className="space-y-4">
                 {isPurchased || hasAccessCode ? (
                   <div className="space-y-3">
-                    {(guide.chapters || guide.sections || []).map((chapter, index) => (
+                    {currentChapters.map((chapter, index) => (
                       <Card key={index} className="p-4 hover:bg-muted/50 cursor-pointer transition-colors">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
@@ -611,7 +614,7 @@ const GuideDetail = () => {
                     </div>
                     
                     <div className="space-y-3 mb-4">
-                      {(guide.chapters || guide.sections || []).slice(0, 3).map((chapter, index) => (
+                      {currentChapters.slice(0, 3).map((chapter, index) => (
                         <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                           <div className="flex items-center gap-3">
                             <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium">
@@ -638,9 +641,9 @@ const GuideDetail = () => {
                           />
                         </div>
                       ))}
-                      {(guide.chapters || guide.sections || []).length > 3 && (
+                      {currentChapters.length > 3 && (
                         <p className="text-xs text-muted-foreground text-center">
-                          +{(guide.chapters || guide.sections || []).length - 3} more chapters available
+                          +{currentChapters.length - 3} more chapters available
                         </p>
                       )}
                     </div>
@@ -786,7 +789,7 @@ const GuideDetail = () => {
                     audio_url: guide.audio_url || guide.audioUrl,
                     image_url: guide.image_url
                   }}
-                  sections={guide.sections || guide.chapters || []}
+                  sections={currentChapters}
                   accessCode={searchParams.get('access_code') || undefined}
                   defaultStyle="spotify"
                 />
