@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AdminReviewManagement } from '@/components/AdminReviewManagement';
+import AdminLanguageManagement from '@/components/AdminLanguageManagement';
 import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, FileText, Plus, ImageIcon, Copy, QrCode, Edit2, Mail, Palette, BarChart3 } from 'lucide-react';
+import { Loader2, FileText, Plus, ImageIcon, Copy, QrCode, Edit2, Mail, Palette, BarChart3, Languages } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -288,7 +289,7 @@ const AdminPanel = () => {
         <AdminMobileNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="hidden md:grid grid-cols-8 w-full max-w-6xl gap-1">
+          <TabsList className="hidden md:grid grid-cols-9 w-full max-w-6xl gap-1">
             <TabsTrigger value="dashboard" className="flex items-center gap-2 text-sm">
               <FileText className="h-4 w-4" />
               <span>Dashboard</span>
@@ -320,6 +321,10 @@ const AdminPanel = () => {
             <TabsTrigger value="edit-guide" className="flex items-center gap-2 text-sm" data-tab="edit-guide">
               <Edit2 className="h-4 w-4" />
               <span>Edit</span>
+            </TabsTrigger>
+            <TabsTrigger value="language-management" className="flex items-center gap-2 text-sm">
+              <Languages className="h-4 w-4" />
+              <span>Languages</span>
             </TabsTrigger>
           </TabsList>
 
@@ -631,6 +636,10 @@ const AdminPanel = () => {
 
           <TabsContent value="edit-guide">
             <AdminGuideEditForm onBack={() => setActiveTab('content-management')} />
+          </TabsContent>
+
+          <TabsContent value="language-management">
+            <AdminLanguageManagement />
           </TabsContent>
 
         </Tabs>

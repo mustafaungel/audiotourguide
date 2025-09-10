@@ -397,8 +397,11 @@ export type Database = {
           duration_seconds: number | null
           guide_id: string
           id: string
+          is_original: boolean
           language: string
+          language_code: string
           order_index: number
+          original_section_id: string | null
           title: string
           updated_at: string
         }
@@ -409,8 +412,11 @@ export type Database = {
           duration_seconds?: number | null
           guide_id: string
           id?: string
+          is_original?: boolean
           language?: string
+          language_code?: string
           order_index?: number
+          original_section_id?: string | null
           title: string
           updated_at?: string
         }
@@ -421,12 +427,23 @@ export type Database = {
           duration_seconds?: number | null
           guide_id?: string
           id?: string
+          is_original?: boolean
           language?: string
+          language_code?: string
           order_index?: number
+          original_section_id?: string | null
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "guide_sections_original_section_id_fkey"
+            columns: ["original_section_id"]
+            isOneToOne: false
+            referencedRelation: "guide_sections"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       homepage_stats: {
         Row: {
@@ -617,6 +634,33 @@ export type Database = {
           setting_type?: string
           setting_value?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      supported_languages: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          native_name: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          native_name: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          native_name?: string
         }
         Relationships: []
       }
@@ -920,6 +964,15 @@ export type Database = {
           id: string
           price_paid: number
           purchase_date: string
+        }[]
+      }
+      get_guide_languages: {
+        Args: { p_guide_id: string }
+        Returns: {
+          language_code: string
+          language_name: string
+          native_name: string
+          section_count: number
         }[]
       }
       get_guide_with_access: {

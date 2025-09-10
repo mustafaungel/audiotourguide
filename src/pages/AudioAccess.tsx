@@ -5,6 +5,7 @@ import { NewSectionAudioPlayer } from "@/components/NewSectionAudioPlayer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { GuestReviewForm } from "@/components/GuestReviewForm";
+import { GuideLanguageSelector } from '@/components/GuideLanguageSelector';
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Star, MapPin, Clock, ChevronLeft, Lock, CheckCircle, Wifi, WifiOff, RotateCcw } from "lucide-react";
@@ -29,6 +30,8 @@ export default function AudioAccess() {
   const [isRetrying, setIsRetrying] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [isNetworkIssue, setIsNetworkIssue] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
+  const [sections, setSections] = useState<any[]>([]);
 
   const accessCode = searchParams.get('access_code') || searchParams.get('access');
   const sessionId = searchParams.get('session_id');
@@ -153,6 +156,9 @@ export default function AudioAccess() {
       setGuide(transformedGuide);
       setHasAccess(true);
       setAccessGranted(true);
+      
+      // Fetch sections for the default language
+      await fetchSectionsForLanguage(guideId, selectedLanguage);
 
       toast({
         title: "Access Verified",
@@ -208,6 +214,9 @@ export default function AudioAccess() {
       setGuide(transformedGuide);
       setHasAccess(true);
       setAccessGranted(true);
+      
+      // Fetch sections for the default language
+      await fetchSectionsForLanguage(guideId, selectedLanguage);
 
       toast({
         title: "Admin Access Granted",
@@ -219,6 +228,35 @@ export default function AudioAccess() {
       setError('Failed to load guide. Please try again.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchSectionsForLanguage = async (guideId: string, languageCode: string) => {
+    try {
+      const { data: sectionsData, error } = await supabase
+        .from('guide_sections')
+        .select('*')
+        .eq('guide_id', guideId)
+        .eq('language_code', languageCode)
+        .order('order_index');
+
+      if (error) {
+        console.error('Error fetching sections:', error);
+        setSections([]);
+        return;
+      }
+
+      setSections(sectionsData || []);
+    } catch (error) {
+      console.error('Error fetching sections:', error);
+      setSections([]);
+    }
+  };
+
+  const handleLanguageChange = async (languageCode: string) => {
+    setSelectedLanguage(languageCode);
+    if (guideId) {
+      await fetchSectionsForLanguage(guideId, languageCode);
     }
   };
 
@@ -326,6 +364,9 @@ export default function AudioAccess() {
       setGuide(transformedGuide);
       setHasAccess(true);
       setAccessGranted(true);
+      
+      // Fetch sections for the default language
+      await fetchSectionsForLanguage(guideId, selectedLanguage);
 
     } catch (error) {
       console.error('Error loading guide after payment verification:', error);
@@ -551,10 +592,17 @@ export default function AudioAccess() {
                         ))}
                       </div>
                     )}
-                  </div>
+                   </div>
 
                 </div>
               </div>
+              
+              {/* Language Selector */}
+              <GuideLanguageSelector 
+                guideId={guide.id}
+                selectedLanguage={selectedLanguage}
+                onLanguageChange={handleLanguageChange}
+              />
             </CardContent>
           </Card>
 
@@ -563,7 +611,7 @@ export default function AudioAccess() {
             <NewSectionAudioPlayer
               guideId={guide.id}
               guideTitle={guide.title}
-              sections={guide.sections || []}
+              sections={sections.length > 0 ? sections : guide.sections || []}
               mainAudioUrl={guide.audio_url}
             />
           </div>
