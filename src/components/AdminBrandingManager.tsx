@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useSiteBranding } from '@/hooks/useSiteBranding';
 import { ResponsiveLogo } from '@/components/ResponsiveLogo';
+import { AILogoGenerator } from '@/components/AILogoGenerator';
 import { Upload, Eye, Trash2, Monitor, Smartphone, Palette } from 'lucide-react';
 import logosCultural from '@/assets/logo-cultural-heritage.png';
 import logosPremium from '@/assets/logo-premium-badge.png';
@@ -186,14 +187,19 @@ export const AdminBrandingManager: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="concepts" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+          <Tabs defaultValue="ai-generator" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="ai-generator">AI Generator</TabsTrigger>
               <TabsTrigger value="concepts">Logo Concepts</TabsTrigger>
               <TabsTrigger value="custom">Custom Upload</TabsTrigger>
               <TabsTrigger value="settings">Brand Settings</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="concepts" className="space-y-6">
+        <TabsContent value="ai-generator" className="space-y-6">
+          <AILogoGenerator />
+        </TabsContent>
+
+        <TabsContent value="concepts" className="space-y-6">
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {LOGO_CONCEPTS.map((concept) => (
                   <Card 
