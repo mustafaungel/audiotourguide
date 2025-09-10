@@ -24,6 +24,15 @@ interface Review {
   };
 }
 
+interface GuestReview {
+  id: string;
+  name: string;
+  rating: number;
+  comment: string;
+  created_at: string;
+  is_approved: boolean;
+}
+
 export const ReviewsSection: React.FC<ReviewsSectionProps> = ({
   guideId,
   isPurchased,
@@ -31,12 +40,14 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({
 }) => {
   const { user } = useAuth();
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [guestReviews, setGuestReviews] = useState<GuestReview[]>([]);
   const [userHasReviewed, setUserHasReviewed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchReviews();
+    fetchGuestReviews();
     if (user) {
       checkUserReview();
     }
@@ -74,6 +85,22 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({
       console.error('Error fetching reviews:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchGuestReviews = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('guest_reviews')
+        .select('*')
+        .eq('guide_id', guideId)
+        .eq('is_approved', true)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setGuestReviews(data || []);
+    } catch (error) {
+      console.error('Error fetching guest reviews:', error);
     }
   };
 
@@ -173,32 +200,60 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({
       {/* Reviews List - Show to everyone or only purchased users based on showAllReviews */}
       {(showAllReviews || isPurchased) && (
         <>
-          {reviews.length === 0 ? (
+          {reviews.length === 0 && guestReviews.length === 0 ? (
             <Card className="p-6 text-center">
               <p className="text-muted-foreground">
                 No reviews yet. Be the first to share your experience!
               </p>
             </Card>
           ) : (
-            reviews.map((review) => (
-              <Card key={review.id} className="p-4">
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <h5 className="font-medium">
-                      {review.profiles?.full_name || 'Anonymous User'}
-                    </h5>
-                    <Badge variant="outline" className="text-xs">Verified Purchase</Badge>
+            <div className="space-y-4">
+              {/* Registered User Reviews */}
+              {reviews.map((review) => (
+                <Card key={`user-${review.id}`} className="p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <h5 className="font-medium">
+                        {review.profiles?.full_name || 'Anonymous User'}
+                      </h5>
+                      <Badge variant="outline" className="text-xs">Verified Purchase</Badge>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <span key={star} className={`text-sm ${star <= review.rating ? 'text-yellow-400' : 'text-gray-300'}`}>
+                          ★
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-sm font-medium text-primary">Reviewed</span>
+                  {review.comment && (
+                    <p className="text-sm text-muted-foreground mb-2">{review.comment}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">{formatDate(review.created_at)}</p>
+                </Card>
+              ))}
+
+              {/* Guest Reviews */}
+              {guestReviews.map((review) => (
+                <Card key={`guest-${review.id}`} className="p-4 border-dashed">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <h5 className="font-medium">{review.name}</h5>
+                      <Badge variant="secondary" className="text-xs">Guest Review</Badge>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <span key={star} className={`text-sm ${star <= review.rating ? 'text-yellow-400' : 'text-gray-300'}`}>
+                          ★
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                </div>
-                {review.comment && (
                   <p className="text-sm text-muted-foreground mb-2">{review.comment}</p>
-                )}
-                <p className="text-xs text-muted-foreground">{formatDate(review.created_at)}</p>
-              </Card>
-            ))
+                  <p className="text-xs text-muted-foreground">{formatDate(review.created_at)}</p>
+                </Card>
+              ))}
+            </div>
           )}
         </>
       )}

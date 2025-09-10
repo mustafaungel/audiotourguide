@@ -318,6 +318,42 @@ export type Database = {
         }
         Relationships: []
       }
+      guest_reviews: {
+        Row: {
+          comment: string
+          created_at: string
+          email: string
+          guide_id: string
+          id: string
+          is_approved: boolean
+          name: string
+          rating: number | null
+          updated_at: string
+        }
+        Insert: {
+          comment: string
+          created_at?: string
+          email: string
+          guide_id: string
+          id?: string
+          is_approved?: boolean
+          name: string
+          rating?: number | null
+          updated_at?: string
+        }
+        Update: {
+          comment?: string
+          created_at?: string
+          email?: string
+          guide_id?: string
+          id?: string
+          is_approved?: boolean
+          name?: string
+          rating?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       guide_reviews: {
         Row: {
           comment: string | null

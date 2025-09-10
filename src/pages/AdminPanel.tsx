@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { AdminReviewManagement } from '@/components/AdminReviewManagement';
 import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Star } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
@@ -286,7 +288,7 @@ const AdminPanel = () => {
         <AdminMobileNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="hidden md:grid grid-cols-7 w-full max-w-6xl gap-1">
+          <TabsList className="hidden md:grid grid-cols-8 w-full max-w-6xl gap-1">
             <TabsTrigger value="dashboard" className="flex items-center gap-2 text-sm">
               <FileText className="h-4 w-4" />
               <span>Dashboard</span>
@@ -306,6 +308,10 @@ const AdminPanel = () => {
             <TabsTrigger value="analytics" className="flex items-center gap-2 text-sm">
               <BarChart3 className="h-4 w-4" />
               <span>Analytics</span>
+            </TabsTrigger>
+            <TabsTrigger value="review-management" className="flex items-center gap-2 text-sm">
+              <Star className="h-4 w-4" />
+              <span>Reviews</span>
             </TabsTrigger>
             <TabsTrigger value="create-guide" className="flex items-center gap-2 text-sm">
               <Plus className="h-4 w-4" />
@@ -335,6 +341,13 @@ const AdminPanel = () => {
 
           <TabsContent value="email-test">
             <EnhancedEmailTesting />
+          </TabsContent>
+
+          <TabsContent value="review-management">
+            <div className="space-y-6">
+              <h2 className="text-xl sm:text-2xl font-bold">Review Management</h2>
+              <AdminReviewManagement />
+            </div>
           </TabsContent>
 
           <TabsContent value="analytics">

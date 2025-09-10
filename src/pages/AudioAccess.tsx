@@ -4,6 +4,7 @@ import { Navigation } from "@/components/Navigation";
 import { NewSectionAudioPlayer } from "@/components/NewSectionAudioPlayer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { GuestReviewForm } from "@/components/GuestReviewForm";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Star, MapPin, Clock, ChevronLeft, Lock, CheckCircle, Wifi, WifiOff, RotateCcw } from "lucide-react";
@@ -565,6 +566,12 @@ export default function AudioAccess() {
               sections={guide.sections || []}
               mainAudioUrl={guide.audio_url}
             />
+          </div>
+
+          {/* Guest Review Form */}
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold mb-4">Leave a Review</h3>
+            <GuestReviewForm guideId={guide.id} />
           </div>
         </div>
       </div>
