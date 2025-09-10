@@ -63,7 +63,7 @@ export const SocialShare: React.FC<SocialShareProps> = ({
     
     const shareUrls = {
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${encodedDescription}`,
-      twitter: `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}&hashtags=AudioTour,Travel,Heritage`,
+      twitter: `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}&hashtags=AudioGuides,Travel,Heritage`,
       whatsapp: `https://wa.me/?text=${encodedTitle}%20${encodedUrl}`,
       instagram: `https://instagram.com/` // Instagram doesn't support direct URL sharing
     };

@@ -13,7 +13,7 @@ export const useSiteBranding = () => {
     logoUrl: null,
     darkLogoUrl: null,
     faviconUrl: null,
-    companyName: 'AudioTour'
+    companyName: 'Audio Guides'
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +47,7 @@ export const useSiteBranding = () => {
             acc.faviconUrl = setting.setting_value;
             break;
           case 'company_name':
-            acc.companyName = setting.setting_value || 'AudioTour';
+            acc.companyName = setting.setting_value || 'Audio Guides';
             break;
         }
         return acc;
@@ -55,7 +55,7 @@ export const useSiteBranding = () => {
         logoUrl: null,
         darkLogoUrl: null,
         faviconUrl: null,
-        companyName: 'AudioTour'
+        companyName: 'Audio Guides'
       } as SiteBranding);
 
       setBranding(brandingData);
@@ -93,7 +93,7 @@ export const useSiteBranding = () => {
             updated.faviconUrl = settingValue;
             break;
           case 'company_name':
-            updated.companyName = settingValue || 'AudioTour';
+            updated.companyName = settingValue || 'Audio Guides';
             break;
         }
         return updated;

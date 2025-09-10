@@ -132,7 +132,7 @@ export const ViralGamification: React.FC = () => {
   };
 
   const shareAchievement = (achievement: Achievement) => {
-    const shareText = `🏆 Just unlocked \"${achievement.title}\" on Audio Tour Guides! ${achievement.description} #TravelGoals #AudioTour`;
+    const shareText = `🏆 Just unlocked \"${achievement.title}\" on Audio Guides! ${achievement.description} #TravelGoals #AudioGuides`;
     
     if (navigator.share) {
       navigator.share({
