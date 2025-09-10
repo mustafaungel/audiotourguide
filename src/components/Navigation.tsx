@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
-import { useSiteBranding } from '@/hooks/useSiteBranding';
+import { ResponsiveLogo } from "@/components/ResponsiveLogo";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,7 +27,6 @@ export const Navigation = () => {
   const { user, userProfile, signOut } = useAuth();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { branding } = useSiteBranding();
 
   const handleSignOut = async () => {
     await signOut();
@@ -44,28 +43,7 @@ export const Navigation = () => {
         <div className="flex h-14 sm:h-16 items-center justify-between">{/* Mobile-first header height */}
           {/* Logo and Brand */}
           <Link to="/" className="flex items-center space-x-2 min-w-0">
-            <div className="flex items-center space-x-2 min-w-0">
-              {branding.logoUrl ? (
-                <img 
-                  src={branding.logoUrl} 
-                  alt={branding.companyName}
-                  className="h-8 sm:h-10 w-auto object-contain flex-shrink-0"
-                />
-              ) : (
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-teal-500 to-teal-600 rounded-lg flex items-center justify-center flex-shrink-0 relative">
-                  <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-teal-100" />
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
-                    <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
-                  </div>
-                </div>
-              )}
-              <div className="flex flex-col min-w-0">
-                <span className="mobile-text sm:text-lg font-bold font-playfair text-foreground truncate">
-                  {branding.companyName}
-                </span>
-                <span className="text-xs text-muted-foreground hidden sm:block">Discover World Heritage</span>
-              </div>
-            </div>
+            <ResponsiveLogo variant="full" size="md" />
           </Link>
 
           {/* Desktop Navigation */}
@@ -121,14 +99,8 @@ export const Navigation = () => {
               </SheetTrigger>
               <SheetContent side="right" className="w-80 mobile-padding">{/* Mobile-first sheet */}
                 <SheetHeader>
-                  <SheetTitle className="flex items-center gap-2">
-                    <div className="w-6 h-6 bg-gradient-to-br from-teal-500 to-teal-600 rounded-lg flex items-center justify-center relative">
-                      <MapPin className="w-3 h-3 text-teal-100" />
-                      <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
-                        <div className="w-1 h-1 bg-white rounded-full"></div>
-                      </div>
-                    </div>
-                    Audio Tour Guides
+                  <SheetTitle>
+                    <ResponsiveLogo variant="compact" size="sm" />
                   </SheetTitle>
                   <SheetDescription>
                     Discover World Heritage

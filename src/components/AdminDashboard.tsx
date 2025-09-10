@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { BookOpen, DollarSign, TrendingUp } from 'lucide-react';
 import { AdminQRCodeRegenerator } from './AdminQRCodeRegenerator';
 import { PaymentFlowTestPanel } from './PaymentFlowTestPanel';
+import { AdminBrandingManager } from './AdminBrandingManager';
 
 interface DashboardStats {
   totalGuides: number;
@@ -101,6 +102,9 @@ export const AdminDashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Brand Management */}
+      <AdminBrandingManager />
 
       {/* Testing and Management Tools */}
       <div className="grid lg:grid-cols-2 gap-6 mt-6">
