@@ -1,6 +1,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { useSiteBranding } from '@/hooks/useSiteBranding';
+import { useTheme } from 'next-themes';
 import { MapPin } from 'lucide-react';
 
 interface ResponsiveLogoProps {
@@ -17,6 +18,17 @@ export const ResponsiveLogo: React.FC<ResponsiveLogoProps> = ({
   size = 'md'
 }) => {
   const { branding } = useSiteBranding();
+  const { theme } = useTheme();
+  
+  // Determine which logo to use based on theme
+  const getLogoUrl = () => {
+    if (theme === 'dark' && branding.darkLogoUrl) {
+      return branding.darkLogoUrl;
+    }
+    return branding.logoUrl;
+  };
+  
+  const logoUrl = getLogoUrl();
 
   const sizeClasses = {
     sm: 'h-6 w-auto',
@@ -60,9 +72,9 @@ export const ResponsiveLogo: React.FC<ResponsiveLogoProps> = ({
   if (variant === 'icon-only') {
     return (
       <div className={cn("flex items-center", className)}>
-        {branding.logoUrl ? (
+        {logoUrl ? (
           <img 
-            src={branding.logoUrl} 
+            src={logoUrl} 
             alt={branding.companyName}
             className={cn("object-contain flex-shrink-0", sizeClasses[size])}
           />
@@ -76,9 +88,9 @@ export const ResponsiveLogo: React.FC<ResponsiveLogoProps> = ({
   if (variant === 'compact') {
     return (
       <div className={cn("flex items-center space-x-2 min-w-0", className)}>
-        {branding.logoUrl ? (
+        {logoUrl ? (
           <img 
-            src={branding.logoUrl} 
+            src={logoUrl} 
             alt={branding.companyName}
             className={cn("object-contain flex-shrink-0", sizeClasses[size])}
           />
@@ -100,9 +112,9 @@ export const ResponsiveLogo: React.FC<ResponsiveLogoProps> = ({
   return (
     <div className={cn("flex items-center space-x-2 min-w-0", className)}>
       <div className="flex items-center space-x-2 min-w-0">
-        {branding.logoUrl ? (
+        {logoUrl ? (
           <img 
-            src={branding.logoUrl} 
+            src={logoUrl} 
             alt={branding.companyName}
             className={cn("object-contain flex-shrink-0", sizeClasses[size])}
           />
