@@ -341,7 +341,7 @@ const AdminPanel = () => {
               <div>
                 <h2 className="text-2xl font-bold mb-4">Site Branding</h2>
                 <p className="text-muted-foreground mb-6">
-                  Manage your website's branding with AI-powered logo processing for perfect transparency.
+                  Upload your logo and let our AI process it for perfect transparency across light and dark themes.
                 </p>
               </div>
               <EnhancedLogoUploader />
