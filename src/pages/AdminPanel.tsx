@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, FileText, Plus, ImageIcon, Copy, QrCode, Edit2, Mail, Palette } from 'lucide-react';
+import { Loader2, FileText, Plus, ImageIcon, Copy, QrCode, Edit2, Mail, Palette, BarChart3 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -23,6 +23,7 @@ import { AudioGuideSectionManager } from '@/components/AudioGuideSectionManager'
 import { AdminGuideEditForm } from '@/components/AdminGuideEditForm';
 import { AdminContactManagement } from '@/components/AdminContactManagement';
 import { EnhancedEmailTesting } from '@/components/EnhancedEmailTesting';
+import { AdminAnalyticsManager } from '@/components/AdminAnalyticsManager';
 import { EnhancedLogoUploader } from '@/components/EnhancedLogoUploader';
 
 import { ImageUploader } from '@/components/ImageUploader';
@@ -302,9 +303,9 @@ const AdminPanel = () => {
               <Mail className="h-4 w-4" />
               <span>Email</span>
             </TabsTrigger>
-            <TabsTrigger value="branding" className="flex items-center gap-2 text-sm">
-              <Palette className="h-4 w-4" />
-              <span>Branding</span>
+            <TabsTrigger value="analytics" className="flex items-center gap-2 text-sm">
+              <BarChart3 className="h-4 w-4" />
+              <span>Analytics</span>
             </TabsTrigger>
             <TabsTrigger value="create-guide" className="flex items-center gap-2 text-sm">
               <Plus className="h-4 w-4" />
@@ -336,16 +337,8 @@ const AdminPanel = () => {
             <EnhancedEmailTesting />
           </TabsContent>
 
-          <TabsContent value="branding">
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-bold mb-4">Site Branding</h2>
-                <p className="text-muted-foreground mb-6">
-                  Upload your logo and let our AI process it for perfect transparency across light and dark themes.
-                </p>
-              </div>
-              <EnhancedLogoUploader />
-            </div>
+          <TabsContent value="analytics">
+            <AdminAnalyticsManager />
           </TabsContent>
 
 

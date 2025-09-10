@@ -13,7 +13,7 @@ const adminTabs = [
   { value: 'content-management', label: 'Content Management', icon: FileText },
   { value: 'contact-management', label: 'Contact Management', icon: Mail },
   { value: 'email-test', label: 'Email System', icon: Mail },
-  { value: 'branding', label: 'Branding', icon: Palette },
+  { value: 'analytics', label: 'Analytics', icon: BarChart3 },
   { value: 'create-guide', label: 'Create Audio Guide', icon: Plus },
   { value: 'edit-guide', label: 'Edit Guide', icon: Edit2 },
 ];
