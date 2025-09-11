@@ -26,12 +26,16 @@ interface SupportedLanguage {
 
 interface GuideSection {
   id: string;
+  guide_id?: string;
   title: string;
   description: string;
   audio_url: string;
+  duration_seconds?: number | null;
   order_index: number;
+  language?: string;
   language_code: string;
   is_original: boolean;
+  original_section_id?: string | null;
 }
 
 export default function AdminLanguageManagement() {
@@ -143,47 +147,82 @@ export default function AdminLanguageManagement() {
     setIsAddingLanguage(true);
   };
 
-  const updateTranslationSection = (index: number, field: string, value: string) => {
-    setTranslationSections(prev => prev.map((section, i) => 
-      i === index ? { ...section, [field]: value } : section
-    ));
-  };
+const updateTranslationSection = (index: number, field: string, value: any) => {
+  setTranslationSections(prev => prev.map((section, i) => 
+    i === index ? { ...section, [field]: value } : section
+  ));
+};
 
-  const handleFileUpload = async (index: number, file: File) => {
-    if (!file || !selectedGuide) return;
-
-    setLoading(true);
+const getAudioDurationFromFile = (file: File): Promise<number> => {
+  return new Promise((resolve) => {
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${selectedGuide.id}/${selectedLanguage}/section-${index}-${Date.now()}.${fileExt}`;
+      const audio = document.createElement('audio');
+      audio.preload = 'metadata';
+      const url = URL.createObjectURL(file);
+      audio.src = url;
 
-      const { error: uploadError } = await supabase.storage
-        .from('guide-audio')
-        .upload(fileName, file);
+      const cleanup = () => {
+        URL.revokeObjectURL(url);
+        audio.remove();
+      };
 
-      if (uploadError) throw uploadError;
+      audio.onloadedmetadata = () => {
+        const duration = audio.duration;
+        cleanup();
+        resolve(isFinite(duration) ? Math.round(duration) : 0);
+      };
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('guide-audio')
-        .getPublicUrl(fileName);
-
-      updateTranslationSection(index, 'audio_url', publicUrl);
-
-      toast({
-        title: "Success",
-        description: "Audio file uploaded successfully",
-      });
-    } catch (error) {
-      console.error('Upload error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to upload audio file",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
+      audio.onerror = () => {
+        cleanup();
+        resolve(0);
+      };
+    } catch (e) {
+      resolve(0);
     }
-  };
+  });
+};
+
+const handleFileUpload = async (index: number, file: File) => {
+  if (!file || !selectedGuide) return;
+
+  setLoading(true);
+  try {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${selectedGuide.id}/${selectedLanguage}/section-${index}-${Date.now()}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('guide-audio')
+      .upload(fileName, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('guide-audio')
+      .getPublicUrl(fileName);
+
+    // Calculate duration from local file
+    const duration = await getAudioDurationFromFile(file);
+
+    updateTranslationSection(index, 'audio_url', publicUrl);
+    if (duration && duration > 0) {
+      updateTranslationSection(index, 'duration_seconds', Math.round(duration));
+    }
+
+    toast({
+      title: "Success",
+      description: "Audio file uploaded successfully",
+    });
+  } catch (error) {
+    console.error('Upload error:', error);
+    toast({
+      title: "Error",
+      description: "Failed to upload audio file",
+      variant: "destructive",
+    });
+  } finally {
+    setLoading(false);
+  }
+};
 
   const saveTranslations = async () => {
     if (!selectedGuide || !selectedLanguage) return;
@@ -198,6 +237,7 @@ export default function AdminLanguageManagement() {
           title: section.title!,
           language_code: selectedLanguage,
           is_original: false,
+          duration_seconds: (section as any).duration_seconds ?? null,
         }));
 
       if (sectionsToInsert.length === 0) {
