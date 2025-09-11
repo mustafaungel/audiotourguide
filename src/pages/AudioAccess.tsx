@@ -46,6 +46,27 @@ export default function AudioAccess() {
     verifyAccessAndLoadGuide();
   }, [guideId, accessCode, sessionId, user]);
 
+  // Refresh when ?refresh=1 is present
+  useEffect(() => {
+    const shouldRefresh = searchParams.get('refresh');
+    if (shouldRefresh && guideId) {
+      fetchSectionsForLanguage(guideId, selectedLanguage);
+    }
+  }, [searchParams, guideId, selectedLanguage]);
+
+  // Listen to cross-tab updates from Admin editor
+  useEffect(() => {
+    if (!guideId) return;
+    const key = `guide_updated_${guideId}`;
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === key) {
+        fetchSectionsForLanguage(guideId, selectedLanguage);
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, [guideId, selectedLanguage]);
+
   const verifyAccessAndLoadGuide = async () => {
     if (!guideId) {
       console.error('[AUDIO-ACCESS] Missing guide ID');
@@ -147,10 +168,7 @@ export default function AudioAccess() {
           name: 'Anonymous Creator',
           avatar: '',
           bio: ''
-        },
-        sections: guide.sections ? 
-          (typeof guide.sections === 'string' ? JSON.parse(guide.sections) : guide.sections) 
-          : []
+        }
       };
 
       setGuide(transformedGuide);
@@ -205,10 +223,7 @@ export default function AudioAccess() {
           name: 'Anonymous Creator',
           avatar: '',
           bio: ''
-        },
-        sections: guideData.sections ? 
-          (typeof guideData.sections === 'string' ? JSON.parse(guideData.sections) : guideData.sections) 
-          : []
+        }
       };
 
       setGuide(transformedGuide);
@@ -355,10 +370,7 @@ export default function AudioAccess() {
           name: 'Anonymous Creator',
           avatar: '',
           bio: ''
-        },
-        sections: guideData.sections ? 
-          (typeof guideData.sections === 'string' ? JSON.parse(guideData.sections) : guideData.sections) 
-          : []
+        }
       };
 
       setGuide(transformedGuide);
@@ -611,7 +623,7 @@ export default function AudioAccess() {
             <NewSectionAudioPlayer
               guideId={guide.id}
               guideTitle={guide.title}
-              sections={sections.length > 0 ? sections : guide.sections || []}
+              sections={sections}
               mainAudioUrl={guide.audio_url}
             />
           </div>
