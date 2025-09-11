@@ -53,36 +53,122 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
   const [generatingAudio, setGeneratingAudio] = useState<string | null>(null);
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
-  const addSection = () => {
+  const addSection = async () => {
     if (!newSectionTitle.trim()) return;
+    if (!guideId) {
+      toast.error('Guide ID is required to add sections');
+      return;
+    }
 
-    const newSection: GuideSection = {
-      id: crypto.randomUUID(),
-      title: newSectionTitle,
-      description: '',
-      language: 'English',
-      order_index: sections.length
-    };
+    try {
+      const newSection = {
+        guide_id: guideId,
+        title: newSectionTitle,
+        description: '',
+        language: 'English',
+        language_code: 'en',
+        order_index: sections.length
+      };
 
-    onSectionsChange([...sections, newSection]);
-    setNewSectionTitle('');
+      const { data, error } = await supabase
+        .from('guide_sections')
+        .insert([newSection])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const sectionWithLocalData: GuideSection = {
+        id: data.id,
+        title: data.title,
+        description: data.description || '',
+        language: data.language,
+        order_index: data.order_index
+      };
+
+      onSectionsChange([...sections, sectionWithLocalData]);
+      setNewSectionTitle('');
+      toast.success('Section added successfully!');
+
+    } catch (error: any) {
+      console.error('Error adding section:', error);
+      toast.error('Failed to add section');
+    }
   };
 
-  const updateSection = (id: string, updates: Partial<GuideSection>) => {
+  const updateSection = async (id: string, updates: Partial<GuideSection>) => {
+    // Update local state immediately for UI responsiveness
     const updatedSections = sections.map(section =>
       section.id === id ? { ...section, ...updates } : section
     );
     onSectionsChange(updatedSections);
+
+    // Save to database if guideId exists
+    if (guideId) {
+      try {
+        const dbUpdates: any = {};
+        if (updates.title !== undefined) dbUpdates.title = updates.title;
+        if (updates.description !== undefined) dbUpdates.description = updates.description;
+        if (updates.language !== undefined) {
+          dbUpdates.language = updates.language;
+          dbUpdates.language_code = updates.language === 'English' ? 'en' : 'tr'; // Default mapping
+        }
+        if (updates.audio_url !== undefined) dbUpdates.audio_url = updates.audio_url;
+        if (updates.duration_seconds !== undefined) dbUpdates.duration_seconds = updates.duration_seconds;
+        if (updates.order_index !== undefined) dbUpdates.order_index = updates.order_index;
+
+        const { error } = await supabase
+          .from('guide_sections')
+          .update(dbUpdates)
+          .eq('id', id);
+
+        if (error) throw error;
+
+      } catch (error: any) {
+        console.error('Error updating section:', error);
+        toast.error('Failed to save section changes');
+      }
+    }
   };
 
-  const removeSection = (id: string) => {
-    const updatedSections = sections
-      .filter(section => section.id !== id)
-      .map((section, index) => ({ ...section, order_index: index }));
-    onSectionsChange(updatedSections);
+  const removeSection = async (id: string) => {
+    try {
+      // Delete from database if guideId exists
+      if (guideId) {
+        const { error } = await supabase
+          .from('guide_sections')
+          .delete()
+          .eq('id', id);
+
+        if (error) throw error;
+      }
+
+      // Update local state
+      const updatedSections = sections
+        .filter(section => section.id !== id)
+        .map((section, index) => ({ ...section, order_index: index }));
+      
+      onSectionsChange(updatedSections);
+
+      // Update order indices in database
+      if (guideId) {
+        for (let i = 0; i < updatedSections.length; i++) {
+          await supabase
+            .from('guide_sections')
+            .update({ order_index: i })
+            .eq('id', updatedSections[i].id);
+        }
+      }
+
+      toast.success('Section removed successfully!');
+
+    } catch (error: any) {
+      console.error('Error removing section:', error);
+      toast.error('Failed to remove section');
+    }
   };
 
-  const moveSection = (id: string, direction: 'up' | 'down') => {
+  const moveSection = async (id: string, direction: 'up' | 'down') => {
     const currentIndex = sections.findIndex(section => section.id === id);
     if (
       (direction === 'up' && currentIndex === 0) ||
@@ -102,6 +188,21 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
     });
 
     onSectionsChange(updatedSections);
+
+    // Update order indices in database
+    if (guideId) {
+      try {
+        for (let i = 0; i < updatedSections.length; i++) {
+          await supabase
+            .from('guide_sections')
+            .update({ order_index: i })
+            .eq('id', updatedSections[i].id);
+        }
+      } catch (error: any) {
+        console.error('Error updating section order:', error);
+        toast.error('Failed to update section order');
+      }
+    }
   };
 
   const handleFileSelect = (sectionId: string, file: File) => {
