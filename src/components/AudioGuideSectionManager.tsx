@@ -519,17 +519,17 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
 
       if (error) throw error;
 
-      // Update section with generated audio
-      const estimatedDuration = Math.ceil(section.description.length / 10);
+      // Update section with generated audio and actual duration
+      const actualDuration = data.duration_seconds || Math.ceil(section.description.length / 10);
       const updatedSections = sections.map(s =>
         s.id === sectionId 
-          ? { ...s, audio_url: data.audio_url, duration_seconds: estimatedDuration }
+          ? { ...s, audio_url: data.audio_url, duration_seconds: actualDuration }
           : s
       );
       
       updateSection(sectionId, { 
         audio_url: data.audio_url,
-        duration_seconds: estimatedDuration
+        duration_seconds: actualDuration
       });
       
       // Update guide duration after audio generation

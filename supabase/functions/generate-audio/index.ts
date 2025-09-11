@@ -73,14 +73,39 @@ serve(async (req) => {
       throw new Error(`ElevenLabs API error: ${response.status} ${errorText}`);
     }
 
-    // Convert audio to base64
+    // Get audio buffer and upload to storage
     const arrayBuffer = await response.arrayBuffer();
-    const base64Audio = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    const audioBuffer = new Uint8Array(arrayBuffer);
+    
+    // Calculate audio duration using MP3 frame analysis
+    const duration = calculateMP3Duration(audioBuffer);
+    
+    // Generate unique filename
+    const fileName = `generated-audio-${Date.now()}-${crypto.randomUUID()}.mp3`;
+    
+    // Upload to Supabase Storage
+    const { data: uploadData, error: uploadError } = await supabaseClient.storage
+      .from('guide-audio')
+      .upload(fileName, audioBuffer, {
+        contentType: 'audio/mpeg',
+        cacheControl: '3600'
+      });
 
-    console.log('Successfully generated audio');
+    if (uploadError) {
+      console.error('Storage upload error:', uploadError);
+      throw new Error(`Failed to upload audio: ${uploadError.message}`);
+    }
+
+    // Get public URL
+    const { data: { publicUrl } } = supabaseClient.storage
+      .from('guide-audio')
+      .getPublicUrl(fileName);
+
+    console.log('Successfully generated and uploaded audio:', { fileName, duration });
 
     return new Response(JSON.stringify({ 
-      audioContent: base64Audio,
+      audio_url: publicUrl,
+      duration_seconds: Math.round(duration),
       voiceId: selectedVoiceId,
       modelId: selectedModelId,
       isPreview,
@@ -98,3 +123,56 @@ serve(async (req) => {
     });
   }
 });
+
+// Simple MP3 duration calculation function
+function calculateMP3Duration(buffer: Uint8Array): number {
+  try {
+    // Look for MP3 frame headers to estimate duration
+    // This is a simplified calculation based on file size and bitrate
+    const fileSize = buffer.length;
+    
+    // Check for ID3 tag and skip it
+    let offset = 0;
+    if (buffer[0] === 0x49 && buffer[1] === 0x44 && buffer[2] === 0x33) { // "ID3"
+      const tagSize = ((buffer[6] & 0x7f) << 21) | ((buffer[7] & 0x7f) << 14) | ((buffer[8] & 0x7f) << 7) | (buffer[9] & 0x7f);
+      offset = tagSize + 10;
+    }
+    
+    // Look for first MP3 frame header
+    for (let i = offset; i < buffer.length - 4; i++) {
+      if (buffer[i] === 0xFF && (buffer[i + 1] & 0xE0) === 0xE0) {
+        // Found frame header, extract info
+        const header = (buffer[i] << 24) | (buffer[i + 1] << 16) | (buffer[i + 2] << 8) | buffer[i + 3];
+        
+        // Extract version, layer, and bitrate
+        const version = (header >> 19) & 0x3;
+        const layer = (header >> 17) & 0x3;
+        const bitrateIndex = (header >> 12) & 0xF;
+        const samplingIndex = (header >> 10) & 0x3;
+        
+        // Standard bitrate table for MPEG-1 Layer III
+        const bitrates = [0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320];
+        const sampleRates = [44100, 48000, 32000];
+        
+        if (bitrateIndex > 0 && bitrateIndex < 15 && samplingIndex < 3) {
+          const bitrate = bitrates[bitrateIndex] * 1000; // Convert to bps
+          const sampleRate = sampleRates[samplingIndex];
+          
+          // Estimate duration: (file_size * 8) / bitrate
+          const estimatedDuration = (fileSize * 8) / bitrate;
+          return Math.max(1, estimatedDuration); // Minimum 1 second
+        }
+        break;
+      }
+    }
+    
+    // Fallback: estimate based on typical TTS bitrate (64kbps)
+    const fallbackDuration = (fileSize * 8) / (64 * 1000);
+    return Math.max(1, fallbackDuration);
+    
+  } catch (error) {
+    console.error('Error calculating MP3 duration:', error);
+    // Fallback to file size estimation
+    return Math.max(1, Math.round(buffer.length / 16000)); // Rough estimate
+  }
+}
