@@ -197,6 +197,9 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
 
       toast.success('Guide updated successfully!');
       
+      // Store update timestamp in localStorage for cache busting
+      localStorage.setItem(`guide_updated_${guide.id}`, Date.now().toString());
+      
       // Clear sessionStorage
       sessionStorage.removeItem('editingGuide');
       
@@ -248,7 +251,9 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
 
   const openGuidePreview = () => {
     if (!guide) return;
-    const url = getGuidePreviewUrl(guide.id);
+    // Add cache-busting parameter to force fresh data
+    const baseUrl = getGuidePreviewUrl(guide.slug || guide.id);
+    const url = `${baseUrl}?refresh=${Date.now()}`;
     window.open(url, '_blank');
   };
 

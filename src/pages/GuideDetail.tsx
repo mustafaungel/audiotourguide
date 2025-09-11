@@ -402,6 +402,23 @@ const GuideDetail = () => {
     }
   }, [slug, user, searchParams]);
 
+  // Check for guide updates and refresh if needed
+  useEffect(() => {
+    if (realGuideData?.id) {
+      const lastUpdate = localStorage.getItem(`guide_updated_${realGuideData.id}`);
+      if (lastUpdate) {
+        const updateTime = parseInt(lastUpdate);
+        const guideUpdateTime = new Date(realGuideData.updated_at).getTime();
+        
+        // If the stored update time is newer than the loaded guide data, refresh
+        if (updateTime > guideUpdateTime) {
+          fetchGuideDetails();
+          localStorage.removeItem(`guide_updated_${realGuideData.id}`);
+        }
+      }
+    }
+  }, [realGuideData?.id, realGuideData?.updated_at]);
+
   // Fetch sections when language changes
   useEffect(() => {
     if (realGuideData?.id && selectedLanguage) {
