@@ -10,7 +10,7 @@ import { Loader2, Save, ArrowLeft, QrCode, ExternalLink, Copy, Link2, Edit3 } fr
 import { ImageUploader } from './ImageUploader';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { GuideSectionsManager } from './GuideSectionsManager';
+import { AudioGuideSectionManager } from './AudioGuideSectionManager';
 import { getGuidePreviewUrl } from '@/lib/url-utils';
 import { generateSlugPreview, validateSlug, sanitizeSlug } from '@/lib/slug-utils';
 
@@ -46,6 +46,8 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
   const [slugPreview, setSlugPreview] = useState('');
   const [customSlug, setCustomSlug] = useState('');
   const [slugError, setSlugError] = useState('');
+  const [sections, setSections] = useState<any[]>([]);
+  const [sectionsLoading, setSectionsLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -72,8 +74,34 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
         is_featured: guideData.is_featured || false,
       });
       setCustomSlug(guideData.slug || '');
+      
+      // Load existing sections
+      loadGuideSections(guideData.id);
     }
   }, []);
+
+  const loadGuideSections = async (guideId: string) => {
+    setSectionsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('guide_sections')
+        .select('*')
+        .eq('guide_id', guideId)
+        .order('order_index');
+
+      if (error) throw error;
+      setSections(data || []);
+    } catch (error) {
+      console.error('Error loading guide sections:', error);
+      toast.error('Failed to load guide sections');
+    } finally {
+      setSectionsLoading(false);
+    }
+  };
+
+  const handleSectionsChange = async (newSections: any[]) => {
+    setSections(newSections);
+  };
 
   // Update slug preview when title or location changes
   useEffect(() => {
@@ -465,7 +493,21 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
             <CardDescription>Manage audio sections and content</CardDescription>
           </CardHeader>
           <CardContent>
-            <GuideSectionsManager guideId={guide.id} />
+            {sectionsLoading ? (
+              <div className="flex items-center justify-center p-8">
+                <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                Loading sections...
+              </div>
+            ) : (
+              <AudioGuideSectionManager
+                sections={sections}
+                onSectionsChange={handleSectionsChange}
+                guideId={guide.id}
+                guideTitle={formData.title}
+                location={formData.location}
+                category={formData.category}
+              />
+            )}
           </CardContent>
         </Card>
       </div>
