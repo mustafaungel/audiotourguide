@@ -16,6 +16,7 @@ export interface GuideSection {
   audio_url?: string;
   duration_seconds?: number;
   language: string;
+  language_code?: string;
   order_index: number;
 }
 
@@ -42,6 +43,21 @@ const LANGUAGES = [
   'Korean',
   'Arabic'
 ];
+
+const LANGUAGE_CODE_MAP: { [key: string]: string } = {
+  'English': 'en',
+  'Turkish': 'tr',
+  'Spanish': 'es',
+  'French': 'fr',
+  'German': 'de',
+  'Italian': 'it',
+  'Portuguese': 'pt',
+  'Russian': 'ru',
+  'Japanese': 'ja',
+  'Chinese': 'zh',
+  'Korean': 'ko',
+  'Arabic': 'ar'
+};
 
 export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, guideTitle, location, category }: AudioGuideSectionManagerProps) {
   const [newSectionTitle, setNewSectionTitle] = useState('');
@@ -111,7 +127,7 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
         if (updates.description !== undefined) dbUpdates.description = updates.description;
         if (updates.language !== undefined) {
           dbUpdates.language = updates.language;
-          dbUpdates.language_code = updates.language === 'English' ? 'en' : 'tr'; // Default mapping
+          dbUpdates.language_code = LANGUAGE_CODE_MAP[updates.language] || 'en'; // Proper language code mapping
         }
         if (updates.audio_url !== undefined) dbUpdates.audio_url = updates.audio_url;
         if (updates.duration_seconds !== undefined) dbUpdates.duration_seconds = updates.duration_seconds;
