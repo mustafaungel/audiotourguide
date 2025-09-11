@@ -61,10 +61,12 @@ export const FeaturedGuides = () => {
     return `$${(price / 100).toFixed(2)}`;
   };
 
-  const formatDuration = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
+  const formatDuration = (durationValue: number) => {
+    // Duration is stored in seconds in the database
+    const minutes = Math.floor(durationValue / 60);
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;
+    
     if (hours > 0) {
       return `${hours}h ${remainingMinutes}m`;
     }
