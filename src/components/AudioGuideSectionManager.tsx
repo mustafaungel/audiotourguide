@@ -144,6 +144,13 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
       
       // Update guide duration
       await updateGuideDuration(updatedSections);
+
+      // Trigger localStorage event for real-time updates
+      window.localStorage.setItem(`guide_updated_${guideId}`, Date.now().toString());
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: `guide_updated_${guideId}`,
+        newValue: Date.now().toString()
+      }));
       
       toast.success('Section added successfully!');
 
@@ -184,6 +191,13 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
         // Update guide duration if audio-related changes
         if (updates.duration_seconds !== undefined || updates.audio_url !== undefined) {
           await updateGuideDuration(updatedSections);
+          
+          // Trigger localStorage event for real-time updates
+          window.localStorage.setItem(`guide_updated_${guideId}`, Date.now().toString());
+          window.dispatchEvent(new StorageEvent('storage', {
+            key: `guide_updated_${guideId}`,
+            newValue: Date.now().toString()
+          }));
         }
 
       } catch (error: any) {
@@ -223,6 +237,13 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
         
         // Update guide duration after section removal
         await updateGuideDuration(updatedSections);
+        
+        // Trigger localStorage event for real-time updates
+        window.localStorage.setItem(`guide_updated_${guideId}`, Date.now().toString());
+        window.dispatchEvent(new StorageEvent('storage', {
+          key: `guide_updated_${guideId}`,
+          newValue: Date.now().toString()
+        }));
       }
 
       toast.success('Section removed successfully!');
@@ -335,6 +356,13 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
       // Update guide duration after audio upload
       await updateGuideDuration(updatedSections);
       
+      // Trigger localStorage event for real-time updates
+      window.localStorage.setItem(`guide_updated_${guideId}`, Date.now().toString());
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: `guide_updated_${guideId}`,
+        newValue: Date.now().toString()
+      }));
+      
       toast.success('Audio uploaded successfully!');
 
     } catch (error: any) {
@@ -393,6 +421,13 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
 
       // Update guide duration after audio removal
       await updateGuideDuration(updatedSections);
+      
+      // Trigger localStorage event for real-time updates
+      window.localStorage.setItem(`guide_updated_${guideId}`, Date.now().toString());
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: `guide_updated_${guideId}`,
+        newValue: Date.now().toString()
+      }));
 
       toast.success('Audio file removed');
     } catch (error) {
@@ -499,6 +534,13 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
       
       // Update guide duration after audio generation
       await updateGuideDuration(updatedSections);
+      
+      // Trigger localStorage event for real-time updates
+      window.localStorage.setItem(`guide_updated_${guideId}`, Date.now().toString());
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: `guide_updated_${guideId}`,
+        newValue: Date.now().toString()
+      }));
       
       toast.success('Audio generated successfully!');
 

@@ -919,6 +919,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      calculate_guide_duration: {
+        Args: { p_guide_id: string }
+        Returns: number
+      }
       calculate_tier_points: {
         Args: { creator_user_id: string }
         Returns: number
