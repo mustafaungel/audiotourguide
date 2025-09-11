@@ -391,7 +391,7 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
                   <div>
                     <label className="text-sm font-medium mb-2 block">Section Title</label>
                     <Input
-                      value={section.title}
+                      value={section.title || ''}
                       onChange={(e) => updateSection(section.id, { title: e.target.value })}
                       placeholder="Enter section title"
                     />
@@ -404,13 +404,13 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
                         variant="outline"
                         size="sm"
                         onClick={() => generateSectionDescription(section.id, section.title)}
-                        disabled={!section.title.trim() || generatingDescription === section.id}
+                        disabled={!section.title?.trim() || generatingDescription === section.id}
                       >
                         {generatingDescription === section.id ? 'Generating...' : 'Generate AI Description'}
                       </Button>
                     </div>
                     <Textarea
-                      value={section.description}
+                      value={section.description || ''}
                       onChange={(e) => updateSection(section.id, { description: e.target.value })}
                       placeholder="Describe what this section covers..."
                       rows={3}
@@ -483,7 +483,7 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
                                 variant="outline"
                                 size="sm"
                                 onClick={() => generateSectionAudio(section.id)}
-                                disabled={!section.description.trim() || generatingAudio === section.id}
+                                disabled={!section.description?.trim() || generatingAudio === section.id}
                               >
                                 {generatingAudio === section.id ? 'Generating...' : 'Generate AI Audio'}
                               </Button>
