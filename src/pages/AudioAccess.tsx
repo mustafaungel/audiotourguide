@@ -247,16 +247,33 @@ export default function AudioAccess() {
   };
 
   const fetchSectionsForLanguage = async (guideId: string, languageCode: string) => {
+    if (!accessCode) return;
+    
     try {
+      // Use RPC function to bypass RLS and fetch sections with access verification
       const { data: sectionsData, error } = await supabase
-        .from('guide_sections')
-        .select('*')
-        .eq('guide_id', guideId)
-        .eq('language_code', languageCode)
-        .order('order_index');
+        .rpc('get_sections_with_access', {
+          p_guide_id: guideId,
+          p_access_code: accessCode,
+          p_language_code: languageCode
+        });
 
       if (error) {
         console.error('Error fetching sections:', error);
+        // Fallback: try with 'en' if the requested language fails
+        if (languageCode !== 'en') {
+          const { data: fallbackData, error: fallbackError } = await supabase
+            .rpc('get_sections_with_access', {
+              p_guide_id: guideId,
+              p_access_code: accessCode,
+              p_language_code: 'en'
+            });
+          
+          if (!fallbackError && fallbackData) {
+            setSections(fallbackData || []);
+            return;
+          }
+        }
         setSections([]);
         return;
       }
@@ -620,6 +637,17 @@ export default function AudioAccess() {
 
           {/* Chapter-First Audio Interface */}
           <div className="mb-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Audio Sections</h2>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => fetchSectionsForLanguage(guide.id, selectedLanguage)}
+              >
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Refresh Sections
+              </Button>
+            </div>
             <NewSectionAudioPlayer
               guideId={guide.id}
               guideTitle={guide.title}

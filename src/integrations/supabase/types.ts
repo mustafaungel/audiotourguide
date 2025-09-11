@@ -1069,6 +1069,28 @@ export type Database = {
           verification_level: string
         }[]
       }
+      get_sections_with_access: {
+        Args: {
+          p_access_code: string
+          p_guide_id: string
+          p_language_code?: string
+        }
+        Returns: {
+          audio_url: string
+          created_at: string
+          description: string
+          duration_seconds: number
+          guide_id: string
+          id: string
+          is_original: boolean
+          language: string
+          language_code: string
+          order_index: number
+          original_section_id: string
+          title: string
+          updated_at: string
+        }[]
+      }
       get_user_verification_request_safely: {
         Args: { request_id: string }
         Returns: {
