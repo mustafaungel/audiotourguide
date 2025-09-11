@@ -69,6 +69,42 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
   const [generatingAudio, setGeneratingAudio] = useState<string | null>(null);
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
+  // Calculate total duration from all sections
+  const calculateTotalDuration = (sectionsData: GuideSection[]): number => {
+    return sectionsData.reduce((total, section) => {
+      if (section.duration_seconds) {
+        return total + section.duration_seconds;
+      }
+      // Fallback: estimate duration from description length (rough estimate: 150 words per minute)
+      if (section.description) {
+        const wordCount = section.description.split(' ').length;
+        const estimatedMinutes = wordCount / 150;
+        return total + Math.ceil(estimatedMinutes * 60);
+      }
+      return total;
+    }, 0);
+  };
+
+  // Update guide duration in the database
+  const updateGuideDuration = async (sectionsData: GuideSection[]) => {
+    if (!guideId) return;
+    
+    try {
+      const totalDuration = calculateTotalDuration(sectionsData);
+      
+      const { error } = await supabase
+        .from('audio_guides')
+        .update({ duration: totalDuration })
+        .eq('id', guideId);
+
+      if (error) {
+        console.error('Error updating guide duration:', error);
+      }
+    } catch (error) {
+      console.error('Error updating guide duration:', error);
+    }
+  };
+
   const addSection = async () => {
     if (!newSectionTitle.trim()) return;
     if (!guideId) {
@@ -102,8 +138,13 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
         order_index: data.order_index
       };
 
-      onSectionsChange([...sections, sectionWithLocalData]);
+      const updatedSections = [...sections, sectionWithLocalData];
+      onSectionsChange(updatedSections);
       setNewSectionTitle('');
+      
+      // Update guide duration
+      await updateGuideDuration(updatedSections);
+      
       toast.success('Section added successfully!');
 
     } catch (error: any) {
@@ -140,6 +181,11 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
 
         if (error) throw error;
 
+        // Update guide duration if audio-related changes
+        if (updates.duration_seconds !== undefined || updates.audio_url !== undefined) {
+          await updateGuideDuration(updatedSections);
+        }
+
       } catch (error: any) {
         console.error('Error updating section:', error);
         toast.error('Failed to save section changes');
@@ -174,6 +220,9 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
             .update({ order_index: i })
             .eq('id', updatedSections[i].id);
         }
+        
+        // Update guide duration after section removal
+        await updateGuideDuration(updatedSections);
       }
 
       toast.success('Section removed successfully!');
@@ -270,12 +319,22 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
       const duration = await getAudioDuration(file);
 
       // Update section with audio URL and duration
+      const updatedSections = sections.map(section =>
+        section.id === sectionId 
+          ? { ...section, audio_url: publicUrl, duration_seconds: duration }
+          : section
+      );
+      
       updateSection(sectionId, {
         audio_url: publicUrl,
         duration_seconds: duration
       });
 
       setUploadProgress(100);
+      
+      // Update guide duration after audio upload
+      await updateGuideDuration(updatedSections);
+      
       toast.success('Audio uploaded successfully!');
 
     } catch (error: any) {
@@ -321,10 +380,19 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
       }
 
       // Update section to remove audio
+      const updatedSections = sections.map(section =>
+        section.id === sectionId 
+          ? { ...section, audio_url: undefined, duration_seconds: undefined }
+          : section
+      );
+      
       updateSection(sectionId, {
         audio_url: undefined,
         duration_seconds: undefined
       });
+
+      // Update guide duration after audio removal
+      await updateGuideDuration(updatedSections);
 
       toast.success('Audio file removed');
     } catch (error) {
@@ -417,10 +485,20 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
       if (error) throw error;
 
       // Update section with generated audio
+      const estimatedDuration = Math.ceil(section.description.length / 10);
+      const updatedSections = sections.map(s =>
+        s.id === sectionId 
+          ? { ...s, audio_url: data.audio_url, duration_seconds: estimatedDuration }
+          : s
+      );
+      
       updateSection(sectionId, { 
         audio_url: data.audio_url,
-        duration_seconds: Math.ceil(section.description.length / 10) // Rough estimation
+        duration_seconds: estimatedDuration
       });
+      
+      // Update guide duration after audio generation
+      await updateGuideDuration(updatedSections);
       
       toast.success('Audio generated successfully!');
 
