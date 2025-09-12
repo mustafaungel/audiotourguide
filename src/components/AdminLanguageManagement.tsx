@@ -7,9 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Globe, Plus, Languages, Upload, Trash2 } from 'lucide-react';
+import { Globe, Plus, Languages, Upload } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 interface Guide {
   id: string;
@@ -49,7 +48,6 @@ export default function AdminLanguageManagement() {
   const [translationSections, setTranslationSections] = useState<Partial<GuideSection>[]>([]);
   const [isAddingLanguage, setIsAddingLanguage] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [deletingLanguage, setDeletingLanguage] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -279,72 +277,6 @@ const handleFileUpload = async (index: number, file: File) => {
     }
   };
 
-  const deleteLanguage = async (languageCode: string) => {
-    if (!selectedGuide) return;
-
-    setDeletingLanguage(languageCode);
-    try {
-      // First, get all sections for this language to get audio URLs for cleanup
-      const { data: sectionsToDelete, error: fetchError } = await supabase
-        .from('guide_sections')
-        .select('audio_url')
-        .eq('guide_id', selectedGuide.id)
-        .eq('language_code', languageCode);
-
-      if (fetchError) throw fetchError;
-
-      // Delete all guide sections for this language
-      const { error: deleteError } = await supabase
-        .from('guide_sections')
-        .delete()
-        .eq('guide_id', selectedGuide.id)
-        .eq('language_code', languageCode);
-
-      if (deleteError) throw deleteError;
-
-      // Clean up audio files from storage (optional, to save storage space)
-      if (sectionsToDelete && sectionsToDelete.length > 0) {
-        const audioFilesToDelete = sectionsToDelete
-          .filter(section => section.audio_url)
-          .map(section => {
-            // Extract file path from URL
-            const url = new URL(section.audio_url);
-            return url.pathname.split('/').slice(-1)[0]; // Get filename
-          })
-          .filter(Boolean);
-
-        if (audioFilesToDelete.length > 0) {
-          // Delete files from storage
-          const { error: storageError } = await supabase.storage
-            .from('guide-audio')
-            .remove(audioFilesToDelete.map(filename => `${selectedGuide.id}/${languageCode}/${filename}`));
-          
-          if (storageError) {
-            console.warn('Storage cleanup error:', storageError);
-            // Don't fail the operation if storage cleanup fails
-          }
-        }
-      }
-
-      toast({
-        title: "Success",
-        description: `${languageCode.toUpperCase()} language and all its content have been deleted`,
-      });
-
-      // Refresh guide languages
-      fetchGuideLanguages(selectedGuide.id);
-    } catch (error) {
-      console.error('Delete error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete language",
-        variant: "destructive",
-      });
-    } finally {
-      setDeletingLanguage(null);
-    }
-  };
-
   const availableLanguages = supportedLanguages.filter(lang => 
     !guideLanguages.some(gl => gl.language_code === lang.code)
   );
@@ -415,42 +347,9 @@ const handleFileUpload = async (index: number, file: File) => {
                         {lang.section_count} sections
                       </span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-1 bg-primary/10 text-primary rounded text-sm">
-                        {lang.language_code.toUpperCase()}
-                      </span>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                            disabled={deletingLanguage === lang.language_code}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Language Translation?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete the <strong>{lang.native_name}</strong> translation? 
-                              This will permanently remove all {lang.section_count} sections and their audio files. 
-                              This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction 
-                              onClick={() => deleteLanguage(lang.language_code)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                              {deletingLanguage === lang.language_code ? 'Deleting...' : 'Delete Language'}
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
+                    <span className="px-2 py-1 bg-primary/10 text-primary rounded text-sm">
+                      {lang.language_code.toUpperCase()}
+                    </span>
                   </div>
                 ))}
               </div>
