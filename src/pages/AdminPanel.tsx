@@ -195,8 +195,24 @@ const AdminPanel = () => {
   };
 
   const createGuide = async () => {
-    if (!formData.title || !formData.city || !formData.country || !formData.category || !formData.price) {
-      toast.error('Please fill in all required fields.');
+    // Enhanced validation with specific error messages
+    const missingFields = [];
+    if (!formData.title?.trim()) missingFields.push('Title');
+    if (!formData.city?.trim()) missingFields.push('City');
+    if (!formData.country?.trim()) missingFields.push('Country');
+    if (!formData.category?.trim()) missingFields.push('Category');
+    if (!formData.price?.trim()) missingFields.push('Price');
+
+    if (missingFields.length > 0) {
+      toast.error(`Please fill in the following required fields: ${missingFields.join(', ')}`);
+      console.error('Missing required fields:', missingFields);
+      return;
+    }
+
+    // Validate price is a valid number
+    const priceValue = parseInt(formData.price);
+    if (isNaN(priceValue) || priceValue < 0) {
+      toast.error('Please enter a valid price (0 or greater)');
       return;
     }
 
@@ -205,28 +221,61 @@ const AdminPanel = () => {
       return;
     }
 
+    // Validate sections have required content
+    const invalidSections = sections.filter((section, index) => 
+      !section.title?.trim() || !section.content?.trim()
+    );
+    
+    if (invalidSections.length > 0) {
+      toast.error('All sections must have both title and content');
+      return;
+    }
+
     setPublishLoading(true);
     
     try {
+      // Prepare payload with trimmed values
+      const payload = {
+        title: formData.title.trim(),
+        description: formData.description?.trim() || `Explore ${formData.title.trim()} in ${formData.city.trim()}, ${formData.country.trim()}`,
+        location: `${formData.city.trim()}, ${formData.country.trim()}`,
+        category: formData.category.trim(),
+        price_usd: priceValue,
+        difficulty: 'intermediate',
+        languages: ['English'],
+        sections: sections.map(section => ({
+          ...section,
+          title: section.title?.trim(),
+          content: section.content?.trim()
+        })),
+        image_urls: uploadedImages,
+        is_published: !isHidden,
+        is_featured: formData.is_featured,
+        generate_audio: true
+      };
+
+      console.log('Creating guide with payload:', payload);
+      
       // Use the create-guide edge function for consistency
       const { data, error } = await supabase.functions.invoke('create-guide', {
-        body: {
-          title: formData.title,
-          description: formData.description || `Explore ${formData.title} in ${formData.city}, ${formData.country}`,
-          location: `${formData.city}, ${formData.country}`,
-          category: formData.category,
-          price_usd: parseInt(formData.price),
-          difficulty: 'intermediate',
-          languages: ['English'],
-          sections: sections,
-          image_urls: uploadedImages,
-          is_published: !isHidden,
-          is_featured: formData.is_featured,
-          generate_audio: true
-        }
+        body: payload
       });
 
-      if (error) throw error;
+      console.log('Edge function response:', { data, error });
+
+      if (error) {
+        console.error('Edge function error details:', error);
+        // Try to extract more specific error message
+        const errorMessage = error.message || error.details || error.hint || 'Unknown error occurred';
+        toast.error(`Failed to create guide: ${errorMessage}`);
+        return;
+      }
+
+      if (!data || !data.guide) {
+        console.error('Invalid response from edge function:', data);
+        toast.error('Invalid response from server. Please try again.');
+        return;
+      }
 
       setCreatedGuide(data.guide);
       setQrCodeUrl(data.guide.qr_code_url);
@@ -244,9 +293,29 @@ const AdminPanel = () => {
       setSections([]);
       setUploadedImages([]);
       setIsHidden(false);
+      
+      console.log('Guide created successfully:', data.guide.id);
+      
     } catch (error: any) {
-      console.error('Error creating guide:', error);
-      toast.error('Failed to create guide. Please try again.');
+      console.error('Error creating guide - full error:', error);
+      
+      // Enhanced error handling
+      let errorMessage = 'Failed to create guide. Please try again.';
+      
+      if (error.message) {
+        errorMessage = `Failed to create guide: ${error.message}`;
+      } else if (typeof error === 'string') {
+        errorMessage = `Failed to create guide: ${error}`;
+      } else if (error.details) {
+        errorMessage = `Failed to create guide: ${error.details}`;
+      }
+      
+      // Network error handling
+      if (error.name === 'TypeError' && error.message?.includes('fetch')) {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setPublishLoading(false);
     }
