@@ -116,32 +116,58 @@ const AdminPanel = () => {
   };
 
   const generateDescription = async () => {
-    if (!formData.title || !formData.city || !formData.country || !formData.category) {
-      toast.error('Please fill in title, city, country, and category first.');
+    if (!formData.title || !formData.city || !formData.country) {
+      toast.error('Please fill in title, city, and country first.');
       return;
     }
 
     setDescriptionLoading(true);
     
     try {
-      const { data, error } = await supabase.functions.invoke('generate-guide-description', {
+      // Try the new generate-guide-description function first
+      let { data, error } = await supabase.functions.invoke('generate-guide-description', {
         body: {
           title: formData.title,
           city: formData.city,
           country: formData.country,
-          category: formData.category
+          category: formData.category || 'cultural'
         }
       });
 
-      if (error) throw error;
+      // Fallback to the old function if the new one fails
+      if (error || !data?.description) {
+        console.log('Trying fallback description function...');
+        const fallbackResult = await supabase.functions.invoke('generate-description', {
+          body: {
+            type: 'guide',
+            data: {
+              title: formData.title,
+              city: formData.city,
+              country: formData.country,
+              category: formData.category || 'cultural'
+            }
+          }
+        });
+        
+        data = fallbackResult.data;
+        error = fallbackResult.error;
+      }
+
+      if (error) {
+        console.error('Error generating description:', error);
+        toast.error(`Failed to generate description: ${error.message || 'Unknown error'}`);
+        return;
+      }
       
-      if (data.description) {
+      if (data?.description) {
         handleInputChange('description', data.description);
         toast.success('AI has created your guide description successfully.');
+      } else {
+        toast.error('No description returned from AI');
       }
     } catch (error: any) {
       console.error('Error generating description:', error);
-      toast.error('Failed to generate description. Please try again.');
+      toast.error(`Failed to generate description: ${error.message || 'Network error'}`);
     } finally {
       setDescriptionLoading(false);
     }
@@ -201,7 +227,6 @@ const AdminPanel = () => {
     if (!formData.city?.trim()) missingFields.push('City');
     if (!formData.country?.trim()) missingFields.push('Country');
     if (!formData.category?.trim()) missingFields.push('Category');
-    if (!formData.price?.trim()) missingFields.push('Price');
 
     if (missingFields.length > 0) {
       toast.error(`Please fill in the following required fields: ${missingFields.join(', ')}`);
@@ -209,26 +234,24 @@ const AdminPanel = () => {
       return;
     }
 
-    // Validate price is a valid number
-    const priceValue = parseFloat(formData.price) * 100; // Convert dollars to cents
-    if (isNaN(priceValue) || priceValue < 100) { // Minimum $1.00
-      toast.error('Please enter a valid price ($1.00 or greater)');
+    // Validate price is a valid number (allow free guides)
+    const priceValue = formData.price?.trim() ? parseFloat(formData.price) * 100 : 0; // Convert dollars to cents
+    if (isNaN(priceValue) || priceValue < 0) {
+      toast.error('Please enter a valid price (0 or greater for free guides)');
       return;
     }
 
-    if (sections.length === 0) {
-      toast.error('Please add at least one section to your guide.');
-      return;
-    }
-
-    // Validate sections have required content
-    const invalidSections = sections.filter((section, index) => 
-      !section.title?.trim() || !section.content?.trim()
-    );
-    
-    if (invalidSections.length > 0) {
-      toast.error('All sections must have both title and content');
-      return;
+    // Sections are optional - guides can be created without sections
+    if (sections.length > 0) {
+      // Validate sections have at least a title
+      const invalidSections = sections.filter((section, index) => 
+        !section.title?.trim()
+      );
+      
+      if (invalidSections.length > 0) {
+        toast.error('All sections must have at least a title');
+        return;
+      }
     }
 
     setPublishLoading(true);
@@ -246,7 +269,7 @@ const AdminPanel = () => {
         sections: sections.map(section => ({
           ...section,
           title: section.title?.trim(),
-          content: section.content?.trim()
+          description: section.description?.trim() || section.content?.trim() || ''
         })),
         image_urls: uploadedImages,
         is_published: !isHidden,

@@ -110,13 +110,13 @@ serve(async (req) => {
       .from('audio_guides')
       .insert({
         title,
-        description,
+        description: description || `Discover ${title} - an amazing audio guide experience`,
         location,
         category,
         duration: duration || Math.max(sections.reduce((total: number, section: any) => total + (section.duration_seconds || 300), 0), 45),
         difficulty: difficulty || 'Easy',
         languages: languages || ['English'],
-        price_usd: price_usd || 1200, // Already in cents from frontend
+        price_usd: price_usd >= 0 ? price_usd : 0, // Allow free guides (0 cents)
         audio_url: audioUrl,
         transcript: script,
         image_url: imageUrl,
@@ -141,10 +141,11 @@ serve(async (req) => {
       const sectionsToInsert = sections.map((section: any, index: number) => ({
         guide_id: guideData.id,
         title: section.title,
-        description: section.description,
+        description: section.description || section.content || '', // Handle both description and content, allow empty
         audio_url: section.audio_url,
         duration_seconds: section.duration_seconds || 300,
         language: section.language || 'English',
+        language_code: 'en',
         order_index: index
       }));
 
