@@ -26,7 +26,10 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
         signal: controller.signal,
         // Add cache control for better regional performance
         headers: {
-          ...(options.headers as Record<string, string> || {}),
+          // Properly handle Headers object or plain object
+          ...(options.headers instanceof Headers 
+            ? Object.fromEntries(options.headers.entries()) 
+            : (options.headers || {})),
           'Cache-Control': 'public, max-age=300', // 5 minute cache
         },
       }).finally(() => {
