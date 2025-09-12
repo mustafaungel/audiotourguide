@@ -14,35 +14,12 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     persistSession: true,
     autoRefreshToken: true,
   },
-  global: {
-    // Enhanced timeout and retry configuration for better regional connectivity
-    fetch: (url, options: RequestInit = {}) => {
-      const controller = new AbortController();
-      // Increased timeout for regional users
-      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
-      
-      return fetch(url, {
-        ...options,
-        signal: controller.signal,
-        // Add cache control for better regional performance
-        headers: {
-          // Properly handle Headers object or plain object
-          ...(options.headers instanceof Headers 
-            ? Object.fromEntries(options.headers.entries()) 
-            : (options.headers || {})),
-          'Cache-Control': 'public, max-age=300', // 5 minute cache
-        },
-      }).finally(() => {
-        clearTimeout(timeoutId);
-      });
-    },
-  },
   db: {
     schema: 'public',
   },
   realtime: {
     params: {
-      eventsPerSecond: 2, // Reduce for better stability in poor connections
+      eventsPerSecond: 2,
     },
   },
 });

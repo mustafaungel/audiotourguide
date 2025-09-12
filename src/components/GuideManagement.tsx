@@ -19,6 +19,7 @@ interface Guide {
   created_at: string;
   qr_code_url?: string;
   share_url?: string;
+  slug?: string;
   profiles?: {
     full_name: string;
     email: string;
@@ -141,11 +142,15 @@ export const GuideManagement = () => {
     }
   };
 
-  const previewGuide = (guideId: string) => {
-    // Open guide detail page in new tab with absolute URL
-    const baseUrl = window.location.origin;
-    const previewUrl = `${baseUrl}/guide/${guideId}`;
-    window.open(previewUrl, '_blank');
+  const previewGuide = (guide: Guide) => {
+    // Use share_url if available for direct access, otherwise use public route
+    if (guide.share_url) {
+      window.open(guide.share_url, '_blank');
+    } else {
+      const baseUrl = window.location.origin;
+      const previewUrl = guide.slug ? `${baseUrl}/guide/${guide.slug}` : `${baseUrl}/guide/${guide.id}`;
+      window.open(previewUrl, '_blank');
+    }
   };
 
   const editGuide = (guide: Guide) => {
@@ -198,6 +203,48 @@ export const GuideManagement = () => {
     }
   };
 
+  const repairAccessLinks = async () => {
+    try {
+      const guidesNeedingRepair = guides.filter(guide => !guide.share_url || !guide.qr_code_url);
+      
+      if (guidesNeedingRepair.length === 0) {
+        toast({
+          title: "No Repair Needed",
+          description: "All guides already have access links."
+        });
+        return;
+      }
+
+      toast({
+        title: "Repairing Access Links",
+        description: `Processing ${guidesNeedingRepair.length} guides...`
+      });
+
+      for (const guide of guidesNeedingRepair) {
+        await supabase.functions.invoke('generate-qr-code', {
+          body: {
+            guideId: guide.id,
+            skipAuth: true
+          }
+        });
+      }
+
+      // Refresh the guides list
+      fetchGuides();
+      
+      toast({
+        title: "Access Links Repaired",
+        description: `Successfully repaired ${guidesNeedingRepair.length} guides.`
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to repair access links"
+      });
+    }
+  };
+
   const getStatusBadge = (guide: Guide) => {
     if (!guide.is_approved) {
       return <Badge variant="destructive">Pending Approval</Badge>;
@@ -219,6 +266,13 @@ export const GuideManagement = () => {
           <h2 className="text-2xl font-bold">Guide Management</h2>
           <p className="text-muted-foreground">Review and approve audio guides from creators</p>
         </div>
+        <Button 
+          variant="outline"
+          onClick={repairAccessLinks}
+        >
+          <QrCode className="h-4 w-4 mr-2" />
+          Repair Access Links
+        </Button>
       </div>
 
       <div className="grid gap-4">
@@ -305,7 +359,7 @@ export const GuideManagement = () => {
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={() => previewGuide(guide.id)}
+                    onClick={() => previewGuide(guide)}
                   >
                     <Eye className="h-4 w-4 mr-1" />
                     Preview
