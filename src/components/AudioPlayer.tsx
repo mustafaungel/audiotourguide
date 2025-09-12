@@ -4,6 +4,8 @@ import { Card } from '@/components/ui/card';
 import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAudioSource } from '@/hooks/useAudioSource';
+import RegionalAccessError from '@/components/RegionalAccessError';
 
 interface AudioPlayerProps {
   title?: string;
@@ -26,64 +28,34 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const [currentTime, setCurrentTime] = useState(0);
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [actualAudioSrc, setActualAudioSrc] = useState<string | null>(null);
   const [showTranscript, setShowTranscript] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [savedPosition, setSavedPosition] = useState(0);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const { toast } = useToast();
+  
+  // Use enhanced audio source hook
+  const { 
+    audioSrc: actualAudioSrc, 
+    loading, 
+    error, 
+    isRegionalIssue, 
+    fallbackAttempted,
+    setError,
+    tryFallback, 
+    forceRetry 
+  } = useAudioSource({ guideId, audioSrc });
 
-  // Load audio from storage bucket and saved position
+  // Load saved position from localStorage when audio source is ready
   useEffect(() => {
-    const loadAudio = async () => {
-      if (audioSrc) {
-        console.log('[AUDIOPLAYER] Using provided audioSrc:', audioSrc);
-        setActualAudioSrc(audioSrc);
-        return;
+    if (guideId && actualAudioSrc) {
+      const savedPos = localStorage.getItem(`audio-position-${guideId}`);
+      if (savedPos) {
+        setSavedPosition(parseFloat(savedPos));
       }
-
-      if (guideId) {
-        setLoading(true);
-        setError(null);
-        try {
-          console.log('[AUDIOPLAYER] Loading audio for guide:', guideId);
-          
-          // Try to get audio file from storage bucket
-          const { data } = supabase.storage
-            .from('guide-audio')
-            .getPublicUrl(`${guideId}.mp3`);
-          
-          let audioUrl = data?.publicUrl;
-          if (!audioUrl) {
-            // Fallback to public tmp folder
-            audioUrl = `/tmp/${guideId}.mp3`;
-            console.log('[AUDIOPLAYER] Using fallback URL:', audioUrl);
-          } else {
-            console.log('[AUDIOPLAYER] Generated public URL:', audioUrl);
-          }
-          
-          // Set audio source and let audio element handle validation
-          setActualAudioSrc(audioUrl);
-          
-          // Load saved position from localStorage
-          const savedPos = localStorage.getItem(`audio-position-${guideId}`);
-          if (savedPos) {
-            setSavedPosition(parseFloat(savedPos));
-          }
-        } catch (err) {
-          console.error('[AUDIOPLAYER] Error loading audio:', err);
-          setError("Failed to load audio");
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-
-    loadAudio();
-  }, [audioSrc, guideId]);
+    }
+  }, [guideId, actualAudioSrc]);
 
   // Apply saved position when audio loads
   useEffect(() => {
@@ -310,11 +282,15 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
           </div>
         </div>
 
-        {/* Error Message */}
+        {/* Enhanced Error Message */}
         {error && (
-          <div className="text-center text-destructive text-sm bg-destructive/10 p-3 rounded-md">
-            {error}
-          </div>
+          <RegionalAccessError
+            error={error}
+            isRegionalIssue={isRegionalIssue}
+            onRetry={forceRetry}
+            onTryFallback={tryFallback}
+            showFallbackOption={!fallbackAttempted}
+          />
         )}
 
         {/* Main Controls */}
@@ -517,14 +493,14 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
           onEnded={handleEnded}
           onError={(e) => {
             console.error('[AUDIOPLAYER] Audio error:', e);
-            // Try fallback if primary source fails
-            if (actualAudioSrc.includes('supabase.co') && guideId) {
-              const fallbackUrl = `/tmp/${guideId}.mp3`;
-              console.log('[AUDIOPLAYER] Trying fallback:', fallbackUrl);
-              setActualAudioSrc(fallbackUrl);
-            } else {
+            // Try fallback using the enhanced hook
+            tryFallback().then(fallbackSuccess => {
+              if (!fallbackSuccess) {
+                setError("Audio file not available");
+              }
+            }).catch(() => {
               setError("Audio file not available");
-            }
+            });
           }}
           preload="metadata"
         />

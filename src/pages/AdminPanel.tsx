@@ -116,32 +116,56 @@ const AdminPanel = () => {
   };
 
   const generateDescription = async () => {
-    if (!formData.title || !formData.city || !formData.country || !formData.category) {
-      toast.error('Please fill in title, city, country, and category first.');
+    if (!formData.title || !formData.city || !formData.country) {
+      toast.error('Please fill in title, city, and country first.');
       return;
     }
 
     setDescriptionLoading(true);
     
     try {
-      const { data, error } = await supabase.functions.invoke('generate-guide-description', {
+      // Try the new generate-guide-description function first
+      let { data, error } = await supabase.functions.invoke('generate-guide-description', {
         body: {
           title: formData.title,
           city: formData.city,
           country: formData.country,
-          category: formData.category
+          category: formData.category || 'cultural'
         }
       });
 
-      if (error) throw error;
+      // Fallback to the old function if the new one fails
+      if (error || !data?.description) {
+        console.log('Trying fallback description function...');
+        const fallbackResult = await supabase.functions.invoke('generate-description', {
+          body: {
+            title: formData.title,
+            city: formData.city,
+            country: formData.country,
+            category: formData.category || 'cultural'
+          }
+          
+        });
+        
+        data = fallbackResult.data;
+        error = fallbackResult.error;
+      }
+
+      if (error) {
+        console.error('Error generating description:', error);
+        toast.error(`Failed to generate description: ${error.message || 'Unknown error'}`);
+        return;
+      }
       
-      if (data.description) {
+      if (data?.description) {
         handleInputChange('description', data.description);
         toast.success('AI has created your guide description successfully.');
+      } else {
+        toast.error('No description returned from AI');
       }
     } catch (error: any) {
       console.error('Error generating description:', error);
-      toast.error('Failed to generate description. Please try again.');
+      toast.error(`Failed to generate description: ${error.message || 'Network error'}`);
     } finally {
       setDescriptionLoading(false);
     }
@@ -195,38 +219,84 @@ const AdminPanel = () => {
   };
 
   const createGuide = async () => {
-    if (!formData.title || !formData.city || !formData.country || !formData.category || !formData.price) {
-      toast.error('Please fill in all required fields.');
+    // Enhanced validation with specific error messages
+    const missingFields = [];
+    if (!formData.title?.trim()) missingFields.push('Title');
+    if (!formData.city?.trim()) missingFields.push('City');
+    if (!formData.country?.trim()) missingFields.push('Country');
+    if (!formData.category?.trim()) missingFields.push('Category');
+
+    if (missingFields.length > 0) {
+      toast.error(`Please fill in the following required fields: ${missingFields.join(', ')}`);
+      console.error('Missing required fields:', missingFields);
       return;
     }
 
-    if (sections.length === 0) {
-      toast.error('Please add at least one section to your guide.');
+    // Validate price is a valid number (allow free guides)
+    const priceValue = formData.price?.trim() ? parseFloat(formData.price) * 100 : 0; // Convert dollars to cents
+    if (isNaN(priceValue) || priceValue < 0) {
+      toast.error('Please enter a valid price (0 or greater for free guides)');
       return;
+    }
+
+    // Sections are optional - guides can be created without sections
+    if (sections.length > 0) {
+      // Validate sections have at least a title
+      const invalidSections = sections.filter((section, index) => 
+        !section.title?.trim()
+      );
+      
+      if (invalidSections.length > 0) {
+        toast.error('All sections must have at least a title');
+        return;
+      }
     }
 
     setPublishLoading(true);
     
     try {
+      // Prepare payload with trimmed values
+      const payload = {
+        title: formData.title.trim(),
+        description: formData.description?.trim() || `Explore ${formData.title.trim()} in ${formData.city.trim()}, ${formData.country.trim()}`,
+        location: `${formData.city.trim()}, ${formData.country.trim()}`,
+        category: formData.category.trim(),
+        price_usd: priceValue,
+        difficulty: 'intermediate',
+        languages: ['English'],
+        sections: sections.map(section => ({
+          ...section,
+          title: section.title?.trim(),
+          description: section.description?.trim() || section.content?.trim() || ''
+        })),
+        image_urls: uploadedImages,
+        is_published: !isHidden,
+        is_featured: formData.is_featured,
+        generate_audio: true
+      };
+
+      console.log('Creating guide with payload:', payload);
+      
       // Use the create-guide edge function for consistency
       const { data, error } = await supabase.functions.invoke('create-guide', {
-        body: {
-          title: formData.title,
-          description: formData.description || `Explore ${formData.title} in ${formData.city}, ${formData.country}`,
-          location: `${formData.city}, ${formData.country}`,
-          category: formData.category,
-          price_usd: parseInt(formData.price),
-          difficulty: 'intermediate',
-          languages: ['English'],
-          sections: sections,
-          image_urls: uploadedImages,
-          is_published: !isHidden,
-          is_featured: formData.is_featured,
-          generate_audio: true
-        }
+        body: payload
       });
 
-      if (error) throw error;
+      console.log('Edge function response:', { data, error });
+
+      if (error) {
+        console.error('Edge function error details:', error);
+        // Try to extract more specific error message
+        const errorMessage = error.message || error.details || error.hint || 'Unknown error occurred';
+        toast.error(`Failed to create guide: ${errorMessage}`);
+        return;
+      }
+
+      if (!data || !data.guide) {
+        console.error('Invalid response from edge function:', data);
+        toast.error('Invalid response from server. Please try again.');
+        return;
+      }
 
       setCreatedGuide(data.guide);
       setQrCodeUrl(data.guide.qr_code_url);
@@ -244,9 +314,29 @@ const AdminPanel = () => {
       setSections([]);
       setUploadedImages([]);
       setIsHidden(false);
+      
+      console.log('Guide created successfully:', data.guide.id);
+      
     } catch (error: any) {
-      console.error('Error creating guide:', error);
-      toast.error('Failed to create guide. Please try again.');
+      console.error('Error creating guide - full error:', error);
+      
+      // Enhanced error handling
+      let errorMessage = 'Failed to create guide. Please try again.';
+      
+      if (error.message) {
+        errorMessage = `Failed to create guide: ${error.message}`;
+      } else if (typeof error === 'string') {
+        errorMessage = `Failed to create guide: ${error}`;
+      } else if (error.details) {
+        errorMessage = `Failed to create guide: ${error.details}`;
+      }
+      
+      // Network error handling
+      if (error.name === 'TypeError' && error.message?.includes('fetch')) {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setPublishLoading(false);
     }

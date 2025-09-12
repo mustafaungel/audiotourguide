@@ -4,6 +4,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Max-Age': '86400',
 };
 
 serve(async (req) => {
@@ -12,7 +14,14 @@ serve(async (req) => {
   }
 
   try {
-    const authHeader = req.headers.get('Authorization')!;
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized: missing bearer token' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const supabaseServiceClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -24,9 +33,13 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     );
 
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(authHeader.replace('Bearer ', ''));
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
     if (authError || !user) {
-      throw new Error('Unauthorized');
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
   const { 
@@ -48,8 +61,8 @@ serve(async (req) => {
     generate_audio = false
   } = await req.json();
 
-    if (!title || !description || !location || !category) {
-      throw new Error('Title, description, location, and category are required');
+    if (!title || !location || !category) {
+      throw new Error('Title, location, and category are required');
     }
 
     console.log('Creating audio guide:', { title, location, category, duration });
@@ -110,13 +123,13 @@ serve(async (req) => {
       .from('audio_guides')
       .insert({
         title,
-        description,
+        description: description || `Discover ${title} - an amazing audio guide experience`,
         location,
         category,
         duration: duration || Math.max(sections.reduce((total: number, section: any) => total + (section.duration_seconds || 300), 0), 45),
         difficulty: difficulty || 'Easy',
         languages: languages || ['English'],
-        price_usd: (price_usd || 12) * 100, // Convert to cents
+        price_usd: price_usd >= 0 ? price_usd : 0, // Allow free guides (0 cents)
         audio_url: audioUrl,
         transcript: script,
         image_url: imageUrl,
@@ -141,10 +154,11 @@ serve(async (req) => {
       const sectionsToInsert = sections.map((section: any, index: number) => ({
         guide_id: guideData.id,
         title: section.title,
-        description: section.description,
+        description: section.description || section.content || '', // Handle both description and content, allow empty
         audio_url: section.audio_url,
         duration_seconds: section.duration_seconds || 300,
         language: section.language || 'English',
+        language_code: 'en',
         order_index: index
       }));
 
@@ -158,13 +172,10 @@ serve(async (req) => {
     }
 
     // Generate master access code and share link for ALL guides (published and hidden)
-    let baseUrl = Deno.env.get('SITE_URL');
-    console.log('Raw SITE_URL environment variable:', baseUrl);
-    
-    if (!baseUrl) {
-      console.error('CRITICAL: SITE_URL environment variable not set!');
-      throw new Error('SITE_URL environment variable is required');
-    }
+    let baseUrl = Deno.env.get('SITE_URL') || req.headers.get('origin') || 'https://audiotourguide.app';
+    console.log('Raw SITE_URL environment variable:', Deno.env.get('SITE_URL'));
+    console.log('Request origin header:', req.headers.get('origin'));
+    console.log('Using base URL:', baseUrl);
     
     // Ensure baseUrl doesn't have trailing slash
     baseUrl = baseUrl.replace(/\/$/, '');
@@ -229,7 +240,18 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in create-guide function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error('Error stack:', error.stack);
+    console.error('Error details:', {
+      name: error.name,
+      message: error.message,
+      cause: error.cause
+    });
+    
+    return new Response(JSON.stringify({ 
+      error: `Failed to create guide: ${error.message}`,
+      success: false,
+      details: error.stack
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
