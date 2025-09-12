@@ -139,14 +139,12 @@ const AdminPanel = () => {
         console.log('Trying fallback description function...');
         const fallbackResult = await supabase.functions.invoke('generate-description', {
           body: {
-            type: 'guide',
-            data: {
-              title: formData.title,
-              city: formData.city,
-              country: formData.country,
-              category: formData.category || 'cultural'
-            }
+            title: formData.title,
+            city: formData.city,
+            country: formData.country,
+            category: formData.category || 'cultural'
           }
+          
         });
         
         data = fallbackResult.data;
