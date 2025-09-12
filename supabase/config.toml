@@ -16,7 +16,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.create-guide]
-verify_jwt = true
+verify_jwt = false
 
 [functions.generate-qr-code]
 verify_jwt = true
@@ -34,7 +34,13 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.generate-description]
-verify_jwt = true
+verify_jwt = false
+
+[functions.generate-guide-description]
+verify_jwt = false
+
+[functions.generate-section-description]
+verify_jwt = false
 
 [functions.test-email-system]
 verify_jwt = false

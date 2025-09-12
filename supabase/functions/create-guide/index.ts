@@ -48,8 +48,8 @@ serve(async (req) => {
     generate_audio = false
   } = await req.json();
 
-    if (!title || !description || !location || !category) {
-      throw new Error('Title, description, location, and category are required');
+    if (!title || !location || !category) {
+      throw new Error('Title, location, and category are required');
     }
 
     console.log('Creating audio guide:', { title, location, category, duration });
