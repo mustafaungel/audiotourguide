@@ -1,0 +1,27 @@
+-- Add more supported languages to the system
+INSERT INTO supported_languages (code, name, native_name, is_active) VALUES 
+('ar', 'Arabic', 'العربية', true),
+('ru', 'Russian', 'Русский', true),
+('nl', 'Dutch', 'Nederlands', true),
+('sv', 'Swedish', 'Svenska', true),
+('no', 'Norwegian', 'Norsk', true),
+('da', 'Danish', 'Dansk', true),
+('fi', 'Finnish', 'Suomi', true),
+('el', 'Greek', 'Ελληνικά', true),
+('he', 'Hebrew', 'עברית', true),
+('hi', 'Hindi', 'हिन्दी', true),
+('th', 'Thai', 'ไทย', true),
+('vi', 'Vietnamese', 'Tiếng Việt', true),
+('pl', 'Polish', 'Polski', true),
+('cs', 'Czech', 'Čeština', true),
+('hu', 'Hungarian', 'Magyar', true),
+('hr', 'Croatian', 'Hrvatski', true),
+('ro', 'Romanian', 'Română', true),
+('bg', 'Bulgarian', 'Български', true),
+('sl', 'Slovenian', 'Slovenščina', true),
+('sk', 'Slovak', 'Slovenčina', true),
+('pt', 'Portuguese', 'Português', true),
+('ja', 'Japanese', '日本語', true),
+('ko', 'Korean', '한국어', true),
+('zh', 'Chinese', '中文', true)
+ON CONFLICT (code) DO NOTHING;
