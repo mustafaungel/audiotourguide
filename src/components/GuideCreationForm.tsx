@@ -134,16 +134,12 @@ export const GuideCreationForm: React.FC<GuideCreationFormProps> = ({
 
     setGeneratingDescription(true);
     try {
-      const { data, error } = await supabase.functions.invoke('generate-description', {
+      const { data, error } = await supabase.functions.invoke('generate-guide-description', {
         body: {
-          type: 'guide',
-          data: {
-            title: formData.title,
-            destination: selectedDestination,
-            category: formData.category,
-            duration: formData.duration,
-            audience: 'general travelers'
-          }
+          title: formData.title,
+          city: selectedDestination.city,
+          country: selectedDestination.country,
+          category: formData.category
         }
       });
 

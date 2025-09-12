@@ -116,7 +116,7 @@ serve(async (req) => {
         duration: duration || Math.max(sections.reduce((total: number, section: any) => total + (section.duration_seconds || 300), 0), 45),
         difficulty: difficulty || 'Easy',
         languages: languages || ['English'],
-        price_usd: (price_usd || 12) * 100, // Convert to cents
+        price_usd: price_usd || 1200, // Already in cents from frontend
         audio_url: audioUrl,
         transcript: script,
         image_url: imageUrl,
@@ -158,13 +158,10 @@ serve(async (req) => {
     }
 
     // Generate master access code and share link for ALL guides (published and hidden)
-    let baseUrl = Deno.env.get('SITE_URL');
-    console.log('Raw SITE_URL environment variable:', baseUrl);
-    
-    if (!baseUrl) {
-      console.error('CRITICAL: SITE_URL environment variable not set!');
-      throw new Error('SITE_URL environment variable is required');
-    }
+    let baseUrl = Deno.env.get('SITE_URL') || req.headers.get('origin') || 'https://audiotourguide.app';
+    console.log('Raw SITE_URL environment variable:', Deno.env.get('SITE_URL'));
+    console.log('Request origin header:', req.headers.get('origin'));
+    console.log('Using base URL:', baseUrl);
     
     // Ensure baseUrl doesn't have trailing slash
     baseUrl = baseUrl.replace(/\/$/, '');
@@ -229,7 +226,18 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in create-guide function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error('Error stack:', error.stack);
+    console.error('Error details:', {
+      name: error.name,
+      message: error.message,
+      cause: error.cause
+    });
+    
+    return new Response(JSON.stringify({ 
+      error: `Failed to create guide: ${error.message}`,
+      success: false,
+      details: error.stack
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

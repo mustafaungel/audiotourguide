@@ -210,9 +210,9 @@ const AdminPanel = () => {
     }
 
     // Validate price is a valid number
-    const priceValue = parseInt(formData.price);
-    if (isNaN(priceValue) || priceValue < 0) {
-      toast.error('Please enter a valid price (0 or greater)');
+    const priceValue = parseFloat(formData.price) * 100; // Convert dollars to cents
+    if (isNaN(priceValue) || priceValue < 100) { // Minimum $1.00
+      toast.error('Please enter a valid price ($1.00 or greater)');
       return;
     }
 
