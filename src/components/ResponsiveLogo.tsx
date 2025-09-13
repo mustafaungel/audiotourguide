@@ -9,12 +9,14 @@ interface ResponsiveLogoProps {
   showCompanyName?: boolean;
   variant?: 'full' | 'compact' | 'icon-only';
   size?: 'sm' | 'md' | 'lg';
+  forceIcon?: boolean;
 }
 export const ResponsiveLogo: React.FC<ResponsiveLogoProps> = ({
   className,
   showCompanyName = true,
   variant = 'full',
-  size = 'md'
+  size = 'md',
+  forceIcon = false
 }) => {
   const {
     branding
@@ -54,15 +56,20 @@ export const ResponsiveLogo: React.FC<ResponsiveLogoProps> = ({
   };
   const logoUrl = getLogoUrl();
 
-  useEffect(() => {
+useEffect(() => {
+  if (forceIcon) {
     setImgLoaded(false);
     setImgError(false);
-    if (!logoUrl) return;
-    const img = new Image();
-    img.onload = () => setImgLoaded(true);
-    img.onerror = () => setImgError(true);
-    img.src = logoUrl;
-  }, [logoUrl]);
+    return;
+  }
+  setImgLoaded(false);
+  setImgError(false);
+  if (!logoUrl) return;
+  const img = new Image();
+  img.onload = () => setImgLoaded(true);
+  img.onerror = () => setImgError(true);
+  img.src = logoUrl;
+}, [logoUrl, forceIcon]);
 
   const sizeClasses = {
     sm: 'h-8 w-auto',
@@ -85,83 +92,89 @@ export const ResponsiveLogo: React.FC<ResponsiveLogoProps> = ({
         <div className={cn("bg-white rounded-full", size === 'sm' ? 'w-1 h-1' : 'w-1.5 h-1.5')}></div>
       </div>
     </div>;
-  if (variant === 'icon-only') {
-    return <div className={cn("flex items-center", className)}>
-        {logoUrl && imgLoaded && !imgError ? (
-          <img
-            key={logoUrl}
-            src={logoUrl}
-            alt={`${branding.companyName} logo`}
-            className={cn("object-contain flex-shrink-0", sizeClasses[size])}
-            decoding="async"
-            loading="eager"
-          />
-        ) : (!logoUrl || imgError) ? (
-          renderFallbackIcon()
-        ) : (
-          <Skeleton className={cn("rounded-lg", iconSizeClasses[size])} />
-        )}
-      </div>;
-  }
-  if (variant === 'compact') {
-    return <div className={cn("flex items-center space-x-2 min-w-0", className)}>
-        {logoUrl && imgLoaded && !imgError ? (
-          <img
-            key={logoUrl}
-            src={logoUrl}
-            alt={`${branding.companyName} logo`}
-            className={cn("object-contain flex-shrink-0", sizeClasses[size])}
-            decoding="async"
-            loading="eager"
-          />
-        ) : (!logoUrl || imgError) ? (
-          renderFallbackIcon()
-        ) : (
-          <Skeleton
-            className={cn(
-              "flex-shrink-0",
-              size === 'sm'
-                ? 'h-8 w-20'
-                : size === 'md'
-                ? 'h-12 sm:h-16 w-28 sm:w-36'
-                : 'h-16 sm:h-24 w-40 sm:w-48'
-            )}
-          />
-        )}
-        {showCompanyName && <span className={cn("font-bold font-playfair text-foreground truncate", textSizeClasses[size])}>
-            {branding.companyName}
-          </span>}
-      </div>;
-  }
-  return <div className={cn("flex items-center space-x-2 min-w-0", className)}>
-      <div className="flex items-center space-x-2 min-w-0">
-        {logoUrl && imgLoaded && !imgError ? (
-          <img
-            key={logoUrl}
-            src={logoUrl}
-            alt={`${branding.companyName} logo`}
-            className={cn("object-contain flex-shrink-0", sizeClasses[size])}
-            decoding="async"
-            loading="eager"
-            
-          />
-        ) : (!logoUrl || imgError) ? (
-          renderFallbackIcon()
-        ) : (
-          <Skeleton
-            className={cn(
-              "flex-shrink-0",
-              size === 'sm'
-                ? 'h-8 w-24'
-                : size === 'md'
-                ? 'h-12 sm:h-16 w-32 sm:w-40'
-                : 'h-16 sm:h-24 w-48 sm:w-60'
-            )}
-          />
-        )}
-        {showCompanyName && <span className={cn("font-bold font-playfair text-foreground truncate", textSizeClasses[size])}>
-            {branding.companyName}
-          </span>}
-      </div>
+if (variant === 'icon-only') {
+  return <div className={cn("flex items-center", className)}>
+      {forceIcon ? (
+        renderFallbackIcon()
+      ) : logoUrl && imgLoaded && !imgError ? (
+        <img
+          key={logoUrl}
+          src={logoUrl}
+          alt={`${branding.companyName} logo`}
+          className={cn("object-contain flex-shrink-0", sizeClasses[size])}
+          decoding="async"
+          loading="eager"
+        />
+      ) : (!logoUrl || imgError) ? (
+        renderFallbackIcon()
+      ) : (
+        <Skeleton className={cn("rounded-lg", iconSizeClasses[size])} />
+      )}
     </div>;
+}
+if (variant === 'compact') {
+  return <div className={cn("flex items-center space-x-2 min-w-0", className)}>
+      {forceIcon ? (
+        renderFallbackIcon()
+      ) : logoUrl && imgLoaded && !imgError ? (
+        <img
+          key={logoUrl}
+          src={logoUrl}
+          alt={`${branding.companyName} logo`}
+          className={cn("object-contain flex-shrink-0", sizeClasses[size])}
+          decoding="async"
+          loading="eager"
+        />
+      ) : (!logoUrl || imgError) ? (
+        renderFallbackIcon()
+      ) : (
+        <Skeleton
+          className={cn(
+            "flex-shrink-0",
+            size === 'sm'
+              ? 'h-8 w-20'
+              : size === 'md'
+              ? 'h-12 sm:h-16 w-28 sm:w-36'
+              : 'h-16 sm:h-24 w-40 sm:w-48'
+          )}
+        />
+      )}
+      {showCompanyName && <span className={cn("font-bold font-playfair text-foreground truncate", textSizeClasses[size])}>
+          {branding.companyName}
+        </span>}
+    </div>;
+}
+return <div className={cn("flex items-center space-x-2 min-w-0", className)}>
+    <div className="flex items-center space-x-2 min-w-0">
+      {forceIcon ? (
+        renderFallbackIcon()
+      ) : logoUrl && imgLoaded && !imgError ? (
+        <img
+          key={logoUrl}
+          src={logoUrl}
+          alt={`${branding.companyName} logo`}
+          className={cn("object-contain flex-shrink-0", sizeClasses[size])}
+          decoding="async"
+          loading="eager"
+          
+        />
+      ) : (!logoUrl || imgError) ? (
+        renderFallbackIcon()
+      ) : (
+        <Skeleton
+          className={cn(
+            "flex-shrink-0",
+            size === 'sm'
+              ? 'h-8 w-24'
+              : size === 'md'
+              ? 'h-12 sm:h-16 w-32 sm:w-40'
+              : 'h-16 sm:h-24 w-48 sm:w-60'
+          )}
+        />
+      )}
+      {showCompanyName && <span className={cn("font-bold font-playfair text-foreground truncate", textSizeClasses[size])}>
+          {branding.companyName}
+        </span>}
+    </div>
+  </div>;
 };
