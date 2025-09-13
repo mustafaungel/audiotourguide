@@ -22,12 +22,26 @@ export const ResponsiveLogo: React.FC<ResponsiveLogoProps> = ({
     theme
   } = useTheme();
 
-  // Determine which logo to use based on theme
+  // Determine which logo to use based on resolved theme (avoid initial flash)
+  const getPreferredTheme = (): 'light' | 'dark' => {
+    if (theme === 'dark' || theme === 'light') return theme as 'light' | 'dark';
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('theme');
+        if (stored === 'dark' || stored === 'light') return stored as 'light' | 'dark';
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
+      } catch {}
+    }
+    return 'light';
+  };
+
   const getLogoUrl = () => {
-    if (theme === 'dark' && branding.darkLogoUrl) {
+    const preferred = getPreferredTheme();
+    if (preferred === 'dark' && branding.darkLogoUrl) {
       return branding.darkLogoUrl;
     }
-    return branding.logoUrl;
+    // Fallback to whichever is available to avoid flashes
+    return branding.logoUrl || branding.darkLogoUrl;
   };
   const logoUrl = getLogoUrl();
   const sizeClasses = {
