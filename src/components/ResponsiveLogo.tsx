@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useSiteBranding } from '@/hooks/useSiteBranding';
 import { useTheme } from 'next-themes';
@@ -22,6 +22,14 @@ export const ResponsiveLogo: React.FC<ResponsiveLogoProps> = ({
     theme
   } = useTheme();
 
+  const [mounted, setMounted] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Determine which logo to use based on resolved theme (avoid initial flash)
   const getPreferredTheme = (): 'light' | 'dark' => {
     if (theme === 'dark' || theme === 'light') return theme as 'light' | 'dark';
@@ -44,6 +52,17 @@ export const ResponsiveLogo: React.FC<ResponsiveLogoProps> = ({
     return branding.logoUrl || branding.darkLogoUrl;
   };
   const logoUrl = getLogoUrl();
+
+  useEffect(() => {
+    setImgLoaded(false);
+    setImgError(false);
+    if (!logoUrl) return;
+    const img = new Image();
+    img.onload = () => setImgLoaded(true);
+    img.onerror = () => setImgError(true);
+    img.src = logoUrl;
+  }, [logoUrl]);
+
   const sizeClasses = {
     sm: 'h-8 w-auto',
     md: 'h-12 sm:h-16 w-auto', 
@@ -67,12 +86,12 @@ export const ResponsiveLogo: React.FC<ResponsiveLogoProps> = ({
     </div>;
   if (variant === 'icon-only') {
     return <div className={cn("flex items-center", className)}>
-        {logoUrl ? <img src={logoUrl} alt={branding.companyName} className={cn("object-contain flex-shrink-0", sizeClasses[size])} /> : renderFallbackIcon()}
+        {logoUrl && imgLoaded && !imgError ? <img key={logoUrl} src={logoUrl} alt={`${branding.companyName} logo`} className={cn("object-contain flex-shrink-0", sizeClasses[size])} decoding="async" /> : renderFallbackIcon()}
       </div>;
   }
   if (variant === 'compact') {
     return <div className={cn("flex items-center space-x-2 min-w-0", className)}>
-        {logoUrl ? <img src={logoUrl} alt={branding.companyName} className={cn("object-contain flex-shrink-0", sizeClasses[size])} /> : renderFallbackIcon()}
+        {logoUrl && imgLoaded && !imgError ? <img key={logoUrl} src={logoUrl} alt={`${branding.companyName} logo`} className={cn("object-contain flex-shrink-0", sizeClasses[size])} decoding="async" /> : renderFallbackIcon()}
         {showCompanyName && <span className={cn("font-bold font-playfair text-foreground truncate", textSizeClasses[size])}>
             {branding.companyName}
           </span>}
@@ -80,7 +99,7 @@ export const ResponsiveLogo: React.FC<ResponsiveLogoProps> = ({
   }
   return <div className={cn("flex items-center space-x-2 min-w-0", className)}>
       <div className="flex items-center space-x-2 min-w-0">
-        {logoUrl ? <img src={logoUrl} alt={branding.companyName} className={cn("object-contain flex-shrink-0", sizeClasses[size])} /> : renderFallbackIcon()}
+        {logoUrl && imgLoaded && !imgError ? <img key={logoUrl} src={logoUrl} alt={`${branding.companyName} logo`} className={cn("object-contain flex-shrink-0", sizeClasses[size])} decoding="async" /> : renderFallbackIcon()}
         {showCompanyName && <div className="flex flex-col min-w-0">
             
             {size !== 'sm'}
