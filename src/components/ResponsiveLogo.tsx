@@ -31,9 +31,9 @@ export const ResponsiveLogo: React.FC<ResponsiveLogoProps> = ({
   };
   const logoUrl = getLogoUrl();
   const sizeClasses = {
-    sm: 'h-6 w-auto',
-    md: 'h-8 sm:h-10 w-auto',
-    lg: 'h-12 sm:h-16 w-auto'
+    sm: 'h-8 w-auto',
+    md: 'h-12 sm:h-16 w-auto', 
+    lg: 'h-16 sm:h-24 w-auto'
   };
   const iconSizeClasses = {
     sm: 'w-6 h-6',
