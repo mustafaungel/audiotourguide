@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils';
 import { useSiteBranding } from '@/hooks/useSiteBranding';
 import { useTheme } from 'next-themes';
 import { MapPin } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 interface ResponsiveLogoProps {
   className?: string;
   showCompanyName?: boolean;
@@ -86,12 +87,49 @@ export const ResponsiveLogo: React.FC<ResponsiveLogoProps> = ({
     </div>;
   if (variant === 'icon-only') {
     return <div className={cn("flex items-center", className)}>
-        {logoUrl && imgLoaded && !imgError ? <img key={logoUrl} src={logoUrl} alt={`${branding.companyName} logo`} className={cn("object-contain flex-shrink-0", sizeClasses[size])} decoding="async" /> : renderFallbackIcon()}
+        {logoUrl && imgLoaded && !imgError ? (
+          <img
+            key={logoUrl}
+            src={logoUrl}
+            alt={`${branding.companyName} logo`}
+            className={cn("object-contain flex-shrink-0", sizeClasses[size])}
+            decoding="async"
+            loading="eager"
+            fetchPriority="high"
+          />
+        ) : (!logoUrl || imgError) ? (
+          renderFallbackIcon()
+        ) : (
+          <Skeleton className={cn("rounded-lg", iconSizeClasses[size])} />
+        )}
       </div>;
   }
   if (variant === 'compact') {
     return <div className={cn("flex items-center space-x-2 min-w-0", className)}>
-        {logoUrl && imgLoaded && !imgError ? <img key={logoUrl} src={logoUrl} alt={`${branding.companyName} logo`} className={cn("object-contain flex-shrink-0", sizeClasses[size])} decoding="async" /> : renderFallbackIcon()}
+        {logoUrl && imgLoaded && !imgError ? (
+          <img
+            key={logoUrl}
+            src={logoUrl}
+            alt={`${branding.companyName} logo`}
+            className={cn("object-contain flex-shrink-0", sizeClasses[size])}
+            decoding="async"
+            loading="eager"
+            fetchPriority="high"
+          />
+        ) : (!logoUrl || imgError) ? (
+          renderFallbackIcon()
+        ) : (
+          <Skeleton
+            className={cn(
+              "flex-shrink-0",
+              size === 'sm'
+                ? 'h-8 w-20'
+                : size === 'md'
+                ? 'h-12 sm:h-16 w-28 sm:w-36'
+                : 'h-16 sm:h-24 w-40 sm:w-48'
+            )}
+          />
+        )}
         {showCompanyName && <span className={cn("font-bold font-playfair text-foreground truncate", textSizeClasses[size])}>
             {branding.companyName}
           </span>}
@@ -99,11 +137,33 @@ export const ResponsiveLogo: React.FC<ResponsiveLogoProps> = ({
   }
   return <div className={cn("flex items-center space-x-2 min-w-0", className)}>
       <div className="flex items-center space-x-2 min-w-0">
-        {logoUrl && imgLoaded && !imgError ? <img key={logoUrl} src={logoUrl} alt={`${branding.companyName} logo`} className={cn("object-contain flex-shrink-0", sizeClasses[size])} decoding="async" /> : renderFallbackIcon()}
-        {showCompanyName && <div className="flex flex-col min-w-0">
-            
-            {size !== 'sm'}
-          </div>}
+        {logoUrl && imgLoaded && !imgError ? (
+          <img
+            key={logoUrl}
+            src={logoUrl}
+            alt={`${branding.companyName} logo`}
+            className={cn("object-contain flex-shrink-0", sizeClasses[size])}
+            decoding="async"
+            loading="eager"
+            fetchPriority="high"
+          />
+        ) : (!logoUrl || imgError) ? (
+          renderFallbackIcon()
+        ) : (
+          <Skeleton
+            className={cn(
+              "flex-shrink-0",
+              size === 'sm'
+                ? 'h-8 w-24'
+                : size === 'md'
+                ? 'h-12 sm:h-16 w-32 sm:w-40'
+                : 'h-16 sm:h-24 w-48 sm:w-60'
+            )}
+          />
+        )}
+        {showCompanyName && <span className={cn("font-bold font-playfair text-foreground truncate", textSizeClasses[size])}>
+            {branding.companyName}
+          </span>}
       </div>
     </div>;
 };
