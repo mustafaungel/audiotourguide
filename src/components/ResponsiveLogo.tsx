@@ -95,7 +95,6 @@ export const ResponsiveLogo: React.FC<ResponsiveLogoProps> = ({
             className={cn("object-contain flex-shrink-0", sizeClasses[size])}
             decoding="async"
             loading="eager"
-            fetchPriority="high"
           />
         ) : (!logoUrl || imgError) ? (
           renderFallbackIcon()
@@ -114,7 +113,6 @@ export const ResponsiveLogo: React.FC<ResponsiveLogoProps> = ({
             className={cn("object-contain flex-shrink-0", sizeClasses[size])}
             decoding="async"
             loading="eager"
-            fetchPriority="high"
           />
         ) : (!logoUrl || imgError) ? (
           renderFallbackIcon()
@@ -145,7 +143,7 @@ export const ResponsiveLogo: React.FC<ResponsiveLogoProps> = ({
             className={cn("object-contain flex-shrink-0", sizeClasses[size])}
             decoding="async"
             loading="eager"
-            fetchPriority="high"
+            
           />
         ) : (!logoUrl || imgError) ? (
           renderFallbackIcon()
