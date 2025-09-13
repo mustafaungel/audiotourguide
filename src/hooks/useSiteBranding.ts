@@ -36,15 +36,16 @@ export const useSiteBranding = () => {
       if (error) throw error;
 
       const brandingData = data?.reduce((acc, setting) => {
+        const cacheBuster = `?v=${Date.now()}`;
         switch (setting.setting_key) {
           case 'site_logo_url':
-            acc.logoUrl = setting.setting_value;
+            acc.logoUrl = setting.setting_value ? `${setting.setting_value}${cacheBuster}` : null;
             break;
           case 'site_logo_dark_url':
-            acc.darkLogoUrl = setting.setting_value;
+            acc.darkLogoUrl = setting.setting_value ? `${setting.setting_value}${cacheBuster}` : null;
             break;
           case 'site_favicon_url':
-            acc.faviconUrl = setting.setting_value;
+            acc.faviconUrl = setting.setting_value ? `${setting.setting_value}${cacheBuster}` : null;
             break;
           case 'company_name':
             acc.companyName = setting.setting_value || 'Audio Guides';

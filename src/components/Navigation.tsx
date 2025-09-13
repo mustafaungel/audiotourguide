@@ -43,7 +43,7 @@ export const Navigation = () => {
         <div className="flex h-14 sm:h-16 items-center justify-between">{/* Mobile-first header height */}
           {/* Logo and Brand */}
           <Link to="/" className="flex items-center space-x-2 min-w-0">
-            <ResponsiveLogo variant="full" size="md" />
+            <ResponsiveLogo variant="full" size="lg" />
           </Link>
 
           {/* Desktop Navigation */}
@@ -100,7 +100,7 @@ export const Navigation = () => {
               <SheetContent side="right" className="w-80 mobile-padding">{/* Mobile-first sheet */}
                 <SheetHeader>
                   <SheetTitle>
-                    <ResponsiveLogo variant="compact" size="sm" />
+                    <ResponsiveLogo variant="compact" size="md" />
                   </SheetTitle>
                   <SheetDescription>
                     Discover World Heritage
