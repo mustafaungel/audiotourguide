@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +23,8 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
   const [availableLanguages, setAvailableLanguages] = useState<GuideLanguage[]>([]);
   const [loading, setLoading] = useState(true);
   const [linkedGuides, setLinkedGuides] = useState<any[]>([]);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     fetchAvailableLanguages();
@@ -43,12 +46,13 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
         if (guideIds.length > 0) {
           const { data: guideDetails } = await supabase
             .from('audio_guides')
-            .select('id, title')
+            .select('id, title, slug')
             .in('id', guideIds);
 
           const enrichedGuides = guides.map(g => ({
             ...g,
-            title: guideDetails?.find(d => d.id === g.guide_id)?.title || g.custom_title
+            title: guideDetails?.find(d => d.id === g.guide_id)?.title || g.custom_title,
+            slug: guideDetails?.find(d => d.id === g.guide_id)?.slug
           }));
           
           setLinkedGuides(enrichedGuides.sort((a, b) => a.order - b.order));
@@ -147,16 +151,39 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
               <button
                 key={linkedGuide.guide_id}
                 onClick={() => {
+                  console.log('AdditionalGuide click:', { guide_id: linkedGuide.guide_id, slug: linkedGuide.slug });
+                  
                   // Add haptic feedback for mobile
                   if ('vibrate' in navigator) {
                     navigator.vibrate(50);
                   }
                   
-                  // Trigger guide change by opening the multi-tab player
+                  // Try dispatching event first (for MultiTabAudioPlayer)
                   const event = new CustomEvent('openLinkedGuide', {
                     detail: { guideId: linkedGuide.guide_id, title: linkedGuide.custom_title }
                   });
+                  
+                  let eventHandled = false;
+                  const handleEvent = () => {
+                    eventHandled = true;
+                    console.log('Handled by player');
+                  };
+                  
+                  window.addEventListener('linkedGuideHandled', handleEvent, { once: true });
                   window.dispatchEvent(event);
+                  
+                  // Fallback navigation after a brief delay
+                  setTimeout(() => {
+                    if (!eventHandled && linkedGuide.slug) {
+                      if (location.pathname.includes('/admin')) {
+                        // Open in new tab when on admin page
+                        window.open(`/guide/${linkedGuide.slug}`, '_blank');
+                      } else {
+                        // Navigate normally
+                        navigate(`/guide/${linkedGuide.slug}`);
+                      }
+                    }
+                  }, 100);
                 }}
                 className="
                   group relative flex items-center gap-3 p-4 

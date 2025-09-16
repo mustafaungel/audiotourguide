@@ -60,6 +60,8 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
       const { guideId } = event.detail;
       console.log('Switching to linked guide:', guideId);
       setActiveTab(guideId);
+      // Signal that the event was handled
+      window.dispatchEvent(new CustomEvent('linkedGuideHandled'));
     };
 
     window.addEventListener('openLinkedGuide', handleOpenLinkedGuide as EventListener);
