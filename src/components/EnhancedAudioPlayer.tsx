@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SpotifyStylePlayer } from './SpotifyStylePlayer';
 import { LibraryAudioPlayer } from './LibraryAudioPlayer';
+import { MultiTabAudioPlayer } from './MultiTabAudioPlayer';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Music, Headphones } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Section {
   id: string;
@@ -36,6 +38,28 @@ export const EnhancedAudioPlayer: React.FC<EnhancedAudioPlayerProps> = ({
 }) => {
   const [playerStyle, setPlayerStyle] = useState<'spotify' | 'classic'>(defaultStyle);
   const [showPlayer, setShowPlayer] = useState(false);
+  const [hasLinkedGuides, setHasLinkedGuides] = useState(false);
+
+  useEffect(() => {
+    checkForLinkedGuides();
+  }, [guide.id]);
+
+  const checkForLinkedGuides = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('guide_collections')
+        .select('linked_guides')
+        .eq('main_guide_id', guide.id)
+        .maybeSingle();
+
+      if (!error && data?.linked_guides) {
+        const guides = data.linked_guides as unknown as any[];
+        setHasLinkedGuides(guides.length > 0);
+      }
+    } catch (error) {
+      console.error('Error checking for linked guides:', error);
+    }
+  };
 
   if (!showPlayer) {
     return (
@@ -92,6 +116,18 @@ export const EnhancedAudioPlayer: React.FC<EnhancedAudioPlayerProps> = ({
     setShowPlayer(false);
     onClose?.();
   };
+
+  // If there are linked guides, use the multi-tab player
+  if (hasLinkedGuides) {
+    return (
+      <MultiTabAudioPlayer
+        mainGuide={guide}
+        mainSections={sections}
+        accessCode={accessCode}
+        onClose={handleClose}
+      />
+    );
+  }
 
   return (
     <>

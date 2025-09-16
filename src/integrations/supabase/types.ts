@@ -354,6 +354,38 @@ export type Database = {
         }
         Relationships: []
       }
+      guide_collections: {
+        Row: {
+          created_at: string
+          id: string
+          linked_guides: Json
+          main_guide_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          linked_guides?: Json
+          main_guide_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          linked_guides?: Json
+          main_guide_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guide_collections_main_guide_id_fkey"
+            columns: ["main_guide_id"]
+            isOneToOne: false
+            referencedRelation: "audio_guides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guide_reviews: {
         Row: {
           comment: string | null

@@ -11,6 +11,7 @@ import { ImageUploader } from './ImageUploader';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { AudioGuideSectionManager } from './AudioGuideSectionManager';
+import { GuideCollectionManager } from './GuideCollectionManager';
 import { getGuidePreviewUrl } from '@/lib/url-utils';
 import { generateSlugPreview, validateSlug, sanitizeSlug } from '@/lib/slug-utils';
 
@@ -515,6 +516,12 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
             )}
           </CardContent>
         </Card>
+
+        {/* Guide Collections */}
+        <GuideCollectionManager 
+          guideId={guide.id} 
+          onUpdate={() => console.log('Collection updated')}
+        />
       </div>
 
       {/* QR Code and Share Management */}
