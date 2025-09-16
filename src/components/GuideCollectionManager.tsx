@@ -184,6 +184,9 @@ export const GuideCollectionManager: React.FC<GuideCollectionManagerProps> = ({
 
       console.log('Collection saved successfully:', data);
       setLinkedGuides(guides);
+      
+      // Reload collection data to ensure UI is in sync
+      await loadCollection();
       onUpdate?.();
       
       toast({
@@ -250,6 +253,7 @@ export const GuideCollectionManager: React.FC<GuideCollectionManagerProps> = ({
           />
 
           <Button
+            type="button"
             onClick={addLinkedGuide}
             disabled={!selectedGuide || !customTitle.trim() || loading}
             className="w-full"

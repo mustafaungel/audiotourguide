@@ -380,7 +380,7 @@ export type Database = {
           {
             foreignKeyName: "guide_collections_main_guide_id_fkey"
             columns: ["main_guide_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "audio_guides"
             referencedColumns: ["id"]
           },
