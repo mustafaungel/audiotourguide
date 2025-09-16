@@ -34,6 +34,11 @@ export const GuideCollectionManager: React.FC<GuideCollectionManagerProps> = ({
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
+  console.log('GuideCollectionManager rendered with guideId:', guideId);
+  console.log('Available guides:', availableGuides.length);
+  console.log('Selected guide:', selectedGuide);
+  console.log('Custom title:', customTitle);
+
   useEffect(() => {
     loadCollection();
     loadAvailableGuides();
@@ -96,10 +101,12 @@ export const GuideCollectionManager: React.FC<GuideCollectionManagerProps> = ({
   };
 
   const addLinkedGuide = async () => {
+    console.log('Add linked guide clicked - selectedGuide:', selectedGuide, 'customTitle:', customTitle);
+    
     if (!selectedGuide || !customTitle.trim()) {
       toast({
-        title: "Eksik Bilgi",
-        description: "Lütfen guide seçin ve özel başlık girin",
+        title: "Missing Information",
+        description: "Please select a guide and enter a custom title",
         variant: "destructive"
       });
       return;
@@ -107,8 +114,8 @@ export const GuideCollectionManager: React.FC<GuideCollectionManagerProps> = ({
 
     if (linkedGuides.some(g => g.guide_id === selectedGuide)) {
       toast({
-        title: "Hata",
-        description: "Bu guide zaten eklenmiş",
+        title: "Error",
+        description: "This guide is already linked",
         variant: "destructive"
       });
       return;
@@ -120,6 +127,7 @@ export const GuideCollectionManager: React.FC<GuideCollectionManagerProps> = ({
       order: linkedGuides.length
     };
 
+    console.log('Adding new guide:', newGuide);
     const updatedGuides = [...linkedGuides, newGuide];
     await saveCollection(updatedGuides);
     
@@ -156,30 +164,37 @@ export const GuideCollectionManager: React.FC<GuideCollectionManagerProps> = ({
 
   const saveCollection = async (guides: LinkedGuide[]) => {
     setLoading(true);
+    console.log('Saving collection for guideId:', guideId, 'with guides:', guides);
+    
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('guide_collections')
         .upsert({
           main_guide_id: guideId,
           linked_guides: guides as any
         }, {
           onConflict: 'main_guide_id'
-        });
+        })
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
 
+      console.log('Collection saved successfully:', data);
       setLinkedGuides(guides);
       onUpdate?.();
       
       toast({
-        title: "Başarılı",
-        description: "Guide koleksiyonu güncellendi"
+        title: "Success",
+        description: "Guide collection updated successfully"
       });
     } catch (error) {
       console.error('Error saving collection:', error);
       toast({
-        title: "Hata",
-        description: "Koleksiyon kaydedilirken hata oluştu",
+        title: "Error",
+        description: "Failed to save collection",
         variant: "destructive"
       });
     } finally {
@@ -197,18 +212,18 @@ export const GuideCollectionManager: React.FC<GuideCollectionManagerProps> = ({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Plus className="w-5 h-5" />
-          Bağlı Audio Guide'lar
+          Linked Audio Guides
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Add new linked guide */}
         <div className="space-y-3 p-4 border rounded-lg bg-muted/50">
-          <Label>Yeni Guide Ekle</Label>
+          <Label>Add New Guide</Label>
           
           <div className="flex gap-2">
             <Search className="w-4 h-4 mt-3 text-muted-foreground" />
             <Input
-              placeholder="Guide ara..."
+              placeholder="Search guides..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="flex-1"
@@ -217,7 +232,7 @@ export const GuideCollectionManager: React.FC<GuideCollectionManagerProps> = ({
 
           <Select value={selectedGuide} onValueChange={setSelectedGuide}>
             <SelectTrigger>
-              <SelectValue placeholder="Guide seçin" />
+              <SelectValue placeholder="Select guide" />
             </SelectTrigger>
             <SelectContent>
               {filteredGuides.map(guide => (
@@ -229,7 +244,7 @@ export const GuideCollectionManager: React.FC<GuideCollectionManagerProps> = ({
           </Select>
 
           <Input
-            placeholder="Özel başlık (örn: Vadiler Turu)"
+            placeholder="Custom title (e.g., Valley Tour)"
             value={customTitle}
             onChange={(e) => setCustomTitle(e.target.value)}
           />
@@ -240,14 +255,14 @@ export const GuideCollectionManager: React.FC<GuideCollectionManagerProps> = ({
             className="w-full"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Guide Ekle
+            Add Guide
           </Button>
         </div>
 
         {/* Linked guides list */}
         {linkedGuides.length > 0 && (
           <div className="space-y-2">
-            <Label>Bağlı Guide'lar ({linkedGuides.length})</Label>
+            <Label>Linked Guides ({linkedGuides.length})</Label>
             {linkedGuides.map((linkedGuide, index) => (
               <div
                 key={linkedGuide.guide_id}
@@ -282,7 +297,7 @@ export const GuideCollectionManager: React.FC<GuideCollectionManagerProps> = ({
                     {linkedGuide.guide_title} - {linkedGuide.guide_location}
                   </div>
                   <Badge variant="outline" className="text-xs">
-                    Sıra: {index + 1}
+                    Order: {index + 1}
                   </Badge>
                 </div>
 
@@ -302,8 +317,8 @@ export const GuideCollectionManager: React.FC<GuideCollectionManagerProps> = ({
         {linkedGuides.length === 0 && (
           <div className="text-center py-8 text-muted-foreground">
             <Plus className="w-8 h-8 mx-auto mb-2 opacity-50" />
-            <p>Henüz bağlı guide yok</p>
-            <p className="text-sm">Yukarıdaki form ile yeni guide ekleyebilirsiniz</p>
+            <p>No linked guides yet</p>
+            <p className="text-sm">Use the form above to add new guides</p>
           </div>
         )}
       </CardContent>
