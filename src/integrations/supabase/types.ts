@@ -983,6 +983,18 @@ export type Database = {
         Args: { location_text?: string; title_text: string }
         Returns: string
       }
+      get_full_linked_guides_with_access: {
+        Args: { p_access_code: string; p_guide_id: string }
+        Returns: {
+          custom_title: string
+          guide_id: string
+          master_access_code: string
+          order_index: number
+          sections: Json
+          slug: string
+          title: string
+        }[]
+      }
       get_guest_purchase_basic_info: {
         Args: { p_access_code: string; p_guide_id: string }
         Returns: {

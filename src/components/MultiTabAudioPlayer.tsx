@@ -15,17 +15,12 @@ interface Section {
 
 interface LinkedGuide {
   guide_id: string;
-  custom_title: string;
-  order: number;
+  custom_title?: string;
+  order_index: number;
+  title: string;
+  slug: string;
   master_access_code?: string;
-  guide?: {
-    id: string;
-    title: string;
-    description?: string;
-    audio_url?: string;
-    image_url?: string;
-  };
-  sections?: Section[];
+  sections: Section[];
 }
 
 interface MultiTabAudioPlayerProps {
@@ -77,101 +72,51 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
   }, [linkedGuides]);
 
   const loadLinkedGuides = async () => {
+    if (!mainGuide?.id || !accessCode?.trim()) {
+      console.log('MultiTabAudioPlayer: Missing guide ID or access code');
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
     try {
-      // Try secure RPC first (works for private guides when user has access)
-      if (accessCode) {
-        const { data: rpcData, error: rpcError } = await supabase
-          .rpc('get_linked_guides_with_access', {
-            p_guide_id: mainGuide.id,
-            p_access_code: accessCode,
-          });
+      console.log('MultiTabAudioPlayer: Loading linked guides for:', mainGuide.id);
+      
+      // Use the new comprehensive RPC that gets all data in one call
+      const { data: fullLinkedGuides, error: rpcError } = await supabase
+        .rpc('get_full_linked_guides_with_access', {
+          p_guide_id: mainGuide.id,
+          p_access_code: accessCode.trim()
+        });
 
-        if (rpcError) {
-          console.warn('[MultiTabAudioPlayer] RPC get_linked_guides_with_access error:', rpcError);
-        }
-
-        if (!rpcError && rpcData && rpcData.length > 0) {
-          // Load sections for each linked guide using access-aware RPC
-          const guidesWithDetails = await Promise.all(
-            rpcData.map(async (linked: any) => {
-              const effectiveCode = linked.master_access_code || accessCode;
-              const { data: sections, error: secErr } = await supabase
-                .rpc('get_sections_with_access', {
-                  p_guide_id: linked.guide_id,
-                  p_access_code: effectiveCode,
-                  p_language_code: 'en'
-                });
-              if (secErr) {
-                console.warn('[MultiTabAudioPlayer] RPC get_sections_with_access error for linked guide:', { guide_id: linked.guide_id, secErr });
-              }
-              return {
-                guide_id: linked.guide_id,
-                custom_title: linked.custom_title,
-                order: linked.order_index,
-                master_access_code: linked.master_access_code,
-                guide: {
-                  id: linked.guide_id,
-                  title: linked.title,
-                },
-                sections: sections || []
-              } as LinkedGuide;
-            })
-          );
-
-          setLinkedGuides(guidesWithDetails.sort((a, b) => a.order - b.order));
-          return; // Done
-        } else if (!rpcError) {
-          console.warn('[MultiTabAudioPlayer] RPC returned no linked guides; falling back to public tables');
-        }
+      if (rpcError) {
+        console.error('MultiTabAudioPlayer: RPC error:', rpcError);
+        setLinkedGuides([]);
+        return;
       }
 
-      // Fallback to public tables (published + approved only)
-      const { data: collection, error: collectionError } = await supabase
-        .from('guide_collections')
-        .select('linked_guides')
-        .eq('main_guide_id', mainGuide.id)
-        .maybeSingle();
-
-      if (collectionError) throw collectionError;
-
-      if (collection?.linked_guides) {
-        const guides = collection.linked_guides as unknown as LinkedGuide[];
+      if (fullLinkedGuides && fullLinkedGuides.length > 0) {
+        console.log('MultiTabAudioPlayer: Found linked guides via new RPC:', fullLinkedGuides.length);
         
-        // Load guide details for each linked guide
-        const guideIds = guides.map(g => g.guide_id);
-        if (guideIds.length > 0) {
-          const { data: guideDetails, error: detailsError } = await supabase
-            .from('audio_guides')
-            .select('id, title, description, audio_url, image_url')
-            .in('id', guideIds);
+        const processedGuides: LinkedGuide[] = fullLinkedGuides.map((linkedGuide: any) => ({
+          guide_id: linkedGuide.guide_id,
+          custom_title: linkedGuide.custom_title,
+          order_index: linkedGuide.order_index || 0,
+          title: linkedGuide.title,
+          slug: linkedGuide.slug,
+          master_access_code: linkedGuide.master_access_code,
+          sections: linkedGuide.sections || []
+        }));
 
-          if (!detailsError) {
-            // Load sections for each linked guide
-            const guidesWithDetails = await Promise.all(
-              guides.map(async (linkedGuide) => {
-                const guideDetail = guideDetails.find(d => d.id === linkedGuide.guide_id);
-                
-                // Load sections for this guide
-                const { data: sections } = await supabase
-                  .from('guide_sections')
-                  .select('*')
-                  .eq('guide_id', linkedGuide.guide_id)
-                  .eq('language_code', 'en');
-
-                return {
-                  ...linkedGuide,
-                  guide: guideDetail,
-                  sections: sections || []
-                };
-              })
-            );
-
-            setLinkedGuides(guidesWithDetails.sort((a, b) => a.order - b.order));
-          }
-        }
+        console.log('MultiTabAudioPlayer: Final processed guides:', processedGuides.length);
+        setLinkedGuides(processedGuides.sort((a, b) => a.order_index - b.order_index));
+      } else {
+        console.log('MultiTabAudioPlayer: No linked guides found');
+        setLinkedGuides([]);
       }
     } catch (error) {
-      console.error('Error loading linked guides:', error);
+      console.error('MultiTabAudioPlayer: Unexpected error:', error);
+      setLinkedGuides([]);
     } finally {
       setLoading(false);
     }
@@ -228,7 +173,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
               className="flex items-center gap-2 min-h-[44px] px-3 py-2 text-sm font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               <Music className="w-4 h-4 shrink-0" />
-              <span className="truncate">{linkedGuide.custom_title}</span>
+              <span className="truncate">{linkedGuide.custom_title || linkedGuide.title}</span>
               {linkedGuide.sections && linkedGuide.sections.length > 0 && (
                 <Badge variant="secondary" className="ml-1 shrink-0 text-xs">
                   {linkedGuide.sections.length}
@@ -251,9 +196,9 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
           <TabsContent key={linkedGuide.guide_id} value={linkedGuide.guide_id} className="mt-0">
             <NewSectionAudioPlayer
               guideId={linkedGuide.guide_id}
-              guideTitle={linkedGuide.custom_title}
+              guideTitle={linkedGuide.custom_title || linkedGuide.title}
               sections={linkedGuide.sections || []}
-              mainAudioUrl={linkedGuide.guide?.audio_url}
+              mainAudioUrl=""
             />
           </TabsContent>
         ))}

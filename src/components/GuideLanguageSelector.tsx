@@ -52,19 +52,29 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
 
   const loadLinkedGuides = async () => {
     try {
-      // Prefer secure RPC that validates access code and bypasses RLS when a user has a valid link
+      console.log('GuideLanguageSelector: Loading linked guides for:', guideId);
+      
+      // Get access code from URL
       const params = new URLSearchParams(location.search);
       const accessCode = params.get('access_code') || params.get('access') || '';
+      
+      console.log('GuideLanguageSelector: Access code found:', !!accessCode);
 
       if (accessCode) {
-        const { data: rpcData, error: rpcError } = await supabase
-          .rpc('get_linked_guides_with_access', {
+        // Use the new comprehensive RPC that gets all data in one call
+        const { data: fullLinkedGuides, error: rpcError } = await supabase
+          .rpc('get_full_linked_guides_with_access', {
             p_guide_id: guideId,
-            p_access_code: accessCode,
+            p_access_code: accessCode.trim(),
           });
 
-        if (!rpcError && rpcData && rpcData.length > 0) {
-          const enriched = rpcData.map((g: any) => ({
+        console.log('GuideLanguageSelector: RPC result:', { 
+          error: rpcError, 
+          count: fullLinkedGuides?.length || 0 
+        });
+
+        if (!rpcError && fullLinkedGuides && fullLinkedGuides.length > 0) {
+          const enriched = fullLinkedGuides.map((g: any) => ({
             guide_id: g.guide_id,
             custom_title: g.custom_title,
             order: g.order_index,
@@ -72,9 +82,22 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
             slug: g.slug,
             master_access_code: g.master_access_code,
           }));
+          
+          console.log('GuideLanguageSelector: Setting linked guides:', enriched.length);
           setLinkedGuides(enriched.sort((a: any, b: any) => a.order - b.order));
-          return; // Done
+          return; // Successfully loaded via RPC
         }
+      }
+
+      console.log('GuideLanguageSelector: No access code or RPC failed, trying fallback');
+      
+      // Only use fallback for admin users or when explicitly authorized
+      // For guests without access code, we should not show linked guides
+      const isAdminPath = location.pathname.includes('/admin');
+      if (!isAdminPath && !accessCode) {
+        console.log('GuideLanguageSelector: Guest without access code - no linked guides');
+        setLinkedGuides([]);
+        return;
       }
 
       // Fallback to public tables (works for published + approved guides)
@@ -104,11 +127,16 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
             };
           });
           
+          console.log('GuideLanguageSelector: Fallback loaded guides:', enrichedGuides.length);
           setLinkedGuides(enrichedGuides.sort((a, b) => a.order - b.order));
         }
+      } else {
+        console.log('GuideLanguageSelector: No collection found');
+        setLinkedGuides([]);
       }
     } catch (error) {
-      console.error('Error loading linked guides:', error);
+      console.error('GuideLanguageSelector: Error loading linked guides:', error);
+      setLinkedGuides([]);
     }
   };
 
