@@ -109,21 +109,43 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
 
     try {
       console.log('MultiTabAudioPlayer: Loading sections for guide:', guideId);
-      const { data: sectionsData, error } = await supabase
-        .rpc('get_sections_with_access', {
-          p_guide_id: guideId,
-          p_access_code: accessCode.trim(),
-          p_language_code: languageCode
-        });
+      
+      // For main guide, use existing RPC
+      if (guideId === mainGuide.id) {
+        const { data: sectionsData, error } = await supabase
+          .rpc('get_sections_with_access', {
+            p_guide_id: guideId,
+            p_access_code: accessCode.trim(),
+            p_language_code: languageCode
+          });
 
-      if (error) {
-        console.error('MultiTabAudioPlayer: Error loading sections:', error);
-        setSectionsByGuide(prev => ({ ...prev, [guideId]: [] }));
-        return;
+        if (error) {
+          console.error('MultiTabAudioPlayer: Error loading main guide sections:', error);
+          setSectionsByGuide(prev => ({ ...prev, [guideId]: [] }));
+          return;
+        }
+
+        console.log('MultiTabAudioPlayer: Main guide sections loaded:', sectionsData?.length || 0);
+        setSectionsByGuide(prev => ({ ...prev, [guideId]: sectionsData || [] }));
+      } else {
+        // For linked guides, use new secure RPC
+        const { data: sectionsData, error } = await supabase
+          .rpc('get_linked_guide_sections_with_access', {
+            p_main_guide_id: mainGuide.id,
+            p_access_code: accessCode.trim(),
+            p_target_guide_id: guideId,
+            p_language_code: languageCode
+          });
+
+        if (error) {
+          console.error('MultiTabAudioPlayer: Error loading linked guide sections:', error);
+          setSectionsByGuide(prev => ({ ...prev, [guideId]: [] }));
+          return;
+        }
+
+        console.log('MultiTabAudioPlayer: Linked guide sections loaded:', sectionsData?.length || 0);
+        setSectionsByGuide(prev => ({ ...prev, [guideId]: sectionsData || [] }));
       }
-
-      console.log('MultiTabAudioPlayer: Sections loaded:', sectionsData?.length || 0);
-      setSectionsByGuide(prev => ({ ...prev, [guideId]: sectionsData || [] }));
     } catch (error) {
       console.error('MultiTabAudioPlayer: Unexpected error loading sections:', error);
       setSectionsByGuide(prev => ({ ...prev, [guideId]: [] }));
