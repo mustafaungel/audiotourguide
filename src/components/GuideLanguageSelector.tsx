@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Globe, Music, ChevronRight } from 'lucide-react';
 import { getLanguageFlag, getLanguageDisplay } from '@/lib/language-utils';
+import { getBaseUrl } from '@/lib/url-utils';
 
 interface GuideLanguageSelectorProps {
   guideId: string;
@@ -197,24 +198,28 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
                   // Fallback navigation after a brief delay
                   setTimeout(() => {
                     if (!eventHandled && linkedGuide.slug) {
-                      // Use the linked guide's own master access code, or fall back to main guide's
                       const effectiveAccessCode = linkedGuide.master_access_code || masterAccessCode;
-                      const accessParam = effectiveAccessCode ? `?access_code=${effectiveAccessCode}` : '';
-                      const targetUrl = `/guide/${linkedGuide.slug}${accessParam}`;
-                      
-                      console.log('Navigating to linked guide:', {
+                      let path = '';
+                      let absoluteUrl = '';
+                      if (effectiveAccessCode) {
+                        path = `/access/${linkedGuide.guide_id}?access_code=${effectiveAccessCode}`;
+                        absoluteUrl = `${getBaseUrl()}${path}`;
+                      } else {
+                        path = `/guide/${linkedGuide.slug}`;
+                        absoluteUrl = `${getBaseUrl()}${path}`;
+                      }
+                      console.log('Navigating to linked guide (fallback):', {
+                        guide_id: linkedGuide.guide_id,
                         slug: linkedGuide.slug,
                         effectiveAccessCode,
-                        targetUrl,
+                        path,
+                        absoluteUrl,
                         isAdmin: location.pathname.includes('/admin')
                       });
-                      
                       if (location.pathname.includes('/admin')) {
-                        // Open in new tab when on admin page
-                        window.open(targetUrl, '_blank');
+                        window.open(absoluteUrl, '_blank', 'noopener,noreferrer');
                       } else {
-                        // Navigate normally
-                        navigate(targetUrl);
+                        navigate(path);
                       }
                     }
                   }, 100);
