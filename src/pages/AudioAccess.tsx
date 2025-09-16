@@ -640,17 +640,6 @@ export default function AudioAccess() {
 
           {/* Chapter-First Audio Interface */}
           <div className="mb-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Audio Sections</h2>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => fetchSectionsForLanguage(guide.id, selectedLanguage)}
-              >
-                <RotateCcw className="w-4 h-4 mr-2" />
-                Refresh Sections
-              </Button>
-            </div>
             <NewSectionAudioPlayer
               guideId={guide.id}
               guideTitle={guide.title}

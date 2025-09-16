@@ -157,10 +157,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     setLoading(true);
     setCurrentSectionIndex(sectionIndex);
     
-    // Show mobile volume helper on first play
-    if (isMobile && !showVolumeHelper) {
-      setShowVolumeHelper(true);
-    }
+    // Mobile volume helper disabled - users should use device volume controls
     
     try {
       // Stop current audio if playing

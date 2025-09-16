@@ -334,21 +334,6 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
           </Button>
         </div>
 
-        {/* Essential Volume Control (Always Visible) */}
-        <div className="flex items-center justify-center gap-4 pt-2 sm:hidden">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleMute}
-            className="h-12 w-12 min-h-[48px] touch-manipulation rounded-full"
-          >
-            {isMuted || volume === 0 ? (
-              <VolumeX className="h-5 w-5" />
-            ) : (
-              <Volume2 className="h-5 w-5" />
-            )}
-          </Button>
-        </div>
 
         {/* Desktop Volume Control */}
         <div className="hidden sm:flex items-center justify-center gap-4 pt-2">
