@@ -54,6 +54,20 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     loadLinkedGuides();
   }, [mainGuide.id]);
 
+  // Add event listener for linked guide navigation
+  useEffect(() => {
+    const handleOpenLinkedGuide = (event: CustomEvent) => {
+      const { guideId } = event.detail;
+      console.log('Switching to linked guide:', guideId);
+      setActiveTab(guideId);
+    };
+
+    window.addEventListener('openLinkedGuide', handleOpenLinkedGuide as EventListener);
+    return () => {
+      window.removeEventListener('openLinkedGuide', handleOpenLinkedGuide as EventListener);
+    };
+  }, []);
+
   const loadLinkedGuides = async () => {
     try {
       // Load collection
@@ -132,14 +146,22 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
   return (
     <div className="w-full max-w-4xl mx-auto">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-auto mb-4" style={{
-          gridTemplateColumns: `repeat(${linkedGuides.length + 1}, minmax(0, 1fr))`
-        }}>
-          <TabsTrigger value="main" className="flex items-center gap-2">
-            <Music className="w-4 h-4" />
-            {mainGuide.title}
+        {/* Mobile-optimized TabsList */}
+        <TabsList className={`
+          grid w-full mb-4 h-auto p-1 
+          ${linkedGuides.length === 0 ? 'grid-cols-1' : 
+            linkedGuides.length <= 2 ? `grid-cols-${linkedGuides.length + 1}` : 
+            'grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+          }
+        `}>
+          <TabsTrigger 
+            value="main" 
+            className="flex items-center gap-2 min-h-[44px] px-3 py-2 text-sm font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          >
+            <Music className="w-4 h-4 shrink-0" />
+            <span className="truncate">{mainGuide.title}</span>
             {mainSections.length > 0 && (
-              <Badge variant="secondary" className="ml-1">
+              <Badge variant="secondary" className="ml-1 shrink-0 text-xs">
                 {mainSections.length}
               </Badge>
             )}
@@ -149,12 +171,12 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
             <TabsTrigger 
               key={linkedGuide.guide_id} 
               value={linkedGuide.guide_id}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 min-h-[44px] px-3 py-2 text-sm font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
-              <Music className="w-4 h-4" />
-              {linkedGuide.custom_title}
+              <Music className="w-4 h-4 shrink-0" />
+              <span className="truncate">{linkedGuide.custom_title}</span>
               {linkedGuide.sections && linkedGuide.sections.length > 0 && (
-                <Badge variant="secondary" className="ml-1">
+                <Badge variant="secondary" className="ml-1 shrink-0 text-xs">
                   {linkedGuide.sections.length}
                 </Badge>
               )}

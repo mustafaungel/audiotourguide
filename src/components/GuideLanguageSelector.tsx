@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Globe } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Globe, Music, ChevronRight } from 'lucide-react';
 import { getLanguageFlag, getLanguageDisplay } from '@/lib/language-utils';
 
 interface GuideLanguageSelectorProps {
@@ -130,27 +131,64 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
         </Select>
       </div>
 
-      {/* Linked Guides */}
+      {/* Enhanced Linked Guides Section */}
       {linkedGuides.length > 0 && (
-        <div className="space-y-2">
+        <div className="space-y-3">
           <label className="text-sm font-medium text-foreground flex items-center gap-2">
             <Globe className="w-4 h-4" />
             Additional Guides
+            <Badge variant="outline" className="ml-auto text-xs">
+              {linkedGuides.length} guide{linkedGuides.length > 1 ? 's' : ''}
+            </Badge>
           </label>
-          <div className="flex flex-wrap gap-2">
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {linkedGuides.map((linkedGuide) => (
               <button
                 key={linkedGuide.guide_id}
                 onClick={() => {
+                  // Add haptic feedback for mobile
+                  if ('vibrate' in navigator) {
+                    navigator.vibrate(50);
+                  }
+                  
                   // Trigger guide change by opening the multi-tab player
                   const event = new CustomEvent('openLinkedGuide', {
                     detail: { guideId: linkedGuide.guide_id, title: linkedGuide.custom_title }
                   });
                   window.dispatchEvent(event);
                 }}
-                className="px-3 py-2 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                className="
+                  group relative flex items-center gap-3 p-4 
+                  bg-gradient-to-r from-primary/5 to-primary/10 
+                  hover:from-primary/10 hover:to-primary/20 
+                  active:from-primary/20 active:to-primary/30
+                  border border-primary/20 hover:border-primary/40
+                  rounded-lg transition-all duration-200 
+                  touch-manipulation min-h-[56px]
+                  focus:outline-none focus:ring-2 focus:ring-primary/50
+                "
+                aria-label={`Open ${linkedGuide.custom_title} guide`}
               >
-                {linkedGuide.custom_title}
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
+                  <Music className="w-5 h-5 text-primary" />
+                </div>
+                
+                <div className="flex-1 text-left min-w-0">
+                  <h4 className="font-medium text-foreground text-sm truncate">
+                    {linkedGuide.custom_title}
+                  </h4>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Tap to explore this guide
+                  </p>
+                </div>
+                
+                <div className="shrink-0 text-primary group-hover:translate-x-1 transition-transform">
+                  <ChevronRight className="w-5 h-5" />
+                </div>
+                
+                {/* Visual indicator overlay */}
+                <div className="absolute inset-0 rounded-lg bg-primary/5 opacity-0 group-active:opacity-100 transition-opacity duration-150" />
               </button>
             ))}
           </div>
