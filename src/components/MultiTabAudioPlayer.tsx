@@ -53,23 +53,28 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
 
   useEffect(() => {
     loadLinkedGuides();
-  }, [mainGuide.id]);
+  }, [mainGuide.id, accessCode]);
 
   // Add event listener for linked guide navigation
   useEffect(() => {
     const handleOpenLinkedGuide = (event: CustomEvent) => {
-      const { guideId } = event.detail;
-      console.log('Switching to linked guide:', guideId);
-      setActiveTab(guideId);
-      // Signal that the event was handled
-      window.dispatchEvent(new CustomEvent('linkedGuideHandled'));
+      const { guideId } = (event as any).detail || {};
+      const exists = guideId === 'main' || linkedGuides.some(g => g.guide_id === guideId);
+      if (exists) {
+        console.log('Switching to linked guide:', guideId);
+        setActiveTab(guideId);
+        // Signal that the event was handled
+        window.dispatchEvent(new CustomEvent('linkedGuideHandled'));
+      } else {
+        console.warn('[MultiTabAudioPlayer] Linked guide not found among loaded tabs; letting fallback navigation proceed', { guideId });
+      }
     };
 
     window.addEventListener('openLinkedGuide', handleOpenLinkedGuide as EventListener);
     return () => {
       window.removeEventListener('openLinkedGuide', handleOpenLinkedGuide as EventListener);
     };
-  }, []);
+  }, [linkedGuides]);
 
   const loadLinkedGuides = async () => {
     try {
@@ -81,17 +86,24 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
             p_access_code: accessCode,
           });
 
+        if (rpcError) {
+          console.warn('[MultiTabAudioPlayer] RPC get_linked_guides_with_access error:', rpcError);
+        }
+
         if (!rpcError && rpcData && rpcData.length > 0) {
           // Load sections for each linked guide using access-aware RPC
           const guidesWithDetails = await Promise.all(
             rpcData.map(async (linked: any) => {
               const effectiveCode = linked.master_access_code || accessCode;
-              const { data: sections } = await supabase
+              const { data: sections, error: secErr } = await supabase
                 .rpc('get_sections_with_access', {
                   p_guide_id: linked.guide_id,
                   p_access_code: effectiveCode,
                   p_language_code: 'en'
                 });
+              if (secErr) {
+                console.warn('[MultiTabAudioPlayer] RPC get_sections_with_access error for linked guide:', { guide_id: linked.guide_id, secErr });
+              }
               return {
                 guide_id: linked.guide_id,
                 custom_title: linked.custom_title,
@@ -108,6 +120,8 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
 
           setLinkedGuides(guidesWithDetails.sort((a, b) => a.order - b.order));
           return; // Done
+        } else if (!rpcError) {
+          console.warn('[MultiTabAudioPlayer] RPC returned no linked guides; falling back to public tables');
         }
       }
 
