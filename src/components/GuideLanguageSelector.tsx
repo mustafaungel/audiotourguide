@@ -91,44 +91,59 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
 
       console.log('GuideLanguageSelector: No access code or RPC failed, trying fallback');
       
-      // Only use fallback for admin users or when explicitly authorized
-      // For guests without access code, we should not show linked guides
-      const isAdminPath = location.pathname.includes('/admin');
-      if (!isAdminPath && !accessCode) {
-        console.log('GuideLanguageSelector: Guest without access code - no linked guides');
-        setLinkedGuides([]);
-        return;
-      }
-
-      // Fallback to public tables (works for published + approved guides)
+      // Fallback to public tables for all users (works for published + approved guides)
       const { data: collection } = await supabase
         .from('guide_collections')
         .select('linked_guides')
         .eq('main_guide_id', guideId)
         .maybeSingle();
 
+      console.log('GuideLanguageSelector: Collection query result:', { 
+        found: !!collection, 
+        hasLinkedGuides: !!collection?.linked_guides 
+      });
+
       if (collection?.linked_guides) {
         const guides = collection.linked_guides as any[];
         const guideIds = guides.map(g => g.guide_id);
         
+        console.log('GuideLanguageSelector: Found guide IDs:', guideIds);
+        
         if (guideIds.length > 0) {
+          // Only fetch published and approved guides for public access
           const { data: guideDetails } = await supabase
             .from('audio_guides')
-            .select('id, title, slug, master_access_code')
-            .in('id', guideIds);
+            .select('id, title, slug, master_access_code, is_published, is_approved')
+            .in('id', guideIds)
+            .eq('is_published', true)
+            .eq('is_approved', true);
 
-          const enrichedGuides = guides.map(g => {
-            const guideDetail = guideDetails?.find(d => d.id === g.guide_id);
-            return {
-              ...g,
-              title: guideDetail?.title || g.custom_title,
-              slug: guideDetail?.slug,
-              master_access_code: guideDetail?.master_access_code
-            };
+          console.log('GuideLanguageSelector: Guide details fetched:', { 
+            requested: guideIds.length, 
+            found: guideDetails?.length || 0 
           });
-          
-          console.log('GuideLanguageSelector: Fallback loaded guides:', enrichedGuides.length);
-          setLinkedGuides(enrichedGuides.sort((a, b) => a.order - b.order));
+
+          if (guideDetails && guideDetails.length > 0) {
+            const enrichedGuides = guides
+              .map(g => {
+                const guideDetail = guideDetails.find(d => d.id === g.guide_id);
+                if (!guideDetail) return null; // Skip unpublished/unapproved guides
+                
+                return {
+                  ...g,
+                  title: guideDetail.title || g.custom_title,
+                  slug: guideDetail.slug,
+                  master_access_code: guideDetail.master_access_code
+                };
+              })
+              .filter(Boolean); // Remove null entries
+            
+            console.log('GuideLanguageSelector: Enriched guides ready:', enrichedGuides.length);
+            setLinkedGuides(enrichedGuides.sort((a, b) => a.order - b.order));
+          } else {
+            console.log('GuideLanguageSelector: No published guides found');
+            setLinkedGuides([]);
+          }
         }
       } else {
         console.log('GuideLanguageSelector: No collection found');
