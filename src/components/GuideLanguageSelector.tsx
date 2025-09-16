@@ -23,13 +23,31 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
   const [availableLanguages, setAvailableLanguages] = useState<GuideLanguage[]>([]);
   const [loading, setLoading] = useState(true);
   const [linkedGuides, setLinkedGuides] = useState<any[]>([]);
+  const [masterAccessCode, setMasterAccessCode] = useState<string>('');
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
     fetchAvailableLanguages();
     loadLinkedGuides();
+    fetchMasterAccessCode();
   }, [guideId]);
+
+  const fetchMasterAccessCode = async () => {
+    try {
+      const { data: guide } = await supabase
+        .from('audio_guides')
+        .select('master_access_code')
+        .eq('id', guideId)
+        .single();
+      
+      if (guide?.master_access_code) {
+        setMasterAccessCode(guide.master_access_code);
+      }
+    } catch (error) {
+      console.error('Error fetching master access code:', error);
+    }
+  };
 
   const loadLinkedGuides = async () => {
     try {
@@ -175,12 +193,15 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
                   // Fallback navigation after a brief delay
                   setTimeout(() => {
                     if (!eventHandled && linkedGuide.slug) {
+                      const accessParam = masterAccessCode ? `?access=${masterAccessCode}` : '';
+                      const targetUrl = `/guide/${linkedGuide.slug}${accessParam}`;
+                      
                       if (location.pathname.includes('/admin')) {
                         // Open in new tab when on admin page
-                        window.open(`/guide/${linkedGuide.slug}`, '_blank');
+                        window.open(targetUrl, '_blank');
                       } else {
                         // Navigate normally
-                        navigate(`/guide/${linkedGuide.slug}`);
+                        navigate(targetUrl);
                       }
                     }
                   }, 100);
