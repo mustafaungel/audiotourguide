@@ -45,6 +45,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
   const [linkedGuides, setLinkedGuides] = useState<LinkedGuide[]>([]);
   const [activeTab, setActiveTab] = useState('main');
   const [loading, setLoading] = useState(true);
+  const [pendingGuideId, setPendingGuideId] = useState<string | null>(null);
 
   useEffect(() => {
     loadLinkedGuides();
@@ -55,8 +56,20 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     const handleOpenLinkedGuide = (event: CustomEvent) => {
       const { guideId } = (event as any).detail || {};
       console.log('Switching to linked guide:', guideId);
-      // Always set the tab immediately (this prevents blank page)
-      setActiveTab(guideId);
+      
+      // Check if the guide exists in linkedGuides
+      const guideExists = guideId === 'main' || linkedGuides.some(g => g.guide_id === guideId);
+      
+      if (guideExists) {
+        // Guide exists, switch immediately
+        setActiveTab(guideId);
+        setPendingGuideId(null);
+      } else {
+        // Guide doesn't exist yet, set as pending and switch tab to show loading
+        setPendingGuideId(guideId);
+        setActiveTab(guideId);
+      }
+      
       // Signal that the event was handled
       window.dispatchEvent(new CustomEvent('linkedGuideHandled'));
     };
@@ -65,7 +78,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     return () => {
       window.removeEventListener('openLinkedGuide', handleOpenLinkedGuide as EventListener);
     };
-  }, []);
+  }, [linkedGuides]);
 
   const loadLinkedGuides = async () => {
     if (!mainGuide?.id || !accessCode?.trim()) {
@@ -123,6 +136,11 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
 
         console.log('MultiTabAudioPlayer: Final processed guides:', processedGuides.length);
         setLinkedGuides(processedGuides.sort((a, b) => a.order_index - b.order_index));
+        
+        // Check if we have a pending guide that's now available
+        if (pendingGuideId && processedGuides.some(g => g.guide_id === pendingGuideId)) {
+          setPendingGuideId(null);
+        }
       } else {
         console.log('MultiTabAudioPlayer: No linked guides found');
         setLinkedGuides([]);
@@ -159,13 +177,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     <div className="w-full max-w-4xl mx-auto">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         {/* Mobile-optimized TabsList */}
-        <TabsList className={`
-          grid w-full mb-4 h-auto p-1 
-          ${linkedGuides.length === 0 ? 'grid-cols-1' : 
-            linkedGuides.length <= 2 ? `grid-cols-${linkedGuides.length + 1}` : 
-            'grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-          }
-        `}>
+        <TabsList className="grid w-full mb-4 h-auto p-1 grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <TabsTrigger 
             value="main" 
             className="flex items-center gap-2 min-h-[44px] px-3 py-2 text-sm font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
@@ -215,6 +227,16 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
             />
           </TabsContent>
         ))}
+        
+        {/* Show loading state for pending guide */}
+        {pendingGuideId && !linkedGuides.some(g => g.guide_id === pendingGuideId) && (
+          <TabsContent value={pendingGuideId} className="mt-0">
+            <div className="flex items-center justify-center p-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <span className="ml-3">Loading guide...</span>
+            </div>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
