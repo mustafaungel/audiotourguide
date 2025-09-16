@@ -54,22 +54,18 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
   useEffect(() => {
     const handleOpenLinkedGuide = (event: CustomEvent) => {
       const { guideId } = (event as any).detail || {};
-      const exists = guideId === 'main' || linkedGuides.some(g => g.guide_id === guideId);
-      if (exists) {
-        console.log('Switching to linked guide:', guideId);
-        setActiveTab(guideId);
-        // Signal that the event was handled
-        window.dispatchEvent(new CustomEvent('linkedGuideHandled'));
-      } else {
-        console.warn('[MultiTabAudioPlayer] Linked guide not found among loaded tabs; letting fallback navigation proceed', { guideId });
-      }
+      console.log('Switching to linked guide:', guideId);
+      // Always set the tab immediately (this prevents blank page)
+      setActiveTab(guideId);
+      // Signal that the event was handled
+      window.dispatchEvent(new CustomEvent('linkedGuideHandled'));
     };
 
     window.addEventListener('openLinkedGuide', handleOpenLinkedGuide as EventListener);
     return () => {
       window.removeEventListener('openLinkedGuide', handleOpenLinkedGuide as EventListener);
     };
-  }, [linkedGuides]);
+  }, []);
 
   const loadLinkedGuides = async () => {
     if (!mainGuide?.id || !accessCode?.trim()) {

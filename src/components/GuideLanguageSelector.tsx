@@ -264,7 +264,15 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
                   window.addEventListener('linkedGuideHandled', handleEvent, { once: true });
                   window.dispatchEvent(event);
                   
-                  // Fallback navigation after a brief delay
+                  // If we're on an /access/ page, don't do fallback navigation
+                  // Let the MultiTabAudioPlayer handle it completely
+                  const currentPath = window.location.pathname;
+                  if (currentPath.includes('/access/')) {
+                    console.log('On access page, skipping navigation fallback');
+                    return;
+                  }
+                  
+                  // Fallback navigation after a brief delay for non-access pages
                   setTimeout(() => {
                     if (!eventHandled && linkedGuide.slug) {
                       const effectiveAccessCode = linkedGuide.master_access_code || masterAccessCode;

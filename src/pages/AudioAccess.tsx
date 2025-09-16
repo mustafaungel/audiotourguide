@@ -429,10 +429,6 @@ export default function AudioAccess() {
       <div className="min-h-screen bg-background">
         <Navigation />
         <div className="container mx-auto px-4 py-6">
-          <Button variant="ghost" size="sm" className="mb-4" onClick={() => navigate('/')}>
-            <ChevronLeft className="w-4 h-4 mr-2" />
-            Back to Home
-          </Button>
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
               <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
@@ -541,39 +537,7 @@ export default function AudioAccess() {
       <Navigation />
       
       <div className="container mx-auto px-4 py-6">
-        {/* Back Button */}
-        <Button variant="ghost" size="sm" className="mb-4" onClick={() => navigate('/')}>
-          <ChevronLeft className="w-4 h-4 mr-2" />
-          Back to Home
-        </Button>
-
         <div className="max-w-4xl mx-auto">
-          {/* Access Verified Header */}
-          {accessGranted && (
-            <Card className={`mb-6 ${isAdminAccess 
-              ? 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/20' 
-              : 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20'}`}>
-              <CardContent className="py-4">
-                <div className="flex items-center gap-3">
-                  <CheckCircle className={`w-5 h-5 ${isAdminAccess ? 'text-blue-600' : 'text-green-600'}`} />
-                  <div>
-                    <p className={`font-medium ${isAdminAccess 
-                      ? 'text-blue-800 dark:text-blue-200' 
-                      : 'text-green-800 dark:text-green-200'}`}>
-                      {isAdminAccess ? 'Admin Access' : 'Access Verified'}
-                    </p>
-                    <p className={`text-sm ${isAdminAccess 
-                      ? 'text-blue-600 dark:text-blue-400' 
-                      : 'text-green-600 dark:text-green-400'}`}>
-                      {isAdminAccess 
-                        ? 'You are viewing this guide with administrator privileges' 
-                        : 'You have full access to this audio guide'}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
           {/* Guide Header */}
           <Card className="mb-6">
