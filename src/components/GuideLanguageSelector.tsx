@@ -64,14 +64,18 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
         if (guideIds.length > 0) {
           const { data: guideDetails } = await supabase
             .from('audio_guides')
-            .select('id, title, slug')
+            .select('id, title, slug, master_access_code')
             .in('id', guideIds);
 
-          const enrichedGuides = guides.map(g => ({
-            ...g,
-            title: guideDetails?.find(d => d.id === g.guide_id)?.title || g.custom_title,
-            slug: guideDetails?.find(d => d.id === g.guide_id)?.slug
-          }));
+          const enrichedGuides = guides.map(g => {
+            const guideDetail = guideDetails?.find(d => d.id === g.guide_id);
+            return {
+              ...g,
+              title: guideDetail?.title || g.custom_title,
+              slug: guideDetail?.slug,
+              master_access_code: guideDetail?.master_access_code
+            };
+          });
           
           setLinkedGuides(enrichedGuides.sort((a, b) => a.order - b.order));
         }
@@ -193,8 +197,17 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
                   // Fallback navigation after a brief delay
                   setTimeout(() => {
                     if (!eventHandled && linkedGuide.slug) {
-                      const accessParam = masterAccessCode ? `?access=${masterAccessCode}` : '';
+                      // Use the linked guide's own master access code, or fall back to main guide's
+                      const effectiveAccessCode = linkedGuide.master_access_code || masterAccessCode;
+                      const accessParam = effectiveAccessCode ? `?access_code=${effectiveAccessCode}` : '';
                       const targetUrl = `/guide/${linkedGuide.slug}${accessParam}`;
+                      
+                      console.log('Navigating to linked guide:', {
+                        slug: linkedGuide.slug,
+                        effectiveAccessCode,
+                        targetUrl,
+                        isAdmin: location.pathname.includes('/admin')
+                      });
                       
                       if (location.pathname.includes('/admin')) {
                         // Open in new tab when on admin page

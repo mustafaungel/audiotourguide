@@ -340,7 +340,7 @@ const GuideDetail = () => {
     const accessCode = searchParams.get('access') || searchParams.get('access_code');
     if (accessCode) {
       try {
-        // Use secure function to verify access code without exposing guest emails
+        // First try regular access code verification
         const { data: isValidAccess, error } = await supabase
           .rpc('verify_access_code_secure', {
             p_access_code: accessCode.trim(),
@@ -348,6 +348,19 @@ const GuideDetail = () => {
           });
 
         if (isValidAccess && !error) {
+          setHasAccessCode(true);
+          setIsPurchased(true);
+          return;
+        }
+
+        // If that fails, try master access code verification
+        const { data: isValidMaster, error: masterError } = await supabase
+          .rpc('verify_master_access_code', {
+            p_guide_id: guide.id,
+            p_access_code: accessCode.trim()
+          });
+
+        if (isValidMaster && !masterError) {
           setHasAccessCode(true);
           setIsPurchased(true);
           return;
