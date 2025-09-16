@@ -277,29 +277,41 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
                   
                   // Fallback navigation after a brief delay for non-access pages
                   setTimeout(() => {
-                    if (!eventHandled && linkedGuide.slug) {
-                      const effectiveAccessCode = linkedGuide.master_access_code || masterAccessCode;
-                      let path = '';
-                      let absoluteUrl = '';
-                      if (effectiveAccessCode) {
-                        path = `/access/${linkedGuide.guide_id}?access_code=${effectiveAccessCode}`;
-                        absoluteUrl = `${getBaseUrl()}${path}`;
-                      } else {
-                        path = `/guide/${linkedGuide.slug}`;
-                        absoluteUrl = `${getBaseUrl()}${path}`;
+                    if (!eventHandled) {
+                      // Priority 1: Navigate to public guide page if slug exists
+                      if (linkedGuide.slug) {
+                        const path = `/guide/${linkedGuide.slug}`;
+                        const absoluteUrl = `${getBaseUrl()}${path}`;
+                        console.log('Navigating to public guide (fallback):', {
+                          guide_id: linkedGuide.guide_id,
+                          slug: linkedGuide.slug,
+                          path,
+                          absoluteUrl,
+                          isAdmin: location.pathname.includes('/admin')
+                        });
+                        if (location.pathname.includes('/admin')) {
+                          window.open(absoluteUrl, '_blank', 'noopener,noreferrer');
+                        } else {
+                          navigate(path);
+                        }
                       }
-                      console.log('Navigating to linked guide (fallback):', {
-                        guide_id: linkedGuide.guide_id,
-                        slug: linkedGuide.slug,
-                        effectiveAccessCode,
-                        path,
-                        absoluteUrl,
-                        isAdmin: location.pathname.includes('/admin')
-                      });
-                      if (location.pathname.includes('/admin')) {
-                        window.open(absoluteUrl, '_blank', 'noopener,noreferrer');
-                      } else {
-                        navigate(path);
+                      // Priority 2: Navigate to main guide access page with open_guide_id parameter
+                      else if (masterAccessCode) {
+                        const path = `/access/${guideId}?access_code=${masterAccessCode}&open_guide_id=${linkedGuide.guide_id}`;
+                        const absoluteUrl = `${getBaseUrl()}${path}`;
+                        console.log('Navigating to main guide with open_guide_id (fallback):', {
+                          guide_id: linkedGuide.guide_id,
+                          main_guide_id: guideId,
+                          masterAccessCode,
+                          path,
+                          absoluteUrl,
+                          isAdmin: location.pathname.includes('/admin')
+                        });
+                        if (location.pathname.includes('/admin')) {
+                          window.open(absoluteUrl, '_blank', 'noopener,noreferrer');
+                        } else {
+                          navigate(path);
+                        }
                       }
                     }
                   }, 100);

@@ -35,6 +35,7 @@ export default function AudioAccess() {
 
   const accessCode = searchParams.get('access_code') || searchParams.get('access');
   const sessionId = searchParams.get('session_id');
+  const openGuideId = searchParams.get('open_guide_id');
 
   useEffect(() => {
     if (!guideId) {
@@ -177,6 +178,24 @@ export default function AudioAccess() {
       
       // Fetch sections for the default language
       await fetchSectionsForLanguage(guideId, selectedLanguage);
+      
+      // Handle open_guide_id parameter if present
+      if (openGuideId) {
+        console.log('[AUDIO-ACCESS] Auto-opening linked guide:', openGuideId);
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('openLinkedGuide', {
+            detail: { guideId: openGuideId }
+          }));
+          
+          // Clean up URL parameter
+          const newSearchParams = new URLSearchParams(searchParams);
+          newSearchParams.delete('open_guide_id');
+          const newUrl = newSearchParams.toString() 
+            ? `${window.location.pathname}?${newSearchParams.toString()}`
+            : window.location.pathname;
+          navigate(newUrl, { replace: true });
+        }, 500); // Small delay to ensure MultiTabAudioPlayer is ready
+      }
 
 
     } catch (error) {
