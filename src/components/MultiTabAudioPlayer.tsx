@@ -17,6 +17,7 @@ interface LinkedGuide {
   guide_id: string;
   custom_title: string;
   order: number;
+  master_access_code?: string;
   guide?: {
     id: string;
     title: string;
@@ -84,16 +85,18 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
           // Load sections for each linked guide using access-aware RPC
           const guidesWithDetails = await Promise.all(
             rpcData.map(async (linked: any) => {
+              const effectiveCode = linked.master_access_code || accessCode;
               const { data: sections } = await supabase
                 .rpc('get_sections_with_access', {
                   p_guide_id: linked.guide_id,
-                  p_access_code: accessCode,
+                  p_access_code: effectiveCode,
                   p_language_code: 'en'
                 });
               return {
                 guide_id: linked.guide_id,
                 custom_title: linked.custom_title,
                 order: linked.order_index,
+                master_access_code: linked.master_access_code,
                 guide: {
                   id: linked.guide_id,
                   title: linked.title,

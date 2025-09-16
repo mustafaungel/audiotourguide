@@ -138,10 +138,8 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
     }
   };
 
-  // Don't show selector if only one language is available
-  if (loading || availableLanguages.length <= 1) {
-    return null;
-  }
+  // Only hide the language selector when there is 1 or fewer languages.
+  // We still want to show Additional Guides even if language selection is not needed.
 
   const selectedLanguageData = availableLanguages.find(lang => lang.language_code === selectedLanguage);
   const selectedDisplay = selectedLanguageData 
@@ -150,39 +148,41 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 mb-4">
-        <Globe className="h-4 w-4 text-muted-foreground" />
-        <Select value={selectedLanguage} onValueChange={onLanguageChange}>
-          <SelectTrigger className="w-auto min-w-[200px] sm:min-w-[250px] h-12 text-left">
-            <SelectValue placeholder="Select language">
-              {selectedLanguage && selectedDisplay}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent className="min-w-[280px] z-50 bg-card border border-border">
-            {availableLanguages.map((language) => (
-              <SelectItem 
-                key={language.language_code} 
-                value={language.language_code}
-                className="py-3 px-4"
-              >
-                <div className="flex items-center justify-between w-full gap-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl" aria-hidden="true">
-                      {getLanguageFlag(language.language_code)}
-                    </span>
-                    <span className="font-medium">
-                      {language.native_name}
+      {availableLanguages.length > 1 && (
+        <div className="flex items-center gap-2 mb-4">
+          <Globe className="h-4 w-4 text-muted-foreground" />
+          <Select value={selectedLanguage} onValueChange={onLanguageChange}>
+            <SelectTrigger className="w-auto min-w-[200px] sm:min-w-[250px] h-12 text-left">
+              <SelectValue placeholder="Select language">
+                {selectedLanguage && selectedDisplay}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent className="min-w-[280px] z-50 bg-card border border-border">
+              {availableLanguages.map((language) => (
+                <SelectItem 
+                  key={language.language_code} 
+                  value={language.language_code}
+                  className="py-3 px-4"
+                >
+                  <div className="flex items-center justify-between w-full gap-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl" aria-hidden="true">
+                        {getLanguageFlag(language.language_code)}
+                      </span>
+                      <span className="font-medium">
+                        {language.native_name}
+                      </span>
+                    </div>
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">
+                      {language.section_count} sections
                     </span>
                   </div>
-                  <span className="text-xs text-muted-foreground whitespace-nowrap">
-                    {language.section_count} sections
-                  </span>
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       {/* Enhanced Linked Guides Section */}
       {linkedGuides.length > 0 && (

@@ -1,7 +1,7 @@
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
-import { NewSectionAudioPlayer } from "@/components/NewSectionAudioPlayer";
+import { MultiTabAudioPlayer } from "@/components/MultiTabAudioPlayer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { GuestReviewForm } from "@/components/GuestReviewForm";
@@ -638,13 +638,18 @@ export default function AudioAccess() {
             </CardContent>
           </Card>
 
-          {/* Chapter-First Audio Interface */}
+          {/* Multi-tab Audio Interface */}
           <div className="mb-6">
-            <NewSectionAudioPlayer
-              guideId={guide.id}
-              guideTitle={guide.title}
-              sections={sections}
-              mainAudioUrl={guide.audio_url}
+            <MultiTabAudioPlayer
+              mainGuide={{
+                id: guide.id,
+                title: guide.title,
+                description: guide.description,
+                audio_url: guide.audio_url,
+                image_url: guide.image_url
+              }}
+              mainSections={sections}
+              accessCode={accessCode || undefined}
             />
           </div>
 
