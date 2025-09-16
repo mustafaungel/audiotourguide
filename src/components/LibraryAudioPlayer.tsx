@@ -223,34 +223,36 @@ export const LibraryAudioPlayer: React.FC<LibraryAudioPlayerProps> = ({
               </div>
             </div>
 
-            {/* Volume Control */}
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-center">Volume</p>
-              <div className="flex items-center gap-3 px-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleMute}
-                  className="h-10 w-10 min-h-[40px] touch-manipulation flex-shrink-0"
-                >
-                  {isMuted || volume === 0 ? (
-                    <VolumeX className="h-4 w-4" />
-                  ) : (
-                    <Volume2 className="h-4 w-4" />
-                  )}
-                </Button>
-                <div className="flex-1">
-                  <Slider
-                    value={[volume * 100]}
-                    onValueChange={handleVolumeSliderChange}
-                    max={100}
-                    step={1}
-                    className="w-full h-3 touch-manipulation"
-                  />
+            {/* Volume Control - hidden on mobile */}
+            <div className="hidden sm:block">
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-center">Volume</p>
+                <div className="flex items-center gap-3 px-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleMute}
+                    className="h-10 w-10 min-h-[40px] touch-manipulation flex-shrink-0"
+                  >
+                    {isMuted || volume === 0 ? (
+                      <VolumeX className="h-4 w-4" />
+                    ) : (
+                      <Volume2 className="h-4 w-4" />
+                    )}
+                  </Button>
+                  <div className="flex-1">
+                    <Slider
+                      value={[volume * 100]}
+                      onValueChange={handleVolumeSliderChange}
+                      max={100}
+                      step={1}
+                      className="w-full h-3 touch-manipulation"
+                    />
+                  </div>
+                  <span className="text-xs text-muted-foreground w-10 text-right">
+                    {Math.round(volume * 100)}%
+                  </span>
                 </div>
-                <span className="text-xs text-muted-foreground w-10 text-right">
-                  {Math.round(volume * 100)}%
-                </span>
               </div>
             </div>
           </div>

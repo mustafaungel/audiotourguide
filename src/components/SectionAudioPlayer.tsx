@@ -413,34 +413,36 @@ export const SectionAudioPlayer: React.FC<SectionAudioPlayerProps> = ({
                 </div>
               </div>
 
-              {/* Volume Control */}
-              <div className="space-y-3">
-                <p className="text-sm font-medium text-center">Volume</p>
-                <div className="flex items-center gap-4 px-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={toggleMute}
-                    className="h-12 w-12 min-h-[48px] touch-manipulation flex-shrink-0"
-                  >
-                    {isMuted || volume === 0 ? (
-                      <VolumeX className="h-5 w-5" />
-                    ) : (
-                      <Volume2 className="h-5 w-5" />
-                    )}
-                  </Button>
-                  <div className="flex-1">
-                    <Slider
-                      value={[volume * 100]}
-                      onValueChange={handleVolumeSliderChange}
-                      max={100}
-                      step={1}
-                      className="w-full h-3 touch-manipulation"
-                    />
+              {/* Volume Control - hidden on mobile */}
+              <div className="hidden sm:block">
+                <div className="space-y-3">
+                  <p className="text-sm font-medium text-center">Volume</p>
+                  <div className="flex items-center gap-4 px-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={toggleMute}
+                      className="h-12 w-12 min-h-[48px] touch-manipulation flex-shrink-0"
+                    >
+                      {isMuted || volume === 0 ? (
+                        <VolumeX className="h-5 w-5" />
+                      ) : (
+                        <Volume2 className="h-5 w-5" />
+                      )}
+                    </Button>
+                    <div className="flex-1">
+                      <Slider
+                        value={[volume * 100]}
+                        onValueChange={handleVolumeSliderChange}
+                        max={100}
+                        step={1}
+                        className="w-full h-3 touch-manipulation"
+                      />
+                    </div>
+                    <span className="text-sm text-muted-foreground w-12 text-right">
+                      {Math.round(volume * 100)}%
+                    </span>
                   </div>
-                  <span className="text-sm text-muted-foreground w-12 text-right">
-                    {Math.round(volume * 100)}%
-                  </span>
                 </div>
               </div>
             </div>

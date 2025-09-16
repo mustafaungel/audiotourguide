@@ -46,6 +46,20 @@ export const EnhancedAudioPlayer: React.FC<EnhancedAudioPlayerProps> = ({
 
   const checkForLinkedGuides = async () => {
     try {
+      // Try RPC with access code first (works for private guides via link)
+      if (accessCode) {
+        const { data: rpcData, error: rpcError } = await supabase
+          .rpc('get_linked_guides_with_access', {
+            p_guide_id: guide.id,
+            p_access_code: accessCode,
+          });
+        if (!rpcError && rpcData && rpcData.length > 0) {
+          setHasLinkedGuides(true);
+          return;
+        }
+      }
+
+      // Fallback to public table (only for published + approved guides)
       const { data, error } = await supabase
         .from('guide_collections')
         .select('linked_guides')

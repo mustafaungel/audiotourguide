@@ -615,7 +615,7 @@ export default function AudioAccess() {
                         : `${Math.floor(guide.duration / 60)} min`
                       }
                     </div>
-                    {guide.languages && guide.languages.length > 0 && (
+                    {guide.languages && guide.languages.length > 1 && (
                       <div className="flex items-center gap-2">
                         {guide.languages.map((language: string, index: number) => (
                           <Badge key={index} variant="secondary" className="text-xs">

@@ -72,7 +72,43 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
 
   const loadLinkedGuides = async () => {
     try {
-      // Load collection
+      // Try secure RPC first (works for private guides when user has access)
+      if (accessCode) {
+        const { data: rpcData, error: rpcError } = await supabase
+          .rpc('get_linked_guides_with_access', {
+            p_guide_id: mainGuide.id,
+            p_access_code: accessCode,
+          });
+
+        if (!rpcError && rpcData && rpcData.length > 0) {
+          // Load sections for each linked guide using access-aware RPC
+          const guidesWithDetails = await Promise.all(
+            rpcData.map(async (linked: any) => {
+              const { data: sections } = await supabase
+                .rpc('get_sections_with_access', {
+                  p_guide_id: linked.guide_id,
+                  p_access_code: accessCode,
+                  p_language_code: 'en'
+                });
+              return {
+                guide_id: linked.guide_id,
+                custom_title: linked.custom_title,
+                order: linked.order_index,
+                guide: {
+                  id: linked.guide_id,
+                  title: linked.title,
+                },
+                sections: sections || []
+              } as LinkedGuide;
+            })
+          );
+
+          setLinkedGuides(guidesWithDetails.sort((a, b) => a.order - b.order));
+          return; // Done
+        }
+      }
+
+      // Fallback to public tables (published + approved only)
       const { data: collection, error: collectionError } = await supabase
         .from('guide_collections')
         .select('linked_guides')
@@ -100,11 +136,10 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
                 
                 // Load sections for this guide
                 const { data: sections } = await supabase
-                  .rpc('get_sections_with_access', {
-                    p_guide_id: linkedGuide.guide_id,
-                    p_access_code: accessCode || '',
-                    p_language_code: 'en'
-                  });
+                  .from('guide_sections')
+                  .select('*')
+                  .eq('guide_id', linkedGuide.guide_id)
+                  .eq('language_code', 'en');
 
                 return {
                   ...linkedGuide,

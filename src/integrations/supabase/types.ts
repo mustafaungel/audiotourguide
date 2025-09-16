@@ -1039,6 +1039,17 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_linked_guides_with_access: {
+        Args: { p_access_code: string; p_guide_id: string }
+        Returns: {
+          custom_title: string
+          guide_id: string
+          master_access_code: string
+          order_index: number
+          slug: string
+          title: string
+        }[]
+      }
       get_masked_guest_email: {
         Args: { p_guest_email: string; p_user_id: string }
         Returns: string

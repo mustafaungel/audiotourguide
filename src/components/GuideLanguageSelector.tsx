@@ -52,6 +52,32 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
 
   const loadLinkedGuides = async () => {
     try {
+      // Prefer secure RPC that validates access code and bypasses RLS when a user has a valid link
+      const params = new URLSearchParams(location.search);
+      const accessCode = params.get('access_code') || params.get('access') || '';
+
+      if (accessCode) {
+        const { data: rpcData, error: rpcError } = await supabase
+          .rpc('get_linked_guides_with_access', {
+            p_guide_id: guideId,
+            p_access_code: accessCode,
+          });
+
+        if (!rpcError && rpcData && rpcData.length > 0) {
+          const enriched = rpcData.map((g: any) => ({
+            guide_id: g.guide_id,
+            custom_title: g.custom_title,
+            order: g.order_index,
+            title: g.title,
+            slug: g.slug,
+            master_access_code: g.master_access_code,
+          }));
+          setLinkedGuides(enriched.sort((a: any, b: any) => a.order - b.order));
+          return; // Done
+        }
+      }
+
+      // Fallback to public tables (works for published + approved guides)
       const { data: collection } = await supabase
         .from('guide_collections')
         .select('linked_guides')
@@ -132,7 +158,7 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
               {selectedLanguage && selectedDisplay}
             </SelectValue>
           </SelectTrigger>
-          <SelectContent className="min-w-[280px]">
+          <SelectContent className="min-w-[280px] z-50 bg-card border border-border">
             {availableLanguages.map((language) => (
               <SelectItem 
                 key={language.language_code} 
