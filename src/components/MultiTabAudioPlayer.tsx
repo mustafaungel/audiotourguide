@@ -80,6 +80,14 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     };
   }, [linkedGuides]);
 
+  // Ensure activeTab always points to a valid value to avoid Radix Tabs issues
+  useEffect(() => {
+    const allowedValues = ['main', ...linkedGuides.map(g => g.guide_id), ...(pendingGuideId ? [pendingGuideId] : [])];
+    if (!allowedValues.includes(activeTab)) {
+      setActiveTab('main');
+    }
+  }, [activeTab, linkedGuides, pendingGuideId]);
+
   const loadLinkedGuides = async () => {
     if (!mainGuide?.id || !accessCode?.trim()) {
       console.log('MultiTabAudioPlayer: Missing guide ID or access code');
@@ -206,6 +214,18 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
               )}
             </TabsTrigger>
           ))}
+
+          {/* Temporary trigger for pending guide to keep Tabs stable */}
+          {pendingGuideId && !linkedGuides.some(g => g.guide_id === pendingGuideId) && (
+            <TabsTrigger 
+              value={pendingGuideId}
+              disabled
+              className="flex items-center gap-2 min-h-[44px] px-3 py-2 text-sm font-medium opacity-70"
+            >
+              <Music className="w-4 h-4 shrink-0" />
+              <span className="truncate">Loading...</span>
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="main" className="mt-0">

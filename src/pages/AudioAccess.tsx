@@ -178,10 +178,6 @@ export default function AudioAccess() {
       // Fetch sections for the default language
       await fetchSectionsForLanguage(guideId, selectedLanguage);
 
-      toast({
-        title: "Access Verified",
-        description: "You can now listen to this audio guide",
-      });
 
     } catch (error) {
       console.error('Error verifying access:', error);

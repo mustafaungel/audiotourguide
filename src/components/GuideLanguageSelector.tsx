@@ -242,7 +242,9 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
             {linkedGuides.map((linkedGuide) => (
               <button
                 key={linkedGuide.guide_id}
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   console.log('AdditionalGuide click:', { guide_id: linkedGuide.guide_id, slug: linkedGuide.slug });
                   
                   // Add haptic feedback for mobile
