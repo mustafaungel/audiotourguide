@@ -104,32 +104,37 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
 
   const ensureGuideSections = async (guideId: string) => {
     if (sectionsByGuide[guideId] || !accessCode) {
+      console.log('MultiTabAudioPlayer: Skipping sections load for guide:', guideId, 'Already loaded or no access code');
       return; // Already loaded or no access code
     }
 
+    console.log('MultiTabAudioPlayer: Starting sections load for guide:', guideId, 'with language:', languageCode);
+
     try {
-      console.log('MultiTabAudioPlayer: Loading sections for guide:', guideId);
-      
+      let sectionsData: any[] = [];
+      let fetchSuccess = false;
+
       // For main guide, use existing RPC
       if (guideId === mainGuide.id) {
-        const { data: sectionsData, error } = await supabase
+        console.log('MultiTabAudioPlayer: Loading main guide sections via RPC');
+        const { data, error } = await supabase
           .rpc('get_sections_with_access', {
             p_guide_id: guideId,
             p_access_code: accessCode.trim(),
             p_language_code: languageCode
           });
 
-        if (error) {
-          console.error('MultiTabAudioPlayer: Error loading main guide sections:', error);
-          setSectionsByGuide(prev => ({ ...prev, [guideId]: [] }));
-          return;
+        if (!error && data && data.length > 0) {
+          sectionsData = data;
+          fetchSuccess = true;
+          console.log('MultiTabAudioPlayer: Main guide sections loaded via RPC:', sectionsData.length);
+        } else {
+          console.warn('MultiTabAudioPlayer: Main guide RPC failed or returned empty:', error?.message || 'No sections');
         }
-
-        console.log('MultiTabAudioPlayer: Main guide sections loaded:', sectionsData?.length || 0);
-        setSectionsByGuide(prev => ({ ...prev, [guideId]: sectionsData || [] }));
       } else {
-        // For linked guides, use new secure RPC
-        const { data: sectionsData, error } = await supabase
+        // For linked guides, try secure RPC first
+        console.log('MultiTabAudioPlayer: Loading linked guide sections via RPC');
+        const { data, error } = await supabase
           .rpc('get_linked_guide_sections_with_access', {
             p_main_guide_id: mainGuide.id,
             p_access_code: accessCode.trim(),
@@ -137,17 +142,100 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
             p_language_code: languageCode
           });
 
-        if (error) {
-          console.error('MultiTabAudioPlayer: Error loading linked guide sections:', error);
-          setSectionsByGuide(prev => ({ ...prev, [guideId]: [] }));
-          return;
+        if (!error && data && data.length > 0) {
+          sectionsData = data;
+          fetchSuccess = true;
+          console.log('MultiTabAudioPlayer: Linked guide sections loaded via RPC:', sectionsData.length);
+        } else {
+          console.warn('MultiTabAudioPlayer: Linked guide RPC failed or returned empty:', error?.message || 'No sections');
+        }
+      }
+
+      // If RPC failed or returned empty, try fallback fetch from guide_sections table
+      if (!fetchSuccess) {
+        console.log('MultiTabAudioPlayer: Attempting fallback fetch from guide_sections table');
+        
+        // Priority 1: Requested language
+        let fallbackQuery = supabase
+          .from('guide_sections')
+          .select('*')
+          .eq('guide_id', guideId)
+          .eq('language_code', languageCode)
+          .order('order_index');
+
+        let { data: fallbackData, error: fallbackError } = await fallbackQuery;
+
+        if (fallbackError || !fallbackData || fallbackData.length === 0) {
+          console.log('MultiTabAudioPlayer: Fallback for', languageCode, 'failed/empty, trying English');
+          
+          // Priority 2: English
+          fallbackQuery = supabase
+            .from('guide_sections')
+            .select('*')
+            .eq('guide_id', guideId)
+            .eq('language_code', 'en')
+            .order('order_index');
+
+          const { data: enData, error: enError } = await fallbackQuery;
+
+          if (!enError && enData && enData.length > 0) {
+            fallbackData = enData;
+            console.log('MultiTabAudioPlayer: Fallback English sections loaded:', fallbackData.length);
+          } else {
+            console.log('MultiTabAudioPlayer: English fallback failed/empty, trying language with most sections');
+            
+            // Priority 3: Language with most sections
+            const { data: langCounts, error: langError } = await supabase
+              .from('guide_sections')
+              .select('language_code')
+              .eq('guide_id', guideId);
+
+            if (!langError && langCounts && langCounts.length > 0) {
+              const langCount = langCounts.reduce((acc: Record<string, number>, item: any) => {
+                acc[item.language_code] = (acc[item.language_code] || 0) + 1;
+                return acc;
+              }, {});
+
+              const mostCommonLang = Object.entries(langCount).sort(([,a], [,b]) => (b as number) - (a as number))[0]?.[0];
+              
+              if (mostCommonLang) {
+                console.log('MultiTabAudioPlayer: Using most common language:', mostCommonLang);
+                const { data: commonLangData, error: commonLangError } = await supabase
+                  .from('guide_sections')
+                  .select('*')
+                  .eq('guide_id', guideId)
+                  .eq('language_code', mostCommonLang)
+                  .order('order_index');
+
+                if (!commonLangError && commonLangData && commonLangData.length > 0) {
+                  fallbackData = commonLangData;
+                  console.log('MultiTabAudioPlayer: Most common language sections loaded:', fallbackData.length);
+                }
+              }
+            }
+          }
         }
 
-        console.log('MultiTabAudioPlayer: Linked guide sections loaded:', sectionsData?.length || 0);
-        setSectionsByGuide(prev => ({ ...prev, [guideId]: sectionsData || [] }));
+        if (fallbackData && fallbackData.length > 0) {
+          sectionsData = fallbackData;
+          fetchSuccess = true;
+          console.log('MultiTabAudioPlayer: Fallback fetch successful, sections:', sectionsData.length);
+        } else {
+          console.error('MultiTabAudioPlayer: All fallback attempts failed for guide:', guideId);
+        }
       }
+
+      // Set the sections data
+      setSectionsByGuide(prev => ({ ...prev, [guideId]: sectionsData }));
+
+      if (fetchSuccess) {
+        console.log('MultiTabAudioPlayer: Successfully loaded', sectionsData.length, 'sections for guide:', guideId);
+      } else {
+        console.error('MultiTabAudioPlayer: Failed to load any sections for guide:', guideId);
+      }
+
     } catch (error) {
-      console.error('MultiTabAudioPlayer: Unexpected error loading sections:', error);
+      console.error('MultiTabAudioPlayer: Unexpected error loading sections for guide:', guideId, error);
       setSectionsByGuide(prev => ({ ...prev, [guideId]: [] }));
     }
   };
