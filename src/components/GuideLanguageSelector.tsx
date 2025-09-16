@@ -242,6 +242,7 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
             {linkedGuides.map((linkedGuide) => (
               <button
                 key={linkedGuide.guide_id}
+                type="button"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();

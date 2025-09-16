@@ -610,6 +610,7 @@ export default function AudioAccess() {
               }}
               mainSections={sections}
               accessCode={accessCode || undefined}
+              languageCode={selectedLanguage}
             />
           </div>
 

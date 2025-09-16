@@ -33,6 +33,7 @@ interface MultiTabAudioPlayerProps {
   };
   mainSections?: Section[];
   accessCode?: string;
+  languageCode?: string;
   onClose?: () => void;
 }
 
@@ -40,12 +41,14 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
   mainGuide,
   mainSections = [],
   accessCode,
+  languageCode = 'en',
   onClose
 }) => {
   const [linkedGuides, setLinkedGuides] = useState<LinkedGuide[]>([]);
   const [activeTab, setActiveTab] = useState('main');
   const [loading, setLoading] = useState(true);
   const [pendingGuideId, setPendingGuideId] = useState<string | null>(null);
+  const [sectionsByGuide, setSectionsByGuide] = useState<Record<string, Section[]>>({});
 
   useEffect(() => {
     loadLinkedGuides();
@@ -64,6 +67,10 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
         // Guide exists, switch immediately
         setActiveTab(guideId);
         setPendingGuideId(null);
+        // Ensure sections are loaded for this guide
+        if (guideId !== 'main') {
+          ensureGuideSections(guideId);
+        }
       } else {
         // Guide doesn't exist yet, set as pending and switch tab to show loading
         setPendingGuideId(guideId);
@@ -78,7 +85,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     return () => {
       window.removeEventListener('openLinkedGuide', handleOpenLinkedGuide as EventListener);
     };
-  }, [linkedGuides]);
+  }, [linkedGuides, accessCode, languageCode]);
 
   // Ensure activeTab always points to a valid value to avoid Radix Tabs issues
   useEffect(() => {
@@ -87,6 +94,41 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
       setActiveTab('main');
     }
   }, [activeTab, linkedGuides, pendingGuideId]);
+
+  // Load sections when activeTab changes
+  useEffect(() => {
+    if (activeTab !== 'main' && activeTab && linkedGuides.some(g => g.guide_id === activeTab)) {
+      ensureGuideSections(activeTab);
+    }
+  }, [activeTab, linkedGuides, accessCode, languageCode]);
+
+  const ensureGuideSections = async (guideId: string) => {
+    if (sectionsByGuide[guideId] || !accessCode) {
+      return; // Already loaded or no access code
+    }
+
+    try {
+      console.log('MultiTabAudioPlayer: Loading sections for guide:', guideId);
+      const { data: sectionsData, error } = await supabase
+        .rpc('get_sections_with_access', {
+          p_guide_id: guideId,
+          p_access_code: accessCode.trim(),
+          p_language_code: languageCode
+        });
+
+      if (error) {
+        console.error('MultiTabAudioPlayer: Error loading sections:', error);
+        setSectionsByGuide(prev => ({ ...prev, [guideId]: [] }));
+        return;
+      }
+
+      console.log('MultiTabAudioPlayer: Sections loaded:', sectionsData?.length || 0);
+      setSectionsByGuide(prev => ({ ...prev, [guideId]: sectionsData || [] }));
+    } catch (error) {
+      console.error('MultiTabAudioPlayer: Unexpected error loading sections:', error);
+      setSectionsByGuide(prev => ({ ...prev, [guideId]: [] }));
+    }
+  };
 
   const loadLinkedGuides = async () => {
     if (!mainGuide?.id || !accessCode?.trim()) {
@@ -99,7 +141,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     try {
       console.log('MultiTabAudioPlayer: Loading linked guides for:', mainGuide.id);
       
-      // Use the new comprehensive RPC that gets all data in one call
+      // Try the comprehensive RPC first
       const { data: fullLinkedGuides, error: rpcError } = await supabase
         .rpc('get_full_linked_guides_with_access', {
           p_guide_id: mainGuide.id,
@@ -110,27 +152,12 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
         hasData: !!fullLinkedGuides, 
         dataLength: fullLinkedGuides?.length || 0,
         hasError: !!rpcError,
-        errorDetails: rpcError,
         errorMessage: rpcError?.message,
-        errorCode: rpcError?.code,
-        accessCode: accessCode?.substring(0, 8) + '...',
-        guideId: mainGuide.id
+        errorCode: rpcError?.code
       });
 
-      if (rpcError) {
-        console.error('MultiTabAudioPlayer: Detailed RPC error:', {
-          error: rpcError,
-          message: rpcError?.message,
-          code: rpcError?.code,
-          details: rpcError?.details,
-          hint: rpcError?.hint
-        });
-        setLinkedGuides([]);
-        return;
-      }
-
-      if (fullLinkedGuides && fullLinkedGuides.length > 0) {
-        console.log('MultiTabAudioPlayer: Found linked guides via new RPC:', fullLinkedGuides.length);
+      if (!rpcError && fullLinkedGuides && fullLinkedGuides.length > 0) {
+        console.log('MultiTabAudioPlayer: Found linked guides via comprehensive RPC:', fullLinkedGuides.length);
         
         const processedGuides: LinkedGuide[] = fullLinkedGuides.map((linkedGuide: any) => ({
           guide_id: linkedGuide.guide_id,
@@ -139,19 +166,47 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
           title: linkedGuide.title,
           slug: linkedGuide.slug,
           master_access_code: linkedGuide.master_access_code,
-          sections: linkedGuide.sections || []
+          sections: [] // We'll load sections separately for better control
         }));
 
-        console.log('MultiTabAudioPlayer: Final processed guides:', processedGuides.length);
         setLinkedGuides(processedGuides.sort((a, b) => a.order_index - b.order_index));
-        
-        // Check if we have a pending guide that's now available
-        if (pendingGuideId && processedGuides.some(g => g.guide_id === pendingGuideId)) {
-          setPendingGuideId(null);
-        }
       } else {
-        console.log('MultiTabAudioPlayer: No linked guides found');
-        setLinkedGuides([]);
+        console.log('MultiTabAudioPlayer: Trying fallback RPC');
+        
+        // Fallback to simpler RPC
+        const { data: simpleLinkedGuides, error: fallbackError } = await supabase
+          .rpc('get_linked_guides_with_access', {
+            p_guide_id: mainGuide.id,
+            p_access_code: accessCode.trim()
+          });
+
+        if (!fallbackError && simpleLinkedGuides && simpleLinkedGuides.length > 0) {
+          console.log('MultiTabAudioPlayer: Found linked guides via fallback RPC:', simpleLinkedGuides.length);
+          
+          const processedGuides: LinkedGuide[] = simpleLinkedGuides.map((linkedGuide: any) => ({
+            guide_id: linkedGuide.guide_id,
+            custom_title: linkedGuide.custom_title,
+            order_index: linkedGuide.order_index || 0,
+            title: linkedGuide.title,
+            slug: linkedGuide.slug,
+            master_access_code: linkedGuide.master_access_code,
+            sections: [] // We'll load sections separately
+          }));
+
+          setLinkedGuides(processedGuides.sort((a, b) => a.order_index - b.order_index));
+        } else {
+          console.log('MultiTabAudioPlayer: No linked guides found in either RPC');
+          setLinkedGuides([]);
+        }
+      }
+      
+      // Check if we have a pending guide that's now available
+      if (pendingGuideId) {
+        const guidesLoaded = linkedGuides.some(g => g.guide_id === pendingGuideId);
+        if (guidesLoaded) {
+          setPendingGuideId(null);
+          ensureGuideSections(pendingGuideId);
+        }
       }
     } catch (error) {
       console.error('MultiTabAudioPlayer: Unexpected error:', error);
@@ -207,11 +262,14 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
             >
               <Music className="w-4 h-4 shrink-0" />
               <span className="truncate">{linkedGuide.custom_title || linkedGuide.title}</span>
-              {linkedGuide.sections && linkedGuide.sections.length > 0 && (
-                <Badge variant="secondary" className="ml-1 shrink-0 text-xs">
-                  {linkedGuide.sections.length}
-                </Badge>
-              )}
+              {(() => {
+                const sectionCount = sectionsByGuide[linkedGuide.guide_id]?.length || 0;
+                return sectionCount > 0 ? (
+                  <Badge variant="secondary" className="ml-1 shrink-0 text-xs">
+                    {sectionCount}
+                  </Badge>
+                ) : null;
+              })()}
             </TabsTrigger>
           ))}
 
@@ -242,7 +300,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
             <NewSectionAudioPlayer
               guideId={linkedGuide.guide_id}
               guideTitle={linkedGuide.custom_title || linkedGuide.title}
-              sections={linkedGuide.sections || []}
+              sections={sectionsByGuide[linkedGuide.guide_id] || []}
               mainAudioUrl=""
             />
           </TabsContent>
