@@ -89,6 +89,14 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
           p_access_code: accessCode.trim()
         });
 
+      console.log('MultiTabAudioPlayer: RPC call result:', { 
+        hasData: !!fullLinkedGuides, 
+        dataLength: fullLinkedGuides?.length || 0,
+        hasError: !!rpcError,
+        errorDetails: rpcError,
+        accessCode: accessCode?.substring(0, 8) + '...'
+      });
+
       if (rpcError) {
         console.error('MultiTabAudioPlayer: RPC error:', rpcError);
         setLinkedGuides([]);

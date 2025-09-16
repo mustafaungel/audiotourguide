@@ -109,10 +109,10 @@ export default function AudioAccess() {
         attempt: retryCount + 1
       });
 
-      // Use retry mechanism for network resilience
+      // Use retry mechanism for network resilience with new RPC
       const result = await withRetry(
         async () => {
-          return await supabase.rpc('get_guide_with_access', {
+          return await supabase.rpc('get_guide_with_access_v2', {
             p_guide_id: guideId,
             p_access_code: accessCode?.trim()
           });

@@ -1051,6 +1051,36 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_guide_with_access_v2: {
+        Args: { p_access_code: string; p_guide_id: string }
+        Returns: {
+          admin_qr_code_url: string
+          admin_share_url: string
+          category: string
+          created_at: string
+          creator_id: string
+          currency: string
+          description: string
+          difficulty: string
+          duration: number
+          id: string
+          image_url: string
+          is_approved: boolean
+          is_published: boolean
+          languages: string[]
+          location: string
+          master_access_code: string
+          price_usd: number
+          qr_code_url: string
+          rating: number
+          sections: Json
+          share_url: string
+          slug: string
+          title: string
+          total_reviews: number
+          updated_at: string
+        }[]
+      }
       get_linked_guides_with_access: {
         Args: { p_access_code: string; p_guide_id: string }
         Returns: {
