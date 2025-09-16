@@ -35,6 +35,7 @@ interface MultiTabAudioPlayerProps {
   accessCode?: string;
   languageCode?: string;
   onClose?: () => void;
+  onActiveTabChange?: (tabId: string) => void;
 }
 
 export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
@@ -42,7 +43,8 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
   mainSections = [],
   accessCode,
   languageCode = 'en',
-  onClose
+  onClose,
+  onActiveTabChange
 }) => {
   const [linkedGuides, setLinkedGuides] = useState<LinkedGuide[]>([]);
   const [activeTab, setActiveTab] = useState('main');
@@ -67,6 +69,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
         // Guide exists, switch immediately
         setActiveTab(guideId);
         setPendingGuideId(null);
+        onActiveTabChange?.(guideId);
         // Ensure sections are loaded for this guide
         if (guideId !== 'main') {
           ensureGuideSections(guideId);
@@ -75,6 +78,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
         // Guide doesn't exist yet, set as pending and switch tab to show loading
         setPendingGuideId(guideId);
         setActiveTab(guideId);
+        onActiveTabChange?.(guideId);
       }
       
       // Signal that the event was handled
@@ -348,7 +352,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
 
   return (
     <div className="w-full max-w-4xl mx-auto">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={(value) => { setActiveTab(value); onActiveTabChange?.(value); }} className="w-full">
         {/* Mobile-optimized TabsList */}
         <TabsList className="grid w-full mb-4 h-auto p-1 grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <TabsTrigger 

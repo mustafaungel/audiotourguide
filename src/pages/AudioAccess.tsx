@@ -32,6 +32,7 @@ export default function AudioAccess() {
   const [isNetworkIssue, setIsNetworkIssue] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
   const [sections, setSections] = useState<any[]>([]);
+  const [activeGuideId, setActiveGuideId] = useState<string>('main');
 
   const accessCode = searchParams.get('access_code') || searchParams.get('access');
   const sessionId = searchParams.get('session_id');
@@ -613,6 +614,7 @@ export default function AudioAccess() {
                 guideId={guide.id}
                 selectedLanguage={selectedLanguage}
                 onLanguageChange={handleLanguageChange}
+                activeGuideId={activeGuideId === 'main' ? guide.id : activeGuideId}
               />
             </CardContent>
           </Card>
@@ -630,6 +632,7 @@ export default function AudioAccess() {
               mainSections={sections}
               accessCode={accessCode || undefined}
               languageCode={selectedLanguage}
+              onActiveTabChange={setActiveGuideId}
             />
           </div>
 

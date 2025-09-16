@@ -11,6 +11,7 @@ interface GuideLanguageSelectorProps {
   guideId: string;
   selectedLanguage: string;
   onLanguageChange: (languageCode: string) => void;
+  activeGuideId?: string;
 }
 
 interface GuideLanguage {
@@ -20,7 +21,7 @@ interface GuideLanguage {
   section_count: number;
 }
 
-export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageChange }: GuideLanguageSelectorProps) {
+export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageChange, activeGuideId }: GuideLanguageSelectorProps) {
   const [availableLanguages, setAvailableLanguages] = useState<GuideLanguage[]>([]);
   const [loading, setLoading] = useState(true);
   const [linkedGuides, setLinkedGuides] = useState<any[]>([]);
@@ -32,7 +33,7 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
     fetchAvailableLanguages();
     loadLinkedGuides();
     fetchMasterAccessCode();
-  }, [guideId]);
+  }, [guideId, activeGuideId]);
 
   const fetchMasterAccessCode = async () => {
     try {
@@ -158,8 +159,9 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
   const fetchAvailableLanguages = async () => {
     setLoading(true);
     try {
+      const targetGuideId = activeGuideId || guideId;
       const { data, error } = await supabase
-        .rpc('get_guide_languages', { p_guide_id: guideId });
+        .rpc('get_guide_languages', { p_guide_id: targetGuideId });
 
       if (error) {
         console.error('Error fetching guide languages:', error);
