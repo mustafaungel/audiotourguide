@@ -6,6 +6,7 @@ import { Clock, MapPin, Users, Heart, Share2, Bookmark, Play, Loader2 } from "lu
 import { useToast } from "@/hooks/use-toast";
 import { useViralTracking } from "@/hooks/useViralTracking";
 import { useNavigate } from "react-router-dom";
+import { getOptimizedImageUrl } from "@/lib/url-utils";
 
 interface GuideCardProps {
   id: string;
@@ -111,8 +112,9 @@ export function GuideCard({
       <CardHeader className="p-0 relative">
         <div className="aspect-video overflow-hidden">
           <img
-            src={imageUrl || "/placeholder.svg"}
+            src={getOptimizedImageUrl(imageUrl, { width: 600, quality: 80 })}
             alt={title}
+            loading="lazy"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         </div>
