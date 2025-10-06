@@ -166,8 +166,8 @@ const CountryDetail = () => {
   return (
     <div className="mobile-viewport bg-background">
       <SEO 
-        title={`Audio Guides in ${country} | Cultural Tours & Heritage Sites`}
-        description={`Discover ${guides.length} audio guides in ${country}. Explore UNESCO World Heritage sites, cultural landmarks, and hidden gems with immersive audio experiences.`}
+        title={`${country} Audio Tour Guides | ${guides.length} UNESCO Sites & Cultural Heritage Tours`}
+        description={`Explore ${guides.length} professional audio guides in ${country}. Discover UNESCO World Heritage sites, iconic landmarks, museums, and cultural treasures with expert-narrated immersive audio tours in multiple languages.`}
         canonicalUrl={`https://guided-sound-ai.lovable.app/country/${countrySlug}`}
         structuredData={breadcrumbSchema}
       />

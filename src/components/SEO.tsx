@@ -8,6 +8,8 @@ interface SEOProps {
   type?: 'website' | 'article';
   structuredData?: Record<string, any> | Record<string, any>[];
   noindex?: boolean;
+  locale?: string;
+  author?: string;
 }
 
 export const SEO: React.FC<SEOProps> = ({
@@ -17,7 +19,9 @@ export const SEO: React.FC<SEOProps> = ({
   image = 'https://guided-sound-ai.lovable.app/logo-audio-tour-guides.png',
   type = 'website',
   structuredData,
-  noindex = false
+  noindex = false,
+  locale = 'en_US',
+  author
 }) => {
   const fullTitle = `${title} | Audio Tour Guides`;
   const siteUrl = 'https://guided-sound-ai.lovable.app';
@@ -38,6 +42,8 @@ export const SEO: React.FC<SEOProps> = ({
       <meta property="og:url" content={fullCanonicalUrl} />
       <meta property="og:image" content={image} />
       <meta property="og:site_name" content="Audio Tour Guides" />
+      <meta property="og:locale" content={locale} />
+      {author && <meta property="article:author" content={author} />}
 
       {/* Twitter Card Meta Tags */}
       <meta name="twitter:card" content="summary_large_image" />
