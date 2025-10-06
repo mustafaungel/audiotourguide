@@ -8,7 +8,7 @@ export const HeroSection: React.FC = () => {
   return <section className="relative min-h-[50vh] md:min-h-[60vh] flex items-center justify-center overflow-hidden">{/* Optimized viewport */}
       {/* Background */}
       <div className="absolute inset-0">
-        <img src={heroImage} alt="World Travel and Cultural Heritage Sites" className="w-full h-full object-cover opacity-60" fetchPriority="high" decoding="async" />
+        <img src={heroImage} alt="World Travel and Cultural Heritage Sites" width="1920" height="1080" className="w-full h-full object-cover opacity-60" fetchPriority="high" decoding="async" />
         <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-background/40 to-background/60" />
       </div>
 

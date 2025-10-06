@@ -94,8 +94,8 @@ if (variant === 'icon-only') {
             key={logoUrl}
             src={logoUrl}
             alt={`${branding.companyName} logo`}
-            width={192}
-            height={192}
+            width={size === 'sm' ? 64 : size === 'md' ? 128 : 192}
+            height={size === 'sm' ? 64 : size === 'md' ? 128 : 192}
             className={cn("object-contain flex-shrink-0", sizeClasses[size])}
             decoding="async"
             loading="eager"
@@ -131,8 +131,8 @@ if (variant === 'compact') {
             key={logoUrl}
             src={logoUrl}
             alt={`${branding.companyName} logo`}
-            width={192}
-            height={192}
+            width={size === 'sm' ? 64 : size === 'md' ? 128 : 192}
+            height={size === 'sm' ? 64 : size === 'md' ? 128 : 192}
             className={cn("object-contain flex-shrink-0", sizeClasses[size])}
             decoding="async"
             loading="eager"
@@ -180,8 +180,8 @@ return <div className={cn("flex items-center space-x-2 min-w-0", className)}>
             key={logoUrl}
             src={logoUrl}
             alt={`${branding.companyName} logo`}
-            width={192}
-            height={192}
+            width={size === 'sm' ? 64 : size === 'md' ? 128 : 192}
+            height={size === 'sm' ? 64 : size === 'md' ? 128 : 192}
             className={cn("object-contain flex-shrink-0", sizeClasses[size])}
             decoding="async"
             loading="eager"
