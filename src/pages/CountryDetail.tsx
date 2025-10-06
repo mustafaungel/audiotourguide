@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { SEO } from '@/components/SEO';
 import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { GuideCard } from '@/components/GuideCard';
@@ -139,6 +140,11 @@ const CountryDetail = () => {
 
   return (
     <div className="mobile-viewport bg-background">
+      <SEO 
+        title={`Audio Guides in ${country} | Cultural Tours & Heritage Sites`}
+        description={`Discover ${guides.length} audio guides in ${country}. Explore UNESCO World Heritage sites, cultural landmarks, and hidden gems with immersive audio experiences.`}
+        canonicalUrl={`https://guided-sound-ai.lovable.app/country/${countrySlug}`}
+      />
       <Navigation />
       
       {/* Header Section */}

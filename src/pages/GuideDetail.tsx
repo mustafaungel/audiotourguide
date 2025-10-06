@@ -1,5 +1,6 @@
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { SEO } from "@/components/SEO";
 import { Navigation } from "@/components/Navigation";
 import { EnhancedAudioPlayer } from "@/components/EnhancedAudioPlayer";
 import { GuideLanguageSelector } from "@/components/GuideLanguageSelector";
@@ -501,8 +502,42 @@ const GuideDetail = () => {
     );
   }
 
+  // Create structured data for the guide
+  const guideStructuredData = guide ? {
+    "@context": "https://schema.org",
+    "@type": "TouristAttraction",
+    "name": guide.title,
+    "description": guide.description,
+    "image": guide.image_urls?.[0] || guide.image_url || guide.image,
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": guide.location?.split(',')[0] || guide.location,
+      "addressCountry": guide.location?.split(',').pop()?.trim() || ""
+    },
+    "offers": guide.price_usd ? {
+      "@type": "Offer",
+      "price": (guide.price_usd / 100).toFixed(2),
+      "priceCurrency": "USD"
+    } : undefined,
+    "aggregateRating": guide.rating ? {
+      "@type": "AggregateRating",
+      "ratingValue": guide.rating,
+      "reviewCount": guide.total_reviews || guide.totalReviews || 0
+    } : undefined
+  } : undefined;
+
   return (
     <div className="min-h-screen bg-background">
+      {guide && (
+        <SEO 
+          title={guide.title}
+          description={guide.description?.substring(0, 160) || `Discover ${guide.title} with our immersive audio guide`}
+          canonicalUrl={`https://guided-sound-ai.lovable.app/guide/${slug}`}
+          image={guide.image_urls?.[0] || guide.image_url || guide.image}
+          type="article"
+          structuredData={guideStructuredData}
+        />
+      )}
       <Navigation />
       
       <div className="container mx-auto px-4 py-6">

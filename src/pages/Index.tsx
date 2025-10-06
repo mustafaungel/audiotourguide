@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { SEO } from '@/components/SEO';
 import { HeroSection } from '@/components/HeroSection';
 import StatsSection from '@/components/StatsSection';
 import { AudioPlayer } from '@/components/AudioPlayer';
@@ -140,7 +141,22 @@ const Index = () => {
       console.error('Error tracking guide view:', error);
     }
   };
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Audio Tour Guides",
+    "description": "Discover UNESCO World Heritage sites with immersive audio guides",
+    "url": "https://guided-sound-ai.lovable.app",
+    "logo": "https://guided-sound-ai.lovable.app/logo-audio-tour-guides.png"
+  };
+
   return <div className="mobile-viewport bg-background">
+      <SEO 
+        title="Discover UNESCO World Heritage Sites"
+        description="Explore UNESCO World Heritage sites and cultural treasures with AI-powered immersive audio guides. Join thousands of travelers experiencing history like never before."
+        canonicalUrl="https://guided-sound-ai.lovable.app"
+        structuredData={organizationSchema}
+      />
       <Navigation />
       <HeroSection />
       <StatsSection />
