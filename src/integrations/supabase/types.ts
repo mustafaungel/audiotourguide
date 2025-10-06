@@ -850,6 +850,27 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       viral_metrics: {
         Row: {
           completion_rate: number | null
@@ -934,7 +955,42 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_guest_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          guide_id: string | null
+          id: string | null
+          is_approved: boolean | null
+          name: string | null
+          rating: number | null
+          status: Database["public"]["Enums"]["review_status"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          guide_id?: string | null
+          id?: string | null
+          is_approved?: boolean | null
+          name?: string | null
+          rating?: number | null
+          status?: Database["public"]["Enums"]["review_status"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          guide_id?: string | null
+          id?: string | null
+          is_approved?: boolean | null
+          name?: string | null
+          rating?: number | null
+          status?: Database["public"]["Enums"]["review_status"] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       approve_creator_verification: {
@@ -1234,6 +1290,13 @@ export type Database = {
           license_number: string
         }[]
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       has_verification_document_access: {
         Args: { p_document_type?: string; p_verification_request_id: string }
         Returns: boolean
@@ -1318,6 +1381,7 @@ export type Database = {
       }
     }
     Enums: {
+      app_role: "admin" | "content_creator" | "traveler"
       creator_type: "local_guide" | "influencer" | "hybrid"
       document_status: "pending" | "approved" | "rejected" | "incomplete"
       review_status: "pending" | "approved" | "rejected"
@@ -1450,6 +1514,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "content_creator", "traveler"],
       creator_type: ["local_guide", "influencer", "hybrid"],
       document_status: ["pending", "approved", "rejected", "incomplete"],
       review_status: ["pending", "approved", "rejected"],

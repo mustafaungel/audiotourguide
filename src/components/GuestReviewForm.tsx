@@ -26,6 +26,7 @@ export const GuestReviewForm = ({ guideId, onReviewSubmitted }: GuestReviewFormP
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Client-side validation (server-side validation is now enforced via database trigger)
     if (!formData.name.trim() || !formData.email.trim() || !formData.comment.trim()) {
       toast.error('Please fill in all required fields');
       return;
@@ -36,8 +37,21 @@ export const GuestReviewForm = ({ guideId, onReviewSubmitted }: GuestReviewFormP
       return;
     }
 
-    if (!formData.email.includes('@')) {
+    // Enhanced email validation
+    const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+    if (!emailRegex.test(formData.email.trim())) {
       toast.error('Please enter a valid email address');
+      return;
+    }
+
+    // Length validations (matching server-side rules)
+    if (formData.name.trim().length < 2 || formData.name.trim().length > 100) {
+      toast.error('Name must be between 2 and 100 characters');
+      return;
+    }
+
+    if (formData.comment.trim().length < 10 || formData.comment.trim().length > 2000) {
+      toast.error('Comment must be between 10 and 2000 characters');
       return;
     }
 
@@ -49,12 +63,24 @@ export const GuestReviewForm = ({ guideId, onReviewSubmitted }: GuestReviewFormP
         .insert({
           guide_id: guideId,
           name: formData.name.trim(),
-          email: formData.email.trim(),
+          email: formData.email.trim().toLowerCase(),
           comment: formData.comment.trim(),
           rating: formData.rating
         });
 
-      if (error) throw error;
+      if (error) {
+        // Handle specific validation errors from the database trigger
+        if (error.message.includes('must be between')) {
+          toast.error(error.message);
+        } else if (error.message.includes('Invalid email')) {
+          toast.error('Invalid email format. Please check and try again.');
+        } else if (error.message.includes('prohibited content')) {
+          toast.error('Your comment contains prohibited content. Please revise and try again.');
+        } else {
+          throw error;
+        }
+        return;
+      }
 
       toast.success('Review submitted successfully! It will be visible after admin approval.');
       setFormData({ name: '', email: '', comment: '', rating: 0 });

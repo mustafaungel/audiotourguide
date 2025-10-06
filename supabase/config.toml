@@ -16,7 +16,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.create-guide]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-qr-code]
 verify_jwt = true
@@ -28,19 +28,19 @@ verify_jwt = true
 verify_jwt = false
 
 [functions.generate-viral-content]
-verify_jwt = false
+verify_jwt = true
 
 [functions.track-viral-engagement]
 verify_jwt = false
 
 [functions.generate-description]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-guide-description]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-section-description]
-verify_jwt = false
+verify_jwt = true
 
 [functions.test-email-system]
-verify_jwt = false
+verify_jwt = true
