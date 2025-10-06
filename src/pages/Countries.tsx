@@ -54,12 +54,32 @@ const Countries = () => {
     navigate(`/country/${slug}`);
   };
 
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://guided-sound-ai.lovable.app"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Countries",
+        "item": "https://guided-sound-ai.lovable.app/country"
+      }
+    ]
+  };
+
   return (
     <div className="mobile-viewport bg-background">
       <SEO 
         title="Explore Audio Guides by Country"
         description="Choose from audio guides across multiple countries. Discover UNESCO World Heritage sites, cultural landmarks, and hidden gems with immersive audio experiences."
         canonicalUrl="https://guided-sound-ai.lovable.app/country"
+        structuredData={breadcrumbSchema}
       />
       <Navigation />
       

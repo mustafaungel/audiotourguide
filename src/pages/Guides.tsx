@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { SEO } from '@/components/SEO';
 import { AudioPlayer } from '@/components/AudioPlayer';
 import { GuideCard } from '@/components/GuideCard';
 import { Navigation } from '@/components/Navigation';
@@ -137,8 +138,47 @@ const Guides = () => {
     }
   };
 
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://guided-sound-ai.lovable.app"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Audio Guides",
+        "item": "https://guided-sound-ai.lovable.app/guides"
+      }
+    ]
+  };
+
+  const itemListSchema = !loading && guides.length > 0 ? {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "itemListElement": guides.slice(0, 10).map((guide, index) => ({
+      "@type": "ListItem",
+      "position": index + 1,
+      "name": guide.title,
+      "item": `https://guided-sound-ai.lovable.app/guides/${guide.slug}`
+    }))
+  } : null;
+
+  const schemas = [breadcrumbSchema];
+  if (itemListSchema) schemas.push(itemListSchema);
+
   return (
     <div className="mobile-viewport bg-background">
+      <SEO 
+        title="All Audio Guides"
+        description="Browse our complete collection of audio tour guides. Explore UNESCO World Heritage sites, museums, and cultural landmarks worldwide."
+        canonicalUrl="https://guided-sound-ai.lovable.app/guides"
+        structuredData={schemas}
+      />
       <Navigation />
       
       {/* Page Header */}

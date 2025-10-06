@@ -503,28 +503,54 @@ const GuideDetail = () => {
   }
 
   // Create structured data for the guide
-  const guideStructuredData = guide ? {
-    "@context": "https://schema.org",
-    "@type": "TouristAttraction",
-    "name": guide.title,
-    "description": guide.description,
-    "image": guide.image_urls?.[0] || guide.image_url || guide.image,
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": guide.location?.split(',')[0] || guide.location,
-      "addressCountry": guide.location?.split(',').pop()?.trim() || ""
+  const guideStructuredData = guide ? [
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://guided-sound-ai.lovable.app"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Guides",
+          "item": "https://guided-sound-ai.lovable.app/guides"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": guide.title,
+          "item": `https://guided-sound-ai.lovable.app/guide/${slug}`
+        }
+      ]
     },
-    "offers": guide.price_usd ? {
-      "@type": "Offer",
-      "price": (guide.price_usd / 100).toFixed(2),
-      "priceCurrency": "USD"
-    } : undefined,
-    "aggregateRating": guide.rating ? {
-      "@type": "AggregateRating",
-      "ratingValue": guide.rating,
-      "reviewCount": guide.total_reviews || guide.totalReviews || 0
-    } : undefined
-  } : undefined;
+    {
+      "@context": "https://schema.org",
+      "@type": "TouristAttraction",
+      "name": guide.title,
+      "description": guide.description,
+      "image": guide.image_urls?.[0] || guide.image_url || guide.image,
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": guide.location?.split(',')[0] || guide.location,
+        "addressCountry": guide.location?.split(',').pop()?.trim() || ""
+      },
+      "offers": guide.price_usd ? {
+        "@type": "Offer",
+        "price": (guide.price_usd / 100).toFixed(2),
+        "priceCurrency": "USD"
+      } : undefined,
+      "aggregateRating": guide.rating ? {
+        "@type": "AggregateRating",
+        "ratingValue": guide.rating,
+        "reviewCount": guide.total_reviews || guide.totalReviews || 0
+      } : undefined
+    }
+  ] : undefined;
 
   return (
     <div className="min-h-screen bg-background">

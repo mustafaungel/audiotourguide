@@ -138,12 +138,38 @@ const CountryDetail = () => {
 
   const countryFlag = getCountryFlag(country);
 
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://guided-sound-ai.lovable.app"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Countries",
+        "item": "https://guided-sound-ai.lovable.app/country"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": country,
+        "item": `https://guided-sound-ai.lovable.app/country/${countrySlug}`
+      }
+    ]
+  };
+
   return (
     <div className="mobile-viewport bg-background">
       <SEO 
         title={`Audio Guides in ${country} | Cultural Tours & Heritage Sites`}
         description={`Discover ${guides.length} audio guides in ${country}. Explore UNESCO World Heritage sites, cultural landmarks, and hidden gems with immersive audio experiences.`}
         canonicalUrl={`https://guided-sound-ai.lovable.app/country/${countrySlug}`}
+        structuredData={breadcrumbSchema}
       />
       <Navigation />
       

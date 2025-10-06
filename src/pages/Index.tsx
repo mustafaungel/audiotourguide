@@ -150,12 +150,24 @@ const Index = () => {
     "logo": "https://guided-sound-ai.lovable.app/logo-audio-tour-guides.png"
   };
 
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "url": "https://guided-sound-ai.lovable.app",
+    "name": "Audio Tour Guides",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://guided-sound-ai.lovable.app/guides?search={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  };
+
   return <div className="mobile-viewport bg-background">
       <SEO 
         title="Discover UNESCO World Heritage Sites"
         description="Explore UNESCO World Heritage sites and cultural treasures with AI-powered immersive audio guides. Join thousands of travelers experiencing history like never before."
         canonicalUrl="https://guided-sound-ai.lovable.app"
-        structuredData={organizationSchema}
+        structuredData={[organizationSchema, websiteSchema]}
       />
       <Navigation />
       <HeroSection />
