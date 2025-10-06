@@ -4,6 +4,7 @@ import { SEO } from '@/components/SEO';
 import { AudioPlayer } from '@/components/AudioPlayer';
 import { GuideCard } from '@/components/GuideCard';
 import { Navigation } from '@/components/Navigation';
+import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Headphones, Search, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -191,9 +192,9 @@ const Guides = () => {
           <h1 className="mobile-heading sm:text-3xl lg:text-4xl text-foreground mb-4">
             Discover Amazing Audio Guides
           </h1>
-          <p className="mobile-text text-muted-foreground max-w-2xl mx-auto">
+          <h2 className="mobile-text text-muted-foreground max-w-2xl mx-auto">
             Explore the world through immersive audio experiences. Search by destination, category, or guide name.
-          </p>
+          </h2>
         </div>
       </section>
 
@@ -317,6 +318,7 @@ const Guides = () => {
           </div>
         </section>
       )}
+      <Footer />
     </div>
   );
 };

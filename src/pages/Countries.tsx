@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SEO } from '@/components/SEO';
 import { Navigation } from '@/components/Navigation';
+import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -94,9 +95,9 @@ const Countries = () => {
           <h1 className="mobile-heading sm:text-3xl lg:text-4xl text-foreground mb-4">
             Discover Audio Guides by Country
           </h1>
-          <p className="mobile-text sm:text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+          <h2 className="mobile-text sm:text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
             Choose a destination and explore UNESCO World Heritage sites, cultural landmarks, and hidden gems with immersive audio experiences.
-          </p>
+          </h2>
 
           {/* Search */}
           <div className="max-w-md mx-auto">
@@ -217,6 +218,7 @@ const Countries = () => {
           </Button>
         </div>
       </section>
+      <Footer />
     </div>
   );
 };

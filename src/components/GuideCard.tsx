@@ -113,7 +113,7 @@ export function GuideCard({
         <div className="aspect-video overflow-hidden">
           <OptimizedImage
             src={imageUrl}
-            alt={title}
+            alt={`${title} - Audio tour guide in ${location}`}
             width={600}
             quality={80}
             loading="lazy"

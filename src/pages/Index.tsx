@@ -6,6 +6,7 @@ import StatsSection from '@/components/StatsSection';
 import { AudioPlayer } from '@/components/AudioPlayer';
 import { GuideCard } from '@/components/GuideCard';
 import { Navigation } from '@/components/Navigation';
+import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Headphones, Search, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -167,7 +168,7 @@ const Index = () => {
         title="Discover UNESCO World Heritage Sites"
         description="Explore UNESCO World Heritage sites and cultural treasures with AI-powered immersive audio guides. Join thousands of travelers experiencing history like never before."
         canonicalUrl="https://guided-sound-ai.lovable.app"
-        structuredData={[organizationSchema, websiteSchema]}
+        structuredData={[websiteSchema, organizationSchema]}
       />
       <Navigation />
       <HeroSection />
@@ -180,9 +181,12 @@ const Index = () => {
           <div className="text-center mobile-spacing">
             <div className="inline-flex items-center gap-2 mobile-padding rounded-full bg-card/20 backdrop-blur-md border border-border/50 mb-4">
               <Headphones className="h-4 w-4 text-primary" />
-              
+              <span className="text-sm font-medium">Audio Guides</span>
             </div>
-            
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold mb-4">Explore Audio Guides</h2>
+            <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
+              Browse our collection of premium audio guides for world heritage sites and cultural destinations
+            </p>
           </div>
 
           {/* Enhanced Search and Filter */}
@@ -237,7 +241,7 @@ const Index = () => {
           {/* No Results */}
           {!loading && filteredGuides.length === 0 && <div className="text-center py-16 mobile-spacing">
               <div className="text-6xl mb-4">🔍</div>
-              <h3 className="mobile-subheading text-foreground mb-2">No destinations found</h3>
+              <h2 className="mobile-subheading text-foreground mb-2">No destinations found</h2>
               <p className="mobile-caption">Try searching for UNESCO sites, cultural experiences, or specific countries</p>
             </div>}
         </div>
@@ -271,7 +275,8 @@ const Index = () => {
             </Button>
           </div>
         </div>
-      </section>
+       </section>
+       <Footer />
     </div>;
 };
 export default Index;

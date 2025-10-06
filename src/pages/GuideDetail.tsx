@@ -322,6 +322,7 @@ const GuideDetail = () => {
         id: guide.id,
         slug: guide.slug,
         title: guide.title,
+        location: guide.location,
         creator: 'Anonymous Creator',
         rating: guide.rating || 0,
         price: (guide.price_usd || 0) / 100,
@@ -415,6 +416,9 @@ const GuideDetail = () => {
       handlePaymentSuccess(sessionId);
     }
   }, [slug, user, searchParams]);
+
+  // Check if URL has access parameter (for noindex)
+  const hasAccessParam = searchParams.get('access');
 
   // Check for guide updates and refresh if needed
   useEffect(() => {
@@ -562,6 +566,7 @@ const GuideDetail = () => {
           image={guide.image_urls?.[0] || guide.image_url || guide.image}
           type="article"
           structuredData={guideStructuredData}
+          noindex={!!hasAccessParam}
         />
       )}
       <Navigation />
@@ -934,7 +939,7 @@ const GuideDetail = () => {
                   >
                     <img 
                       src={relatedGuide.image} 
-                      alt={relatedGuide.title}
+                      alt={`${relatedGuide.title} - Audio guide in ${relatedGuide.location || 'destination'}`}
                       className="w-16 h-16 rounded-lg object-cover"
                     />
                     <div className="flex-1 min-w-0">

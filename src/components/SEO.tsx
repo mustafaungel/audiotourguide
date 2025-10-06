@@ -7,6 +7,7 @@ interface SEOProps {
   image?: string;
   type?: 'website' | 'article';
   structuredData?: Record<string, any> | Record<string, any>[];
+  noindex?: boolean;
 }
 
 export const SEO: React.FC<SEOProps> = ({
@@ -15,7 +16,8 @@ export const SEO: React.FC<SEOProps> = ({
   canonicalUrl,
   image = 'https://guided-sound-ai.lovable.app/logo-audio-tour-guides.png',
   type = 'website',
-  structuredData
+  structuredData,
+  noindex = false
 }) => {
   const fullTitle = `${title} | Audio Tour Guides`;
   const siteUrl = 'https://guided-sound-ai.lovable.app';
@@ -27,6 +29,7 @@ export const SEO: React.FC<SEOProps> = ({
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
       <link rel="canonical" href={fullCanonicalUrl} />
+      {noindex && <meta name="robots" content="noindex, follow" />}
 
       {/* Open Graph Meta Tags */}
       <meta property="og:title" content={fullTitle} />
