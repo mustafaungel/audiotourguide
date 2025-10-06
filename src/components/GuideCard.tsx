@@ -115,6 +115,7 @@ export function GuideCard({
             src={imageUrl}
             alt={`${title} - Audio tour guide in ${location}`}
             width={600}
+            height={338}
             quality={80}
             loading="lazy"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"

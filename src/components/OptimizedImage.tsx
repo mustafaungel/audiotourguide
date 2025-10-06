@@ -46,6 +46,8 @@ export function OptimizedImage({
     <img
       src={imgSrc}
       alt={alt}
+      width={width}
+      height={height}
       className={className}
       loading={loading}
       fetchPriority={fetchPriority}
