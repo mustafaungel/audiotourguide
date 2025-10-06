@@ -23,7 +23,7 @@ export const ResponsiveLogo: React.FC<ResponsiveLogoProps> = ({
     loading: brandingLoading
   } = useSiteBranding();
   const {
-    theme
+    resolvedTheme
   } = useTheme();
 
   const [mounted, setMounted] = useState(false);
@@ -34,25 +34,12 @@ export const ResponsiveLogo: React.FC<ResponsiveLogoProps> = ({
     setMounted(true);
   }, []);
 
-  // Determine which logo to use based on resolved theme (avoid initial flash)
-  const getPreferredTheme = (): 'light' | 'dark' => {
-    if (theme === 'dark' || theme === 'light') return theme as 'light' | 'dark';
-    if (typeof window !== 'undefined') {
-      try {
-        const stored = localStorage.getItem('theme');
-        if (stored === 'dark' || stored === 'light') return stored as 'light' | 'dark';
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
-      } catch {}
-    }
-    return 'light';
-  };
-
+  // Use resolved theme to determine which logo to display
   const getLogoUrl = () => {
-    const preferred = getPreferredTheme();
-    if (preferred === 'dark' && branding.darkLogoUrl) {
+    if (resolvedTheme === 'dark' && branding.darkLogoUrl) {
       return branding.darkLogoUrl;
     }
-    // Fallback to whichever is available to avoid flashes
+    // Fallback to whichever is available
     return branding.logoUrl || branding.darkLogoUrl;
   };
   const logoUrl = getLogoUrl();
