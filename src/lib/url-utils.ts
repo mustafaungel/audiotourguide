@@ -49,7 +49,7 @@ export function openGuidePreview(slug: string): void {
  * Optimizes Supabase Storage image URLs using Supabase Image Transformation
  * @param imageUrl - The original Supabase storage URL
  * @param options - Transformation options
- * @returns Optimized image URL with transformations applied
+ * @returns Optimized image URL with transformations applied (or direct URL if transformations aren't available)
  */
 interface ImageOptimizationOptions {
   width?: number;
@@ -89,7 +89,7 @@ export function getOptimizedImageUrl(
     format = 'webp'
   } = options;
 
-  // Build transformation URL
+  // Build transformation URL (will fallback to direct URL if transformations aren't available)
   const baseUrl = 'https://dsaqlgxajdnwoqvtsrqd.supabase.co';
   const transformUrl = `${baseUrl}/storage/v1/render/image/public/${bucket}/${filePath}`;
   
@@ -101,4 +101,16 @@ export function getOptimizedImageUrl(
   if (format !== 'origin') params.append('format', format);
 
   return `${transformUrl}?${params.toString()}`;
+}
+
+/**
+ * Gets the direct Supabase Storage URL without any transformations
+ * @param imageUrl - The original Supabase storage URL
+ * @returns Direct image URL (always works, even on free tier)
+ */
+export function getDirectImageUrl(imageUrl: string | null | undefined): string {
+  if (!imageUrl) {
+    return '/placeholder.svg';
+  }
+  return imageUrl;
 }

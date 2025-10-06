@@ -6,6 +6,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { MapPin, Clock, Star, Users } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useViralTracking } from '@/hooks/useViralTracking';
+import { OptimizedImage } from '@/components/OptimizedImage';
 
 interface AudioGuide {
   id: string;
@@ -146,9 +147,12 @@ export const FeaturedGuides = () => {
               <CarouselItem key={guide.id} className="pl-2 basis-[85%] sm:basis-[75%] md:basis-1/2 lg:basis-1/3">{/* Mobile-first carousel items */}
                 <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden mobile-card">
                   <div className="relative aspect-mobile overflow-hidden">
-                    <img
+                    <OptimizedImage
                       src={guide.image_url}
                       alt={guide.title}
+                      width={600}
+                      quality={80}
+                      loading="lazy"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                     <div className="absolute top-4 left-4">
