@@ -30,7 +30,7 @@ interface GuestReview {
   rating: number;
   comment: string;
   created_at: string;
-  is_approved: boolean;
+  status: 'pending' | 'approved' | 'rejected';
 }
 
 export const ReviewsSection: React.FC<ReviewsSectionProps> = ({
@@ -94,7 +94,7 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({
         .from('guest_reviews')
         .select('*')
         .eq('guide_id', guideId)
-        .eq('is_approved', true)
+        .eq('status', 'approved')
         .order('created_at', { ascending: false });
 
       if (error) throw error;

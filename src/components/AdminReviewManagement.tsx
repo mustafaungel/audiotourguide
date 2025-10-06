@@ -14,7 +14,7 @@ interface GuestReview {
   email: string;
   comment: string;
   rating: number;
-  is_approved: boolean;
+  status: 'pending' | 'approved' | 'rejected';
   created_at: string;
   audio_guides?: {
     title: string;
@@ -65,18 +65,18 @@ export const AdminReviewManagement = () => {
     }
   };
 
-  const handleApproval = async (reviewId: string, isApproved: boolean) => {
+  const handleApproval = async (reviewId: string, status: 'approved' | 'rejected') => {
     setActionLoading(reviewId);
     
     try {
       const { error } = await supabase
         .from('guest_reviews')
-        .update({ is_approved: isApproved })
+        .update({ status })
         .eq('id', reviewId);
 
       if (error) throw error;
 
-      toast.success(`Review ${isApproved ? 'approved' : 'rejected'} successfully`);
+      toast.success(`Review ${status} successfully`);
       fetchReviews();
     } catch (error) {
       console.error('Error updating review:', error);
@@ -121,8 +121,8 @@ export const AdminReviewManagement = () => {
     );
   }
 
-  const pendingReviews = reviews.filter(r => !r.is_approved);
-  const approvedReviews = reviews.filter(r => r.is_approved);
+  const pendingReviews = reviews.filter(r => r.status === 'pending');
+  const approvedReviews = reviews.filter(r => r.status === 'approved');
 
   return (
     <div className="space-y-6">
@@ -161,7 +161,7 @@ export const AdminReviewManagement = () => {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleApproval(review.id, true)}
+                        onClick={() => handleApproval(review.id, 'approved')}
                         disabled={actionLoading === review.id}
                         className="text-green-600 border-green-200 hover:bg-green-50"
                       >
@@ -171,7 +171,7 @@ export const AdminReviewManagement = () => {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleApproval(review.id, false)}
+                        onClick={() => handleApproval(review.id, 'rejected')}
                         disabled={actionLoading === review.id}
                         className="text-red-600 border-red-200 hover:bg-red-50"
                       >

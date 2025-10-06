@@ -328,6 +328,7 @@ export type Database = {
           is_approved: boolean
           name: string
           rating: number | null
+          status: Database["public"]["Enums"]["review_status"]
           updated_at: string
         }
         Insert: {
@@ -339,6 +340,7 @@ export type Database = {
           is_approved?: boolean
           name: string
           rating?: number | null
+          status?: Database["public"]["Enums"]["review_status"]
           updated_at?: string
         }
         Update: {
@@ -350,6 +352,7 @@ export type Database = {
           is_approved?: boolean
           name?: string
           rating?: number | null
+          status?: Database["public"]["Enums"]["review_status"]
           updated_at?: string
         }
         Relationships: []
@@ -1317,6 +1320,7 @@ export type Database = {
     Enums: {
       creator_type: "local_guide" | "influencer" | "hybrid"
       document_status: "pending" | "approved" | "rejected" | "incomplete"
+      review_status: "pending" | "approved" | "rejected"
       user_role: "traveler" | "admin" | "content_creator"
       verification_level: "basic" | "premium" | "expert"
     }
@@ -1448,6 +1452,7 @@ export const Constants = {
     Enums: {
       creator_type: ["local_guide", "influencer", "hybrid"],
       document_status: ["pending", "approved", "rejected", "incomplete"],
+      review_status: ["pending", "approved", "rejected"],
       user_role: ["traveler", "admin", "content_creator"],
       verification_level: ["basic", "premium", "expert"],
     },
