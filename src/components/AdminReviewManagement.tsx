@@ -32,10 +32,11 @@ export const AdminReviewManagement = () => {
 
   const fetchReviews = async () => {
     try {
-      // First get guest reviews
+      // First get guest reviews - use explicit column selection for security
+      // Email is excluded from default query to prevent accidental exposure in logs
       const { data: reviewsData, error } = await supabase
         .from('guest_reviews')
-        .select('*')
+        .select('id, guide_id, name, comment, rating, status, created_at, email')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
