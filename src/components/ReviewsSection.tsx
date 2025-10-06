@@ -91,10 +91,9 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({
   const fetchGuestReviews = async () => {
     try {
       const { data, error } = await supabase
-        .from('guest_reviews')
+        .from('public_guest_reviews')
         .select('*')
         .eq('guide_id', guideId)
-        .eq('status', 'approved')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
