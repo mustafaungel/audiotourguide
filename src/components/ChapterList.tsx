@@ -19,8 +19,26 @@ interface ChapterListProps {
   currentTime: number;
   duration: number;
   onPlaySection: (index: number) => void;
-  onTogglePlay: () => void;
+  onTogglePlay?: () => void;
   className?: string;
+  // Optional props for backward compatibility with NewSectionAudioPlayer
+  loading?: boolean;
+  volume?: number;
+  isMuted?: boolean;
+  playbackSpeed?: number;
+  canGoNext?: boolean;
+  canGoPrevious?: boolean;
+  autoAdvanceEnabled?: boolean;
+  isChapterCompleted?: (chapterIndex: number) => boolean;
+  onTogglePlayPause?: () => void;
+  onSeek?: (newProgress: number[]) => void;
+  onSkip?: (seconds: number) => void;
+  onPreviousSection?: () => void;
+  onNextSection?: () => void;
+  onToggleMute?: () => void;
+  onVolumeChange?: (newVolume: number[]) => void;
+  onSpeedChange?: (speed: number) => void;
+  onAutoAdvanceChange?: (enabled: boolean) => void;
 }
 
 export const ChapterList: React.FC<ChapterListProps> = ({
@@ -31,8 +49,12 @@ export const ChapterList: React.FC<ChapterListProps> = ({
   duration,
   onPlaySection,
   onTogglePlay,
+  onTogglePlayPause,
   className,
+  // Destructure optional props but don't use them in the simplified version
 }) => {
+  // Use onTogglePlayPause if provided, otherwise use onTogglePlay
+  const handleToggle = onTogglePlayPause || onTogglePlay || (() => {});
   const formatTime = (seconds: number) => {
     if (!seconds || isNaN(seconds)) return '0:00';
     const mins = Math.floor(seconds / 60);
@@ -58,7 +80,7 @@ export const ChapterList: React.FC<ChapterListProps> = ({
               onClick={() => {
                 haptics.selection();
                 if (isCurrent) {
-                  onTogglePlay();
+                  handleToggle();
                 } else {
                   onPlaySection(index);
                 }
