@@ -25,6 +25,7 @@ interface EnhancedAudioPlayerProps {
   };
   sections?: Section[];
   accessCode?: string;
+  selectedLanguage?: string;
   onClose?: () => void;
   defaultStyle?: 'spotify' | 'classic';
 }
@@ -33,6 +34,7 @@ export const EnhancedAudioPlayer: React.FC<EnhancedAudioPlayerProps> = ({
   guide,
   sections = [],
   accessCode,
+  selectedLanguage = 'en',
   onClose,
   defaultStyle = 'spotify'
 }) => {
@@ -88,6 +90,7 @@ export const EnhancedAudioPlayer: React.FC<EnhancedAudioPlayerProps> = ({
         mainGuide={guide}
         mainSections={sections}
         accessCode={accessCode}
+        languageCode={selectedLanguage}
         onClose={handleClose}
       />
     );
@@ -97,7 +100,7 @@ export const EnhancedAudioPlayer: React.FC<EnhancedAudioPlayerProps> = ({
     <>
       {playerStyle === 'spotify' ? (
         <SpotifyStylePlayer
-          key={`${guide.id}-${sections.map(s => s.id).join('-')}`}
+          key={`${guide.id}-${selectedLanguage}-${sections.map(s => s.id).join('-')}`}
           guide={guide}
           sections={sections}
           accessCode={accessCode}
@@ -105,7 +108,7 @@ export const EnhancedAudioPlayer: React.FC<EnhancedAudioPlayerProps> = ({
         />
       ) : (
         <LibraryAudioPlayer
-          key={`${guide.id}-${sections.map(s => s.id).join('-')}`}
+          key={`${guide.id}-${selectedLanguage}-${sections.map(s => s.id).join('-')}`}
           guide={guide}
           accessCode={accessCode}
           onClose={handleClose}

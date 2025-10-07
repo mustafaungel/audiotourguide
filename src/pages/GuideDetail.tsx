@@ -288,6 +288,7 @@ const GuideDetail = () => {
 
   const handleLanguageChange = async (languageCode: string) => {
     setSelectedLanguage(languageCode);
+    setPlayingGuide(false); // Stop audio player when language changes
     if (realGuideData?.id) {
       await fetchGuideSections(realGuideData.id, languageCode);
     }
@@ -617,11 +618,6 @@ const GuideDetail = () => {
                         {Math.floor(guide.duration / 60)} min
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      {(guide.languages || []).map(lang => (
-                        <Badge key={lang} variant="secondary">{lang}</Badge>
-                      ))}
-                    </div>
                   </div>
                   
                   {/* Language Selector */}
@@ -887,6 +883,7 @@ const GuideDetail = () => {
                   }}
                   sections={currentChapters}
                   accessCode={searchParams.get('access_code') || undefined}
+                  selectedLanguage={selectedLanguage}
                   defaultStyle="spotify"
                 />
               </div>
