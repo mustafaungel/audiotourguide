@@ -174,8 +174,8 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
       
       // Set default language if none selected
       if (!selectedLanguage && data && data.length > 0) {
-        // Try to find English first, otherwise use the first available
-        const defaultLang = data.find(lang => lang.language_code === 'en') || data[0];
+        // Use the first available language (no English priority)
+        const defaultLang = data[0];
         onLanguageChange(defaultLang.language_code);
       }
     } catch (error) {

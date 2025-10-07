@@ -120,7 +120,7 @@ const GuideDetail = () => {
   const [realGuideData, setRealGuideData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [relatedGuides, setRelatedGuides] = useState<any[]>([]);
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('');
   const [guideSections, setGuideSections] = useState<any[]>([]);
   const { toast: showToast } = useToast();
 
@@ -268,6 +268,12 @@ const GuideDetail = () => {
 
   const fetchGuideSections = async (guideId: string, languageCode: string) => {
     try {
+      // Skip if no language code provided yet
+      if (!languageCode) {
+        console.log('No language code provided, waiting for GuideLanguageSelector to set default');
+        return;
+      }
+
       const { data, error } = await supabase
         .from('guide_sections')
         .select('*')
@@ -280,6 +286,24 @@ const GuideDetail = () => {
         return;
       }
 
+      // If no sections found for this language, try to find any available language
+      if (!data || data.length === 0) {
+        console.warn(`No sections found for language: ${languageCode}, trying fallback`);
+        
+        const { data: fallbackData } = await supabase
+          .from('guide_sections')
+          .select('language_code')
+          .eq('guide_id', guideId)
+          .limit(1);
+        
+        if (fallbackData && fallbackData.length > 0) {
+          const fallbackLang = fallbackData[0].language_code;
+          console.log(`Falling back to language: ${fallbackLang}`);
+          handleLanguageChange(fallbackLang);
+          return;
+        }
+      }
+
       setGuideSections(data || []);
     } catch (error) {
       console.error('Error fetching guide sections:', error);
@@ -289,7 +313,7 @@ const GuideDetail = () => {
   const handleLanguageChange = async (languageCode: string) => {
     setSelectedLanguage(languageCode);
     setPlayingGuide(false); // Stop audio player when language changes
-    if (realGuideData?.id) {
+    if (realGuideData?.id && languageCode) {
       await fetchGuideSections(realGuideData.id, languageCode);
     }
   };
