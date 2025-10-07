@@ -315,27 +315,18 @@ const AdminPanel = () => {
                   </div>
                 )}
                 {activeTab === 'contact-management' && <AdminContactManagement />}
-
-          <TabsContent value="email-test">
-            <EnhancedEmailTesting />
-          </TabsContent>
-
-          <TabsContent value="review-management">
-            <div className="space-y-6">
-              <h2 className="text-xl sm:text-2xl font-bold">Review Management</h2>
-              <AdminReviewManagement />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="analytics">
-            <AdminAnalyticsManager />
-          </TabsContent>
-
-
-          <TabsContent value="create-guide">
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl sm:text-2xl font-bold">Create Audio Guide</h2>
+                {activeTab === 'email-test' && <EnhancedEmailTesting />}
+                {activeTab === 'review-management' && (
+                  <div className="space-y-6">
+                    <h2 className="text-xl sm:text-2xl font-bold">Review Management</h2>
+                    <AdminReviewManagement />
+                  </div>
+                )}
+                {activeTab === 'analytics' && <AdminAnalyticsManager />}
+                {activeTab === 'create-guide' && (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-xl sm:text-2xl font-bold">Create Audio Guide</h2>
                 <div className="flex items-center space-x-3">
                   <Label htmlFor="publication-toggle" className="text-sm font-medium">
                     {isHidden ? 'Hidden' : 'Published'}
@@ -351,12 +342,12 @@ const AdminPanel = () => {
                 </div>
               </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Guide Information</CardTitle>
-                  <CardDescription>Create a new audio guide with sections</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Guide Information</CardTitle>
+                        <CardDescription>Create a new audio guide with sections</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="title">Guide Title</Label>
@@ -604,19 +595,61 @@ const AdminPanel = () => {
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
+                )}
+                {activeTab === 'edit-guide' && <AdminGuideEditForm onBack={() => setActiveTab('content-management')} />}
+                {activeTab === 'language-management' && <AdminLanguageManagement />}
+                {activeTab === 'branding' && <EnhancedLogoUploader />}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <AdminLayout activeTab={activeTab} onTabChange={setActiveTab}>
+            {activeTab === 'dashboard' && <AdminDashboard />}
+            {activeTab === 'content-management' && (
+              <div className="space-y-6">
+                <h2 className="text-xl sm:text-2xl font-bold">Content Management</h2>
+                <GuideManagement />
+              </div>
+            )}
+            {activeTab === 'contact-management' && <AdminContactManagement />}
+            {activeTab === 'email-test' && <EnhancedEmailTesting />}
+            {activeTab === 'review-management' && (
+              <div className="space-y-6">
+                <h2 className="text-xl sm:text-2xl font-bold">Review Management</h2>
+                <AdminReviewManagement />
+              </div>
+            )}
+            {activeTab === 'analytics' && <AdminAnalyticsManager />}
+            {activeTab === 'create-guide' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Create New Guide</CardTitle>
+                  <CardDescription>Use the mobile view or create guide form here</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">Guide creation form will appear here. For now, use mobile view or the old interface.</p>
+                </CardContent>
+              </Card>
+            )}
+            {activeTab === 'edit-guide' && <AdminGuideEditForm onBack={() => setActiveTab('content-management')} />}
+            {activeTab === 'language-management' && <AdminLanguageManagement />}
+            {activeTab === 'branding' && <EnhancedLogoUploader />}
+            {activeTab === 'destination-management' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Destination Management</CardTitle>
+                  <CardDescription>Manage travel destinations</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">Destination management will appear here.</p>
+                </CardContent>
+              </Card>
+            )}
+          </AdminLayout>
+        )}
 
-          <TabsContent value="edit-guide">
-            <AdminGuideEditForm onBack={() => setActiveTab('content-management')} />
-          </TabsContent>
-
-          <TabsContent value="language-management">
-            <AdminLanguageManagement />
-          </TabsContent>
-
-        </Tabs>
-      </div>
-      </div>
+        <KeyboardShortcutsHelp open={showShortcutsHelp} onOpenChange={setShowShortcutsHelp} />
+      </AdminErrorBoundary>
     </AdminGuard>
   );
 };
