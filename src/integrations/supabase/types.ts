@@ -47,6 +47,13 @@ export type Database = {
             referencedRelation: "audio_guides"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "admin_approvals_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "guide_analytics_summary"
+            referencedColumns: ["guide_id"]
+          },
         ]
       }
       audio_guides: {
@@ -390,6 +397,13 @@ export type Database = {
             referencedRelation: "audio_guides"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "guide_collections_main_guide_id_fkey"
+            columns: ["main_guide_id"]
+            isOneToOne: true
+            referencedRelation: "guide_analytics_summary"
+            referencedColumns: ["guide_id"]
+          },
         ]
       }
       guide_reviews: {
@@ -424,6 +438,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "audio_guides"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guide_reviews_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "guide_analytics_summary"
+            referencedColumns: ["guide_id"]
           },
         ]
       }
@@ -801,6 +822,13 @@ export type Database = {
             referencedRelation: "audio_guides"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_bookmarks_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "guide_analytics_summary"
+            referencedColumns: ["guide_id"]
+          },
         ]
       }
       user_purchases: {
@@ -850,6 +878,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "audio_guides"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_purchases_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "guide_analytics_summary"
+            referencedColumns: ["guide_id"]
           },
         ]
       }
@@ -919,6 +954,13 @@ export type Database = {
             referencedRelation: "audio_guides"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "viral_metrics_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "guide_analytics_summary"
+            referencedColumns: ["guide_id"]
+          },
         ]
       }
       viral_shares: {
@@ -954,10 +996,37 @@ export type Database = {
             referencedRelation: "audio_guides"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "viral_shares_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "guide_analytics_summary"
+            referencedColumns: ["guide_id"]
+          },
         ]
       }
     }
     Views: {
+      guide_analytics_summary: {
+        Row: {
+          avg_rating: number | null
+          category: string | null
+          conversion_rate: number | null
+          created_at: string | null
+          guide_id: string | null
+          is_approved: boolean | null
+          is_published: boolean | null
+          location: string | null
+          max_viral_score: number | null
+          title: string | null
+          total_purchases: number | null
+          total_revenue: number | null
+          total_reviews: number | null
+          total_shares: number | null
+          total_views: number | null
+        }
+        Relationships: []
+      }
       public_guest_reviews: {
         Row: {
           comment: string | null
@@ -1337,6 +1406,10 @@ export type Database = {
           p_user_id: string
         }
         Returns: Json
+      }
+      refresh_analytics_summary: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       reject_creator_verification: {
         Args: {
