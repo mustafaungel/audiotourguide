@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Star } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,7 +18,10 @@ import { validateGuideForm, validatePrice, validateSections } from '@/utils/admi
 import { showSuccessToast, showErrorToast, showGuideCreatedToast, showValidationErrorToast, copyToClipboard } from '@/utils/admin/toast';
 import { AdminDashboard } from '@/components/AdminDashboard';
 import { GuideManagement } from '@/components/GuideManagement';
-
+import { AdminLayout } from '@/components/admin/AdminLayout';
+import { AdminErrorBoundary } from '@/components/admin/AdminErrorBoundary';
+import { KeyboardShortcutsHelp } from '@/components/admin/KeyboardShortcutsHelp';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { AdminMobileNavigation } from '@/components/AdminMobileNavigation';
 import { CountrySelector } from '@/components/CountrySelector';
 import { AudioGuideSectionManager } from '@/components/AudioGuideSectionManager';
@@ -29,13 +31,13 @@ import { EnhancedEmailTesting } from '@/components/EnhancedEmailTesting';
 import { AdminAnalyticsManager } from '@/components/AdminAnalyticsManager';
 import { EnhancedLogoUploader } from '@/components/EnhancedLogoUploader';
 import { AdminGuard } from '@/components/guards/AdminGuard';
-
 import { ImageUploader } from '@/components/ImageUploader';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const AdminPanel = () => {
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
 
   // Listen for tab change events from GuideManagement
   useEffect(() => {
@@ -46,6 +48,15 @@ const AdminPanel = () => {
     window.addEventListener('admin-tab-change', handleTabChange as EventListener);
     return () => window.removeEventListener('admin-tab-change', handleTabChange as EventListener);
   }, []);
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts([
+    { key: 'n', meta: true, handler: () => setActiveTab('create-guide'), description: 'Create new guide' },
+    { key: 'd', meta: true, handler: () => setActiveTab('dashboard'), description: 'Go to dashboard' },
+    { key: 'a', meta: true, handler: () => setActiveTab('analytics'), description: 'Go to analytics' },
+    { key: 'e', meta: true, handler: () => setActiveTab('edit-guide'), description: 'Edit guide' },
+    { key: '?', meta: true, handler: () => setShowShortcutsHelp(true), description: 'Show shortcuts' },
+  ]);
 
   // Form data state
   const [tempGuideId] = useState(() => crypto.randomUUID());
@@ -282,72 +293,28 @@ const AdminPanel = () => {
 
   return (
     <AdminGuard>
-      <div className="min-h-screen bg-background">
-      <Navigation />
-      
-      <div className="container mx-auto px-4 py-6 md:py-8 pb-safe">
-        <div className="mb-6 md:mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold mb-2">Admin Panel</h1>
-          <p className="text-muted-foreground text-sm md:text-base">Comprehensive platform management and content creation</p>
-        </div>
+      <AdminErrorBoundary>
+        <Navigation />
+        
+        {isMobile ? (
+          <div className="min-h-screen bg-background">
+            <div className="container mx-auto px-4 py-6 md:py-8 pb-safe">
+              <div className="mb-6 md:mb-8">
+                <h1 className="text-2xl md:text-3xl font-bold mb-2">Admin Panel</h1>
+                <p className="text-muted-foreground text-sm md:text-base">Comprehensive platform management and content creation</p>
+              </div>
 
-        <AdminMobileNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+              <AdminMobileNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="hidden md:grid grid-cols-9 w-full max-w-6xl gap-1">
-            <TabsTrigger value="dashboard" className="flex items-center gap-2 text-sm">
-              <FileText className="h-4 w-4" />
-              <span>Dashboard</span>
-            </TabsTrigger>
-            <TabsTrigger value="content-management" className="flex items-center gap-2 text-sm">
-              <FileText className="h-4 w-4" />
-              <span>Content</span>
-            </TabsTrigger>
-            <TabsTrigger value="contact-management" className="flex items-center gap-2 text-sm">
-              <Mail className="h-4 w-4" />
-              <span>Contact</span>
-            </TabsTrigger>
-            <TabsTrigger value="email-test" className="flex items-center gap-2 text-sm">
-              <Mail className="h-4 w-4" />
-              <span>Email</span>
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2 text-sm">
-              <BarChart3 className="h-4 w-4" />
-              <span>Analytics</span>
-            </TabsTrigger>
-            <TabsTrigger value="review-management" className="flex items-center gap-2 text-sm">
-              <Star className="h-4 w-4" />
-              <span>Reviews</span>
-            </TabsTrigger>
-            <TabsTrigger value="create-guide" className="flex items-center gap-2 text-sm">
-              <Plus className="h-4 w-4" />
-              <span>Create</span>
-            </TabsTrigger>
-            <TabsTrigger value="edit-guide" className="flex items-center gap-2 text-sm" data-tab="edit-guide">
-              <Edit2 className="h-4 w-4" />
-              <span>Edit</span>
-            </TabsTrigger>
-            <TabsTrigger value="language-management" className="flex items-center gap-2 text-sm">
-              <Languages className="h-4 w-4" />
-              <span>Languages</span>
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="dashboard">
-            <AdminDashboard />
-          </TabsContent>
-
-
-          <TabsContent value="content-management">
-            <div className="space-y-6">
-              <h2 className="text-xl sm:text-2xl font-bold">Content Management</h2>
-              <GuideManagement />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="contact-management">
-            <AdminContactManagement />
-          </TabsContent>
+              <div className="mt-6">
+                {activeTab === 'dashboard' && <AdminDashboard />}
+                {activeTab === 'content-management' && (
+                  <div className="space-y-6">
+                    <h2 className="text-xl sm:text-2xl font-bold">Content Management</h2>
+                    <GuideManagement />
+                  </div>
+                )}
+                {activeTab === 'contact-management' && <AdminContactManagement />}
 
           <TabsContent value="email-test">
             <EnhancedEmailTesting />
