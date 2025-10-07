@@ -239,7 +239,7 @@ export const SpotifyStylePlayer: React.FC<SpotifyStylePlayerProps> = ({
       <div
         className={cn(
           "fixed bottom-0 left-0 right-0 z-50 transition-all duration-500 spring-animation",
-          isExpanded ? "top-0" : "h-[88px]"
+          isExpanded ? "top-0" : "h-[110px]"
         )}
         style={{
           background: isExpanded 
@@ -249,9 +249,9 @@ export const SpotifyStylePlayer: React.FC<SpotifyStylePlayerProps> = ({
       >
         {isExpanded ? (
           // ===== EXPANDED PLAYER =====
-          <div className="h-full flex flex-col p-4 pt-safe-top pb-safe-bottom overflow-y-auto">
+          <div className="h-full flex flex-col pt-safe-top overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between px-4 pt-4 pb-3 flex-shrink-0">
               <Button
                 variant="ghost"
                 size="icon"
@@ -275,176 +275,9 @@ export const SpotifyStylePlayer: React.FC<SpotifyStylePlayerProps> = ({
               </Button>
             </div>
 
-            {/* Album Art */}
-            <div 
-              {...swipeHandlers}
-              className={cn(
-                "relative mx-auto mb-6 transition-transform duration-200",
-                touchFeedback && "scale-95",
-                isMobile ? "w-[280px] h-[280px]" : "w-[320px] h-[320px]"
-              )}
-              onDoubleClick={handleDoubleTap}
-              onTouchStart={() => setTouchFeedback(true)}
-              onTouchEnd={() => setTouchFeedback(false)}
-            >
-              <img
-                src={guide.image_url || '/placeholder.svg'}
-                alt={guide.title}
-                className="w-full h-full object-cover rounded-3xl shadow-2xl"
-              />
-              {loading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-background/50 rounded-3xl backdrop-blur-sm">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
-                </div>
-              )}
-            </div>
-
-            {/* Track Info */}
-            <div className="text-center mb-6 px-4">
-              <h2 className="ios-title-large text-foreground mb-2 line-clamp-2">
-                {displayTitle}
-              </h2>
-              <p className="ios-body text-muted-foreground line-clamp-1">
-                {displaySubtitle}
-              </p>
-            </div>
-
-            {/* Progress Slider */}
-            <div className="mb-8 px-2">
-              <Slider
-                value={[progress]}
-                max={100}
-                step={0.1}
-                onValueChange={handleSeek}
-                className="cursor-pointer"
-                aria-label="Seek audio"
-              />
-              <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-                <span>{formatTime(currentTime)}</span>
-                <span>{formatTime(duration)}</span>
-              </div>
-            </div>
-
-            {/* Main Controls */}
-            <div className="flex items-center justify-center gap-4 mb-6">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => handleSkip(-15)}
-                className="h-12 w-12 rounded-full"
-                aria-label="Skip back 15 seconds"
-              >
-                <SkipBack className="h-6 w-6" />
-              </Button>
-
-              <Button
-                onClick={handlePlayPause}
-                disabled={loading}
-                className={cn(
-                  "h-18 w-18 rounded-full shadow-lg transition-all duration-300",
-                  "bg-primary hover:bg-primary/90",
-                  isPlaying && "play-button-glow"
-                )}
-                aria-label={isPlaying ? 'Pause' : 'Play'}
-                aria-pressed={isPlaying}
-              >
-                {isPlaying ? (
-                  <Pause className="h-8 w-8" fill="currentColor" />
-                ) : (
-                  <Play className="h-8 w-8 ml-1" fill="currentColor" />
-                )}
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => handleSkip(15)}
-                className="h-12 w-12 rounded-full"
-                aria-label="Skip forward 15 seconds"
-              >
-                <SkipForward className="h-6 w-6" />
-              </Button>
-            </div>
-
-            {/* Secondary Controls */}
-            <div className="flex items-center justify-center gap-6 mb-6">
-              {sections.length > 1 && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleToggleShuffle}
-                  className={cn(
-                    "h-9 w-9 rounded-full",
-                    isShuffled && "text-primary"
-                  )}
-                  aria-label="Toggle shuffle"
-                  aria-pressed={isShuffled}
-                >
-                  <Shuffle className="h-4 w-4" />
-                </Button>
-              )}
-
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleToggleRepeat}
-                  className={cn(
-                    "h-9 w-9 rounded-full",
-                    repeatMode !== 'none' && "text-primary"
-                  )}
-                  aria-label="Toggle repeat"
-                  aria-pressed={repeatMode !== 'none'}
-              >
-                {repeatMode === 'one' ? (
-                  <Repeat1 className="h-4 w-4" />
-                ) : (
-                  <Repeat className="h-4 w-4" />
-                )}
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  haptics.medium();
-                  setShowSpeedSheet(true);
-                }}
-                className="h-9 px-4 rounded-full bg-muted/50 hover:bg-muted"
-                aria-label="Change playback speed"
-              >
-                <span className="text-sm font-medium">{playbackSpeed}×</span>
-              </Button>
-
-              {!isMobile && (
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleMute}
-                    className="h-9 w-9 rounded-full"
-                    aria-label={isMuted ? 'Unmute' : 'Mute'}
-                  >
-                    {isMuted ? (
-                      <VolumeX className="h-4 w-4" />
-                    ) : (
-                      <Volume2 className="h-4 w-4" />
-                    )}
-                  </Button>
-                  <Slider
-                    value={[isMuted ? 0 : volume]}
-                    max={100}
-                    step={1}
-                    onValueChange={handleVolumeChange}
-                    className="w-24"
-                    aria-label="Volume"
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Chapter List */}
+            {/* Chapter List - At Top, Scrollable */}
             {sections.length > 0 && (
-              <div className="mt-auto">
+              <div className="max-h-[45vh] overflow-y-auto px-4 flex-shrink-0">
                 <ChapterList
                   sections={sections}
                   currentSectionIndex={currentSection}
@@ -453,9 +286,186 @@ export const SpotifyStylePlayer: React.FC<SpotifyStylePlayerProps> = ({
                   duration={duration}
                   onPlaySection={handlePlaySection}
                   onTogglePlay={handlePlayPause}
+                  onSkip={handleSkip}
+                  onPreviousSection={handlePreviousSection}
+                  onNextSection={handleNextSection}
+                  onSpeedChange={handleSpeedChange}
+                  playbackSpeed={playbackSpeed}
                 />
               </div>
             )}
+
+            {/* Scrollable Content Area */}
+            <div className="flex-1 overflow-y-auto px-4">
+              <div 
+                {...swipeHandlers}
+                className={cn(
+                  "relative mx-auto mb-6 mt-6 transition-transform duration-200",
+                  touchFeedback && "scale-95",
+                  isMobile ? "w-[240px] h-[240px]" : "w-[280px] h-[280px]"
+                )}
+              onDoubleClick={handleDoubleTap}
+                onTouchStart={() => setTouchFeedback(true)}
+                onTouchEnd={() => setTouchFeedback(false)}
+              >
+                <img
+                  src={guide.image_url || '/placeholder.svg'}
+                  alt={guide.title}
+                  className="w-full h-full object-cover rounded-3xl shadow-2xl"
+                />
+                {loading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-background/50 rounded-3xl backdrop-blur-sm">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+                  </div>
+                )}
+              </div>
+
+              {/* Track Info */}
+              <div className="text-center mb-6 px-4">
+                <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2 line-clamp-2">
+                  {displayTitle}
+                </h2>
+                <p className="text-base text-muted-foreground line-clamp-1">
+                  {displaySubtitle}
+                </p>
+              </div>
+
+              {/* Progress Slider */}
+              <div className="mb-6 px-2">
+                <Slider
+                  value={[progress]}
+                  max={100}
+                  step={0.1}
+                  onValueChange={handleSeek}
+                  className="cursor-pointer h-2"
+                  aria-label="Seek audio"
+                />
+                <div className="flex justify-between mt-2 text-sm font-semibold text-muted-foreground">
+                  <span>{formatTime(currentTime)}</span>
+                  <span>{formatTime(duration)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Sticky Controls - Always at Bottom */}
+            <div className="sticky bottom-0 bg-background/95 backdrop-blur-lg border-t border-border/50 px-4 py-4 pb-safe-bottom z-20 flex-shrink-0">
+              {/* Main Controls */}
+              <div className="flex items-center justify-center gap-4 mb-4">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleSkip(-15)}
+                  className="h-14 w-14 rounded-full"
+                  aria-label="Skip back 15 seconds"
+                >
+                  <SkipBack className="h-6 w-6" />
+                </Button>
+
+                <Button
+                  onClick={handlePlayPause}
+                  disabled={loading}
+                  className={cn(
+                    "h-20 w-20 rounded-full shadow-lg transition-all duration-300",
+                    "bg-primary hover:bg-primary/90",
+                    isPlaying && "play-button-glow"
+                  )}
+                  aria-label={isPlaying ? 'Pause' : 'Play'}
+                  aria-pressed={isPlaying}
+                >
+                  {isPlaying ? (
+                    <Pause className="h-8 w-8" fill="currentColor" />
+                  ) : (
+                    <Play className="h-8 w-8 ml-1" fill="currentColor" />
+                  )}
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleSkip(15)}
+                  className="h-14 w-14 rounded-full"
+                  aria-label="Skip forward 15 seconds"
+                >
+                  <SkipForward className="h-6 w-6" />
+                </Button>
+              </div>
+
+              {/* Secondary Controls */}
+              <div className="flex items-center justify-center gap-6">
+                {sections.length > 1 && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleToggleShuffle}
+                    className={cn(
+                      "h-10 w-10 rounded-full",
+                      isShuffled && "text-primary"
+                    )}
+                    aria-label="Toggle shuffle"
+                    aria-pressed={isShuffled}
+                  >
+                    <Shuffle className="h-4 w-4" />
+                  </Button>
+                )}
+
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleToggleRepeat}
+                  className={cn(
+                    "h-10 w-10 rounded-full",
+                    repeatMode !== 'none' && "text-primary"
+                  )}
+                  aria-label="Toggle repeat"
+                  aria-pressed={repeatMode !== 'none'}
+                >
+                  {repeatMode === 'one' ? (
+                    <Repeat1 className="h-4 w-4" />
+                  ) : (
+                    <Repeat className="h-4 w-4" />
+                  )}
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    haptics.medium();
+                    setShowSpeedSheet(true);
+                  }}
+                  className="h-10 px-4 rounded-full bg-muted/50 hover:bg-muted"
+                  aria-label="Change playback speed"
+                >
+                  <span className="text-sm font-medium">{playbackSpeed}×</span>
+                </Button>
+
+                {!isMobile && (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleMute}
+                      className="h-10 w-10 rounded-full"
+                      aria-label={isMuted ? 'Unmute' : 'Mute'}
+                    >
+                      {isMuted ? (
+                        <VolumeX className="h-4 w-4" />
+                      ) : (
+                        <Volume2 className="h-4 w-4" />
+                      )}
+                    </Button>
+                    <Slider
+                      value={[isMuted ? 0 : volume]}
+                      max={100}
+                      step={1}
+                      onValueChange={handleVolumeChange}
+                      className="w-24"
+                      aria-label="Volume"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         ) : (
           // ===== COLLAPSED PLAYER =====
@@ -470,7 +480,7 @@ export const SpotifyStylePlayer: React.FC<SpotifyStylePlayerProps> = ({
               <img
                 src={guide.image_url || '/placeholder.svg'}
                 alt={guide.title}
-                className="w-16 h-16 object-cover rounded-2xl shadow-lg"
+                className="w-18 h-18 object-cover rounded-2xl shadow-lg"
               />
             </div>
 
@@ -479,23 +489,23 @@ export const SpotifyStylePlayer: React.FC<SpotifyStylePlayerProps> = ({
               className="flex-1 min-w-0 cursor-pointer"
               onClick={handleExpand}
             >
-              <h3 className="ios-body font-semibold text-foreground truncate">
+              <h3 className="text-[15px] font-medium text-foreground truncate">
                 {displayTitle}
               </h3>
-              <p className="ios-caption text-muted-foreground truncate">
+              <p className="text-xs text-muted-foreground truncate mb-2">
                 {sections.length > 0 ? `${sections.length} chapters` : guide.description}
               </p>
               
               {/* Mini Progress Bar */}
-              <div className="mt-2">
-                <div className="h-1 bg-muted/30 rounded-full overflow-hidden">
+              <div>
+                <div className="h-[2.5px] bg-muted/30 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-primary transition-all duration-300 shadow-sm"
                     style={{ width: `${progress}%` }}
                   />
                 </div>
-                <div className="flex justify-between mt-1.5">
-                  <span className="text-[11px] text-muted-foreground font-medium">
+                <div className="flex items-center justify-between mt-1">
+                  <span className="text-xs text-muted-foreground font-medium">
                     {formatTime(currentTime)}
                   </span>
                   <span className="text-[11px] text-muted-foreground font-medium">
@@ -506,7 +516,7 @@ export const SpotifyStylePlayer: React.FC<SpotifyStylePlayerProps> = ({
             </div>
 
             {/* Compact Controls */}
-            <div className="flex items-center gap-1 flex-shrink-0">
+            <div className="flex items-center gap-2 flex-shrink-0">
               {/* Previous Section */}
               {sections.length > 1 && (
                 <Button
@@ -514,30 +524,19 @@ export const SpotifyStylePlayer: React.FC<SpotifyStylePlayerProps> = ({
                   disabled={currentSection <= 0}
                   size="icon"
                   variant="ghost"
-                  className="h-9 w-9 rounded-full"
+                  className="h-9 w-9 min-h-[36px] rounded-full touch-manipulation"
                   aria-label="Previous section"
                 >
-                  <SkipBack className="h-3.5 w-3.5" />
+                  <SkipBack className="h-4 w-4" />
                 </Button>
               )}
-
-              {/* Skip -15s */}
-              <Button
-                onClick={() => handleSkip(-15)}
-                size="icon"
-                variant="ghost"
-                className="h-9 w-9 rounded-full"
-                aria-label="Skip back 15 seconds"
-              >
-                <span className="text-[10px] font-semibold">-15</span>
-              </Button>
 
               {/* Play/Pause Button */}
               <Button
                 onClick={handlePlayPause}
                 disabled={loading}
                 size="icon"
-                className="flex-shrink-0 h-12 w-12 rounded-full bg-primary hover:bg-primary/90 shadow-md"
+                className="flex-shrink-0 h-14 w-14 min-h-[56px] rounded-full bg-primary hover:bg-primary/90 shadow-md touch-manipulation"
                 aria-label={isPlaying ? 'Pause' : 'Play'}
               >
                 {isPlaying ? (
@@ -547,17 +546,6 @@ export const SpotifyStylePlayer: React.FC<SpotifyStylePlayerProps> = ({
                 )}
               </Button>
 
-              {/* Skip +15s */}
-              <Button
-                onClick={() => handleSkip(15)}
-                size="icon"
-                variant="ghost"
-                className="h-9 w-9 rounded-full"
-                aria-label="Skip forward 15 seconds"
-              >
-                <span className="text-[10px] font-semibold">+15</span>
-              </Button>
-
               {/* Next Section */}
               {sections.length > 1 && (
                 <Button
@@ -565,26 +553,17 @@ export const SpotifyStylePlayer: React.FC<SpotifyStylePlayerProps> = ({
                   disabled={currentSection >= sections.length - 1}
                   size="icon"
                   variant="ghost"
-                  className="h-9 w-9 rounded-full"
+                  className="h-9 w-9 min-h-[36px] rounded-full touch-manipulation"
                   aria-label="Next section"
                 >
-                  <SkipForward className="h-3.5 w-3.5" />
+                  <SkipForward className="h-4 w-4" />
                 </Button>
               )}
 
-              {/* Speed Button */}
-              <Button
-                onClick={() => {
-                  haptics.medium();
-                  setShowSpeedSheet(true);
-                }}
-                size="sm"
-                variant="ghost"
-                className="h-9 px-2.5 rounded-full bg-muted/50 hover:bg-muted ml-1"
-                aria-label="Change playback speed"
-              >
-                <span className="text-[11px] font-bold">{playbackSpeed}×</span>
-              </Button>
+              {/* Speed Badge - Always Visible */}
+              <div className="h-8 px-3 rounded-full bg-muted/50 flex items-center justify-center ml-1">
+                <span className="text-xs font-semibold">{playbackSpeed}×</span>
+              </div>
             </div>
           </div>
         )}

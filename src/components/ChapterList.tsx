@@ -86,8 +86,8 @@ export const ChapterList: React.FC<ChapterListProps> = ({
   return (
     <>
       <Card className={cn("bg-card/50 border-border/50", className)}>
-        <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-base font-semibold">Up Next</CardTitle>
+        <CardHeader className="pb-4 flex flex-row items-center justify-between space-y-0">
+          <CardTitle className="text-lg font-semibold">Up Next</CardTitle>
           
           {/* Playback Controls */}
           {currentSectionIndex >= 0 && (
@@ -176,7 +176,7 @@ export const ChapterList: React.FC<ChapterListProps> = ({
             </div>
           )}
         </CardHeader>
-        <CardContent className="space-y-2 px-3 pb-3">
+        <CardContent className="space-y-3 px-4 pb-4">
         {sections.map((section, index) => {
           const isCurrent = index === currentSectionIndex;
           const progress = isCurrent ? (currentTime / duration) * 100 : 0;
@@ -193,18 +193,32 @@ export const ChapterList: React.FC<ChapterListProps> = ({
                 }
               }}
               className={cn(
-                "w-full text-left rounded-xl p-3 transition-all",
-                "hover:bg-muted/50 active:scale-[0.98]",
-                isCurrent ? "bg-primary/10 border border-primary/20" : "bg-card/30"
+                "w-full text-left rounded-xl p-4 transition-all min-h-[72px] touch-manipulation",
+                "hover:bg-muted/50 active:scale-[0.97]",
+                isCurrent 
+                  ? "bg-primary/15 border-2 border-primary/40 shadow-lg shadow-primary/20" 
+                  : "bg-card/30 border border-transparent"
               )}
             >
-              <div className="flex items-start gap-3">
-                {/* Play/Pause Button */}
-                <div className="mt-0.5">
+              <div className="flex items-start gap-4">
+                {/* Chapter Number Badge */}
+                <div className="flex-shrink-0 mt-0.5">
+                  <div className={cn(
+                    "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold",
+                    isCurrent 
+                      ? "bg-primary text-primary-foreground" 
+                      : "bg-muted text-muted-foreground"
+                  )}>
+                    {index + 1}
+                  </div>
+                </div>
+
+                {/* Play/Pause Icon */}
+                <div className="flex-shrink-0 mt-1.5">
                   {isCurrent && isPlaying ? (
-                    <Pause className="w-4 h-4 text-primary" fill="currentColor" />
+                    <Pause className="w-5 h-5 text-primary" fill="currentColor" />
                   ) : (
-                    <Play className="w-4 h-4 text-muted-foreground" />
+                    <Play className="w-5 h-5 text-muted-foreground" />
                   )}
                 </div>
 
@@ -212,36 +226,36 @@ export const ChapterList: React.FC<ChapterListProps> = ({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2 mb-1">
                     <h4 className={cn(
-                      "font-medium text-sm truncate",
-                      isCurrent ? "text-primary" : "text-foreground"
+                      "font-medium text-base truncate",
+                      isCurrent ? "text-primary font-semibold" : "text-foreground"
                     )}>
                       {section.title}
                     </h4>
-                    <span className="text-xs text-muted-foreground whitespace-nowrap">
+                    <span className="text-sm text-muted-foreground whitespace-nowrap font-medium">
                       {formatTime(section.duration_seconds || 0)}
                     </span>
                   </div>
                   
                   {section.description && (
-                    <p className="text-xs text-muted-foreground line-clamp-1 mb-2">
+                    <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
                       {section.description}
                     </p>
                   )}
 
                   {/* Progress Bar for Current Chapter */}
                   {isCurrent && (
-                    <div className="mt-2">
-                      <div className="h-1 bg-muted rounded-full overflow-hidden">
+                    <div className="mt-3">
+                      <div className="h-[3px] bg-muted rounded-full overflow-hidden shadow-sm">
                         <div
-                          className="h-full bg-primary transition-all duration-300"
+                          className="h-full bg-gradient-to-r from-primary/60 via-primary to-primary/80 transition-all duration-300 shadow-sm shadow-primary/50"
                           style={{ width: `${progress}%` }}
                         />
                       </div>
-                      <div className="flex justify-between mt-1">
-                        <span className="text-[10px] text-muted-foreground">
+                      <div className="flex justify-between mt-1.5">
+                        <span className="text-xs text-muted-foreground font-medium">
                           {formatTime(currentTime)}
                         </span>
-                        <span className="text-[10px] text-muted-foreground">
+                        <span className="text-xs text-muted-foreground font-medium">
                           {formatTime(duration)}
                         </span>
                       </div>
