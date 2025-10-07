@@ -24,6 +24,23 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@lovable_dev" />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    
+    <!-- Critical CSS for above-the-fold content (eliminates render-blocking) -->
+    <style>
+      *,::before,::after{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}
+      html{line-height:1.5;-webkit-text-size-adjust:100%;tab-size:4;font-family:Inter,ui-sans-serif,system-ui,sans-serif}
+      body{margin:0;line-height:inherit;background-color:#fff}
+      #root{min-height:100vh;display:flex;flex-direction:column}
+      img{display:block;max-width:100%;height:auto}
+      .relative{position:relative}
+      .absolute{position:absolute}
+      .flex{display:flex}
+      .w-full{width:100%}
+      .h-full{height:100%}
+      .object-cover{object-fit:cover}
+      .object-contain{object-fit:contain}
+      header{background-color:#fff;border-bottom:1px solid #e5e7eb}
+    </style>
   </head>
 
   <body>
