@@ -505,20 +505,87 @@ export const SpotifyStylePlayer: React.FC<SpotifyStylePlayerProps> = ({
               </div>
             </div>
 
-            {/* Play Button */}
-            <Button
-              onClick={handlePlayPause}
-              disabled={loading}
-              size="icon"
-              className="flex-shrink-0 h-12 w-12 rounded-full bg-primary hover:bg-primary/90 shadow-md"
-              aria-label={isPlaying ? 'Pause' : 'Play'}
-            >
-              {isPlaying ? (
-                <Pause className="h-5 w-5" fill="currentColor" />
-              ) : (
-                <Play className="h-5 w-5 ml-0.5" fill="currentColor" />
+            {/* Compact Controls */}
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {/* Previous Section */}
+              {sections.length > 1 && (
+                <Button
+                  onClick={handlePreviousSection}
+                  disabled={currentSection <= 0}
+                  size="icon"
+                  variant="ghost"
+                  className="h-9 w-9 rounded-full"
+                  aria-label="Previous section"
+                >
+                  <SkipBack className="h-3.5 w-3.5" />
+                </Button>
               )}
-            </Button>
+
+              {/* Skip -15s */}
+              <Button
+                onClick={() => handleSkip(-15)}
+                size="icon"
+                variant="ghost"
+                className="h-9 w-9 rounded-full"
+                aria-label="Skip back 15 seconds"
+              >
+                <span className="text-[10px] font-semibold">-15</span>
+              </Button>
+
+              {/* Play/Pause Button */}
+              <Button
+                onClick={handlePlayPause}
+                disabled={loading}
+                size="icon"
+                className="flex-shrink-0 h-12 w-12 rounded-full bg-primary hover:bg-primary/90 shadow-md"
+                aria-label={isPlaying ? 'Pause' : 'Play'}
+              >
+                {isPlaying ? (
+                  <Pause className="h-5 w-5" fill="currentColor" />
+                ) : (
+                  <Play className="h-5 w-5 ml-0.5" fill="currentColor" />
+                )}
+              </Button>
+
+              {/* Skip +15s */}
+              <Button
+                onClick={() => handleSkip(15)}
+                size="icon"
+                variant="ghost"
+                className="h-9 w-9 rounded-full"
+                aria-label="Skip forward 15 seconds"
+              >
+                <span className="text-[10px] font-semibold">+15</span>
+              </Button>
+
+              {/* Next Section */}
+              {sections.length > 1 && (
+                <Button
+                  onClick={handleNextSection}
+                  disabled={currentSection >= sections.length - 1}
+                  size="icon"
+                  variant="ghost"
+                  className="h-9 w-9 rounded-full"
+                  aria-label="Next section"
+                >
+                  <SkipForward className="h-3.5 w-3.5" />
+                </Button>
+              )}
+
+              {/* Speed Button */}
+              <Button
+                onClick={() => {
+                  haptics.medium();
+                  setShowSpeedSheet(true);
+                }}
+                size="sm"
+                variant="ghost"
+                className="h-9 px-2.5 rounded-full bg-muted/50 hover:bg-muted ml-1"
+                aria-label="Change playback speed"
+              >
+                <span className="text-[11px] font-bold">{playbackSpeed}×</span>
+              </Button>
+            </div>
           </div>
         )}
       </div>

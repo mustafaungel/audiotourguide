@@ -56,6 +56,15 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     loadLinkedGuides();
   }, [mainGuide.id, accessCode]);
 
+  // Preload sections for all linked guides
+  useEffect(() => {
+    if (linkedGuides.length > 0 && accessCode) {
+      linkedGuides.forEach(guide => {
+        ensureGuideSections(guide.guide_id);
+      });
+    }
+  }, [linkedGuides, accessCode, languageCode]);
+
   // Add event listener for linked guide navigation
   useEffect(() => {
     const handleOpenLinkedGuide = (event: CustomEvent) => {

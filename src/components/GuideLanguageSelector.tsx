@@ -215,9 +215,6 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
               <span className="text-sm text-muted-foreground">Language</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-2xl" aria-hidden="true">
-                {getLanguageFlag(selectedLanguage)}
-              </span>
               <span className="font-medium">
                 {selectedDisplay}
               </span>
