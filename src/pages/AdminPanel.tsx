@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { AdminReviewManagement } from '@/components/AdminReviewManagement';
 import AdminLanguageManagement from '@/components/AdminLanguageManagement';
 import { Navigation } from '@/components/Navigation';
