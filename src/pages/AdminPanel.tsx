@@ -33,6 +33,7 @@ import { EnhancedLogoUploader } from '@/components/EnhancedLogoUploader';
 import { AdminGuard } from '@/components/guards/AdminGuard';
 import { ImageUploader } from '@/components/ImageUploader';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { GuideCreationWizard } from '@/components/admin/guide-wizard/GuideCreationWizard';
 
 const AdminPanel = () => {
   const isMobile = useIsMobile();
@@ -621,15 +622,13 @@ const AdminPanel = () => {
             )}
             {activeTab === 'analytics' && <AdminAnalyticsManager />}
             {activeTab === 'create-guide' && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Create New Guide</CardTitle>
-                  <CardDescription>Use the mobile view or create guide form here</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">Guide creation form will appear here. For now, use mobile view or the old interface.</p>
-                </CardContent>
-              </Card>
+              <GuideCreationWizard
+                onSuccess={(guide) => {
+                  setActiveTab('content-management');
+                }}
+                onCancel={() => setActiveTab('dashboard')}
+                onSubmit={createGuide}
+              />
             )}
             {activeTab === 'edit-guide' && <AdminGuideEditForm onBack={() => setActiveTab('content-management')} />}
             {activeTab === 'language-management' && <AdminLanguageManagement />}
