@@ -30,9 +30,10 @@ export default function AudioAccess() {
   const [isRetrying, setIsRetrying] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [isNetworkIssue, setIsNetworkIssue] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('');
   const [sections, setSections] = useState<any[]>([]);
   const [activeGuideId, setActiveGuideId] = useState<string>('main');
+  const [availableLanguages, setAvailableLanguages] = useState<any[]>([]);
 
   const accessCode = searchParams.get('access_code') || searchParams.get('access');
   const sessionId = searchParams.get('session_id');
@@ -177,8 +178,8 @@ export default function AudioAccess() {
       setHasAccess(true);
       setAccessGranted(true);
       
-      // Fetch sections for the default language
-      await fetchSectionsForLanguage(guideId, selectedLanguage);
+      // Auto-detect and fetch sections in available language
+      await detectAvailableLanguages(guideId);
       
       // Handle open_guide_id parameter if present
       if (openGuideId) {
@@ -246,8 +247,8 @@ export default function AudioAccess() {
       setHasAccess(true);
       setAccessGranted(true);
       
-      // Fetch sections for the default language
-      await fetchSectionsForLanguage(guideId, selectedLanguage);
+      // Auto-detect and fetch sections in available language
+      await detectAvailableLanguages(guideId);
 
       toast({
         title: "Admin Access Granted",
@@ -262,10 +263,39 @@ export default function AudioAccess() {
     }
   };
 
+  const detectAvailableLanguages = async (guideId: string) => {
+    try {
+      // Get available languages for this guide
+      const { data: languages, error } = await supabase
+        .rpc('get_guide_languages', { p_guide_id: guideId });
+
+      if (error) {
+        console.error('Error fetching available languages:', error);
+        return;
+      }
+
+      if (languages && languages.length > 0) {
+        setAvailableLanguages(languages);
+        // Auto-select first available language
+        const firstLang = languages[0].language_code;
+        setSelectedLanguage(firstLang);
+        await fetchSectionsForLanguage(guideId, firstLang);
+      } else {
+        console.warn('No languages available for this guide');
+        setSections([]);
+      }
+    } catch (error) {
+      console.error('Error detecting available languages:', error);
+      setSections([]);
+    }
+  };
+
   const fetchSectionsForLanguage = async (guideId: string, languageCode: string) => {
     if (!accessCode) return;
     
     try {
+      console.log(`[AUDIO-ACCESS] Fetching sections for language: ${languageCode}`);
+      
       // Use RPC function to bypass RLS and fetch sections with access verification
       const { data: sectionsData, error } = await supabase
         .rpc('get_sections_with_access', {
@@ -276,25 +306,48 @@ export default function AudioAccess() {
 
       if (error) {
         console.error('Error fetching sections:', error);
-        // Fallback: try with 'en' if the requested language fails
-        if (languageCode !== 'en') {
-          const { data: fallbackData, error: fallbackError } = await supabase
-            .rpc('get_sections_with_access', {
-              p_guide_id: guideId,
-              p_access_code: accessCode,
-              p_language_code: 'en'
-            });
-          
-          if (!fallbackError && fallbackData) {
-            setSections(fallbackData || []);
-            return;
-          }
-        }
         setSections([]);
         return;
       }
 
-      setSections(sectionsData || []);
+      // If no sections found for requested language, try to find ANY available language
+      if (!sectionsData || sectionsData.length === 0) {
+        console.warn(`No sections found for language: ${languageCode}`);
+        
+        // Get available languages
+        const { data: languages } = await supabase
+          .rpc('get_guide_languages', { p_guide_id: guideId });
+        
+        if (languages && languages.length > 0) {
+          // Try the first available language
+          const fallbackLang = languages[0].language_code;
+          console.log(`Falling back to available language: ${fallbackLang}`);
+          
+          const { data: fallbackData, error: fallbackError } = await supabase
+            .rpc('get_sections_with_access', {
+              p_guide_id: guideId,
+              p_access_code: accessCode,
+              p_language_code: fallbackLang
+            });
+          
+          if (!fallbackError && fallbackData && fallbackData.length > 0) {
+            setSections(fallbackData);
+            setSelectedLanguage(fallbackLang);
+            setAvailableLanguages(languages);
+            
+            toast({
+              title: "Language Auto-Selected",
+              description: `Guide is available in ${languages[0].native_name}`,
+            });
+            return;
+          }
+        }
+        
+        setSections([]);
+        return;
+      }
+
+      setSections(sectionsData);
     } catch (error) {
       console.error('Error fetching sections:', error);
       setSections([]);
@@ -302,6 +355,8 @@ export default function AudioAccess() {
   };
 
   const handleLanguageChange = async (languageCode: string) => {
+    console.log(`[AUDIO-ACCESS] Language changed to: ${languageCode}`);
+    setSections([]); // Clear sections before switching
     setSelectedLanguage(languageCode);
     if (guideId) {
       await fetchSectionsForLanguage(guideId, languageCode);
@@ -410,8 +465,8 @@ export default function AudioAccess() {
       setHasAccess(true);
       setAccessGranted(true);
       
-      // Fetch sections for the default language
-      await fetchSectionsForLanguage(guideId, selectedLanguage);
+      // Auto-detect and fetch sections in available language
+      await detectAvailableLanguages(guideId);
 
     } catch (error) {
       console.error('Error loading guide after payment verification:', error);
