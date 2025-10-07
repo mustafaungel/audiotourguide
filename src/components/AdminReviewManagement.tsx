@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CheckCircle, XCircle, Star, Clock, User, Mail } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { useReviews } from '@/hooks/admin/useReviews';
+import { usePagination } from '@/hooks/admin/usePagination';
+import { PaginationControls } from '@/components/admin/PaginationControls';
+import { PAGINATION_CONFIG } from '@/utils/admin/pagination';
 
 interface GuestReview {
   id: string;
@@ -22,69 +24,38 @@ interface GuestReview {
 }
 
 export const AdminReviewManagement = () => {
-  const [reviews, setReviews] = useState<GuestReview[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'pending' | 'approved'>('pending');
 
-  useEffect(() => {
-    fetchReviews();
-  }, []);
+  const { currentPage: pendingPage, pageSize: pendingPageSize, goToPage: goToPendingPage } = usePagination({
+    pageSize: PAGINATION_CONFIG.REVIEWS_PER_PAGE,
+  });
 
-  const fetchReviews = async () => {
-    try {
-      // First get guest reviews - use explicit column selection for security
-      // Email is excluded from default query to prevent accidental exposure in logs
-      const { data: reviewsData, error } = await supabase
-        .from('guest_reviews')
-        .select('id, guide_id, name, comment, rating, status, created_at, email')
-        .order('created_at', { ascending: false });
+  const { currentPage: approvedPage, pageSize: approvedPageSize, goToPage: goToApprovedPage } = usePagination({
+    pageSize: PAGINATION_CONFIG.REVIEWS_PER_PAGE,
+  });
 
-      if (error) throw error;
+  const {
+    data: pendingResult,
+    isLoading: pendingLoading,
+    updateReview: updatePendingReview,
+    isUpdating: pendingUpdating,
+  } = useReviews({ 
+    page: pendingPage, 
+    pageSize: pendingPageSize,
+    status: 'pending'
+  });
 
-      // Then get guide titles separately
-      const reviewsWithGuides = await Promise.all(
-        (reviewsData || []).map(async (review) => {
-          const { data: guide } = await supabase
-            .from('audio_guides')
-            .select('title')
-            .eq('id', review.guide_id)
-            .maybeSingle();
-          
-          return {
-            ...review,
-            audio_guides: guide
-          };
-        })
-      );
+  const {
+    data: approvedResult,
+    isLoading: approvedLoading,
+  } = useReviews({ 
+    page: approvedPage, 
+    pageSize: approvedPageSize,
+    status: 'approved'
+  });
 
-      setReviews(reviewsWithGuides);
-    } catch (error) {
-      console.error('Error fetching reviews:', error);
-      toast.error('Failed to fetch reviews');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleApproval = async (reviewId: string, status: 'approved' | 'rejected') => {
-    setActionLoading(reviewId);
-    
-    try {
-      const { error } = await supabase
-        .from('guest_reviews')
-        .update({ status })
-        .eq('id', reviewId);
-
-      if (error) throw error;
-
-      toast.success(`Review ${status} successfully`);
-      fetchReviews();
-    } catch (error) {
-      console.error('Error updating review:', error);
-      toast.error('Failed to update review');
-    } finally {
-      setActionLoading(null);
-    }
+  const handleApproval = (reviewId: string, status: 'approved' | 'rejected') => {
+    updatePendingReview({ reviewId, status });
   };
 
   const formatDate = (dateString: string) => {
@@ -112,7 +83,9 @@ export const AdminReviewManagement = () => {
     );
   };
 
-  if (loading) {
+  const isLoading = pendingLoading || approvedLoading;
+
+  if (isLoading && !pendingResult && !approvedResult) {
     return (
       <Card>
         <CardContent className="pt-6">
@@ -122,26 +95,38 @@ export const AdminReviewManagement = () => {
     );
   }
 
-  const pendingReviews = reviews.filter(r => r.status === 'pending');
-  const approvedReviews = reviews.filter(r => r.status === 'approved');
+  const pendingReviews = pendingResult?.data || [];
+  const approvedReviews = approvedResult?.data || [];
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
-            Pending Reviews ({pendingReviews.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {pendingReviews.length === 0 ? (
-            <p className="text-muted-foreground text-center py-4">
-              No pending reviews to approve
-            </p>
-          ) : (
-            <div className="space-y-4">
-              {pendingReviews.map((review) => (
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+        <TabsList className="grid w-full grid-cols-2 max-w-md">
+          <TabsTrigger value="pending">
+            Pending ({pendingResult?.totalCount || 0})
+          </TabsTrigger>
+          <TabsTrigger value="approved">
+            Approved ({approvedResult?.totalCount || 0})
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="pending">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Pending Reviews
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {pendingReviews.length === 0 ? (
+                <p className="text-muted-foreground text-center py-4">
+                  No pending reviews to approve
+                </p>
+              ) : (
+                <>
+                  <div className="space-y-4">
+                    {pendingReviews.map((review) => (
                 <div key={review.id} className="border rounded-lg p-4 space-y-3">
                   <div className="flex items-start justify-between">
                     <div className="space-y-2">
@@ -163,7 +148,7 @@ export const AdminReviewManagement = () => {
                         size="sm"
                         variant="outline"
                         onClick={() => handleApproval(review.id, 'approved')}
-                        disabled={actionLoading === review.id}
+                        disabled={pendingUpdating}
                         className="text-green-600 border-green-200 hover:bg-green-50"
                       >
                         <CheckCircle className="h-4 w-4 mr-1" />
@@ -173,7 +158,7 @@ export const AdminReviewManagement = () => {
                         size="sm"
                         variant="outline"
                         onClick={() => handleApproval(review.id, 'rejected')}
-                        disabled={actionLoading === review.id}
+                        disabled={pendingUpdating}
                         className="text-red-600 border-red-200 hover:bg-red-50"
                       >
                         <XCircle className="h-4 w-4 mr-1" />
@@ -187,26 +172,37 @@ export const AdminReviewManagement = () => {
                   </div>
                 </div>
               ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                  </div>
+                  <PaginationControls
+                    currentPage={pendingPage}
+                    totalPages={pendingResult?.totalPages || 1}
+                    onPageChange={goToPendingPage}
+                    hasNextPage={pendingResult?.hasNextPage || false}
+                    hasPreviousPage={pendingResult?.hasPreviousPage || false}
+                  />
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CheckCircle className="h-5 w-5" />
-            Approved Reviews ({approvedReviews.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {approvedReviews.length === 0 ? (
-            <p className="text-muted-foreground text-center py-4">
-              No approved reviews yet
-            </p>
-          ) : (
-            <div className="space-y-4">
-              {approvedReviews.slice(0, 10).map((review) => (
+        <TabsContent value="approved">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5" />
+                Approved Reviews
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {approvedReviews.length === 0 ? (
+                <p className="text-muted-foreground text-center py-4">
+                  No approved reviews yet
+                </p>
+              ) : (
+                <>
+                  <div className="space-y-4">
+                    {approvedReviews.map((review) => (
                 <div key={review.id} className="border rounded-lg p-4 space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -225,16 +221,21 @@ export const AdminReviewManagement = () => {
                     Guide: {review.audio_guides?.title || 'Unknown Guide'}
                   </p>
                 </div>
-              ))}
-              {approvedReviews.length > 10 && (
-                <p className="text-sm text-muted-foreground text-center">
-                  Showing latest 10 approved reviews
-                </p>
+                    ))}
+                  </div>
+                  <PaginationControls
+                    currentPage={approvedPage}
+                    totalPages={approvedResult?.totalPages || 1}
+                    onPageChange={goToApprovedPage}
+                    hasNextPage={approvedResult?.hasNextPage || false}
+                    hasPreviousPage={approvedResult?.hasPreviousPage || false}
+                  />
+                </>
               )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

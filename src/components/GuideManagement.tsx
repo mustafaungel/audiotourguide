@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import { CheckCircle, XCircle, Eye, Clock, Trash2, Edit, Copy, QrCode, EyeOff } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { CheckCircle, XCircle, Eye, Clock, Trash2, Edit, Copy, QrCode, EyeOff, Search } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { useGuides } from '@/hooks/admin/useGuides';
+import { usePagination } from '@/hooks/admin/usePagination';
+import { PaginationControls } from '@/components/admin/PaginationControls';
+import { PAGINATION_CONFIG } from '@/utils/admin/pagination';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Guide {
   id: string;
@@ -27,119 +31,80 @@ interface Guide {
 }
 
 export const GuideManagement = () => {
-  const { user } = useAuth();
-  const [guides, setGuides] = useState<Guide[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const { currentPage, pageSize, goToPage } = usePagination({
+    pageSize: PAGINATION_CONFIG.GUIDES_PER_PAGE,
+  });
 
-  useEffect(() => {
-    fetchGuides();
-  }, []);
+  const {
+    data: guidesResult,
+    isLoading,
+    refetch,
+    updateGuide,
+    deleteGuide,
+    isUpdating,
+    isDeleting,
+  } = useGuides({ page: currentPage, pageSize });
 
-  const fetchGuides = async () => {
-    try {
-      const { data: guidesData, error } = await supabase
-        .from('audio_guides')
-        .select('*')
-        .order('created_at', { ascending: false });
+  const guides = guidesResult?.data || [];
+  const totalPages = guidesResult?.totalPages || 1;
+  const hasNextPage = guidesResult?.hasNextPage || false;
+  const hasPreviousPage = guidesResult?.hasPreviousPage || false;
 
-      if (error) throw error;
-      
-      // Transform guides to match expected interface
-      const guidesWithProfiles = (guidesData || []).map((guide) => ({
-        ...guide,
-        profiles: null // No longer fetching creator profiles
-      }));
-      
-      setGuides(guidesWithProfiles);
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to fetch guides"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Filter guides by search query
+  const filteredGuides = guides.filter((guide) =>
+    guide.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    guide.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    guide.category.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const updateGuideStatus = async (guideId: string, isApproved: boolean) => {
-    try {
-      const { error } = await supabase
-        .from('audio_guides')
-        .update({ is_approved: isApproved })
-        .eq('id', guideId);
-
-      if (error) throw error;
-
-      setGuides(prev => prev.map(guide => 
-        guide.id === guideId ? { ...guide, is_approved: isApproved } : guide
-      ));
-
-      toast({
-        title: isApproved ? "Guide Approved" : "Guide Rejected",
-        description: `Guide has been ${isApproved ? 'approved' : 'rejected'} successfully.`
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to update guide status"
-      });
-    }
+    updateGuide(
+      { id: guideId, updates: { is_approved: isApproved } },
+      {
+        onSuccess: () => {
+          toast({
+            title: isApproved ? "Guide Approved" : "Guide Rejected",
+            description: `Guide has been ${isApproved ? 'approved' : 'rejected'} successfully.`
+          });
+        },
+        onError: () => {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to update guide status"
+          });
+        }
+      }
+    );
   };
 
   const togglePublicationStatus = async (guideId: string, currentStatus: boolean) => {
-    try {
-      const { error } = await supabase
-        .from('audio_guides')
-        .update({ is_published: !currentStatus })
-        .eq('id', guideId);
-
-      if (error) throw error;
-
-      setGuides(prev => prev.map(guide => 
-        guide.id === guideId ? { ...guide, is_published: !currentStatus } : guide
-      ));
-
-      toast({
-        title: !currentStatus ? "Guide Published" : "Guide Hidden",
-        description: `Guide has been ${!currentStatus ? 'made public' : 'hidden from public view'}.`
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to update publication status"
-      });
-    }
+    updateGuide(
+      { id: guideId, updates: { is_published: !currentStatus } },
+      {
+        onSuccess: () => {
+          toast({
+            title: !currentStatus ? "Guide Published" : "Guide Hidden",
+            description: `Guide has been ${!currentStatus ? 'made public' : 'hidden from public view'}.`
+          });
+        },
+        onError: () => {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to update publication status"
+          });
+        }
+      }
+    );
   };
 
-  const deleteGuide = async (guideId: string) => {
+  const handleDeleteGuide = (guideId: string) => {
     if (!confirm('Are you sure you want to delete this guide? This action cannot be undone.')) {
       return;
     }
-
-    try {
-      const { error } = await supabase
-        .from('audio_guides')
-        .delete()
-        .eq('id', guideId);
-
-      if (error) throw error;
-
-      setGuides(prev => prev.filter(guide => guide.id !== guideId));
-
-      toast({
-        title: "Guide Deleted",
-        description: "Guide has been permanently deleted."
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to delete guide"
-      });
-    }
+    deleteGuide(guideId);
   };
 
   const previewGuide = (guide: Guide) => {
@@ -187,8 +152,7 @@ export const GuideManagement = () => {
 
       if (error) throw error;
 
-      // Refresh the guides list to show the new QR code
-      fetchGuides();
+      refetch();
       
       toast({
         title: "QR Code Generated",
@@ -229,8 +193,7 @@ export const GuideManagement = () => {
         });
       }
 
-      // Refresh the guides list
-      fetchGuides();
+      refetch();
       
       toast({
         title: "Access Links Repaired",
@@ -255,36 +218,52 @@ export const GuideManagement = () => {
     return <Badge variant="default">Published</Badge>;
   };
 
-  if (loading) {
+  if (isLoading) {
     return <div className="p-8 text-center">Loading guides...</div>;
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold">Guide Management</h2>
-          <p className="text-muted-foreground">Review and approve audio guides from creators</p>
+      <div className="flex flex-col gap-4">
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-bold">Guide Management</h2>
+            <p className="text-muted-foreground">
+              Review and approve audio guides from creators ({guidesResult?.totalCount || 0} total)
+            </p>
+          </div>
+          <Button 
+            variant="outline"
+            onClick={repairAccessLinks}
+          >
+            <QrCode className="h-4 w-4 mr-2" />
+            Repair Access Links
+          </Button>
         </div>
-        <Button 
-          variant="outline"
-          onClick={repairAccessLinks}
-        >
-          <QrCode className="h-4 w-4 mr-2" />
-          Repair Access Links
-        </Button>
+
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search guides by title, location, or category..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
       </div>
 
       <div className="grid gap-4">
-        {guides.length === 0 ? (
+        {filteredGuides.length === 0 ? (
           <Card>
             <CardContent className="text-center py-8">
               <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No guides submitted yet</p>
+              <p className="text-muted-foreground">
+                {guides.length === 0 ? 'No guides submitted yet' : 'No guides match your search'}
+              </p>
             </CardContent>
           </Card>
         ) : (
-          guides.map((guide) => (
+          filteredGuides.map((guide) => (
             <Card key={guide.id}>
               <CardHeader>
                 <div className="flex justify-between items-start">
@@ -429,7 +408,8 @@ export const GuideManagement = () => {
                   <Button 
                     variant="destructive" 
                     size="sm"
-                    onClick={() => deleteGuide(guide.id)}
+                    onClick={() => handleDeleteGuide(guide.id)}
+                    disabled={isDeleting}
                   >
                     <Trash2 className="h-4 w-4 mr-1" />
                     Delete
@@ -440,6 +420,14 @@ export const GuideManagement = () => {
           ))
         )}
       </div>
+
+      <PaginationControls
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={goToPage}
+        hasNextPage={hasNextPage}
+        hasPreviousPage={hasPreviousPage}
+      />
     </div>
   );
 };
