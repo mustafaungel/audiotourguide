@@ -10,14 +10,15 @@ interface AdminMobileNavigationProps {
 
 const adminTabs = [
   { value: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-  { value: 'content-management', label: 'Content Management', icon: FileText },
-  { value: 'contact-management', label: 'Contact Management', icon: Mail },
-  { value: 'email-test', label: 'Email System', icon: Mail },
-  { value: 'analytics', label: 'Analytics', icon: BarChart3 },
-  { value: 'review-management', label: 'Review Management', icon: Star },
-  { value: 'create-guide', label: 'Create Audio Guide', icon: Plus },
+  { value: 'create-guide', label: 'Create Guide', icon: Plus },
+  { value: 'content-management', label: 'Manage Guides', icon: FileText },
   { value: 'edit-guide', label: 'Edit Guide', icon: Edit2 },
-  { value: 'language-management', label: 'Language Management', icon: Languages },
+  { value: 'analytics', label: 'Analytics', icon: BarChart3 },
+  { value: 'review-management', label: 'Reviews', icon: Star },
+  { value: 'contact-management', label: 'Contact Forms', icon: Mail },
+  { value: 'language-management', label: 'Languages', icon: Languages },
+  { value: 'branding', label: 'Branding', icon: Palette },
+  { value: 'email-test', label: 'Email System', icon: Mail },
 ];
 
 export function AdminMobileNavigation({ activeTab, onTabChange }: AdminMobileNavigationProps) {
