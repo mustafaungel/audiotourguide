@@ -13,7 +13,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Loader2, FileText, Plus, ImageIcon, Copy, QrCode, Edit2, Mail, Palette, BarChart3, Languages } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import QRCode from 'qrcode';
@@ -28,12 +27,12 @@ import { AdminContactManagement } from '@/components/AdminContactManagement';
 import { EnhancedEmailTesting } from '@/components/EnhancedEmailTesting';
 import { AdminAnalyticsManager } from '@/components/AdminAnalyticsManager';
 import { EnhancedLogoUploader } from '@/components/EnhancedLogoUploader';
+import { AdminGuard } from '@/components/guards/AdminGuard';
 
 import { ImageUploader } from '@/components/ImageUploader';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const AdminPanel = () => {
-  const { user, userProfile } = useAuth();
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState('dashboard');
 
@@ -342,32 +341,9 @@ const AdminPanel = () => {
     }
   };
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
-        <div className="container mx-auto px-4 py-16 text-center">
-          <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
-          <p className="text-muted-foreground">Please sign in to access the admin panel.</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (userProfile?.role !== 'admin') {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
-        <div className="container mx-auto px-4 py-16 text-center">
-          <h1 className="text-2xl font-bold mb-4">Admin Access Required</h1>
-          <p className="text-muted-foreground">You need admin privileges to access this panel.</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-background">
+    <AdminGuard>
+      <div className="min-h-screen bg-background">
       <Navigation />
       
       <div className="container mx-auto px-4 py-6 md:py-8 pb-safe">
@@ -734,7 +710,8 @@ const AdminPanel = () => {
 
         </Tabs>
       </div>
-    </div>
+      </div>
+    </AdminGuard>
   );
 };
 
