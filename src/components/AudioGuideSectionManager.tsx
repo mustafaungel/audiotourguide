@@ -300,11 +300,9 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
       return;
     }
 
-    // Validate file size (max 50MB)
-    const maxSize = 50 * 1024 * 1024;
-    if (file.size > maxSize) {
-      toast.error('File size must be less than 50MB');
-      return;
+    // No file size limit - but warn for very large files
+    if (file.size > 100 * 1024 * 1024) { // 100MB
+      toast.info('Large file detected. Upload may take several minutes.');
     }
 
     uploadAudioFile(sectionId, file);
