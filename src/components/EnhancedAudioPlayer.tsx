@@ -36,8 +36,8 @@ export const EnhancedAudioPlayer: React.FC<EnhancedAudioPlayerProps> = ({
   onClose,
   defaultStyle = 'spotify'
 }) => {
-  const [playerStyle, setPlayerStyle] = useState<'spotify' | 'classic'>(defaultStyle);
-  const [showPlayer, setShowPlayer] = useState(false);
+  const [playerStyle] = useState<'spotify' | 'classic'>('spotify');
+  const [showPlayer] = useState(true);
   const [hasLinkedGuides, setHasLinkedGuides] = useState(false);
 
   useEffect(() => {
@@ -75,59 +75,9 @@ export const EnhancedAudioPlayer: React.FC<EnhancedAudioPlayerProps> = ({
     }
   };
 
-  if (!showPlayer) {
-    return (
-      <Card className="w-full max-w-md mx-auto bg-gradient-card border border-border/50 shadow-tourism">
-        <CardHeader className="text-center">
-          <CardTitle className="flex items-center justify-center gap-2 text-foreground">
-            <Music className="w-5 h-5" />
-            Audio Player
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="text-center space-y-2">
-            <h3 className="font-semibold text-foreground">{guide.title}</h3>
-            <p className="text-sm text-muted-foreground">
-              {sections.length > 0 ? `${sections.length} chapters available` : 'Main audio track'}
-            </p>
-          </div>
-          
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-center text-muted-foreground">
-              Choose your experience:
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                onClick={() => {
-                  setPlayerStyle('spotify');
-                  setShowPlayer(true);
-                }}
-                className="flex flex-col items-center gap-2 h-auto py-4 bg-gradient-primary hover:bg-gradient-primary/90 text-primary-foreground"
-              >
-                <Headphones className="w-6 h-6" />
-                <span className="text-xs font-medium">Modern Player</span>
-              </Button>
-              
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setPlayerStyle('classic');
-                  setShowPlayer(true);
-                }}
-                className="flex flex-col items-center gap-2 h-auto py-4"
-              >
-                <Music className="w-6 h-6" />
-                <span className="text-xs font-medium">Classic Player</span>
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  // Player now starts directly without selection screen
 
   const handleClose = () => {
-    setShowPlayer(false);
     onClose?.();
   };
 

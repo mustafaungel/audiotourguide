@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 
 interface Section {
-  id?: string;
+  id: string;
   title: string;
   description?: string;
   audio_url?: string;
