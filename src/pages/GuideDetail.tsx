@@ -582,7 +582,7 @@ const GuideDetail = () => {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Hero Image */}
-            <div className="relative aspect-video rounded-xl overflow-hidden">
+            <div className="relative aspect-[16/10] rounded-3xl overflow-hidden shadow-xl">
               <img 
                 src={
                   (guide.image_urls?.[0] || guide.image_url)?.startsWith('data:image') 
@@ -597,8 +597,8 @@ const GuideDetail = () => {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
               <div className="absolute bottom-4 left-4 text-white">
-                <Badge className="mb-2">{guide.category}</Badge>
-                <h1 className="text-2xl md:text-3xl font-bold">{guide.title}</h1>
+                <Badge className="mb-2 text-sm px-3 py-1.5">{guide.category}</Badge>
+                <h1 className="ios-title-large md:text-3xl font-bold text-shadow">{guide.title}</h1>
               </div>
             </div>
 
@@ -648,7 +648,7 @@ const GuideDetail = () => {
               </CardHeader>
               
               <CardContent>
-                <p className="text-muted-foreground leading-relaxed">
+                <p className="ios-body text-muted-foreground leading-relaxed">
                   {guide.description}
                 </p>
               </CardContent>

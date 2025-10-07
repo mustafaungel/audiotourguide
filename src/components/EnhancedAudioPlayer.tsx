@@ -97,6 +97,7 @@ export const EnhancedAudioPlayer: React.FC<EnhancedAudioPlayerProps> = ({
     <>
       {playerStyle === 'spotify' ? (
         <SpotifyStylePlayer
+          key={`${guide.id}-${sections.map(s => s.id).join('-')}`}
           guide={guide}
           sections={sections}
           accessCode={accessCode}
@@ -104,6 +105,7 @@ export const EnhancedAudioPlayer: React.FC<EnhancedAudioPlayerProps> = ({
         />
       ) : (
         <LibraryAudioPlayer
+          key={`${guide.id}-${sections.map(s => s.id).join('-')}`}
           guide={guide}
           accessCode={accessCode}
           onClose={handleClose}

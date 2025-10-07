@@ -353,21 +353,21 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
                     }
                   }, 100);
                 }}
-                className="ios-list-item w-full group"
+                className="ios-list-item w-full group hover:bg-muted/70 active:bg-muted"
                 aria-label={`Open ${linkedGuide.custom_title} guide`}
               >
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                    <Music className="w-4 h-4 text-muted-foreground" />
+                  <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+                    <Music className="w-5 h-5 text-primary" />
                   </div>
                   
                   <div className="flex-1 text-left min-w-0">
-                    <h4 className="font-medium text-sm truncate">
+                    <h4 className="ios-body font-semibold truncate">
                       {linkedGuide.custom_title}
                     </h4>
                   </div>
                   
-                  <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:translate-x-0.5 transition-transform shrink-0" />
+                  <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:translate-x-1 transition-transform shrink-0" />
                 </div>
               </button>
             ))}

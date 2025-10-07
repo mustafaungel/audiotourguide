@@ -404,12 +404,15 @@ export const SpotifyStylePlayer: React.FC<SpotifyStylePlayerProps> = ({
 
               <Button
                 variant="ghost"
-                size="icon"
-                onClick={() => setShowSpeedSheet(true)}
-                className="h-9 w-9 rounded-full text-xs font-medium"
+                size="sm"
+                onClick={() => {
+                  haptics.medium();
+                  setShowSpeedSheet(true);
+                }}
+                className="h-9 px-4 rounded-full bg-muted/50 hover:bg-muted"
                 aria-label="Change playback speed"
               >
-                {playbackSpeed}x
+                <span className="text-sm font-medium">{playbackSpeed}×</span>
               </Button>
 
               {!isMobile && (
@@ -461,13 +464,13 @@ export const SpotifyStylePlayer: React.FC<SpotifyStylePlayerProps> = ({
           >
             {/* Album Art */}
             <div 
-              className="flex-shrink-0 cursor-pointer"
+              className="flex-shrink-0 cursor-pointer transition-transform active:scale-95"
               onClick={handleExpand}
             >
               <img
                 src={guide.image_url || '/placeholder.svg'}
                 alt={guide.title}
-                className="w-16 h-16 object-cover rounded-lg shadow-md"
+                className="w-16 h-16 object-cover rounded-2xl shadow-lg"
               />
             </div>
 
@@ -476,26 +479,26 @@ export const SpotifyStylePlayer: React.FC<SpotifyStylePlayerProps> = ({
               className="flex-1 min-w-0 cursor-pointer"
               onClick={handleExpand}
             >
-              <h3 className="font-semibold text-sm text-foreground truncate">
+              <h3 className="ios-body font-semibold text-foreground truncate">
                 {displayTitle}
               </h3>
-              <p className="text-xs text-muted-foreground truncate">
+              <p className="ios-caption text-muted-foreground truncate">
                 {sections.length > 0 ? `${sections.length} chapters` : guide.description}
               </p>
               
               {/* Mini Progress Bar */}
               <div className="mt-2">
-                <div className="h-0.5 bg-muted rounded-full overflow-hidden">
+                <div className="h-1 bg-muted/30 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-primary transition-all duration-300"
+                    className="h-full bg-primary transition-all duration-300 shadow-sm"
                     style={{ width: `${progress}%` }}
                   />
                 </div>
-                <div className="flex justify-between mt-1">
-                  <span className="text-[10px] text-muted-foreground">
+                <div className="flex justify-between mt-1.5">
+                  <span className="text-[11px] text-muted-foreground font-medium">
                     {formatTime(currentTime)}
                   </span>
-                  <span className="text-[10px] text-muted-foreground">
+                  <span className="text-[11px] text-muted-foreground font-medium">
                     {formatTime(duration)}
                   </span>
                 </div>
@@ -520,29 +523,46 @@ export const SpotifyStylePlayer: React.FC<SpotifyStylePlayerProps> = ({
         )}
       </div>
 
-      {/* Speed Control Bottom Sheet */}
+      {/* Speed Control Bottom Sheet - iOS Wheel Picker Style */}
       <BottomSheet
         open={showSpeedSheet}
         onOpenChange={setShowSpeedSheet}
         title="Playback Speed"
         defaultSnap="mini"
       >
-        <div className="space-y-2 py-4">
-          {speedOptions.map((speed) => (
-            <button
-              key={speed}
-              onClick={() => handleSpeedChange(speed)}
-              className={cn(
-                "w-full text-center py-3 px-4 rounded-xl transition-all",
-                "hover:bg-muted/50 active:scale-[0.98]",
-                playbackSpeed === speed
-                  ? "bg-primary/10 text-primary font-semibold"
-                  : "text-foreground"
-              )}
-            >
-              {speed}x
-            </button>
-          ))}
+        <div className="pb-6">
+          <div className="ios-picker-container relative h-48 overflow-hidden">
+            {/* Picker highlight */}
+            <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-10 bg-muted/30 rounded-lg pointer-events-none z-10" />
+            
+            <div className="space-y-1">
+              {speedOptions.map((speed) => {
+                const isSelected = playbackSpeed === speed;
+                return (
+                  <button
+                    key={speed}
+                    onClick={() => {
+                      handleSpeedChange(speed);
+                      haptics.selection();
+                      setTimeout(() => setShowSpeedSheet(false), 200);
+                    }}
+                    className={cn(
+                      "w-full h-10 flex items-center justify-center rounded-lg transition-all duration-200",
+                      "touch-manipulation",
+                      isSelected && "font-bold text-primary scale-105"
+                    )}
+                  >
+                    <span className={cn(
+                      "text-base transition-all",
+                      isSelected ? "text-lg font-semibold" : "text-muted-foreground"
+                    )}>
+                      {speed === 1.0 ? 'Normal' : `${speed}×`}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </BottomSheet>
 
