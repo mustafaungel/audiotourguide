@@ -85,29 +85,38 @@ serve(async (req) => {
       throw new Error(`The guide price ($${currentAmount}) is below Stripe's minimum payment amount of $${minAmount}. Please contact support or choose a different guide.`);
     }
 
-    // TEMPORARILY DISABLED FOR TESTING - Check if user/guest has already purchased this guide
-    // let existingPurchase = null;
-    // if (user) {
-    //   const { data } = await supabaseService
-    //     .from("user_purchases")
-    //     .select("id")
-    //     .eq("user_id", user.id)
-    //     .eq("guide_id", guide_id)
-    //     .single();
-    //   existingPurchase = data;
-    // } else {
-    //   const { data } = await supabaseService
-    //     .from("user_purchases")
-    //     .select("id")
-    //     .eq("guest_email", guest_email)
-    //     .eq("guide_id", guide_id)
-    //     .single();
-    //   existingPurchase = data;
-    // }
+    // Check if user/guest has already purchased this guide
+    let existingPurchase = null;
+    if (user) {
+      const { data } = await supabaseService
+        .from("user_purchases")
+        .select("id, access_code")
+        .eq("user_id", user.id)
+        .eq("guide_id", guide_id)
+        .maybeSingle();
+      existingPurchase = data;
+    } else if (guest_email) {
+      const { data } = await supabaseService
+        .from("user_purchases")
+        .select("id, access_code")
+        .eq("guest_email", guest_email)
+        .eq("guide_id", guide_id)
+        .maybeSingle();
+      existingPurchase = data;
+    }
 
-    // if (existingPurchase) {
-    //   throw new Error("This guide has already been purchased");
-    // }
+    if (existingPurchase) {
+      logStep("Purchase already exists", { accessCode: existingPurchase.access_code });
+      // Return existing access code instead of error
+      return new Response(
+        JSON.stringify({ 
+          message: "Already purchased",
+          access_code: existingPurchase.access_code,
+          redirect_url: `${origin}/access/${guide_id}?access_code=${existingPurchase.access_code}`
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
+    }
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) {

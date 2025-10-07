@@ -14,7 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Star, MapPin, Clock, Users, Play, Download, Share2, Bookmark, ChevronLeft, Lock, Copy, QrCode } from "lucide-react";
+import { Star, MapPin, Clock, Users, Play, Download, Share2, Bookmark, ChevronLeft, Lock, Copy, QrCode, Check, Link, ShoppingCart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useViralTracking } from "@/hooks/useViralTracking";
 import { useAuth } from "@/contexts/AuthContext";
@@ -122,6 +122,8 @@ const GuideDetail = () => {
   const [relatedGuides, setRelatedGuides] = useState<any[]>([]);
   const [selectedLanguage, setSelectedLanguage] = useState<string>('');
   const [guideSections, setGuideSections] = useState<any[]>([]);
+  const [linkedGuides, setLinkedGuides] = useState<any[]>([]);
+  const [currentAccessCode, setCurrentAccessCode] = useState<string | null>(null);
   const { toast: showToast } = useToast();
 
   // Use real guide data if available, with fallbacks for essential properties
@@ -232,9 +234,9 @@ const GuideDetail = () => {
           'Multiple languages available'
         ],
         duration: guideData.duration,
-        // Keep both formatted price for display AND original price_usd for payment
-        price: `$${(guideData.price_usd / 100).toFixed(2)}`,
-        price_usd: guideData.price_usd, // Preserve original price_usd as number for payment
+        price_usd: guideData.price_usd, // Source of truth (cents)
+        price: `$${(guideData.price_usd / 100).toFixed(2)}`, // Formatted display
+        currency: guideData.currency || 'usd',
         sections: guideData.sections ? (typeof guideData.sections === 'string' ? JSON.parse(guideData.sections) : guideData.sections) : []
       };
       
@@ -242,8 +244,8 @@ const GuideDetail = () => {
       setRealGuideData(transformedData);
       setError(null);
       
-      // Fetch multi-language sections
-      await fetchGuideSections(guideData.id, selectedLanguage);
+      // Fetch linked guides collection
+      await fetchLinkedGuides(guideData.id);
       
       // Fetch related guides
       await fetchRelatedGuides(transformedData.category, transformedData.location, guideData.id);
@@ -266,11 +268,29 @@ const GuideDetail = () => {
     }
   };
 
+  const detectAndSetLanguage = async (guideId: string) => {
+    try {
+      const { data: languages, error } = await supabase
+        .rpc('get_guide_languages', { p_guide_id: guideId });
+      
+      if (error) throw error;
+      
+      if (languages && languages.length > 0) {
+        const firstAvailable = languages[0].language_code;
+        setSelectedLanguage(firstAvailable);
+        await fetchGuideSections(guideId, firstAvailable);
+      } else {
+        console.warn('No languages available for guide:', guideId);
+      }
+    } catch (err) {
+      console.error('Error detecting languages:', err);
+    }
+  };
+
   const fetchGuideSections = async (guideId: string, languageCode: string) => {
     try {
-      // Skip if no language code provided yet
       if (!languageCode) {
-        console.log('No language code provided, waiting for GuideLanguageSelector to set default');
+        console.log('No language code provided');
         return;
       }
 
@@ -286,24 +306,6 @@ const GuideDetail = () => {
         return;
       }
 
-      // If no sections found for this language, try to find any available language
-      if (!data || data.length === 0) {
-        console.warn(`No sections found for language: ${languageCode}, trying fallback`);
-        
-        const { data: fallbackData } = await supabase
-          .from('guide_sections')
-          .select('language_code')
-          .eq('guide_id', guideId)
-          .limit(1);
-        
-        if (fallbackData && fallbackData.length > 0) {
-          const fallbackLang = fallbackData[0].language_code;
-          console.log(`Falling back to language: ${fallbackLang}`);
-          handleLanguageChange(fallbackLang);
-          return;
-        }
-      }
-
       setGuideSections(data || []);
     } catch (error) {
       console.error('Error fetching guide sections:', error);
@@ -311,10 +313,50 @@ const GuideDetail = () => {
   };
 
   const handleLanguageChange = async (languageCode: string) => {
+    console.log('🔄 Language change requested:', languageCode);
+    setGuideSections([]);
     setSelectedLanguage(languageCode);
-    setPlayingGuide(false); // Stop audio player when language changes
-    if (realGuideData?.id && languageCode) {
+    setPlayingGuide(false);
+    if (realGuideData?.id) {
       await fetchGuideSections(realGuideData.id, languageCode);
+    }
+  };
+
+  const fetchLinkedGuides = async (guideId: string) => {
+    try {
+      const { data: collection } = await supabase
+        .from('guide_collections')
+        .select('linked_guides')
+        .eq('main_guide_id', guideId)
+        .maybeSingle();
+
+      if (collection?.linked_guides && Array.isArray(collection.linked_guides)) {
+        const guideIds = collection.linked_guides.map((lg: any) => lg.guide_id);
+        
+        const { data: guides } = await supabase
+          .from('audio_guides')
+          .select('id, title, slug, master_access_code, image_url, image_urls')
+          .in('id', guideIds)
+          .eq('is_published', true)
+          .eq('is_approved', true);
+
+        if (guides && Array.isArray(guides)) {
+          const enrichedGuides = collection.linked_guides.map((lg: any) => {
+            const guideData = guides.find((g: any) => g.id === lg.guide_id);
+            return {
+              ...lg,
+              title: guideData?.title,
+              slug: guideData?.slug,
+              master_access_code: guideData?.master_access_code,
+              image_url: guideData?.image_urls?.[0] || guideData?.image_url
+            };
+          }).filter((g: any) => g.title);
+
+          setLinkedGuides(enrichedGuides);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching linked guides:', error);
     }
   };
 
@@ -363,11 +405,10 @@ const GuideDetail = () => {
   const checkPurchaseStatus = async () => {
     if (!guide?.id) return;
 
-    // Check for access code in URL (for guest users)
     const accessCode = searchParams.get('access') || searchParams.get('access_code');
     if (accessCode) {
+      setCurrentAccessCode(accessCode);
       try {
-        // First try regular access code verification
         const { data: isValidAccess, error } = await supabase
           .rpc('verify_access_code_secure', {
             p_access_code: accessCode.trim(),
@@ -380,7 +421,6 @@ const GuideDetail = () => {
           return;
         }
 
-        // If that fails, try master access code verification
         const { data: isValidMaster, error: masterError } = await supabase
           .rpc('verify_master_access_code', {
             p_guide_id: guide.id,
@@ -397,7 +437,6 @@ const GuideDetail = () => {
       }
     }
 
-    // Check for logged-in user purchases
     if (user) {
       try {
         const { data, error } = await supabase
@@ -405,10 +444,11 @@ const GuideDetail = () => {
           .select('id, access_code')
           .eq('user_id', user.id)
           .eq('guide_id', guide.id)
-          .single();
+          .maybeSingle();
 
         if (data) {
           setIsPurchased(true);
+          setCurrentAccessCode(data.access_code);
         }
       } catch (error) {
         setIsPurchased(false);
@@ -430,17 +470,26 @@ const GuideDetail = () => {
   };
 
   useEffect(() => {
-    fetchGuideDetails();
-    checkPurchaseStatus();
-    
-    // Check for payment success parameters
+    if (slug) {
+      fetchGuideDetails();
+    }
+  }, [slug]);
+
+  useEffect(() => {
+    if (realGuideData?.id) {
+      detectAndSetLanguage(realGuideData.id);
+      checkPurchaseStatus();
+    }
+  }, [realGuideData?.id, user]);
+
+  useEffect(() => {
     const paymentSuccessParam = searchParams.get('payment_success');
     const sessionId = searchParams.get('session_id');
     
     if (paymentSuccessParam === 'true' && sessionId) {
       handlePaymentSuccess(sessionId);
     }
-  }, [slug, user, searchParams]);
+  }, [searchParams]);
 
   // Check if URL has access parameter (for noindex)
   const hasAccessParam = searchParams.get('access');
@@ -462,12 +511,6 @@ const GuideDetail = () => {
     }
   }, [realGuideData?.id, realGuideData?.updated_at]);
 
-  // Fetch sections when language changes
-  useEffect(() => {
-    if (realGuideData?.id && selectedLanguage) {
-      fetchGuideSections(realGuideData.id, selectedLanguage);
-    }
-  }, [selectedLanguage, realGuideData?.id]);
 
 
   const handleShare = () => {
@@ -673,6 +716,41 @@ const GuideDetail = () => {
                 </p>
               </CardContent>
             </Card>
+
+            {/* Already Purchased Banner */}
+            {isPurchased && (
+              <Card className="bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-green-100 dark:bg-green-900 rounded-full">
+                      <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-green-900 dark:text-green-100">
+                        You Own This Guide
+                      </h3>
+                      <p className="text-sm text-green-700 dark:text-green-300">
+                        Full access to all chapters and features
+                      </p>
+                    </div>
+                    {currentAccessCode && (
+                      <Button 
+                        variant="outline" 
+                        className="border-green-300 dark:border-green-700"
+                        onClick={() => {
+                          const accessLink = `/access/${guide?.id}?access_code=${currentAccessCode}`;
+                          navigator.clipboard.writeText(window.location.origin + accessLink);
+                          toast.success("Access link copied!");
+                        }}
+                      >
+                        <Link className="w-4 h-4 mr-2" />
+                        Copy Access Link
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Tabs Content */}
             <Tabs defaultValue="chapters" className="w-full">
@@ -920,64 +998,109 @@ const GuideDetail = () => {
             <Card>
               <CardContent className="space-y-3 pt-6">
                 {isPurchased ? (
-                  <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                    <div className="flex items-center justify-center gap-2 mb-2">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span className="text-sm font-medium text-green-700 dark:text-green-300">Access Granted</span>
-                    </div>
-                    <p className="text-sm text-green-600 dark:text-green-400">
-                      Your audio guide is ready below!
-                    </p>
-                  </div>
-                  ) : (
-                    <EmbeddedCheckout
-                      guide={{
-                        id: guide.id,
-                        title: guide.title,
-                        price_usd: guide.price_usd,
-                        creator_name: guide.creator?.name !== 'Anonymous Creator' ? guide.creator?.name : undefined,
-                        image_url: guide.image_url
-                      }}
-                      onSuccess={handlePaymentSuccess}
-                      onCancel={() => setShowPaymentModal(false)}
-                    />
-                  )}
+                  <Button className="w-full" size="lg" disabled>
+                    <Check className="w-5 h-5 mr-2" />
+                    Already Purchased
+                  </Button>
+                ) : (
+                  <EmbeddedCheckout
+                    guide={{
+                      id: guide.id,
+                      title: guide.title,
+                      price_usd: guide.price_usd,
+                      creator_name: guide.creator?.name !== 'Anonymous Creator' ? guide.creator?.name : undefined,
+                      image_url: guide.image_url
+                    }}
+                    onSuccess={handlePaymentSuccess}
+                    onCancel={() => setShowPaymentModal(false)}
+                  />
+                )}
                </CardContent>
              </Card>
 
 
-            {/* Related Guides */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Related Guides</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {(relatedGuides || []).map((relatedGuide) => (
-                  <div 
-                    key={relatedGuide.id} 
-                    className="flex gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer"
-                    onClick={() => navigate(`/guide/${relatedGuide.slug || relatedGuide.id}`)}
-                  >
-                    <img 
-                      src={relatedGuide.image} 
-                      alt={`${relatedGuide.title} - Audio guide in ${relatedGuide.location || 'destination'}`}
-                      className="w-16 h-16 rounded-lg object-cover"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <h5 className="font-medium text-sm line-clamp-2">{relatedGuide.title}</h5>
-                      <p className="text-xs text-muted-foreground">{relatedGuide.creator}</p>
-                      <div className="flex items-center justify-between mt-1">
-                        <div className="flex items-center gap-1">
-                          <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                          <span className="text-xs">{relatedGuide.rating}</span>
+            {/* Linked Guides Collection */}
+            {linkedGuides.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Link className="w-5 h-5" />
+                    Additional Guides in Collection
+                  </CardTitle>
+                  <CardDescription>
+                    These guides are included with your purchase
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {linkedGuides.map((linkedGuide) => (
+                    <Card key={linkedGuide.guide_id} className="overflow-hidden hover:shadow-md transition-shadow">
+                      <div className="flex gap-3 p-3">
+                        {linkedGuide.image_url && (
+                          <img 
+                            src={linkedGuide.image_url} 
+                            alt={linkedGuide.custom_title || linkedGuide.title}
+                            className="w-16 h-16 object-cover rounded-md"
+                          />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-sm line-clamp-2">
+                            {linkedGuide.custom_title || linkedGuide.title}
+                          </h4>
+                          {isPurchased && linkedGuide.master_access_code && (
+                            <Button
+                              variant="link"
+                              size="sm"
+                              className="p-0 h-auto text-xs"
+                              onClick={() => {
+                                const accessUrl = `/access/${linkedGuide.guide_id}?access_code=${linkedGuide.master_access_code}`;
+                                navigate(accessUrl);
+                              }}
+                            >
+                              Listen Now →
+                            </Button>
+                          )}
                         </div>
-                        <span className="text-xs font-medium">${relatedGuide.price}</span>
+                      </div>
+                    </Card>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Related Guides */}
+            {relatedGuides.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Related Guides</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {relatedGuides.map((relatedGuide) => (
+                    <div 
+                      key={relatedGuide.id} 
+                      className="flex gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer"
+                      onClick={() => navigate(`/guide/${relatedGuide.slug || relatedGuide.id}`)}
+                    >
+                      <img 
+                        src={relatedGuide.image} 
+                        alt={`${relatedGuide.title} - Audio guide in ${relatedGuide.location || 'destination'}`}
+                        className="w-16 h-16 rounded-lg object-cover"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <h5 className="font-medium text-sm line-clamp-2">{relatedGuide.title}</h5>
+                        <p className="text-xs text-muted-foreground">{relatedGuide.creator}</p>
+                        <div className="flex items-center justify-between mt-1">
+                          <div className="flex items-center gap-1">
+                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                            <span className="text-xs">{relatedGuide.rating}</span>
+                          </div>
+                          <span className="text-xs font-medium">${relatedGuide.price}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>
