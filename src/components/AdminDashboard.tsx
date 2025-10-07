@@ -1,40 +1,71 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookOpen, DollarSign, TrendingUp, RefreshCw } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { BookOpen, DollarSign, TrendingUp } from 'lucide-react';
 import { AdminQRCodeRegenerator } from './AdminQRCodeRegenerator';
 import { PaymentFlowTestPanel } from './PaymentFlowTestPanel';
-import { useDashboardStats } from '@/hooks/admin/useDashboardStats';
+
+
+interface DashboardStats {
+  totalGuides: number;
+  totalRevenue: number;
+  monthlyRevenue: number;
+}
 
 export const AdminDashboard = () => {
-  const { data: stats, isLoading, refetch } = useDashboardStats();
+  const [stats, setStats] = useState<DashboardStats>({
+    totalGuides: 0,
+    totalRevenue: 0,
+    monthlyRevenue: 0
+  });
+  const [loading, setLoading] = useState(true);
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3].map(i => (
-            <Card key={i}>
-              <CardContent className="p-6">
-                <div className="h-20 bg-muted animate-pulse rounded" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    fetchDashboardStats();
+  }, []);
 
-  if (!stats) {
-    return <div className="p-8 text-center">No data available</div>;
+  const fetchDashboardStats = async () => {
+    try {
+      // Get guide stats
+      const { data: guides } = await supabase
+        .from('audio_guides')
+        .select('*');
+
+      // Get revenue data
+      const { data: purchases } = await supabase
+        .from('user_purchases')
+        .select('price_paid, purchase_date');
+
+      const totalRevenue = purchases?.reduce((sum, p) => sum + p.price_paid, 0) || 0;
+      
+      const currentMonth = new Date().getMonth();
+      const currentYear = new Date().getFullYear();
+      const monthlyRevenue = purchases?.filter(p => {
+        const purchaseDate = new Date(p.purchase_date);
+        return purchaseDate.getMonth() === currentMonth && purchaseDate.getFullYear() === currentYear;
+      }).reduce((sum, p) => sum + p.price_paid, 0) || 0;
+
+      setStats({
+        totalGuides: guides?.length || 0,
+        totalRevenue: totalRevenue / 100, // Convert from cents
+        monthlyRevenue: monthlyRevenue / 100
+      });
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="p-8 text-center">Loading dashboard...</div>;
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold">Dashboard Overview</h2>
-          <p className="text-muted-foreground">Platform statistics and key metrics</p>
-        </div>
+      <div>
+        <h2 className="text-2xl font-bold">Dashboard Overview</h2>
+        <p className="text-muted-foreground">Platform statistics and key metrics</p>
       </div>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">

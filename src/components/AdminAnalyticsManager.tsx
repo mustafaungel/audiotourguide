@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import { Eye, Share2, ShoppingBag, TrendingUp, TrendingDown, RefreshCw, Download, Calendar, Award } from 'lucide-react';
-import { useAnalytics, refreshAnalytics } from '@/hooks/admin/useAnalytics';
 
 interface GuideAnalytics {
   id: string;
@@ -30,54 +31,111 @@ interface AnalyticsMetrics {
 }
 
 export const AdminAnalyticsManager = () => {
+  const [guides, setGuides] = useState<GuideAnalytics[]>([]);
+  const [metrics, setMetrics] = useState<AnalyticsMetrics | null>(null);
+  const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState('7');
   const [sortBy, setSortBy] = useState('views');
   const { toast } = useToast();
-  
-  const { data: analyticsData, isLoading, refetch } = useAnalytics(dateRange);
 
-  // Transform analytics data into the format used by charts and display
-  const guides: GuideAnalytics[] = (analyticsData || []).map(data => ({
-    id: data.guide_id,
-    title: data.title,
-    total_views: data.total_views,
-    total_shares: 0, // Not in materialized view yet
-    total_purchases: data.total_purchases,
-    revenue: data.total_revenue,
-    viral_score: 0, // Not in materialized view yet
-    ctr: data.total_views > 0 ? (data.total_purchases / data.total_views) * 100 : 0,
-    trend: data.total_purchases > 10 ? 'up' as const : data.total_purchases > 5 ? 'stable' as const : 'down' as const
-  }));
-
-  // Calculate overall metrics from the data
-  const metrics: AnalyticsMetrics = {
-    totalViews: guides.reduce((sum, g) => sum + g.total_views, 0),
-    totalShares: guides.reduce((sum, g) => sum + g.total_shares, 0),
-    totalPurchases: guides.reduce((sum, g) => sum + g.total_purchases, 0),
-    totalRevenue: guides.reduce((sum, g) => sum + g.revenue, 0),
-    avgCTR: guides.length > 0 
-      ? guides.reduce((sum, g) => sum + g.ctr, 0) / guides.length 
-      : 0,
-    topPerformingGuide: guides.length > 0 
-      ? guides.sort((a, b) => b.total_views - a.total_views)[0]?.title || 'N/A'
-      : 'N/A'
-  };
-
-  const handleRefresh = async () => {
+  const fetchAnalytics = async () => {
     try {
-      await refreshAnalytics();
-      await refetch();
-      toast({
-        title: "Refreshed",
-        description: "Analytics data has been updated",
+      setLoading(true);
+      
+      // Calculate date range
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(endDate.getDate() - parseInt(dateRange));
+
+      // Fetch viral metrics
+      const { data: viralData, error: viralError } = await supabase
+        .from('viral_metrics')
+        .select('guide_id, views_count, shares_count, viral_score, date')
+        .gte('date', startDate.toISOString().split('T')[0])
+        .lte('date', endDate.toISOString().split('T')[0]);
+
+      if (viralError) throw viralError;
+
+      // Fetch guide details
+      const { data: guidesData, error: guidesError } = await supabase
+        .from('audio_guides')
+        .select('id, title, price_usd, total_purchases');
+
+      if (guidesError) throw guidesError;
+
+      // Fetch purchase data
+      const { data: purchasesData, error: purchasesError } = await supabase
+        .from('user_purchases')
+        .select('guide_id, price_paid, purchase_date')
+        .gte('purchase_date', startDate.toISOString())
+        .lte('purchase_date', endDate.toISOString());
+
+      if (purchasesError) throw purchasesError;
+
+      // Process data to create analytics
+      const guidesAnalytics: GuideAnalytics[] = guidesData.map(guide => {
+        const guideMetrics = viralData?.filter(v => v.guide_id === guide.id) || [];
+        const guidePurchases = purchasesData?.filter(p => p.guide_id === guide.id) || [];
+        
+        const totalViews = guideMetrics.reduce((sum, m) => sum + (m.views_count || 0), 0);
+        const totalShares = guideMetrics.reduce((sum, m) => sum + (m.shares_count || 0), 0);
+        const totalPurchases = guidePurchases.length;
+        const revenue = guidePurchases.reduce((sum, p) => sum + (p.price_paid || 0), 0);
+        const avgViralScore = guideMetrics.length > 0 
+          ? guideMetrics.reduce((sum, m) => sum + (m.viral_score || 0), 0) / guideMetrics.length 
+          : 0;
+
+        return {
+          id: guide.id,
+          title: guide.title,
+          total_views: totalViews,
+          total_shares: totalShares,
+          total_purchases: totalPurchases,
+          revenue: revenue,
+          viral_score: avgViralScore,
+          ctr: totalViews > 0 ? (totalPurchases / totalViews) * 100 : 0,
+          trend: avgViralScore > 50 ? 'up' : avgViralScore > 20 ? 'stable' : 'down'
+        };
       });
+
+      // Calculate overall metrics
+      const totalMetrics: AnalyticsMetrics = {
+        totalViews: guidesAnalytics.reduce((sum, g) => sum + g.total_views, 0),
+        totalShares: guidesAnalytics.reduce((sum, g) => sum + g.total_shares, 0),
+        totalPurchases: guidesAnalytics.reduce((sum, g) => sum + g.total_purchases, 0),
+        totalRevenue: guidesAnalytics.reduce((sum, g) => sum + g.revenue, 0),
+        avgCTR: guidesAnalytics.length > 0 
+          ? guidesAnalytics.reduce((sum, g) => sum + g.ctr, 0) / guidesAnalytics.length 
+          : 0,
+        topPerformingGuide: guidesAnalytics.length > 0 
+          ? guidesAnalytics.sort((a, b) => b.total_views - a.total_views)[0]?.title || 'N/A'
+          : 'N/A'
+      };
+
+      setGuides(guidesAnalytics);
+      setMetrics(totalMetrics);
     } catch (error) {
+      console.error('Error fetching analytics:', error);
       toast({
         title: "Error",
-        description: "Failed to refresh analytics",
+        description: "Failed to fetch analytics data",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    fetchAnalytics();
+  }, [dateRange]);
+
+  const handleRefresh = () => {
+    fetchAnalytics();
+    toast({
+      title: "Refreshed",
+      description: "Analytics data has been updated",
+    });
   };
 
   const handleExport = () => {
@@ -130,7 +188,7 @@ export const AdminAnalyticsManager = () => {
     color: COLORS[index % COLORS.length]
   }));
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="space-y-6">
         <Card>

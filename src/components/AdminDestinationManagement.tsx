@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,11 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Trash2, Edit, CheckCircle, XCircle, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { COUNTRIES } from '@/data/constants';
-import { useDestinations } from '@/hooks/admin/useDestinations';
-import { usePagination } from '@/hooks/admin/usePagination';
-import { PaginationControls } from '@/components/admin/PaginationControls';
-import { PAGINATION_CONFIG } from '@/utils/admin/pagination';
+import { COUNTRIES, DESTINATIONS } from '@/data/constants';
 
 interface Destination {
   id: string;
@@ -41,28 +37,12 @@ const CATEGORIES = [
 const DIFFICULTY_LEVELS = ['intermediate', 'advanced'];
 
 export const AdminDestinationManagement = () => {
+  const [destinations, setDestinations] = useState<Destination[]>([]);
+  const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [generatingDescription, setGeneratingDescription] = useState(false);
   const { toast } = useToast();
-  
-  const pagination = usePagination({ 
-    pageSize: PAGINATION_CONFIG.DESTINATIONS_PER_PAGE 
-  });
-  
-  const {
-    data: destinationsResult,
-    isLoading,
-    updateDestination,
-    deleteDestination: deleteDestinationMutation,
-    isUpdating,
-    isDeleting
-  } = useDestinations({
-    page: pagination.currentPage,
-    pageSize: pagination.pageSize
-  });
-  
-  const destinations = destinationsResult?.data || [];
 
   const [formData, setFormData] = useState({
     name: '',
@@ -79,6 +59,30 @@ export const AdminDestinationManagement = () => {
     image_url: ''
   });
 
+  useEffect(() => {
+    fetchDestinations();
+  }, []);
+
+  const fetchDestinations = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('destinations')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setDestinations(data || []);
+    } catch (error) {
+      console.error('Error fetching destinations:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch destinations",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const generateDescription = async () => {
     if (!formData.name || !formData.country || !formData.city) {
@@ -164,6 +168,7 @@ export const AdminDestinationManagement = () => {
       }
 
       resetForm();
+      fetchDestinations();
     } catch (error) {
       console.error('Error saving destination:', error);
       toast({
@@ -195,14 +200,43 @@ export const AdminDestinationManagement = () => {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this destination?')) return;
-    deleteDestinationMutation(id);
+
+    try {
+      const { error } = await supabase
+        .from('destinations')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      toast({ title: "Success", description: "Destination deleted successfully!" });
+      fetchDestinations();
+    } catch (error) {
+      console.error('Error deleting destination:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete destination",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleApprove = async (id: string) => {
-    updateDestination({ 
-      id, 
-      updates: { is_approved: true } 
-    });
+    try {
+      const { error } = await supabase.rpc('approve_destination', {
+        destination_id: id
+      });
+
+      if (error) throw error;
+      toast({ title: "Success", description: "Destination approved successfully!" });
+      fetchDestinations();
+    } catch (error) {
+      console.error('Error approving destination:', error);
+      toast({
+        title: "Error",
+        description: "Failed to approve destination",
+        variant: "destructive",
+      });
+    }
   };
 
   const resetForm = () => {
@@ -224,20 +258,8 @@ export const AdminDestinationManagement = () => {
     setShowCreateForm(false);
   };
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3].map(i => (
-            <Card key={i}>
-              <CardContent className="p-6">
-                <div className="h-40 bg-muted animate-pulse rounded" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
+  if (loading) {
+    return <div className="flex justify-center items-center h-32">Loading destinations...</div>;
   }
 
   return (
@@ -500,16 +522,6 @@ export const AdminDestinationManagement = () => {
             <p className="text-muted-foreground">No destinations found. Create your first destination!</p>
           </CardContent>
         </Card>
-      )}
-
-      {destinationsResult && destinationsResult.totalPages > 1 && (
-        <PaginationControls
-          currentPage={pagination.currentPage}
-          totalPages={destinationsResult.totalPages}
-          onPageChange={pagination.goToPage}
-          hasNextPage={destinationsResult.hasNextPage}
-          hasPreviousPage={destinationsResult.hasPreviousPage}
-        />
       )}
     </div>
   );
