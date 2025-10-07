@@ -402,6 +402,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
 
         <TabsContent value="main" className="mt-0">
           <NewSectionAudioPlayer
+            key={`${mainGuide.id}-${languageCode}`}
             guideId={mainGuide.id}
             guideTitle={mainGuide.title}
             sections={mainSections}
@@ -412,6 +413,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
         {linkedGuides.map((linkedGuide) => (
           <TabsContent key={linkedGuide.guide_id} value={linkedGuide.guide_id} className="mt-0">
             <NewSectionAudioPlayer
+              key={`${linkedGuide.guide_id}-${languageCode}`}
               guideId={linkedGuide.guide_id}
               guideTitle={linkedGuide.custom_title || linkedGuide.title}
               sections={sectionsByGuide[linkedGuide.guide_id] || []}

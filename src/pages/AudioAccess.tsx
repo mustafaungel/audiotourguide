@@ -595,15 +595,6 @@ export default function AudioAccess() {
                         : `${Math.floor(guide.duration / 60)} min`
                       }
                     </div>
-                    {guide.languages && guide.languages.length > 1 && (
-                      <div className="flex items-center gap-2">
-                        {guide.languages.map((language: string, index: number) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
-                            {language}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
                    </div>
 
                 </div>
@@ -622,6 +613,7 @@ export default function AudioAccess() {
           {/* Multi-tab Audio Interface */}
           <div className="mb-6">
             <MultiTabAudioPlayer
+              key={`${guide.id}-${selectedLanguage}-${accessCode || ''}`}
               mainGuide={{
                 id: guide.id,
                 title: guide.title,
