@@ -14,8 +14,9 @@ import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Loader2, FileText, Plus, ImageIcon, Copy, QrCode, Edit2, Mail, Palette, BarChart3, Languages } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import QRCode from 'qrcode';
+import { generateGuideQRCode, updateGuideWithQRCode } from '@/utils/admin/qrCode';
+import { validateGuideForm, validatePrice, validateSections } from '@/utils/admin/validation';
+import { showSuccessToast, showErrorToast, showGuideCreatedToast, showValidationErrorToast, copyToClipboard } from '@/utils/admin/toast';
 import { AdminDashboard } from '@/components/AdminDashboard';
 import { GuideManagement } from '@/components/GuideManagement';
 
@@ -81,7 +82,7 @@ const AdminPanel = () => {
 
   const generateImage = async () => {
     if (!formData.title || !formData.city || !formData.country) {
-      toast.error('Please fill in title, city, and country first.');
+      showErrorToast('Please fill in title, city, and country first.');
       return;
     }
 
@@ -102,13 +103,13 @@ const AdminPanel = () => {
       if (data.imageContent) {
         const imageUrl = `data:image/webp;base64,${data.imageContent}`;
         setUploadedImages([imageUrl]);
-        toast.success('AI has created your guide image successfully.');
+        showSuccessToast('AI has created your guide image successfully.');
       } else {
         throw new Error('No image received');
       }
     } catch (error: any) {
       console.error('Error generating image:', error);
-      toast.error('Failed to generate image. Please try again.');
+      showErrorToast('Failed to generate image. Please try again.');
     } finally {
       setImageLoading(false);
     }
@@ -116,7 +117,7 @@ const AdminPanel = () => {
 
   const generateDescription = async () => {
     if (!formData.title || !formData.city || !formData.country) {
-      toast.error('Please fill in title, city, and country first.');
+      showErrorToast('Please fill in title, city, and country first.');
       return;
     }
 
@@ -152,19 +153,19 @@ const AdminPanel = () => {
 
       if (error) {
         console.error('Error generating description:', error);
-        toast.error(`Failed to generate description: ${error.message || 'Unknown error'}`);
+        showErrorToast(`Failed to generate description: ${error.message || 'Unknown error'}`);
         return;
       }
       
       if (data?.description) {
         handleInputChange('description', data.description);
-        toast.success('AI has created your guide description successfully.');
+        showSuccessToast('AI has created your guide description successfully.');
       } else {
-        toast.error('No description returned from AI');
+        showErrorToast('No description returned from AI');
       }
     } catch (error: any) {
       console.error('Error generating description:', error);
-      toast.error(`Failed to generate description: ${error.message || 'Network error'}`);
+      showErrorToast(`Failed to generate description: ${error.message || 'Network error'}`);
     } finally {
       setDescriptionLoading(false);
     }
@@ -172,83 +173,36 @@ const AdminPanel = () => {
 
   const generateQRCodeAndShareLink = async (guideId: string) => {
     try {
-      const baseUrl = window.location.origin;
-      const shareUrl = `${baseUrl}/guide/${guideId}`;
-      
-      // Generate QR code with custom styling
-      const qrCodeDataUrl = await QRCode.toDataURL(shareUrl, {
-        width: 200,
-        margin: 2,
-        color: {
-          dark: '#1e293b', // slate-800
-          light: '#ffffff'
-        },
-        errorCorrectionLevel: 'H'
-      });
-
-      // Update the guide with QR code and share URL
-      const { error: updateError } = await supabase
-        .from('audio_guides')
-        .update({
-          qr_code_url: qrCodeDataUrl,
-          share_url: shareUrl
-        })
-        .eq('id', guideId);
-
-      if (updateError) {
-        console.error('Error updating guide with QR code:', updateError);
-        return;
-      }
-
-      setQrCodeUrl(qrCodeDataUrl);
+      const { qrCodeUrl, shareUrl } = await generateGuideQRCode(guideId);
+      await updateGuideWithQRCode(guideId, qrCodeUrl, shareUrl);
+      setQrCodeUrl(qrCodeUrl);
       setShareUrl(shareUrl);
     } catch (error) {
       console.error('Error generating QR code:', error);
     }
   };
 
-  const copyToClipboard = async (text: string, type: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast.success(`${type} copied to clipboard!`);
-    } catch (error) {
-      console.error('Failed to copy:', error);
-      toast.error('Failed to copy to clipboard');
-    }
-  };
-
   const createGuide = async () => {
-    // Enhanced validation with specific error messages
-    const missingFields = [];
-    if (!formData.title?.trim()) missingFields.push('Title');
-    if (!formData.city?.trim()) missingFields.push('City');
-    if (!formData.country?.trim()) missingFields.push('Country');
-    if (!formData.category?.trim()) missingFields.push('Category');
-
-    if (missingFields.length > 0) {
-      toast.error(`Please fill in the following required fields: ${missingFields.join(', ')}`);
-      console.error('Missing required fields:', missingFields);
+    // Validate form data
+    const validation = validateGuideForm(formData);
+    if (!validation.isValid) {
+      showValidationErrorToast(validation.errors);
+      console.error('Missing required fields:', validation.errors);
       return;
     }
 
-    // Validate price is a valid number (allow free guides)
-    const priceValue = formData.price?.trim() ? parseFloat(formData.price) * 100 : 0; // Convert dollars to cents
-    if (isNaN(priceValue) || priceValue < 0) {
-      toast.error('Please enter a valid price (0 or greater for free guides)');
+    // Validate price
+    const priceValidation = validatePrice(formData.price);
+    if (!priceValidation.isValid) {
+      showErrorToast(priceValidation.error!);
       return;
     }
 
-    // Sections are optional - guides can be created without sections
-    if (sections.length > 0) {
-      // Validate sections have at least a title
-      const invalidSections = sections.filter((section, index) => 
-        !section.title?.trim()
-      );
-      
-      if (invalidSections.length > 0) {
-        toast.error('All sections must have at least a title');
-        return;
-      }
+    // Validate sections
+    const sectionsValidation = validateSections(sections);
+    if (!sectionsValidation.isValid) {
+      showErrorToast(sectionsValidation.error!);
+      return;
     }
 
     setPublishLoading(true);
@@ -260,7 +214,7 @@ const AdminPanel = () => {
         description: formData.description?.trim() || `Explore ${formData.title.trim()} in ${formData.city.trim()}, ${formData.country.trim()}`,
         location: `${formData.city.trim()}, ${formData.country.trim()}`,
         category: formData.category.trim(),
-        price_usd: priceValue,
+        price_usd: priceValidation.value!,
         difficulty: 'intermediate',
         languages: ['English'],
         sections: sections.map(section => ({
@@ -285,15 +239,14 @@ const AdminPanel = () => {
 
       if (error) {
         console.error('Edge function error details:', error);
-        // Try to extract more specific error message
         const errorMessage = error.message || error.details || error.hint || 'Unknown error occurred';
-        toast.error(`Failed to create guide: ${errorMessage}`);
+        showErrorToast(`Failed to create guide: ${errorMessage}`);
         return;
       }
 
       if (!data || !data.guide) {
         console.error('Invalid response from edge function:', data);
-        toast.error('Invalid response from server. Please try again.');
+        showErrorToast('Invalid response from server. Please try again.');
         return;
       }
 
@@ -301,12 +254,7 @@ const AdminPanel = () => {
       setQrCodeUrl(data.guide.qr_code_url);
       setShareUrl(data.guide.share_url);
       
-      // Show appropriate success message based on access type
-      if (isHidden) {
-        toast.success('Hidden guide created! Only accessible via access link - perfect for private sharing.');
-      } else {
-        toast.success('Published guide created! Discoverable on main page with payment required. Access link available for direct access.');
-      }
+      showGuideCreatedToast(isHidden);
       
       // Reset form
       setFormData({ title: '', description: '', city: '', country: '', category: 'Cultural Heritage', price: '0', is_featured: false });
@@ -319,23 +267,14 @@ const AdminPanel = () => {
     } catch (error: any) {
       console.error('Error creating guide - full error:', error);
       
-      // Enhanced error handling
       let errorMessage = 'Failed to create guide. Please try again.';
-      
       if (error.message) {
         errorMessage = `Failed to create guide: ${error.message}`;
-      } else if (typeof error === 'string') {
-        errorMessage = `Failed to create guide: ${error}`;
-      } else if (error.details) {
-        errorMessage = `Failed to create guide: ${error.details}`;
-      }
-      
-      // Network error handling
-      if (error.name === 'TypeError' && error.message?.includes('fetch')) {
+      } else if (error.name === 'TypeError' && error.message?.includes('fetch')) {
         errorMessage = 'Network error. Please check your connection and try again.';
       }
       
-      toast.error(errorMessage);
+      showErrorToast(errorMessage);
     } finally {
       setPublishLoading(false);
     }
