@@ -56,33 +56,21 @@ export const AdminUserCreation = () => {
 
     setIsCreating(true);
     try {
-      // Create auth user
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: formData.email,
-        password: formData.password || 'TempPassword123!',
-        email_confirm: true,
-        user_metadata: {
-          full_name: formData.fullName
+      // Call secure edge function to create user
+      const { data, error } = await supabase.functions.invoke('admin-create-user', {
+        body: {
+          email: formData.email,
+          password: formData.password || undefined,
+          fullName: formData.fullName,
+          role: formData.role,
+          bio: formData.bio,
+          languages: formData.languages,
+          guideCountry: formData.guideCountry,
         }
       });
 
-      if (authError) throw authError;
-
-      // Create profile
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          user_id: authData.user.id,
-          email: formData.email,
-          full_name: formData.fullName,
-          role: formData.role,
-          bio: formData.bio || null,
-          languages_spoken: formData.languages,
-          guide_country: formData.guideCountry || null,
-          verification_status: formData.role === 'content_creator' ? 'pending' : 'unverified'
-        });
-
-      if (profileError) throw profileError;
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || 'Failed to create user');
 
       toast({
         title: "User Created Successfully!",

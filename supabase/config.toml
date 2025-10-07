@@ -1,5 +1,8 @@
 project_id = "dsaqlgxajdnwoqvtsrqd"
 
+[functions.admin-create-user]
+verify_jwt = true
+
 [functions.deploy-logo]
 verify_jwt = false
 

@@ -90,7 +90,7 @@ serve(async (req) => {
     if (!stripeKey) {
       throw new Error("STRIPE_SECRET_KEY environment variable is not set");
     }
-    logStep("Stripe key retrieved", { keyExists: !!stripeKey, keyLength: stripeKey.length });
+    logStep("Stripe configured successfully");
 
     const stripe = new Stripe(stripeKey, {
       apiVersion: "2023-10-16",
