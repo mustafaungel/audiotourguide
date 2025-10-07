@@ -2,13 +2,23 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Play, Headphones, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { OptimizedImage } from '@/components/OptimizedImage';
 import heroImage from '@/assets/hero-world-travel.jpg';
 export const HeroSection: React.FC = () => {
   const navigate = useNavigate();
   return <section className="relative min-h-[50vh] md:min-h-[60vh] flex items-center justify-center overflow-hidden">{/* Optimized viewport */}
       {/* Background */}
       <div className="absolute inset-0">
-        <img src={heroImage} alt="World Travel and Cultural Heritage Sites" width="1920" height="1080" className="w-full h-full object-cover opacity-60" fetchPriority="high" decoding="async" />
+        <OptimizedImage 
+          src={heroImage} 
+          alt="World Travel and Cultural Heritage Sites" 
+          width={1920} 
+          height={1080} 
+          className="w-full h-full object-cover opacity-60" 
+          fetchPriority="high" 
+          loading="eager"
+          quality={85}
+        />
         <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-background/40 to-background/60" />
       </div>
 

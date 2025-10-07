@@ -4,6 +4,7 @@ import { useSiteBranding } from '@/hooks/useSiteBranding';
 import { useTheme } from 'next-themes';
 import { MapPin } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { OptimizedImage } from '@/components/OptimizedImage';
 interface ResponsiveLogoProps {
   className?: string;
   showCompanyName?: boolean;
@@ -90,15 +91,15 @@ if (variant === 'icon-only') {
         renderFallbackIcon()
       ) : logoUrl ? (
         imgLoaded ? (
-          <img
+          <OptimizedImage
             key={logoUrl}
             src={logoUrl}
             alt={`${branding.companyName} logo`}
             width={size === 'sm' ? 64 : size === 'md' ? 128 : 192}
             height={size === 'sm' ? 64 : size === 'md' ? 128 : 192}
             className={cn("object-contain flex-shrink-0", sizeClasses[size])}
-            decoding="async"
             loading="eager"
+            fetchPriority="high"
           />
         ) : (
           <Skeleton className={cn("rounded-lg", iconSizeClasses[size])} />
@@ -127,15 +128,15 @@ if (variant === 'compact') {
         renderFallbackIcon()
       ) : logoUrl ? (
         imgLoaded ? (
-          <img
+          <OptimizedImage
             key={logoUrl}
             src={logoUrl}
             alt={`${branding.companyName} logo`}
             width={size === 'sm' ? 64 : size === 'md' ? 128 : 192}
             height={size === 'sm' ? 64 : size === 'md' ? 128 : 192}
             className={cn("object-contain flex-shrink-0", sizeClasses[size])}
-            decoding="async"
             loading="eager"
+            fetchPriority="high"
           />
         ) : (
           <Skeleton
@@ -176,15 +177,15 @@ return <div className={cn("flex items-center space-x-2 min-w-0", className)}>
         renderFallbackIcon()
       ) : logoUrl ? (
         imgLoaded ? (
-          <img
+          <OptimizedImage
             key={logoUrl}
             src={logoUrl}
             alt={`${branding.companyName} logo`}
             width={size === 'sm' ? 64 : size === 'md' ? 128 : 192}
             height={size === 'sm' ? 64 : size === 'md' ? 128 : 192}
             className={cn("object-contain flex-shrink-0", sizeClasses[size])}
-            decoding="async"
             loading="eager"
+            fetchPriority="high"
           />
         ) : (
           <Skeleton
