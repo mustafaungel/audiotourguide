@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
-import { Globe, Music, ChevronRight, Check } from 'lucide-react';
+import { Globe, Music, ChevronRight, Check, ChevronDown } from 'lucide-react';
 import { getLanguageFlag, getLanguageDisplay } from '@/lib/language-utils';
 import { getBaseUrl } from '@/lib/url-utils';
 import { BottomSheet, BottomSheetListItem } from '@/components/ui/bottom-sheet';
@@ -269,10 +269,23 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
         </>
       )}
 
-      {/* iOS-style Additional Guides Section */}
+      {/* iOS-style Additional Guides Section - Collapsible on Mobile */}
       {linkedGuides.length > 0 && (
         <div className="space-y-2">
-          <div className="flex items-center gap-2 px-4 py-2">
+          <button
+            onClick={() => {
+              const section = document.getElementById('additional-guides-content');
+              if (section) {
+                const isHidden = section.classList.contains('hidden');
+                if (isHidden) {
+                  section.classList.remove('hidden');
+                } else {
+                  section.classList.add('hidden');
+                }
+              }
+            }}
+            className="flex items-center gap-2 px-4 py-2 w-full hover:bg-muted/50 rounded-lg transition-colors md:cursor-default md:hover:bg-transparent"
+          >
             <Music className="w-4 h-4 text-muted-foreground" />
             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
               Additional Guides
@@ -280,9 +293,10 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
             <Badge variant="outline" className="ml-auto text-xs">
               {linkedGuides.length}
             </Badge>
-          </div>
+            <ChevronRight className="h-4 w-4 text-muted-foreground md:hidden transition-transform" id="additional-guides-chevron" />
+          </button>
           
-          <div className="space-y-1">
+          <div className="space-y-1 md:block" id="additional-guides-content">
             {linkedGuides.map((linkedGuide) => (
               <button
                 key={linkedGuide.guide_id}

@@ -649,9 +649,9 @@ const GuideDetail = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Hero Image */}
-            <div className="relative aspect-[16/10] rounded-3xl overflow-hidden shadow-xl">
-              <img 
+            {/* Hero Image - Responsive aspect ratio */}
+            <div className="relative aspect-video md:aspect-[16/10] rounded-3xl overflow-hidden shadow-xl">
+              <img
                 src={
                   (guide.image_urls?.[0] || guide.image_url)?.startsWith('data:image') 
                     ? (guide.image_urls?.[0] || guide.image_url)
@@ -673,45 +673,45 @@ const GuideDetail = () => {
             {/* Guide Info */}
             <Card>
               <CardHeader>
-                <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <div className="flex flex-col gap-4">
+                  {/* Top Row: Location, Duration, Actions */}
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-3 md:gap-4 text-xs md:text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
-                        <MapPin className="w-4 h-4" />
-                        {guide.location}
+                        <MapPin className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                        <span className="truncate max-w-[120px] md:max-w-none">{guide.location}</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" />
+                        <Clock className="w-3.5 h-3.5 md:w-4 md:h-4" />
                         {Math.floor(guide.duration / 60)} min
                       </div>
                     </div>
+                    
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={handleBookmark}>
+                        <Bookmark className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`} />
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={handleShare}>
+                        <Share2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
-                  
-                  {/* Language Selector */}
+
+                  {/* Language Selector - Full Width on Mobile */}
                   {guide?.id && (
-                    <GuideLanguageSelector
-                      guideId={guide.id}
-                      selectedLanguage={selectedLanguage}
-                      onLanguageChange={handleLanguageChange}
-                    />
+                    <div className="w-full">
+                      <GuideLanguageSelector
+                        guideId={guide.id}
+                        selectedLanguage={selectedLanguage}
+                        onLanguageChange={handleLanguageChange}
+                      />
+                    </div>
                   )}
-                  
-                  <div className="space-y-2">
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={handleBookmark}>
-                      <Bookmark className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`} />
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={handleShare}>
-                      <Share2 className="w-4 h-4" />
-                    </Button>
-                  </div>
                 </div>
               </CardHeader>
               
               <CardContent>
-                <p className="ios-body text-muted-foreground leading-relaxed">
+                <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
                   {guide.description}
                 </p>
               </CardContent>
@@ -752,27 +752,27 @@ const GuideDetail = () => {
               </Card>
             )}
 
-            {/* Tabs Content */}
+            {/* Tabs Content - Responsive sizing */}
             <Tabs defaultValue="chapters" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="chapters">Chapters</TabsTrigger>
-                <TabsTrigger value="qrcode">QR Code</TabsTrigger>
-                <TabsTrigger value="reviews">Reviews</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-3 h-10 md:h-11">
+                <TabsTrigger value="chapters" className="text-xs md:text-sm">Chapters</TabsTrigger>
+                <TabsTrigger value="qrcode" className="text-xs md:text-sm">QR Code</TabsTrigger>
+                <TabsTrigger value="reviews" className="text-xs md:text-sm">Reviews</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="chapters" className="space-y-4">
+              <TabsContent value="chapters" className="space-y-3 md:space-y-4">
                 {isPurchased || hasAccessCode ? (
-                  <div className="space-y-3">
+                  <div className="space-y-2 md:space-y-3">
                     {currentChapters.map((chapter, index) => (
-                      <Card key={index} className="p-4 hover:bg-muted/50 cursor-pointer transition-colors">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium">
+                      <Card key={index} className="p-3 md:p-4 hover:bg-muted/50 cursor-pointer transition-colors">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+                            <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs md:text-sm font-medium shrink-0">
                               {index + 1}
                             </div>
-                            <div>
-                              <h4 className="font-medium">{chapter.title}</h4>
-                              <p className="text-sm text-muted-foreground">
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium text-sm md:text-base truncate">{chapter.title}</h4>
+                              <p className="text-xs md:text-sm text-muted-foreground">
                                 {chapter.duration_seconds 
                                   ? `${Math.floor(chapter.duration_seconds / 60)}:${(chapter.duration_seconds % 60).toString().padStart(2, '0')}`
                                   : chapter.duration 
@@ -807,15 +807,15 @@ const GuideDetail = () => {
                       </div>
                     </div>
                     
-                    <div className="space-y-3 mb-4">
+                    <div className="space-y-2 mb-4">
                       {currentChapters.slice(0, 3).map((chapter, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium">
+                        <div key={index} className="flex items-center justify-between gap-2 p-2.5 md:p-3 bg-muted/50 rounded-lg">
+                          <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+                            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium shrink-0">
                               {index + 1}
                             </div>
-                            <div>
-                              <h4 className="font-medium text-sm">{chapter.title}</h4>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium text-xs md:text-sm truncate">{chapter.title}</h4>
                               <p className="text-xs text-muted-foreground">
                                 {chapter.duration_seconds 
                                   ? `${Math.floor(chapter.duration_seconds / 60)}:${(chapter.duration_seconds % 60).toString().padStart(2, '0')}`
@@ -972,31 +972,36 @@ const GuideDetail = () => {
               </TabsContent>
             </Tabs>
 
-            {/* Enhanced Audio Player - Only show when purchased/has access */}
+            {/* Enhanced Audio Player - Sticky on mobile, normal on desktop */}
             {(isPurchased || hasAccessCode) && (
-              <div className="mt-8">
-                <EnhancedAudioPlayer
-                  guide={{
-                    id: guide.id,
-                    title: guide.title,
-                    description: guide.description,
-                    audio_url: guide.audio_url || guide.audioUrl,
-                    image_url: guide.image_url
-                  }}
-                  sections={currentChapters}
-                  accessCode={searchParams.get('access_code') || undefined}
-                  selectedLanguage={selectedLanguage}
-                  defaultStyle="spotify"
-                />
+              <div className="mt-8 md:relative md:mt-8">
+                {/* Mobile: Fixed to bottom with safe area */}
+                <div className="fixed bottom-0 left-0 right-0 z-40 md:relative md:z-auto bg-background border-t md:border-0 pb-safe md:pb-0">
+                  <EnhancedAudioPlayer
+                    guide={{
+                      id: guide.id,
+                      title: guide.title,
+                      description: guide.description,
+                      audio_url: guide.audio_url || guide.audioUrl,
+                      image_url: guide.image_url
+                    }}
+                    sections={currentChapters}
+                    accessCode={searchParams.get('access_code') || undefined}
+                    selectedLanguage={selectedLanguage}
+                    defaultStyle="spotify"
+                  />
+                </div>
+                {/* Spacer to prevent content from being hidden under fixed player on mobile */}
+                <div className="h-24 md:hidden" aria-hidden="true" />
               </div>
             )}
           </div>
 
-          {/* Sidebar */}
+          {/* Sidebar - Hidden on mobile when player is active */}
           <div className="space-y-6">
-            {/* Purchase Card */}
+            {/* Purchase Card - Compact on mobile */}
             <Card>
-              <CardContent className="space-y-3 pt-6">
+              <CardContent className="space-y-3 pt-4 md:pt-6 px-4 md:px-6">
                 {isPurchased ? (
                   <Button className="w-full" size="lg" disabled>
                     <Check className="w-5 h-5 mr-2" />
