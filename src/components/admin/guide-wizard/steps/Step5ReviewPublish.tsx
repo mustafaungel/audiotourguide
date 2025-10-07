@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Plus, X } from "lucide-react";
+import { Plus, X, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import type { WizardFormData } from "@/hooks/admin/useGuideCreationWizard";
 
@@ -74,7 +74,12 @@ export function Step5ReviewPublish({ formData, updateFormData, errors }: Step5Pr
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Sections:</span>
-              <span className="font-medium">{formData.sections.length}</span>
+              <span className="font-medium">
+                {formData.sections.length}
+                {formData.sections.some(s => !s.audio_url) && (
+                  <AlertCircle className="inline h-3 w-3 ml-1 text-amber-600" />
+                )}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Images:</span>

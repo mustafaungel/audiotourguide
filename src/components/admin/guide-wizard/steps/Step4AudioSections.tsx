@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Plus, Trash2, GripVertical } from "lucide-react";
 import type { WizardFormData } from "@/hooks/admin/useGuideCreationWizard";
+import { AudioSectionUploader } from "../AudioSectionUploader";
 
 interface Step4Props {
   formData: WizardFormData;
@@ -16,7 +17,7 @@ export function Step4AudioSections({ formData, updateFormData }: Step4Props) {
     updateFormData({
       sections: [
         ...formData.sections,
-        { title: '', description: '', audio_url: '' }
+        { title: '', description: '', audio_url: '', duration_seconds: undefined }
       ]
     });
   };
@@ -81,15 +82,30 @@ export function Step4AudioSections({ formData, updateFormData }: Step4Props) {
               </div>
 
               <div>
-                <Label>Audio URL</Label>
-                <Input
-                  value={section.audio_url}
-                  onChange={(e) => updateSection(index, 'audio_url', e.target.value)}
-                  placeholder="https://..."
+                <Label>Audio File</Label>
+                <AudioSectionUploader
+                  sectionIndex={index}
+                  currentAudioUrl={section.audio_url}
+                  currentDuration={section.duration_seconds}
+                  onUpload={(audioUrl, duration) => {
+                    const newSections = [...formData.sections];
+                    newSections[index] = {
+                      ...newSections[index],
+                      audio_url: audioUrl,
+                      duration_seconds: duration,
+                    };
+                    updateFormData({ sections: newSections });
+                  }}
+                  onRemove={() => {
+                    const newSections = [...formData.sections];
+                    newSections[index] = {
+                      ...newSections[index],
+                      audio_url: '',
+                      duration_seconds: undefined,
+                    };
+                    updateFormData({ sections: newSections });
+                  }}
                 />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Upload audio files to your storage and paste the URL here
-                </p>
               </div>
             </div>
           </Card>

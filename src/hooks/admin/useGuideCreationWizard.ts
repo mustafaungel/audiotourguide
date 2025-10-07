@@ -16,6 +16,7 @@ export interface WizardFormData {
     title: string;
     description: string;
     audio_url: string;
+    duration_seconds?: number;
   }>;
   uploadedImages: string[];
 }
