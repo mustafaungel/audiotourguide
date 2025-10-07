@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Globe, Music, ChevronRight } from 'lucide-react';
+import { Globe, Music, ChevronRight, Check } from 'lucide-react';
 import { getLanguageFlag, getLanguageDisplay } from '@/lib/language-utils';
 import { getBaseUrl } from '@/lib/url-utils';
+import { BottomSheet, BottomSheetListItem } from '@/components/ui/bottom-sheet';
+import { haptics } from '@/lib/haptics';
 
 interface GuideLanguageSelectorProps {
   guideId: string;
@@ -26,6 +27,7 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
   const [loading, setLoading] = useState(true);
   const [linkedGuides, setLinkedGuides] = useState<any[]>([]);
   const [masterAccessCode, setMasterAccessCode] = useState<string>('');
+  const [languageSheetOpen, setLanguageSheetOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -192,55 +194,91 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
     : "Select language";
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {availableLanguages.length > 1 && (
-        <div className="flex items-center gap-2 mb-4">
-          <Globe className="h-4 w-4 text-muted-foreground" />
-          <Select value={selectedLanguage} onValueChange={onLanguageChange}>
-            <SelectTrigger className="w-auto min-w-[200px] sm:min-w-[250px] h-12 text-left">
-              <SelectValue placeholder="Select language">
-                {selectedLanguage && selectedDisplay}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent className="min-w-[280px] z-50 bg-card border border-border">
-              {availableLanguages.map((language) => (
-                <SelectItem 
-                  key={language.language_code} 
-                  value={language.language_code}
-                  className="py-3 px-4"
-                >
-                  <div className="flex items-center justify-between w-full gap-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl" aria-hidden="true">
-                        {getLanguageFlag(language.language_code)}
-                      </span>
-                      <span className="font-medium">
-                        {language.native_name}
-                      </span>
+        <>
+          {/* iOS-style Language Selector Button */}
+          <button
+            onClick={() => {
+              haptics.light();
+              setLanguageSheetOpen(true);
+            }}
+            className="ios-list-item w-full"
+          >
+            <div className="flex items-center gap-3">
+              <Globe className="h-5 w-5 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Language</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl" aria-hidden="true">
+                {getLanguageFlag(selectedLanguage)}
+              </span>
+              <span className="font-medium">
+                {selectedDisplay}
+              </span>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </div>
+          </button>
+
+          {/* Language Selection Bottom Sheet */}
+          <BottomSheet
+            open={languageSheetOpen}
+            onOpenChange={setLanguageSheetOpen}
+            title="Select Language"
+          >
+            <div className="space-y-1 pb-4">
+              {availableLanguages.map((language) => {
+                const isSelected = language.language_code === selectedLanguage;
+                return (
+                  <BottomSheetListItem
+                    key={language.language_code}
+                    selected={isSelected}
+                    onSelect={() => {
+                      haptics.selection();
+                      onLanguageChange(language.language_code);
+                      setTimeout(() => setLanguageSheetOpen(false), 150);
+                    }}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl" aria-hidden="true">
+                          {getLanguageFlag(language.language_code)}
+                        </span>
+                        <div className="text-left">
+                          <div className="font-medium">
+                            {language.native_name}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {language.section_count} sections
+                          </div>
+                        </div>
+                      </div>
+                      {isSelected && (
+                        <Check className="h-5 w-5 text-primary" />
+                      )}
                     </div>
-                    <span className="text-xs text-muted-foreground whitespace-nowrap">
-                      {language.section_count} sections
-                    </span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+                  </BottomSheetListItem>
+                );
+              })}
+            </div>
+          </BottomSheet>
+        </>
       )}
 
-      {/* Enhanced Linked Guides Section */}
+      {/* iOS-style Additional Guides Section */}
       {linkedGuides.length > 0 && (
-        <div className="space-y-3">
-          <label className="text-sm font-medium text-foreground flex items-center gap-2">
-            <Globe className="w-4 h-4" />
-            Additional Guides
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 px-4 py-2">
+            <Music className="w-4 h-4 text-muted-foreground" />
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              Additional Guides
+            </span>
             <Badge variant="outline" className="ml-auto text-xs">
-              {linkedGuides.length} guide{linkedGuides.length > 1 ? 's' : ''}
+              {linkedGuides.length}
             </Badge>
-          </label>
+          </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="space-y-1">
             {linkedGuides.map((linkedGuide) => (
               <button
                 key={linkedGuide.guide_id}
@@ -250,10 +288,7 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
                   e.stopPropagation();
                   console.log('AdditionalGuide click:', { guide_id: linkedGuide.guide_id, slug: linkedGuide.slug });
                   
-                  // Add haptic feedback for mobile
-                  if ('vibrate' in navigator) {
-                    navigator.vibrate(50);
-                  }
+                  haptics.light();
                   
                   // Try dispatching event first (for MultiTabAudioPlayer)
                   const event = new CustomEvent('openLinkedGuide', {
@@ -318,37 +353,22 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
                     }
                   }, 100);
                 }}
-                className="
-                  group relative flex items-center gap-3 p-4 
-                  bg-gradient-to-r from-primary/5 to-primary/10 
-                  hover:from-primary/10 hover:to-primary/20 
-                  active:from-primary/20 active:to-primary/30
-                  border border-primary/20 hover:border-primary/40
-                  rounded-lg transition-all duration-200 
-                  touch-manipulation min-h-[56px]
-                  focus:outline-none focus:ring-2 focus:ring-primary/50
-                "
+                className="ios-list-item w-full group"
                 aria-label={`Open ${linkedGuide.custom_title} guide`}
               >
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
-                  <Music className="w-5 h-5 text-primary" />
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                    <Music className="w-4 h-4 text-muted-foreground" />
+                  </div>
+                  
+                  <div className="flex-1 text-left min-w-0">
+                    <h4 className="font-medium text-sm truncate">
+                      {linkedGuide.custom_title}
+                    </h4>
+                  </div>
+                  
+                  <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:translate-x-0.5 transition-transform shrink-0" />
                 </div>
-                
-                <div className="flex-1 text-left min-w-0">
-                  <h4 className="font-medium text-foreground text-sm truncate">
-                    {linkedGuide.custom_title}
-                  </h4>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Tap to explore this guide
-                  </p>
-                </div>
-                
-                <div className="shrink-0 text-primary group-hover:translate-x-1 transition-transform">
-                  <ChevronRight className="w-5 h-5" />
-                </div>
-                
-                {/* Visual indicator overlay */}
-                <div className="absolute inset-0 rounded-lg bg-primary/5 opacity-0 group-active:opacity-100 transition-opacity duration-150" />
               </button>
             ))}
           </div>

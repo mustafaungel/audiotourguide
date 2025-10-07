@@ -266,6 +266,17 @@ All colors MUST be HSL.
   }
 }
 
+/* iOS-style List Item */
+.ios-list-item {
+  @apply flex items-center justify-between;
+  @apply h-11 px-4 rounded-xl;
+  @apply bg-card hover:bg-muted/50;
+  @apply transition-all duration-200;
+  @apply active:scale-[0.98];
+  @apply touch-manipulation;
+  min-height: 44px; /* iOS minimum touch target */
+}
+
 /* Mobile optimizations */
 .safe-top {
   padding-top: env(safe-area-inset-top);
@@ -273,6 +284,10 @@ All colors MUST be HSL.
 
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+.pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
 }
 
 .touch-manipulation {
