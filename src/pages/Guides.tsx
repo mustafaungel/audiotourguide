@@ -37,6 +37,7 @@ const Guides = () => {
         .select('*')
         .eq('is_published', true)
         .eq('is_approved', true)
+        .eq('is_standalone', true)
         .order('created_at', { ascending: false });
 
       if (error) throw error;

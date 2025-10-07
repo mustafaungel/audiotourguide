@@ -39,6 +39,7 @@ export const FeaturedGuides = () => {
         .select('*')
         .eq('is_published', true)
         .eq('is_approved', true)
+        .eq('is_standalone', true)
         .limit(6);
 
       if (error) {

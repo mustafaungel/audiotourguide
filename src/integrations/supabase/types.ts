@@ -69,6 +69,7 @@ export type Database = {
           is_approved: boolean
           is_featured: boolean
           is_published: boolean
+          is_standalone: boolean
           languages: string[]
           location: string
           master_access_code: string | null
@@ -104,6 +105,7 @@ export type Database = {
           is_approved?: boolean
           is_featured?: boolean
           is_published?: boolean
+          is_standalone?: boolean
           languages?: string[]
           location: string
           master_access_code?: string | null
@@ -139,6 +141,7 @@ export type Database = {
           is_approved?: boolean
           is_featured?: boolean
           is_published?: boolean
+          is_standalone?: boolean
           languages?: string[]
           location?: string
           master_access_code?: string | null

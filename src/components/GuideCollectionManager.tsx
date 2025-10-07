@@ -121,6 +121,22 @@ export const GuideCollectionManager: React.FC<GuideCollectionManagerProps> = ({
       return;
     }
 
+    // Update linked guide's is_standalone to false
+    const { error: updateError } = await supabase
+      .from('audio_guides')
+      .update({ is_standalone: false })
+      .eq('id', selectedGuide);
+    
+    if (updateError) {
+      console.error('Error updating guide:', updateError);
+      toast({
+        title: "Error",
+        description: "Failed to link guide",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const newGuide: LinkedGuide = {
       guide_id: selectedGuide,
       custom_title: customTitle.trim(),
@@ -133,14 +149,34 @@ export const GuideCollectionManager: React.FC<GuideCollectionManagerProps> = ({
     
     setSelectedGuide('');
     setCustomTitle('');
+    
+    toast({
+      title: "Guide Linked",
+      description: "This guide will only be accessible through this collection"
+    });
   };
 
   const removeLinkedGuide = async (guideId: string) => {
+    // Restore is_standalone to true
+    const { error: updateError } = await supabase
+      .from('audio_guides')
+      .update({ is_standalone: true })
+      .eq('id', guideId);
+    
+    if (updateError) {
+      console.error('Error updating guide:', updateError);
+    }
+    
     const updatedGuides = linkedGuides
       .filter(g => g.guide_id !== guideId)
       .map((g, index) => ({ ...g, order: index }));
     
     await saveCollection(updatedGuides);
+    
+    toast({
+      title: "Guide Unlinked",
+      description: "Guide is now available as standalone"
+    });
   };
 
   const moveGuide = async (guideId: string, direction: 'up' | 'down') => {
