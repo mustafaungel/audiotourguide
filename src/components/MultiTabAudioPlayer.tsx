@@ -51,10 +51,18 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
   const [loading, setLoading] = useState(true);
   const [pendingGuideId, setPendingGuideId] = useState<string | null>(null);
   const [sectionsByGuide, setSectionsByGuide] = useState<Record<string, Section[]>>({});
+  const [languageByGuide, setLanguageByGuide] = useState<Record<string, string>>({
+    [mainGuide.id]: languageCode
+  });
 
   useEffect(() => {
     loadLinkedGuides();
   }, [mainGuide.id, accessCode]);
+
+  // Sync main guide language when languageCode prop changes
+  useEffect(() => {
+    setLanguageByGuide(prev => ({ ...prev, [mainGuide.id]: languageCode }));
+  }, [languageCode, mainGuide.id]);
 
   // Preload sections for all linked guides
   useEffect(() => {
@@ -63,7 +71,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
         ensureGuideSections(guide.guide_id);
       });
     }
-  }, [linkedGuides, accessCode, languageCode]);
+  }, [linkedGuides, accessCode]);
 
   // Add event listener for linked guide navigation
   useEffect(() => {
@@ -103,13 +111,13 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
         currentActiveTab: activeTab 
       });
       
-      // Reload sections ONLY for the specific guide without changing tabs
+      // Update language for this specific guide
       if (targetGuideId && newLanguageCode) {
-        // Clear ONLY this guide's sections
-        setSectionsByGuide(prev => ({ ...prev, [targetGuideId]: [] }));
+        setLanguageByGuide(prev => ({ ...prev, [targetGuideId]: newLanguageCode }));
         
-        // Reload sections for this guide
-        await ensureGuideSections(targetGuideId);
+        // Clear and reload sections with new language
+        setSectionsByGuide(prev => ({ ...prev, [targetGuideId]: [] }));
+        await ensureGuideSections(targetGuideId, newLanguageCode);
         
         // activeTab stays the same - no tab switch!
       }
@@ -136,15 +144,18 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     if (activeTab !== 'main' && activeTab && linkedGuides.some(g => g.guide_id === activeTab)) {
       ensureGuideSections(activeTab);
     }
-  }, [activeTab, linkedGuides, accessCode, languageCode]);
+  }, [activeTab, linkedGuides, accessCode]);
 
-  const ensureGuideSections = async (guideId: string) => {
+  const ensureGuideSections = async (guideId: string, overrideLanguage?: string) => {
+    // Determine effective language: override > stored > default
+    const effectiveLang = overrideLanguage || languageByGuide[guideId] || languageCode;
+    
     if (sectionsByGuide[guideId] || !accessCode) {
       console.log('MultiTabAudioPlayer: Skipping sections load for guide:', guideId, 'Already loaded or no access code');
       return; // Already loaded or no access code
     }
 
-    console.log('MultiTabAudioPlayer: Starting sections load for guide:', guideId, 'with language:', languageCode);
+    console.log('MultiTabAudioPlayer: Starting sections load for guide:', guideId, 'with language:', effectiveLang);
 
     try {
       let sectionsData: any[] = [];
@@ -157,7 +168,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
           .rpc('get_sections_with_access', {
             p_guide_id: guideId,
             p_access_code: accessCode.trim(),
-            p_language_code: languageCode
+            p_language_code: effectiveLang
           });
 
         if (!error && data && data.length > 0) {
@@ -175,7 +186,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
             p_main_guide_id: mainGuide.id,
             p_access_code: accessCode.trim(),
             p_target_guide_id: guideId,
-            p_language_code: languageCode
+            p_language_code: effectiveLang
           });
 
         if (!error && data && data.length > 0) {
@@ -189,13 +200,13 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
 
       // If RPC failed or returned empty, try direct fetch for requested language only
       if (!fetchSuccess) {
-        console.log('MultiTabAudioPlayer: Attempting direct fetch for', languageCode);
+        console.log('MultiTabAudioPlayer: Attempting direct fetch for', effectiveLang);
         
         const { data: directData, error: directError } = await supabase
           .from('guide_sections')
           .select('*')
           .eq('guide_id', guideId)
-          .eq('language_code', languageCode)
+          .eq('language_code', effectiveLang)
           .order('order_index');
 
         if (!directError && directData && directData.length > 0) {
@@ -203,7 +214,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
           fetchSuccess = true;
           console.log('MultiTabAudioPlayer: Direct fetch successful, sections:', sectionsData.length);
         } else {
-          console.warn('MultiTabAudioPlayer: No sections found for language:', languageCode);
+          console.warn('MultiTabAudioPlayer: No sections found for language:', effectiveLang);
           sectionsData = [];
         }
       }
@@ -381,7 +392,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
 
         <TabsContent value="main" className="mt-0">
           <NewSectionAudioPlayer
-            key={`${mainGuide.id}-${languageCode}`}
+            key={`${mainGuide.id}-${languageByGuide[mainGuide.id] || languageCode}`}
             guideId={mainGuide.id}
             guideTitle={mainGuide.title}
             sections={mainSections}
@@ -392,7 +403,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
         {linkedGuides.map((linkedGuide) => (
           <TabsContent key={linkedGuide.guide_id} value={linkedGuide.guide_id} className="mt-0">
             <NewSectionAudioPlayer
-              key={`${linkedGuide.guide_id}-${languageCode}`}
+              key={`${linkedGuide.guide_id}-${languageByGuide[linkedGuide.guide_id] || languageCode}`}
               guideId={linkedGuide.guide_id}
               guideTitle={linkedGuide.custom_title || linkedGuide.title}
               sections={sectionsByGuide[linkedGuide.guide_id] || []}

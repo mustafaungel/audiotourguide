@@ -34,6 +34,7 @@ export default function AudioAccess() {
   const [sections, setSections] = useState<any[]>([]);
   const [activeGuideId, setActiveGuideId] = useState<string>('main');
   const [availableLanguages, setAvailableLanguages] = useState<any[]>([]);
+  const [linkedLanguageByGuide, setLinkedLanguageByGuide] = useState<Record<string, string>>({});
 
   const accessCode = searchParams.get('access_code') || searchParams.get('access');
   const sessionId = searchParams.get('session_id');
@@ -367,6 +368,24 @@ export default function AudioAccess() {
     }
   };
 
+  // Handle language changes for linked guides
+  useEffect(() => {
+    const handleGuideLangChange = (e: CustomEvent) => {
+      const { guideId: targetGuideId, languageCode: newLang } = (e as any).detail || {};
+      
+      if (targetGuideId === guide?.id) {
+        // Main guide language change
+        handleLanguageChange(newLang);
+      } else if (targetGuideId) {
+        // Linked guide language change (just for UI)
+        setLinkedLanguageByGuide(prev => ({ ...prev, [targetGuideId]: newLang }));
+      }
+    };
+    
+    window.addEventListener('changeGuideLanguage', handleGuideLangChange as EventListener);
+    return () => window.removeEventListener('changeGuideLanguage', handleGuideLangChange as EventListener);
+  }, [guide?.id]);
+
   const verifyPaymentAndGrantAccess = async (sessionId: string) => {
     try {
       console.log('[AUDIO-ACCESS] Verifying payment session:', sessionId);
@@ -662,7 +681,11 @@ export default function AudioAccess() {
               {/* Language Selector */}
               <GuideLanguageSelector 
                 guideId={guide.id}
-                selectedLanguage={selectedLanguage}
+                selectedLanguage={
+                  (activeGuideId === 'main' || activeGuideId === guide.id)
+                    ? selectedLanguage
+                    : (linkedLanguageByGuide[activeGuideId] || selectedLanguage)
+                }
                 onLanguageChange={handleLanguageChange}
                 activeGuideId={activeGuideId === 'main' ? guide.id : activeGuideId}
               />
