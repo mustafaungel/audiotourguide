@@ -276,7 +276,7 @@ const GuideDetail = () => {
       if (error) throw error;
       
       if (languages && languages.length > 0) {
-        // Check for saved language preference first
+        // ONLY auto-select if localStorage has a saved preference
         const savedLanguage = localStorage.getItem(`guide_lang_${slug}`);
         if (savedLanguage && languages.find((l: any) => l.language_code === savedLanguage)) {
           setSelectedLanguage(savedLanguage);
@@ -284,20 +284,8 @@ const GuideDetail = () => {
           return;
         }
         
-        // Then check browser language
-        const browserLang = navigator.language.split('-')[0];
-        const matchingLang = languages.find((l: any) => l.language_code === browserLang);
-        
-        if (matchingLang) {
-          setSelectedLanguage(matchingLang.language_code);
-          await fetchGuideSections(guideId, matchingLang.language_code);
-        } else {
-          // Languages are already sorted by section_count DESC from RPC
-          // So first language has the most sections
-          const firstAvailable = languages[0].language_code;
-          setSelectedLanguage(firstAvailable);
-          await fetchGuideSections(guideId, firstAvailable);
-        }
+        // Otherwise, wait for user to select - no automatic selection
+        console.log('Available languages:', languages.map((l: any) => l.language_code));
       } else {
         console.warn('No languages available for guide:', guideId);
       }
@@ -339,6 +327,15 @@ const GuideDetail = () => {
     if (slug) {
       localStorage.setItem(`guide_lang_${slug}`, languageCode);
     }
+    // Dispatch event for MultiTabAudioPlayer
+    const event = new CustomEvent('changeGuideLanguage', {
+      detail: { 
+        guideId: realGuideData?.id, 
+        languageCode 
+      }
+    });
+    window.dispatchEvent(event);
+    
     // Don't reset playingGuide to preserve player state
     if (realGuideData?.id) {
       await fetchGuideSections(realGuideData.id, languageCode);

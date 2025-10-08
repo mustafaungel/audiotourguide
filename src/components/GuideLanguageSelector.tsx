@@ -172,12 +172,7 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
 
       setAvailableLanguages(data || []);
       
-      // Set default language if none selected
-      if (!selectedLanguage && data && data.length > 0) {
-        // Use the first available language (no English priority)
-        const defaultLang = data[0];
-        onLanguageChange(defaultLang.language_code);
-      }
+      // DO NOT auto-select language - let user choose
     } catch (error) {
       console.error('Error fetching available languages:', error);
     } finally {
@@ -240,6 +235,16 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
                     onSelect={() => {
                       haptics.selection();
                       onLanguageChange(language.language_code);
+                      
+                      // Dispatch event for MultiTabAudioPlayer
+                      const event = new CustomEvent('changeGuideLanguage', {
+                        detail: { 
+                          guideId: activeGuideId || guideId, 
+                          languageCode: language.language_code
+                        }
+                      });
+                      window.dispatchEvent(event);
+                      
                       setTimeout(() => setLanguageSheetOpen(false), 150);
                     }}
                   >
@@ -308,68 +313,14 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
                   
                   haptics.light();
                   
-                  // Try dispatching event first (for MultiTabAudioPlayer)
+                  // Dispatch event for MultiTabAudioPlayer (no navigation)
                   const event = new CustomEvent('openLinkedGuide', {
                     detail: { guideId: linkedGuide.guide_id, title: linkedGuide.custom_title }
                   });
-                  
-                  let eventHandled = false;
-                  const handleEvent = () => {
-                    eventHandled = true;
-                    console.log('Handled by player');
-                  };
-                  
-                  window.addEventListener('linkedGuideHandled', handleEvent, { once: true });
                   window.dispatchEvent(event);
                   
-                  // If we're on an /access/ page, don't do fallback navigation
-                  // Let the MultiTabAudioPlayer handle it completely
-                  const currentPath = window.location.pathname;
-                  if (currentPath.includes('/access/')) {
-                    console.log('On access page, skipping navigation fallback');
-                    return;
-                  }
-                  
-                  // Fallback navigation after a brief delay for non-access pages
-                  setTimeout(() => {
-                    if (!eventHandled) {
-                      // Priority 1: Navigate to public guide page if slug exists
-                      if (linkedGuide.slug) {
-                        const path = `/guide/${linkedGuide.slug}`;
-                        const absoluteUrl = `${getBaseUrl()}${path}`;
-                        console.log('Navigating to public guide (fallback):', {
-                          guide_id: linkedGuide.guide_id,
-                          slug: linkedGuide.slug,
-                          path,
-                          absoluteUrl,
-                          isAdmin: location.pathname.includes('/admin')
-                        });
-                        if (location.pathname.includes('/admin')) {
-                          window.open(absoluteUrl, '_blank', 'noopener,noreferrer');
-                        } else {
-                          navigate(path);
-                        }
-                      }
-                      // Priority 2: Navigate to main guide access page with open_guide_id parameter
-                      else if (masterAccessCode) {
-                        const path = `/access/${guideId}?access_code=${masterAccessCode}&open_guide_id=${linkedGuide.guide_id}`;
-                        const absoluteUrl = `${getBaseUrl()}${path}`;
-                        console.log('Navigating to main guide with open_guide_id (fallback):', {
-                          guide_id: linkedGuide.guide_id,
-                          main_guide_id: guideId,
-                          masterAccessCode,
-                          path,
-                          absoluteUrl,
-                          isAdmin: location.pathname.includes('/admin')
-                        });
-                        if (location.pathname.includes('/admin')) {
-                          window.open(absoluteUrl, '_blank', 'noopener,noreferrer');
-                        } else {
-                          navigate(path);
-                        }
-                      }
-                    }
-                  }, 100);
+                  // Signal that event was dispatched
+                  window.dispatchEvent(new CustomEvent('linkedGuideHandled'));
                 }}
                 className="ios-list-item w-full group hover:bg-muted/70 active:bg-muted"
                 aria-label={`Open ${linkedGuide.custom_title} guide`}

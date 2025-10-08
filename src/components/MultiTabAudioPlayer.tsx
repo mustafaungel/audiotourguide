@@ -94,9 +94,25 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
       window.dispatchEvent(new CustomEvent('linkedGuideHandled'));
     };
 
+    const handleLanguageChange = async (e: CustomEvent) => {
+      const { languageCode: newLanguageCode, guideId } = (e as any).detail || {};
+      
+      console.log('MultiTabAudioPlayer: Language change event received:', { guideId, newLanguageCode });
+      
+      // Reload sections for the specific guide without changing tabs
+      if (guideId && newLanguageCode) {
+        // Clear existing sections for this guide
+        setSectionsByGuide(prev => ({ ...prev, [guideId]: [] }));
+        // Reload with new language
+        await ensureGuideSections(guideId);
+      }
+    };
+
     window.addEventListener('openLinkedGuide', handleOpenLinkedGuide as EventListener);
+    window.addEventListener('changeGuideLanguage', handleLanguageChange as EventListener);
     return () => {
       window.removeEventListener('openLinkedGuide', handleOpenLinkedGuide as EventListener);
+      window.removeEventListener('changeGuideLanguage', handleLanguageChange as EventListener);
     };
   }, [linkedGuides, accessCode, languageCode]);
 
@@ -164,77 +180,24 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
         }
       }
 
-      // If RPC failed or returned empty, try fallback fetch from guide_sections table
+      // If RPC failed or returned empty, try direct fetch for requested language only
       if (!fetchSuccess) {
-        console.log('MultiTabAudioPlayer: Attempting fallback fetch from guide_sections table');
+        console.log('MultiTabAudioPlayer: Attempting direct fetch for', languageCode);
         
-        // Priority 1: Requested language
-        let fallbackQuery = supabase
+        const { data: directData, error: directError } = await supabase
           .from('guide_sections')
           .select('*')
           .eq('guide_id', guideId)
           .eq('language_code', languageCode)
           .order('order_index');
 
-        let { data: fallbackData, error: fallbackError } = await fallbackQuery;
-
-        if (fallbackError || !fallbackData || fallbackData.length === 0) {
-          console.log('MultiTabAudioPlayer: Fallback for', languageCode, 'failed/empty, trying English');
-          
-          // Priority 2: English
-          fallbackQuery = supabase
-            .from('guide_sections')
-            .select('*')
-            .eq('guide_id', guideId)
-            .eq('language_code', 'en')
-            .order('order_index');
-
-          const { data: enData, error: enError } = await fallbackQuery;
-
-          if (!enError && enData && enData.length > 0) {
-            fallbackData = enData;
-            console.log('MultiTabAudioPlayer: Fallback English sections loaded:', fallbackData.length);
-          } else {
-            console.log('MultiTabAudioPlayer: English fallback failed/empty, trying language with most sections');
-            
-            // Priority 3: Language with most sections
-            const { data: langCounts, error: langError } = await supabase
-              .from('guide_sections')
-              .select('language_code')
-              .eq('guide_id', guideId);
-
-            if (!langError && langCounts && langCounts.length > 0) {
-              const langCount = langCounts.reduce((acc: Record<string, number>, item: any) => {
-                acc[item.language_code] = (acc[item.language_code] || 0) + 1;
-                return acc;
-              }, {});
-
-              const mostCommonLang = Object.entries(langCount).sort(([,a], [,b]) => (b as number) - (a as number))[0]?.[0];
-              
-              if (mostCommonLang) {
-                console.log('MultiTabAudioPlayer: Using most common language:', mostCommonLang);
-                const { data: commonLangData, error: commonLangError } = await supabase
-                  .from('guide_sections')
-                  .select('*')
-                  .eq('guide_id', guideId)
-                  .eq('language_code', mostCommonLang)
-                  .order('order_index');
-
-                if (!commonLangError && commonLangData && commonLangData.length > 0) {
-                  fallbackData = commonLangData;
-                  console.log('MultiTabAudioPlayer: Most common language sections loaded:', fallbackData.length);
-                }
-              }
-            }
-          }
-        }
-
-        if (fallbackData && fallbackData.length > 0) {
-          sectionsData = fallbackData;
+        if (!directError && directData && directData.length > 0) {
+          sectionsData = directData;
           fetchSuccess = true;
-          console.log('MultiTabAudioPlayer: Fallback fetch successful, sections:', sectionsData.length);
+          console.log('MultiTabAudioPlayer: Direct fetch successful, sections:', sectionsData.length);
         } else {
-          console.error('MultiTabAudioPlayer: All fallback attempts failed for guide:', guideId);
+          console.warn('MultiTabAudioPlayer: No sections found for language:', languageCode);
+          sectionsData = [];
         }
       }
 
