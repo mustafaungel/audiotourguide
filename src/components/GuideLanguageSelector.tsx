@@ -188,7 +188,8 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
     ? getLanguageDisplay(selectedLanguageData.language_code, selectedLanguageData.native_name)
     : "Select language";
 
-  const isMultiLanguage = availableLanguages.length > 1;
+  // Always allow language selection, even for single language guides
+  const isMultiLanguage = true;
 
   return (
     <div className="space-y-3">
@@ -197,12 +198,9 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
           {/* iOS-style Language Selector Button */}
           <button
             onClick={() => {
-              if (isMultiLanguage) {
-                haptics.light();
-                setLanguageSheetOpen(true);
-              }
+              haptics.light();
+              setLanguageSheetOpen(true);
             }}
-            disabled={!isMultiLanguage}
             className="ios-list-item w-full"
           >
             <div className="flex items-center gap-3">
@@ -213,9 +211,7 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
               <span className="font-medium">
                 {selectedDisplay}
               </span>
-              {isMultiLanguage && (
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              )}
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
             </div>
           </button>
 
