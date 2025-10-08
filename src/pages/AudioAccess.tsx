@@ -355,10 +355,14 @@ export default function AudioAccess() {
   };
 
   const handleLanguageChange = async (languageCode: string) => {
-    console.log(`[AUDIO-ACCESS] Language changed to: ${languageCode}`);
-    setSections([]); // Clear sections before switching
+    console.log(`[AUDIO-ACCESS] Main guide language changed to: ${languageCode}`);
+    
+    // Only update main guide sections
+    // MultiTabAudioPlayer manages linked guide sections
     setSelectedLanguage(languageCode);
+    
     if (guideId) {
+      // Fetch new sections for main guide only
       await fetchSectionsForLanguage(guideId, languageCode);
     }
   };

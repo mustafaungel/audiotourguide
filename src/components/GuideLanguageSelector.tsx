@@ -230,16 +230,23 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
                     selected={isSelected}
                     onSelect={() => {
                       haptics.selection();
-                      onLanguageChange(language.language_code);
                       
-                      // Dispatch event for MultiTabAudioPlayer
-                      const event = new CustomEvent('changeGuideLanguage', {
-                        detail: { 
-                          guideId: activeGuideId || guideId, 
-                          languageCode: language.language_code
-                        }
-                      });
-                      window.dispatchEvent(event);
+                      // Check if we're in MultiTabAudioPlayer context
+                      const isInMultiTab = !!activeGuideId;
+                      
+                      if (isInMultiTab) {
+                        // Multi-tab context: only dispatch event
+                        const event = new CustomEvent('changeGuideLanguage', {
+                          detail: { 
+                            guideId: activeGuideId, 
+                            languageCode: language.language_code
+                          }
+                        });
+                        window.dispatchEvent(event);
+                      } else {
+                        // Single guide context: only call callback
+                        onLanguageChange(language.language_code);
+                      }
                       
                       setTimeout(() => setLanguageSheetOpen(false), 150);
                     }}

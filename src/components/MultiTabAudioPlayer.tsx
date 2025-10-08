@@ -95,16 +95,23 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     };
 
     const handleLanguageChange = async (e: CustomEvent) => {
-      const { languageCode: newLanguageCode, guideId } = (e as any).detail || {};
+      const { languageCode: newLanguageCode, guideId: targetGuideId } = (e as any).detail || {};
       
-      console.log('MultiTabAudioPlayer: Language change event received:', { guideId, newLanguageCode });
+      console.log('🔄 MultiTabAudioPlayer: Language change event:', { 
+        targetGuideId, 
+        newLanguageCode,
+        currentActiveTab: activeTab 
+      });
       
-      // Reload sections for the specific guide without changing tabs
-      if (guideId && newLanguageCode) {
-        // Clear existing sections for this guide
-        setSectionsByGuide(prev => ({ ...prev, [guideId]: [] }));
-        // Reload with new language
-        await ensureGuideSections(guideId);
+      // Reload sections ONLY for the specific guide without changing tabs
+      if (targetGuideId && newLanguageCode) {
+        // Clear ONLY this guide's sections
+        setSectionsByGuide(prev => ({ ...prev, [targetGuideId]: [] }));
+        
+        // Reload sections for this guide
+        await ensureGuideSections(targetGuideId);
+        
+        // activeTab stays the same - no tab switch!
       }
     };
 
