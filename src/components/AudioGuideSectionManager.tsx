@@ -61,6 +61,7 @@ const LANGUAGE_CODE_MAP: { [key: string]: string } = {
 
 export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, guideTitle, location, category }: AudioGuideSectionManagerProps) {
   const [newSectionTitle, setNewSectionTitle] = useState('');
+  const [newSectionLanguage, setNewSectionLanguage] = useState('English');
   const [uploadingSection, setUploadingSection] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
@@ -117,8 +118,8 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
         guide_id: guideId,
         title: newSectionTitle,
         description: '',
-        language: 'English',
-        language_code: 'en',
+        language: newSectionLanguage,
+        language_code: LANGUAGE_CODE_MAP[newSectionLanguage] || 'en',
         order_index: sections.length
       };
 
@@ -572,6 +573,18 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
           onKeyPress={(e) => e.key === 'Enter' && addSection()}
           className="flex-1"
         />
+        <Select value={newSectionLanguage} onValueChange={setNewSectionLanguage}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {LANGUAGES.map((lang) => (
+              <SelectItem key={lang} value={lang}>
+                {lang}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Button onClick={addSection} disabled={!newSectionTitle.trim()}>
           <Plus className="h-4 w-4 mr-2" />
           Add Section
