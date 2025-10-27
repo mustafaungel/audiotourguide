@@ -99,7 +99,6 @@ if (variant === 'icon-only') {
             height={size === 'sm' ? 64 : size === 'md' ? 96 : 128}
             className={cn("object-contain flex-shrink-0", sizeClasses[size])}
             loading="eager"
-            fetchPriority="high"
           />
         ) : (
           <Skeleton className={cn("rounded-lg", iconSizeClasses[size])} />
@@ -136,7 +135,6 @@ if (variant === 'compact') {
             height={size === 'sm' ? 64 : size === 'md' ? 96 : 128}
             className={cn("object-contain flex-shrink-0", sizeClasses[size])}
             loading="eager"
-            fetchPriority="high"
           />
         ) : (
           <Skeleton
@@ -185,7 +183,6 @@ return <div className={cn("flex items-center space-x-2 min-w-0", className)}>
             height={size === 'sm' ? 64 : size === 'md' ? 96 : 128}
             className={cn("object-contain flex-shrink-0", sizeClasses[size])}
             loading="eager"
-            fetchPriority="high"
           />
         ) : (
           <Skeleton

@@ -9,7 +9,6 @@ interface OptimizedImageProps {
   height?: number;
   quality?: number;
   loading?: 'lazy' | 'eager';
-  fetchPriority?: 'high' | 'low' | 'auto';
 }
 
 export function OptimizedImage({
@@ -19,8 +18,7 @@ export function OptimizedImage({
   width,
   height,
   quality = 80,
-  loading = 'lazy',
-  fetchPriority = 'auto'
+  loading = 'lazy'
 }: OptimizedImageProps) {
   const [imgSrc, setImgSrc] = useState<string>(
     getOptimizedImageUrl(src, { width, height, quality })
@@ -50,7 +48,6 @@ export function OptimizedImage({
       height={height}
       className={className}
       loading={loading}
-      fetchPriority={fetchPriority}
       onError={handleError}
     />
   );
