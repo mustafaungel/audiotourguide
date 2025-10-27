@@ -230,7 +230,7 @@ export type Database = {
           best_time_to_visit: string | null
           category: string
           city: string
-          coordinates: unknown | null
+          coordinates: unknown
           country: string
           created_at: string
           cultural_significance: string | null
@@ -252,7 +252,7 @@ export type Database = {
           best_time_to_visit?: string | null
           category?: string
           city: string
-          coordinates?: unknown | null
+          coordinates?: unknown
           country: string
           created_at?: string
           cultural_significance?: string | null
@@ -274,7 +274,7 @@ export type Database = {
           best_time_to_visit?: string | null
           category?: string
           city?: string
-          coordinates?: unknown | null
+          coordinates?: unknown
           country?: string
           created_at?: string
           cultural_significance?: string | null
@@ -627,7 +627,7 @@ export type Database = {
           created_at: string | null
           error_message: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           metadata: Json | null
           resource_id: string | null
           resource_type: string | null
@@ -640,7 +640,7 @@ export type Database = {
           created_at?: string | null
           error_message?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           resource_id?: string | null
           resource_type?: string | null
@@ -653,7 +653,7 @@ export type Database = {
           created_at?: string | null
           error_message?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           resource_id?: string | null
           resource_type?: string | null
@@ -725,7 +725,7 @@ export type Database = {
       }
       trending_locations: {
         Row: {
-          coordinates: unknown | null
+          coordinates: unknown
           country: string
           created_at: string
           growth_percentage: number | null
@@ -737,7 +737,7 @@ export type Database = {
           trending_rank: number | null
         }
         Insert: {
-          coordinates?: unknown | null
+          coordinates?: unknown
           country: string
           created_at?: string
           growth_percentage?: number | null
@@ -749,7 +749,7 @@ export type Database = {
           trending_rank?: number | null
         }
         Update: {
-          coordinates?: unknown | null
+          coordinates?: unknown
           country?: string
           created_at?: string
           growth_percentage?: number | null
@@ -1106,10 +1106,7 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: undefined
       }
-      generate_access_code: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      generate_access_code: { Args: never; Returns: string }
       generate_slug: {
         Args: { location_text?: string; title_text: string }
         Returns: string
@@ -1212,29 +1209,53 @@ export type Database = {
           updated_at: string
         }[]
       }
-      get_linked_guide_sections_with_access: {
-        Args: {
-          p_access_code: string
-          p_language_code?: string
-          p_main_guide_id: string
-          p_target_guide_id: string
-        }
-        Returns: {
-          audio_url: string
-          created_at: string
-          description: string
-          duration_seconds: number
-          guide_id: string
-          id: string
-          is_original: boolean
-          language: string
-          language_code: string
-          order_index: number
-          original_section_id: string
-          title: string
-          updated_at: string
-        }[]
-      }
+      get_linked_guide_sections_with_access:
+        | {
+            Args: {
+              p_access_code: string
+              p_language_code?: string
+              p_linked_guide_id: string
+              p_main_guide_id: string
+            }
+            Returns: {
+              audio_url: string
+              created_at: string
+              description: string
+              duration_seconds: number
+              guide_id: string
+              id: string
+              is_original: boolean
+              language: string
+              language_code: string
+              order_index: number
+              original_section_id: string
+              title: string
+              updated_at: string
+            }[]
+          }
+        | {
+            Args: {
+              p_access_code: string
+              p_language_code?: string
+              p_main_guide_id: string
+              p_target_guide_id: string
+            }
+            Returns: {
+              audio_url: string
+              created_at: string
+              description: string
+              duration_seconds: number
+              guide_id: string
+              id: string
+              is_original: boolean
+              language: string
+              language_code: string
+              order_index: number
+              original_section_id: string
+              title: string
+              updated_at: string
+            }[]
+          }
       get_linked_guides_with_access: {
         Args: { p_access_code: string; p_guide_id: string }
         Returns: {
@@ -1373,10 +1394,7 @@ export type Database = {
         Args: { p_document_type?: string; p_verification_request_id: string }
         Returns: boolean
       }
-      is_admin: {
-        Args: { user_id?: string }
-        Returns: boolean
-      }
+      is_admin: { Args: { user_id?: string }; Returns: boolean }
       log_purchase_access_attempt: {
         Args: { p_access_code: string; p_guide_id: string; p_success: boolean }
         Returns: undefined
@@ -1407,10 +1425,7 @@ export type Database = {
         }
         Returns: Json
       }
-      refresh_analytics_summary: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      refresh_analytics_summary: { Args: never; Returns: undefined }
       reject_creator_verification: {
         Args: {
           admin_notes_param?: string
@@ -1427,10 +1442,7 @@ export type Database = {
         Args: { p_document_path: string; p_operation?: string }
         Returns: boolean
       }
-      track_guide_view: {
-        Args: { p_guide_id: string }
-        Returns: undefined
-      }
+      track_guide_view: { Args: { p_guide_id: string }; Returns: undefined }
       track_viral_share: {
         Args: { p_guide_id: string; p_location?: string; p_platform: string }
         Returns: undefined
