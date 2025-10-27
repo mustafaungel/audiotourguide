@@ -12,12 +12,12 @@ export const HeroSection: React.FC = () => {
         <OptimizedImage 
           src={heroImage} 
           alt="World Travel and Cultural Heritage Sites" 
-          width={1920} 
-          height={1080} 
+          width={1200} 
+          height={675} 
           className="w-full h-full object-cover opacity-60" 
           fetchPriority="high" 
           loading="eager"
-          quality={85}
+          quality={60}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-background/40 to-background/60" />
       </div>
