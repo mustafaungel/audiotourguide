@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { CheckCircle, XCircle, Eye, Clock, Trash2, Edit, Copy, QrCode, EyeOff } from 'lucide-react';
+import { CheckCircle, XCircle, Eye, Clock, Trash2, Edit, Copy, QrCode, EyeOff, MoreVertical, ChevronDown } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface Guide {
@@ -247,12 +249,12 @@ export const GuideManagement = () => {
 
   const getStatusBadge = (guide: Guide) => {
     if (!guide.is_approved) {
-      return <Badge variant="destructive">Pending Approval</Badge>;
+      return <Badge variant="destructive" className="gap-1"><Clock className="h-3 w-3" />Pending</Badge>;
     }
     if (!guide.is_published) {
-      return <Badge variant="secondary">Hidden</Badge>;
+      return <Badge variant="secondary" className="gap-1"><EyeOff className="h-3 w-3" />Hidden</Badge>;
     }
-    return <Badge variant="default">Published</Badge>;
+    return <Badge variant="default" className="gap-1"><CheckCircle className="h-3 w-3" />Live</Badge>;
   };
 
   if (loading) {
@@ -306,56 +308,62 @@ export const GuideManagement = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground mb-4">{guide.description}</p>
+                <p className="text-muted-foreground mb-4 line-clamp-2">{guide.description}</p>
                 
-                {/* Access Link Section - Always Show */}
-                <div className="mb-4 p-3 border rounded-lg bg-muted/50">
-                  <h4 className="text-sm font-medium mb-2">
-                    {guide.is_published ? 'Published Guide Access' : 'Hidden Guide Access Link'}
-                  </h4>
-                  <div className="space-y-2">
-                    {guide.is_published ? (
-                      <div className="text-sm text-muted-foreground">
-                        <p><strong>Main Page:</strong> Discoverable and requires payment</p>
-                        <p><strong>Direct Access:</strong> Use access link below for instant access</p>
+                {/* Collapsible Access Link Section */}
+                <Collapsible className="mb-4">
+                  <CollapsibleTrigger asChild>
+                    <Button variant="outline" size="sm" className="w-full justify-between mb-2">
+                      <span className="flex items-center gap-2">
+                        <QrCode className="h-4 w-4" />
+                        Access Links & QR Code
+                      </span>
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="p-3 border rounded-lg bg-muted/50 space-y-2">
+                      <div className="text-xs text-muted-foreground">
+                        {guide.is_published ? (
+                          <p><strong>Published:</strong> Discoverable on main page, direct access via link below</p>
+                        ) : (
+                          <p><strong>Hidden:</strong> Only accessible via link below</p>
+                        )}
                       </div>
-                    ) : (
-                      <div className="text-sm text-muted-foreground">
-                        <p><strong>Hidden:</strong> Not shown on main page, only accessible via link below</p>
-                      </div>
-                    )}
-                    
-                    {guide.share_url ? (
-                      <div className="flex items-center gap-1">
-                        <input 
-                          readOnly 
-                          value={guide.share_url} 
-                          className="text-xs bg-background border rounded px-2 py-1 flex-1 min-w-0"
-                        />
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => copyToClipboard(guide.share_url!, 'Access link')}
-                        >
-                          <Copy className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="text-xs text-orange-600">
-                        Access link not generated - guide may need to be recreated
-                      </div>
-                    )}
-                    
-                    {guide.qr_code_url && (
-                      <div className="flex items-center gap-2 pt-2 border-t">
-                        <img src={guide.qr_code_url} alt="QR Code" className="w-12 h-12 rounded border" />
-                        <span className="text-xs text-muted-foreground">QR Code available</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                      
+                      {guide.share_url ? (
+                        <div className="flex items-center gap-1">
+                          <input 
+                            readOnly 
+                            value={guide.share_url} 
+                            className="text-xs bg-background border rounded px-2 py-1 flex-1 min-w-0"
+                          />
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => copyToClipboard(guide.share_url!, 'Access link')}
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="text-xs text-orange-600">
+                          Access link not generated
+                        </div>
+                      )}
+                      
+                      {guide.qr_code_url && (
+                        <div className="flex items-center gap-2 pt-2 border-t">
+                          <img src={guide.qr_code_url} alt="QR Code" className="w-12 h-12 rounded border" />
+                          <span className="text-xs text-muted-foreground">QR Code ready</span>
+                        </div>
+                      )}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
                 
                 <div className="flex flex-wrap gap-2">
+                  {/* Primary Actions */}
                   <Button 
                     variant="outline" 
                     size="sm"
@@ -373,38 +381,8 @@ export const GuideManagement = () => {
                     <Edit className="h-4 w-4 mr-1" />
                     Edit
                   </Button>
-                  
-                  {(!guide.qr_code_url || !guide.share_url) && (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => generateQRCode(guide.id)}
-                    >
-                      <QrCode className="h-4 w-4 mr-1" />
-                      {guide.qr_code_url ? 'Regenerate' : 'Generate'} Access Link
-                    </Button>
-                  )}
 
-                  {guide.is_approved && (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => togglePublicationStatus(guide.id, guide.is_published)}
-                    >
-                      {guide.is_published ? (
-                        <>
-                          <EyeOff className="h-4 w-4 mr-1" />
-                          Hide
-                        </>
-                      ) : (
-                        <>
-                          <Eye className="h-4 w-4 mr-1" />
-                          Publish
-                        </>
-                      )}
-                    </Button>
-                  )}
-                  
+                  {/* Quick Approve/Reject for Pending */}
                   {!guide.is_approved && (
                     <>
                       <Button 
@@ -426,14 +404,46 @@ export const GuideManagement = () => {
                     </>
                   )}
                   
-                  <Button 
-                    variant="destructive" 
-                    size="sm"
-                    onClick={() => deleteGuide(guide.id)}
-                  >
-                    <Trash2 className="h-4 w-4 mr-1" />
-                    Delete
-                  </Button>
+                  {/* More Actions Dropdown */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      {(!guide.qr_code_url || !guide.share_url) && (
+                        <DropdownMenuItem onClick={() => generateQRCode(guide.id)}>
+                          <QrCode className="h-4 w-4 mr-2" />
+                          {guide.qr_code_url ? 'Regenerate' : 'Generate'} Access
+                        </DropdownMenuItem>
+                      )}
+                      
+                      {guide.is_approved && (
+                        <DropdownMenuItem onClick={() => togglePublicationStatus(guide.id, guide.is_published)}>
+                          {guide.is_published ? (
+                            <>
+                              <EyeOff className="h-4 w-4 mr-2" />
+                              Hide from Public
+                            </>
+                          ) : (
+                            <>
+                              <Eye className="h-4 w-4 mr-2" />
+                              Publish to Public
+                            </>
+                          )}
+                        </DropdownMenuItem>
+                      )}
+                      
+                      <DropdownMenuItem 
+                        onClick={() => deleteGuide(guide.id)}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete Guide
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </CardContent>
             </Card>
