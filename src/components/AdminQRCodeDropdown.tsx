@@ -118,7 +118,7 @@ export function AdminQRCodeDropdown() {
                 {guide.master_access_code && (
                   <Badge variant="outline" className="text-xs">Master ✓</Badge>
                 )}
-                <span className="text-xs text-muted-foreground">${guide.price_usd}</span>
+                <span className="text-xs text-muted-foreground">${(guide.price_usd / 100).toFixed(2)}</span>
               </div>
             </div>
             
