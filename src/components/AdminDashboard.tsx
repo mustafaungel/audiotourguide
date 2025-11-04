@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-import { BookOpen, DollarSign, TrendingUp } from 'lucide-react';
-import { AdminQRCodeRegenerator } from './AdminQRCodeRegenerator';
-import { PaymentFlowTestPanel } from './PaymentFlowTestPanel';
+import { BookOpen, DollarSign, TrendingUp, ChevronDown, QrCode } from 'lucide-react';
+import { AdminQRCodeDropdown } from './AdminQRCodeDropdown';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Button } from '@/components/ui/button';
 
 
 interface DashboardStats {
@@ -103,12 +104,26 @@ export const AdminDashboard = () => {
         </Card>
       </div>
 
-
-      {/* Testing and Management Tools */}
-      <div className="grid lg:grid-cols-2 gap-6 mt-6">
-        <PaymentFlowTestPanel />
-        <AdminQRCodeRegenerator />
-      </div>
+      {/* QR Code Management Dropdown */}
+      <Card>
+        <Collapsible>
+          <CollapsibleTrigger asChild>
+            <Button 
+              variant="ghost" 
+              className="w-full justify-between p-4 hover:bg-muted/50 h-auto"
+            >
+              <div className="flex items-center gap-2">
+                <QrCode className="h-5 w-5" />
+                <span className="font-semibold">QR Code Management</span>
+              </div>
+              <ChevronDown className="h-4 w-4 transition-transform duration-200" />
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="px-4 pb-4">
+            <AdminQRCodeDropdown />
+          </CollapsibleContent>
+        </Collapsible>
+      </Card>
     </div>
   );
 };
