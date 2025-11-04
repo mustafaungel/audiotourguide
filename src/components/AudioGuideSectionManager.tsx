@@ -5,9 +5,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
 import { Plus, Trash2, Upload, MoveUp, MoveDown, Play, X, FileAudio } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { getLanguageFlag } from '@/lib/language-utils';
 
 export interface GuideSection {
   id: string;
@@ -563,34 +568,67 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
     };
   }, [currentAudio]);
 
+  // Group sections by language
+  const groupedSections = sections.reduce((acc, section) => {
+    const lang = section.language || 'English';
+    if (!acc[lang]) acc[lang] = [];
+    acc[lang].push(section);
+    return acc;
+  }, {} as Record<string, GuideSection[]>);
+
+  const languages = Object.keys(groupedSections);
+
   return (
     <div className="space-y-6">
-      <div className="flex gap-2">
-        <Input
-          placeholder="Section title (e.g., 'Introduction', 'Main Hall', 'Chapel')"
-          value={newSectionTitle}
-          onChange={(e) => setNewSectionTitle(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && addSection()}
-          className="flex-1"
-        />
-        <Select value={newSectionLanguage} onValueChange={setNewSectionLanguage}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {LANGUAGES.map((lang) => (
-              <SelectItem key={lang} value={lang}>
-                {lang}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button onClick={addSection} disabled={!newSectionTitle.trim()}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Section
-        </Button>
-      </div>
+      {/* Add New Section - Always Visible */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Add New Section</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex-1">
+              <Label htmlFor="section-title" className="text-sm mb-2 block">
+                Section Title
+              </Label>
+              <Input
+                id="section-title"
+                placeholder="e.g., 'Introduction', 'Main Hall', 'Chapel'"
+                value={newSectionTitle}
+                onChange={(e) => setNewSectionTitle(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && addSection()}
+              />
+            </div>
+            <div className="w-full sm:w-[180px]">
+              <Label htmlFor="section-language" className="text-sm mb-2 block">
+                Language
+              </Label>
+              <Select value={newSectionLanguage} onValueChange={setNewSectionLanguage}>
+                <SelectTrigger id="section-language">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {LANGUAGES.map((lang) => (
+                    <SelectItem key={lang} value={lang}>
+                      {lang}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-end">
+              <Button onClick={addSection} disabled={!newSectionTitle.trim()} className="w-full sm:w-auto">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Section
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
+      <Separator />
+
+      {/* Existing Sections - Grouped by Language */}
       {sections.length === 0 ? (
         <Card>
           <CardContent className="pt-6">
@@ -600,197 +638,235 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
-          {sections
-            .sort((a, b) => a.order_index - b.order_index)
-            .map((section, index) => (
-              <Card key={section.id}>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">
-                      Section {index + 1}: {section.title}
-                    </CardTitle>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => moveSection(section.id, 'up')}
-                        disabled={index === 0}
-                      >
-                        <MoveUp className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => moveSection(section.id, 'down')}
-                        disabled={index === sections.length - 1}
-                      >
-                        <MoveDown className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => removeSection(section.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+        <div>
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold">Existing Sections</h3>
+            <p className="text-sm text-muted-foreground">
+              Sections organized by language. Expand each language to view and edit.
+            </p>
+          </div>
+          
+          <Accordion type="multiple" defaultValue={languages} className="space-y-2">
+            {languages.map((language) => {
+              const languageSections = groupedSections[language].sort(
+                (a, b) => a.order_index - b.order_index
+              );
+              
+              return (
+                <AccordionItem key={language} value={language} className="border rounded-lg">
+                  <AccordionTrigger className="px-4 hover:no-underline">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{getLanguageFlag(LANGUAGE_CODE_MAP[language] || 'en')}</span>
+                      <span className="font-semibold">{language}</span>
+                      <Badge variant="secondary" className="ml-2">
+                        {languageSections.length} {languageSections.length === 1 ? 'section' : 'sections'}
+                      </Badge>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Section Title</label>
-                    <Input
-                      value={section.title || ''}
-                      onChange={(e) => updateSection(section.id, { title: e.target.value })}
-                      placeholder="Enter section title"
-                    />
-                  </div>
-
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="text-sm font-medium">Description</label>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => generateSectionDescription(section.id, section.title)}
-                        disabled={!section.title?.trim() || generatingDescription === section.id}
-                      >
-                        {generatingDescription === section.id ? 'Generating...' : 'Generate AI Description'}
-                      </Button>
-                    </div>
-                    <Textarea
-                      value={section.description || ''}
-                      onChange={(e) => updateSection(section.id, { description: e.target.value })}
-                      placeholder="Describe what this section covers..."
-                      rows={3}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Language</label>
-                    <Select
-                      value={section.language}
-                      onValueChange={(value) => updateSection(section.id, { language: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {LANGUAGES.map((lang) => (
-                          <SelectItem key={lang} value={lang}>
-                            {lang}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Audio File</label>
-                    
-                    {/* File Input (Hidden) */}
-                    <input
-                      ref={(el) => fileInputRefs.current[section.id] = el}
-                      type="file"
-                      accept="audio/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) handleFileSelect(section.id, file);
-                      }}
-                      className="hidden"
-                    />
-
-                    {/* Upload Area */}
-                    {!section.audio_url ? (
-                      <div className="border-2 border-dashed border-muted rounded-lg p-4">
-                        {uploadingSection === section.id ? (
-                          <div className="space-y-3">
-                            <div className="flex items-center justify-center">
-                              <Upload className="h-6 w-6 text-primary mr-2 animate-pulse" />
-                              <span className="text-sm">Uploading audio...</span>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-4 pb-4">
+                    <div className="space-y-4 pt-2">
+                      {languageSections.map((section, index) => (
+                        <Card key={section.id}>
+                          <CardHeader className="pb-3">
+                            <div className="flex items-center justify-between">
+                              <CardTitle className="text-lg">
+                                Section {index + 1}: {section.title}
+                              </CardTitle>
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => moveSection(section.id, 'up')}
+                                  disabled={index === 0}
+                                >
+                                  <MoveUp className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => moveSection(section.id, 'down')}
+                                  disabled={index === languageSections.length - 1}
+                                >
+                                  <MoveDown className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => removeSection(section.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </div>
-                            <Progress value={uploadProgress} className="w-full" />
-                          </div>
-                        ) : (
-                          <div className="text-center space-y-2">
-                            <div className="flex items-center justify-center">
-                              <Upload className="h-8 w-8 text-muted-foreground mr-2" />
-                              <span className="text-sm text-muted-foreground">
-                                Click to upload audio file
-                              </span>
-                            </div>
-                            <div className="flex gap-2 justify-center">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => fileInputRefs.current[section.id]?.click()}
-                              >
-                                <FileAudio className="h-4 w-4 mr-2" />
-                                Choose Audio File
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => generateSectionAudio(section.id)}
-                                disabled={!section.description?.trim() || generatingAudio === section.id}
-                              >
-                                {generatingAudio === section.id ? 'Generating...' : 'Generate AI Audio'}
-                              </Button>
-                            </div>
-                            <p className="text-xs text-muted-foreground">
-                              Upload your own file or generate with AI • Max 50MB
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      /* Audio Uploaded State */
-                      <div className="border border-muted rounded-lg p-4 bg-muted/20">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <FileAudio className="h-6 w-6 text-primary" />
+                          </CardHeader>
+                          <CardContent className="space-y-4">
                             <div>
-                              <p className="text-sm font-medium">Audio uploaded</p>
-                              {section.duration_seconds && (
-                                <p className="text-xs text-muted-foreground">
-                                  Duration: {Math.floor(section.duration_seconds / 60)}:
-                                  {(section.duration_seconds % 60).toString().padStart(2, '0')}
-                                </p>
+                              <Label htmlFor={`title-${section.id}`} className="text-sm mb-2 block">
+                                Section Title
+                              </Label>
+                              <Input
+                                id={`title-${section.id}`}
+                                value={section.title || ''}
+                                onChange={(e) => updateSection(section.id, { title: e.target.value })}
+                                placeholder="Enter section title"
+                              />
+                            </div>
+
+                            <div>
+                              <div className="flex items-center justify-between mb-2">
+                                <Label htmlFor={`description-${section.id}`} className="text-sm">
+                                  Description
+                                </Label>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => generateSectionDescription(section.id, section.title)}
+                                  disabled={!section.title?.trim() || generatingDescription === section.id}
+                                >
+                                  {generatingDescription === section.id ? 'Generating...' : 'Generate AI Description'}
+                                </Button>
+                              </div>
+                              <Textarea
+                                id={`description-${section.id}`}
+                                value={section.description || ''}
+                                onChange={(e) => updateSection(section.id, { description: e.target.value })}
+                                placeholder="Describe what this section covers..."
+                                rows={3}
+                              />
+                            </div>
+
+                            <div>
+                              <Label htmlFor={`language-${section.id}`} className="text-sm mb-2 block">
+                                Language
+                              </Label>
+                              <Select
+                                value={section.language}
+                                onValueChange={(value) => updateSection(section.id, { language: value })}
+                              >
+                                <SelectTrigger id={`language-${section.id}`}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {LANGUAGES.map((lang) => (
+                                    <SelectItem key={lang} value={lang}>
+                                      {lang}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div>
+                              <Label className="text-sm mb-2 block">Audio File</Label>
+                              
+                              {/* File Input (Hidden) */}
+                              <input
+                                ref={(el) => fileInputRefs.current[section.id] = el}
+                                type="file"
+                                accept="audio/*"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) handleFileSelect(section.id, file);
+                                }}
+                                className="hidden"
+                              />
+
+                              {/* Upload Area */}
+                              {!section.audio_url ? (
+                                <div className="border-2 border-dashed border-muted rounded-lg p-4">
+                                  {uploadingSection === section.id ? (
+                                    <div className="space-y-3">
+                                      <div className="flex items-center justify-center">
+                                        <Upload className="h-6 w-6 text-primary mr-2 animate-pulse" />
+                                        <span className="text-sm">Uploading audio...</span>
+                                      </div>
+                                      <Progress value={uploadProgress} className="w-full" />
+                                    </div>
+                                  ) : (
+                                    <div className="text-center space-y-2">
+                                      <div className="flex items-center justify-center">
+                                        <Upload className="h-8 w-8 text-muted-foreground mr-2" />
+                                        <span className="text-sm text-muted-foreground">
+                                          Click to upload audio file
+                                        </span>
+                                      </div>
+                                      <div className="flex gap-2 justify-center">
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() => fileInputRefs.current[section.id]?.click()}
+                                        >
+                                          <FileAudio className="h-4 w-4 mr-2" />
+                                          Choose Audio File
+                                        </Button>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() => generateSectionAudio(section.id)}
+                                          disabled={!section.description?.trim() || generatingAudio === section.id}
+                                        >
+                                          {generatingAudio === section.id ? 'Generating...' : 'Generate AI Audio'}
+                                        </Button>
+                                      </div>
+                                      <p className="text-xs text-muted-foreground">
+                                        Upload your own file or generate with AI • Max 50MB
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                /* Audio Uploaded State */
+                                <div className="border border-muted rounded-lg p-4 bg-muted/20">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-3">
+                                      <FileAudio className="h-6 w-6 text-primary" />
+                                      <div>
+                                        <p className="text-sm font-medium">Audio uploaded</p>
+                                        {section.duration_seconds && (
+                                          <p className="text-xs text-muted-foreground">
+                                            Duration: {Math.floor(section.duration_seconds / 60)}:
+                                            {(section.duration_seconds % 60).toString().padStart(2, '0')}
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => playAudio(section.audio_url!, section.id)}
+                                      >
+                                        <Play className="h-4 w-4" />
+                                        {playingSection === section.id ? 'Pause' : 'Play'}
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => fileInputRefs.current[section.id]?.click()}
+                                      >
+                                        Replace
+                                      </Button>
+                                      <Button
+                                        variant="destructive"
+                                        size="sm"
+                                        onClick={() => removeAudioFile(section.id, section.audio_url!)}
+                                      >
+                                        <X className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </div>
                               )}
                             </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => playAudio(section.audio_url!, section.id)}
-                            >
-                              <Play className="h-4 w-4" />
-                              {playingSection === section.id ? 'Pause' : 'Play'}
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => fileInputRefs.current[section.id]?.click()}
-                            >
-                              Replace
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => removeAudioFile(section.id, section.audio_url!)}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              );
+            })}
+          </Accordion>
         </div>
       )}
     </div>
