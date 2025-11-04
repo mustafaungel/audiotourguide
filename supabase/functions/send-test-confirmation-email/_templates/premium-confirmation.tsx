@@ -4,13 +4,14 @@ import {
   Head,
   Heading,
   Html,
-  Img,
   Link,
   Preview,
   Section,
   Text,
   Button,
   Hr,
+  Column,
+  Row,
 } from 'npm:@react-email/components@0.0.22';
 import * as React from 'npm:react@18.3.1';
 
@@ -38,10 +39,15 @@ export const PremiumConfirmationEmail = ({
   purchaseDate,
   accessUrl,
   supportEmail,
-  qrCodeUrl,
   languages = ['English']
 }: PremiumConfirmationEmailProps) => {
   const previewText = `Your ${guideName} audio guide is ready to explore!`;
+  const formattedPrice = `${currency === 'eur' ? '€' : '$'}${(purchaseAmount / 100).toFixed(2)}`;
+  const formattedDate = new Date(purchaseDate).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
   
   return (
     <Html>
@@ -49,76 +55,82 @@ export const PremiumConfirmationEmail = ({
       <Preview>{previewText}</Preview>
       <Body style={main}>
         <Container style={container}>
+          {/* Minimal Header */}
           <Section style={header}>
-            <Heading style={h1}>🎧 AudioGuide Premium</Heading>
-            <Text style={headerSubtitle}>Premium Experience</Text>
+            <Row>
+              <Column>
+                <Heading style={headerTitle}>Audio Tour Guides</Heading>
+              </Column>
+              <Column align="right">
+                <Text style={headerDate}>{formattedDate}</Text>
+              </Column>
+            </Row>
           </Section>
 
+          {/* Hero Section */}
           <Section style={heroSection}>
-            <Heading style={h2}>Your Audio Guide is Ready!</Heading>
-            <Text style={heroText}>
-              Thank you for your purchase! Your premium audio guide experience for <strong>{guideName}</strong> is now available.
+            <Heading style={heroTitle}>Welcome to Your Audio Journey</Heading>
+            <Text style={heroSubtext}>
+              {customerName ? `${customerName}, thank you` : 'Thank you'} for your purchase. Your premium audio guide is ready.
             </Text>
           </Section>
 
+          {/* Guide Info Card with Integrated Features */}
           <Section style={guideCard}>
-            <Heading style={h3}>{guideName}</Heading>
-            <Text style={locationText}>📍 {guideLocation}</Text>
-            <Text style={featuresText}>
-              ✅ High-quality audio narration<br/>
-              ✅ Offline access available<br/>
-              ✅ Interactive maps and points of interest<br/>
-              ✅ Available in: {languages.join(', ')}<br/>
-              ✅ Lifetime access
-            </Text>
-          </Section>
-
-          <Section style={accessSection}>
-            <Heading style={h3}>Start Your Journey</Heading>
-            <Text style={accessText}>
-              Click the button below to access your audio guide:
-            </Text>
-            <Button href={accessUrl} style={accessButton}>
-              🎧 Start Listening Now
-            </Button>
+            <Heading style={guideTitle}>{guideName}</Heading>
+            <Text style={guideLocation}>{guideLocation}</Text>
             
-            {qrCodeUrl && (
-              <Section style={qrSection}>
-                <Text style={qrText}>Or scan this QR code:</Text>
-                <Img src={qrCodeUrl} alt="QR Code for Audio Guide Access" style={qrImage} />
-              </Section>
-            )}
+            <div style={featuresList}>
+              <Text style={featuresText}>
+                Expert narration · Offline access · Interactive maps · {languages.join(', ')} · Lifetime access
+              </Text>
+            </div>
+
+            {/* CTA Button */}
+            <div style={buttonContainer}>
+              <Button style={primaryButton} href={accessUrl}>
+                Access Your Guide
+              </Button>
+            </div>
           </Section>
 
-          <Section style={featuresSection}>
-            <Heading style={h3}>What's Included</Heading>
-            <Text style={featuresList}>
-              🎯 <strong>Expert Commentary:</strong> Professional narration by local experts<br/>
-              🗺️ <strong>Interactive Maps:</strong> GPS-enabled points of interest<br/>
-              📱 <strong>Mobile Optimized:</strong> Works on any device<br/>
-              🔄 <strong>Offline Mode:</strong> Download for offline use<br/>
-              ⭐ <strong>Premium Support:</strong> Get help when you need it
-            </Text>
-          </Section>
-
+          {/* Purchase Details */}
           <Section style={purchaseSection}>
-            <Heading style={h3}>Purchase Details</Heading>
-            <Text style={purchaseDetails}>
-              <strong>Guide:</strong> {guideName}<br/>
-              <strong>Amount:</strong> {currency.toUpperCase()} ${(purchaseAmount / 100).toFixed(2)}<br/>
-              <strong>Date:</strong> {new Date(purchaseDate).toLocaleDateString()}<br/>
-              <strong>Email:</strong> {customerEmail}
-            </Text>
+            <Heading style={purchaseTitle}>Purchase Summary</Heading>
+            <Row style={purchaseRow}>
+              <Column>
+                <Text style={purchaseLabel}>Guide</Text>
+              </Column>
+              <Column align="right">
+                <Text style={purchaseValue}>{guideName}</Text>
+              </Column>
+            </Row>
+            <Row style={purchaseRow}>
+              <Column>
+                <Text style={purchaseLabel}>Date</Text>
+              </Column>
+              <Column align="right">
+                <Text style={purchaseValue}>{formattedDate}</Text>
+              </Column>
+            </Row>
+            <Row style={purchaseRow}>
+              <Column>
+                <Text style={purchaseLabel}>Amount</Text>
+              </Column>
+              <Column align="right">
+                <Text style={purchaseValueBold}>{formattedPrice}</Text>
+              </Column>
+            </Row>
           </Section>
 
-          <Hr style={separator} />
-
+          {/* Minimal Footer */}
           <Section style={footer}>
+            <Hr style={divider} />
             <Text style={footerText}>
               Need help? Contact us at <Link href={`mailto:${supportEmail}`} style={link}>{supportEmail}</Link>
             </Text>
-            <Text style={footerText}>
-              AudioGuide Premium - Explore the world with expert guidance
+            <Text style={footerSubtext}>
+              Thank you for choosing Audio Tour Guides
             </Text>
           </Section>
         </Container>
@@ -127,213 +139,193 @@ export const PremiumConfirmationEmail = ({
   );
 };
 
-// Styles
+// Professional, minimal styles
 const main = {
-  backgroundColor: '#f6f9fc',
-  fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
+  backgroundColor: '#f9fafb',
+  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif',
+  lineHeight: '1.5',
+  margin: '0',
+  padding: '0',
 };
 
 const container = {
-  backgroundColor: '#ffffff',
   margin: '0 auto',
-  padding: '20px 0 48px',
-  marginBottom: '64px',
+  padding: '20px 16px',
+  maxWidth: '560px',
+  width: '100%',
 };
 
 const header = {
-  padding: '32px 24px',
-  textAlign: 'center' as const,
-  backgroundColor: '#1a1a1a',
-  color: '#ffffff',
+  paddingBottom: '16px',
+  borderBottom: '1px solid #e5e7eb',
+  marginBottom: '24px',
 };
 
-const h1 = {
-  color: '#ffffff',
-  fontSize: '28px',
-  fontWeight: 'bold',
-  margin: '0 0 8px',
-  textAlign: 'center' as const,
-};
-
-const headerSubtitle = {
-  color: '#a0a0a0',
-  fontSize: '14px',
+const headerTitle = {
+  color: '#111827',
+  fontSize: '20px',
+  fontWeight: '600',
   margin: '0',
-  textAlign: 'center' as const,
+  lineHeight: '1.2',
+};
+
+const headerDate = {
+  color: '#6b7280',
+  fontSize: '13px',
+  margin: '0',
+  lineHeight: '1.2',
 };
 
 const heroSection = {
-  padding: '32px 24px',
+  borderRadius: '8px',
+  overflow: 'hidden',
+  marginBottom: '20px',
+  background: 'linear-gradient(135deg, #ea580c 0%, #fb923c 100%)',
+  padding: '32px 20px',
   textAlign: 'center' as const,
 };
 
-const h2 = {
-  color: '#1a1a1a',
+const heroTitle = {
+  color: '#ffffff',
   fontSize: '24px',
-  fontWeight: 'bold',
-  margin: '0 0 16px',
-  textAlign: 'center' as const,
+  fontWeight: '600',
+  margin: '0 0 12px 0',
+  textShadow: '0 1px 2px rgba(0,0,0,0.1)',
+  lineHeight: '1.3',
 };
 
-const heroText = {
-  color: '#525f7f',
-  fontSize: '16px',
-  lineHeight: '24px',
+const heroSubtext = {
+  color: '#ffffff',
+  fontSize: '15px',
   margin: '0',
-  textAlign: 'center' as const,
+  opacity: '0.95',
+  lineHeight: '1.5',
 };
 
 const guideCard = {
-  backgroundColor: '#f8f9fa',
-  border: '1px solid #e1e8ed',
+  backgroundColor: '#ffffff',
   borderRadius: '8px',
-  margin: '24px 24px',
-  padding: '24px',
+  padding: '24px 20px',
+  marginBottom: '20px',
+  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+  border: '1px solid #e5e7eb',
 };
 
-const h3 = {
-  color: '#1a1a1a',
-  fontSize: '20px',
-  fontWeight: 'bold',
-  margin: '0 0 12px',
+const guideTitle = {
+  color: '#111827',
+  fontSize: '22px',
+  fontWeight: '600',
+  margin: '0 0 8px 0',
+  lineHeight: '1.3',
 };
 
-const locationText = {
-  color: '#525f7f',
-  fontSize: '14px',
-  margin: '0 0 16px',
-};
-
-const featuresText = {
-  color: '#525f7f',
-  fontSize: '14px',
-  lineHeight: '20px',
-  margin: '0',
-};
-
-const accessSection = {
-  padding: '24px',
-  textAlign: 'center' as const,
-};
-
-const accessText = {
-  color: '#525f7f',
-  fontSize: '16px',
-  margin: '0 0 24px',
-  textAlign: 'center' as const,
-};
-
-const accessButton = {
-  backgroundColor: '#4f46e5',
-  borderRadius: '8px',
-  color: '#ffffff',
-  fontSize: '16px',
-  fontWeight: 'bold',
-  padding: '16px 32px',
-  textDecoration: 'none',
-  textAlign: 'center' as const,
-  display: 'inline-block',
-  margin: '0 auto',
-};
-
-const qrSection = {
-  marginTop: '32px',
-  textAlign: 'center' as const,
-};
-
-const qrText = {
-  color: '#525f7f',
-  fontSize: '14px',
-  margin: '0 0 16px',
-};
-
-const qrImage = {
-  width: '200px',
-  height: '200px',
-  margin: '0 auto',
-};
-
-const featuresSection = {
-  padding: '24px',
+const guideLocation = {
+  color: '#6b7280',
+  fontSize: '15px',
+  margin: '0 0 16px 0',
+  lineHeight: '1.5',
 };
 
 const featuresList = {
-  color: '#525f7f',
-  fontSize: '14px',
-  lineHeight: '22px',
+  backgroundColor: '#f9fafb',
+  borderRadius: '6px',
+  padding: '12px 16px',
+  marginBottom: '20px',
+};
+
+const featuresText = {
+  color: '#4b5563',
+  fontSize: '13px',
   margin: '0',
+  lineHeight: '1.5',
+  textAlign: 'center' as const,
+};
+
+const buttonContainer = {
+  textAlign: 'center' as const,
+};
+
+const primaryButton = {
+  backgroundColor: '#ea580c',
+  borderRadius: '6px',
+  color: '#ffffff',
+  fontSize: '15px',
+  fontWeight: '600',
+  textDecoration: 'none',
+  textAlign: 'center' as const,
+  display: 'inline-block',
+  padding: '12px 32px',
+  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+  border: 'none',
+  cursor: 'pointer',
 };
 
 const purchaseSection = {
-  backgroundColor: '#f8f9fa',
-  border: '1px solid #e1e8ed',
+  backgroundColor: '#ffffff',
   borderRadius: '8px',
-  margin: '24px',
-  padding: '24px',
+  padding: '20px',
+  marginBottom: '20px',
+  border: '1px solid #e5e7eb',
 };
 
-const purchaseDetails = {
-  color: '#525f7f',
-  fontSize: '14px',
-  lineHeight: '20px',
+const purchaseTitle = {
+  color: '#111827',
+  fontSize: '16px',
+  fontWeight: '600',
+  margin: '0 0 16px 0',
+};
+
+const purchaseRow = {
+  marginBottom: '8px',
+};
+
+const purchaseLabel = {
+  color: '#6b7280',
+  fontSize: '13px',
   margin: '0',
 };
 
-const separator = {
+const purchaseValue = {
+  color: '#374151',
+  fontSize: '13px',
+  margin: '0',
+};
+
+const purchaseValueBold = {
+  color: '#111827',
+  fontSize: '15px',
+  fontWeight: '600',
+  margin: '0',
+};
+
+const divider = {
   border: 'none',
-  borderTop: '1px solid #e1e8ed',
-  margin: '32px 24px',
+  borderTop: '1px solid #e5e7eb',
+  margin: '0 0 16px 0',
 };
 
 const footer = {
-  padding: '0 24px',
+  paddingTop: '16px',
   textAlign: 'center' as const,
 };
 
 const footerText = {
-  color: '#8898aa',
+  color: '#6b7280',
+  fontSize: '13px',
+  lineHeight: '1.5',
+  margin: '0 0 8px 0',
+  textAlign: 'center' as const,
+};
+
+const footerSubtext = {
+  color: '#9ca3af',
   fontSize: '12px',
-  lineHeight: '16px',
-  margin: '0 0 8px',
+  lineHeight: '1.5',
+  margin: '0',
   textAlign: 'center' as const,
 };
 
 const link = {
-  color: '#4f46e5',
-  textDecoration: 'underline',
+  color: '#ea580c',
+  textDecoration: 'none',
 };
-
-// Responsive styles for larger screens
-const responsiveStyles = `
-  @media only screen and (min-width: 600px) {
-    .container {
-      width: 600px !important;
-    }
-    .header {
-      padding: 48px 48px !important;
-    }
-    .hero-section {
-      padding: 48px 48px !important;
-    }
-    .access-section {
-      padding: 32px 48px !important;
-    }
-    .features-section {
-      padding: 32px 48px !important;
-    }
-    .guide-card {
-      margin: 32px 48px !important;
-      padding: 32px !important;
-    }
-    .purchase-section {
-      margin: 32px 48px !important;
-      padding: 32px !important;
-    }
-    .separator {
-      margin: 48px 48px !important;
-    }
-    .footer {
-      padding: 0 48px !important;
-    }
-  }
-`;
