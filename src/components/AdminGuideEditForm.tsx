@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Loader2, Save, ArrowLeft, QrCode, ExternalLink, Copy, Link2, Edit3 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { ImageUploader } from './ImageUploader';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -49,6 +50,9 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
   const [slugError, setSlugError] = useState('');
   const [sections, setSections] = useState<any[]>([]);
   const [sectionsLoading, setSectionsLoading] = useState(false);
+  const [allGuides, setAllGuides] = useState<Guide[]>([]);
+  const [selectedGuideId, setSelectedGuideId] = useState<string>('');
+  const [loadingGuides, setLoadingGuides] = useState(true);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -59,27 +63,79 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
     is_featured: false,
   });
 
+  // Fetch all guides on mount
   useEffect(() => {
-    // Load guide data from sessionStorage
-    const editingGuideData = sessionStorage.getItem('editingGuide');
-    if (editingGuideData) {
-      const guideData = JSON.parse(editingGuideData);
-      setGuide(guideData);
-      setFormData({
-        title: guideData.title,
-        description: guideData.description,
-        location: guideData.location,
-        category: guideData.category,
-        price_usd: guideData.price_usd / 100, // Convert from cents to dollars
-        image_urls: guideData.image_urls || [],
-        is_featured: guideData.is_featured || false,
-      });
-      setCustomSlug(guideData.slug || '');
-      
-      // Load existing sections
-      loadGuideSections(guideData.id);
-    }
+    fetchAllGuides();
   }, []);
+
+  const fetchAllGuides = async () => {
+    setLoadingGuides(true);
+    try {
+      const { data, error } = await supabase
+        .from('audio_guides')
+        .select('id, title, location, is_published, is_approved, created_at, slug, qr_code_url, share_url, description, category, price_usd, creator_id')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setAllGuides(data || []);
+
+      // Check sessionStorage for initial guide selection
+      const editingGuideData = sessionStorage.getItem('editingGuide');
+      if (editingGuideData) {
+        const guideData = JSON.parse(editingGuideData);
+        setSelectedGuideId(guideData.id);
+      }
+    } catch (error) {
+      console.error('Error fetching guides:', error);
+      toast.error('Failed to load guides');
+    } finally {
+      setLoadingGuides(false);
+    }
+  };
+
+  const loadGuideDetails = async (guideId: string) => {
+    if (!guideId) return;
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('audio_guides')
+        .select('*')
+        .eq('id', guideId)
+        .single();
+
+      if (error) throw error;
+
+      setGuide(data);
+      setFormData({
+        title: data.title,
+        description: data.description,
+        location: data.location,
+        category: data.category,
+        price_usd: data.price_usd / 100,
+        image_urls: data.image_urls || [],
+        is_featured: data.is_featured || false,
+      });
+      setCustomSlug(data.slug || '');
+
+      // Load sections
+      await loadGuideSections(guideId);
+
+      toast.success('Guide loaded successfully');
+    } catch (error) {
+      console.error('Error loading guide:', error);
+      toast.error('Failed to load guide details');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load guide when selection changes
+  useEffect(() => {
+    if (selectedGuideId) {
+      loadGuideDetails(selectedGuideId);
+    }
+  }, [selectedGuideId]);
 
   const loadGuideSections = async (guideId: string) => {
     setSectionsLoading(true);
@@ -288,6 +344,42 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
           <p className="text-muted-foreground">Modify guide details and content</p>
         </div>
       </div>
+
+      {/* Guide Selector Dropdown */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="space-y-2">
+            <Label htmlFor="guide-selector">Select Guide to Edit</Label>
+            <Select 
+              value={selectedGuideId} 
+              onValueChange={setSelectedGuideId}
+              disabled={loadingGuides}
+            >
+              <SelectTrigger id="guide-selector">
+                <SelectValue placeholder={loadingGuides ? "Loading guides..." : "Choose a guide"} />
+              </SelectTrigger>
+              <SelectContent>
+                {allGuides.map((g) => (
+                  <SelectItem key={g.id} value={g.id}>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{g.title}</span>
+                      <span className="text-xs text-muted-foreground">
+                        • {g.location}
+                      </span>
+                      {g.is_published && (
+                        <Badge variant="default" className="text-xs ml-2">Live</Badge>
+                      )}
+                      {!g.is_approved && (
+                        <Badge variant="secondary" className="text-xs ml-2">Pending</Badge>
+                      )}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
