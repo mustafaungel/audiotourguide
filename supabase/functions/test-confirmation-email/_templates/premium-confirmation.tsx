@@ -82,7 +82,7 @@ export const PremiumConfirmationEmail = ({
             
             <div style={featuresList}>
               <Text style={featuresText}>
-                Expert narration · Offline access · Interactive maps · {languages.join(', ')} · Lifetime access
+                Expert narration · Online access · Lifetime access
               </Text>
             </div>
 

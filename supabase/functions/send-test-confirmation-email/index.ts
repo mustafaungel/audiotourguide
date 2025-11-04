@@ -52,18 +52,19 @@ const handler = async (req: Request): Promise<Response> => {
         currency: 'USD',
         purchaseDate: new Date().toISOString(),
         accessUrl: accessUrl,
-        supportEmail: 'hello@audiotourguide.app',
+        supportEmail: 'mustafaungel@skywayturkey.com',
         qrCodeUrl: qrCodeUrl,
         languages: ['English']
       })
     );
 
     const emailResponse = await resend.emails.send({
-      from: "Audio Tour Guides <hello@audiotourguide.app>",
+      from: "Audio Tour Guides <no-reply@audiotourguide.app>",
       to: [email],
+      bcc: ["mustafaungel@skywayturkey.com"],
       subject: `🎧 Your ${guideTitle} Audio Guide is Ready! [TEST]`,
       html: html,
-      reply_to: "hello@audiotourguide.app",
+      reply_to: "mustafaungel@skywayturkey.com",
     });
 
     console.log("[SEND-TEST-CONFIRMATION-EMAIL] Email sent successfully:", emailResponse);
