@@ -175,8 +175,8 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     });
   };
 
-  // Helper to resolve audio URL (preview pattern)
-  const resolveAudioUrl = async (audioPath?: string): Promise<string> => {
+  // Helper to resolve audio URL synchronously (getPublicUrl)
+  const resolveAudioUrl = (audioPath?: string): string => {
     if (!audioPath) {
       return `/tmp/${guideId}.mp3`;
     }
@@ -185,18 +185,15 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
       return audioPath;
     }
     
-    try {
-      const { data } = await supabase.storage
-        .from('guide-audio')
-        .createSignedUrl(audioPath, 3600);
-      return data?.signedUrl || audioPath;
-    } catch (error) {
-      console.error('[PLAYER] ❌ Error resolving URL:', error);
-      return `/tmp/${guideId}.mp3`;
-    }
+    // Use getPublicUrl for synchronous resolution
+    const { data } = supabase.storage
+      .from('guide-audio')
+      .getPublicUrl(audioPath);
+    
+    return data?.publicUrl || `/tmp/${guideId}.mp3`;
   };
 
-  const playSection = async (sectionIndex: number) => {
+  const playSection = (sectionIndex: number) => {
     if (sectionIndex < 0 || sectionIndex >= sections.length) {
       console.error('[PLAYER] ❌ Invalid section index:', sectionIndex);
       return;
@@ -229,93 +226,71 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
       audioRef.current.currentTime = 0;
     }
     
-    // Get URL (pre-resolved or lazy resolve)
+    // Get URL (pre-resolved or lazy resolve) - NOW SYNCHRONOUS
     let audioUrl = resolvedUrlsRef.current[sectionIndex];
     if (!audioUrl) {
-      console.log('[PLAYER] 🔄 Lazy resolving URL...');
+      console.log('[PLAYER] 🔄 Lazy resolving URL synchronously...');
       const section = sections[sectionIndex];
-      audioUrl = await resolveAudioUrl(section.audio_url);
+      audioUrl = resolveAudioUrl(section.audio_url); // No await!
       resolvedUrlsRef.current[sectionIndex] = audioUrl;
     }
     
     console.log('[PLAYER] 📦 Using URL:', audioUrl?.substring(0, 60) + '...');
     
-    // Create or reuse audio element (preview pattern!)
+    // Create or reuse audio element
     if (!audioRef.current) {
       console.log('[PLAYER] 🎵 Creating new Audio element');
       audioRef.current = new Audio();
-      audioRef.current.preload = 'metadata';
+      audioRef.current.preload = 'auto';
       audioRef.current.setAttribute('playsinline', '');
       setupAudioElement(audioRef.current);
     }
     
-    // Set source WITHIN user gesture
+    // Set source and play IMMEDIATELY (within user gesture)
     audioRef.current.src = audioUrl;
     audioRef.current.volume = volume;
     audioRef.current.playbackRate = playbackSpeed;
     
-    // Wait for canplay (preview pattern)
-    try {
-      await new Promise<void>((resolve, reject) => {
-        if (!audioRef.current) {
-          reject(new Error('Audio element not available'));
-          return;
-        }
-        
-        const handleCanPlay = () => {
-          audioRef.current?.removeEventListener('canplay', handleCanPlay);
-          audioRef.current?.removeEventListener('error', handleError);
-          resolve();
-        };
-        
-        const handleError = (e: Event) => {
-          audioRef.current?.removeEventListener('canplay', handleCanPlay);
-          audioRef.current?.removeEventListener('error', handleError);
-          reject(e);
-        };
-        
-        audioRef.current.addEventListener('canplay', handleCanPlay);
-        audioRef.current.addEventListener('error', handleError);
-        audioRef.current.load();
-      });
-      
-      // Play IMMEDIATELY after canplay (user gesture still active!)
-      console.log('[PLAYER] ▶️ Playing now...');
-      await audioRef.current.play();
-      
-      console.log('[PLAYER] ✅ PLAY started successfully');
-      setIsPlaying(true);
-      setLoading(false);
-      
-      toast({
-        title: 'Now Playing',
-        description: sections[sectionIndex]?.title || guideTitle,
-      });
-      
-    } catch (error: any) {
-      console.error('[PLAYER] ❌ PLAY ERROR:', error);
-      setLoading(false);
-      setIsPlaying(false);
-      
-      if (error.name === 'NotAllowedError') {
-        toast({
-          title: 'Audio Locked',
-          description: 'Please tap again to play',
-          variant: 'default',
+    // Play immediately without waiting for canplay
+    const playPromise = audioRef.current.play();
+    
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          console.log('[PLAYER] ✅ PLAY started successfully');
+          setIsPlaying(true);
+          setLoading(false);
+          
+          toast({
+            title: 'Now Playing',
+            description: sections[sectionIndex]?.title || guideTitle,
+          });
+        })
+        .catch((error: any) => {
+          console.error('[PLAYER] ❌ PLAY ERROR:', error);
+          setLoading(false);
+          setIsPlaying(false);
+          
+          if (error.name === 'NotAllowedError') {
+            toast({
+              title: 'Audio Locked',
+              description: 'Please tap again to play',
+              variant: 'default',
+            });
+          } else if (error.name === 'NotSupportedError') {
+            toast({
+              title: 'Format Error',
+              description: 'Audio format not supported',
+              variant: 'destructive',
+            });
+          } else {
+            toast({
+              title: 'Playback Error',
+              description: 'Failed to play audio. Please try again.',
+              variant: 'destructive',
+            });
+          }
         });
-      } else if (error.name === 'NotSupportedError') {
-        toast({
-          title: 'Format Error',
-          description: 'Audio format not supported',
-          variant: 'destructive',
-        });
-      } else {
-        toast({
-          title: 'Playback Error',
-          description: 'Failed to play audio. Please try again.',
-          variant: 'destructive',
-        });
-      }
     }
   };
 
@@ -418,73 +393,56 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   };
 
 
-  // Pre-resolve all audio URLs on mount
+  // Pre-resolve all audio URLs on mount - SYNCHRONOUSLY
   useEffect(() => {
-    const preResolveUrls = async () => {
-      console.log('[NEW-SECTION-PLAYER] 🔄 Pre-resolve started for', sections.length, 'sections');
-      setPreResolved(false);
-      
-      // Resolve all section URLs in parallel
-      const promises = sections.map(async (section, idx) => {
-        if (!section.audio_url) {
-          console.log(`[NEW-SECTION-PLAYER] ⚠️ Section ${idx} has no audio_url`);
-          return undefined;
-        }
-        
-        // Use direct URL if it starts with http
-        if (section.audio_url.startsWith('http')) {
-          console.log(`[NEW-SECTION-PLAYER] ✓ Section ${idx} using direct URL`);
-          return section.audio_url;
-        }
-        
-        // Get signed URL from Supabase storage
-        try {
-          const { data, error } = await supabase.storage
-            .from('guide-audio')
-            .createSignedUrl(section.audio_url, 3600);
-          
-          if (error) {
-            console.error(`[NEW-SECTION-PLAYER] ❌ Pre-resolve error section ${idx}:`, error);
-            return undefined;
-          }
-          
-          console.log(`[NEW-SECTION-PLAYER] ✓ Section ${idx} signed successfully`);
-          return data?.signedUrl;
-        } catch (err) {
-          console.error(`[NEW-SECTION-PLAYER] ❌ Pre-resolve exception section ${idx}:`, err);
-          return undefined;
-        }
-      });
-      
-      const resolved = await Promise.all(promises);
-      resolvedUrlsRef.current = resolved;
-      
-      // Resolve main audio URL if exists
-      if (mainAudioUrl) {
-        if (mainAudioUrl.startsWith('http')) {
-          resolvedMainRef.current = mainAudioUrl;
-          console.log('[NEW-SECTION-PLAYER] ✓ Main audio using direct URL');
-        } else {
-          try {
-            const { data } = await supabase.storage
-              .from('guide-audio')
-              .createSignedUrl(mainAudioUrl, 3600);
-            resolvedMainRef.current = data?.signedUrl;
-            console.log('[NEW-SECTION-PLAYER] ✓ Main audio signed successfully');
-          } catch (err) {
-            console.error('[NEW-SECTION-PLAYER] ❌ Main audio pre-resolve error:', err);
-          }
-        }
+    console.log('[NEW-SECTION-PLAYER] 🔄 Pre-resolve started for', sections.length, 'sections');
+    
+    // Resolve all section URLs synchronously
+    const resolved = sections.map((section, idx) => {
+      if (!section.audio_url) {
+        console.log(`[NEW-SECTION-PLAYER] ⚠️ Section ${idx} has no audio_url`);
+        return undefined;
       }
       
-      setPreResolved(true);
-      const readyCount = resolved.filter(Boolean).length;
-      console.log(`[NEW-SECTION-PLAYER] ✅ Pre-resolve completed: ${readyCount}/${sections.length} URLs ready`);
-    };
+      // Use direct URL if it starts with http
+      if (section.audio_url.startsWith('http')) {
+        console.log(`[NEW-SECTION-PLAYER] ✓ Section ${idx} using direct URL`);
+        return section.audio_url;
+      }
+      
+      // Get public URL synchronously
+      const { data } = supabase.storage
+        .from('guide-audio')
+        .getPublicUrl(section.audio_url);
+      
+      if (data?.publicUrl) {
+        console.log(`[NEW-SECTION-PLAYER] ✓ Section ${idx} public URL ready`);
+        return data.publicUrl;
+      }
+      
+      console.log(`[NEW-SECTION-PLAYER] ⚠️ Section ${idx} fallback to /tmp`);
+      return undefined;
+    });
     
-    if (sections.length > 0 || mainAudioUrl) {
-      preResolveUrls();
+    resolvedUrlsRef.current = resolved;
+    
+    // Resolve main audio URL if exists
+    if (mainAudioUrl) {
+      if (mainAudioUrl.startsWith('http')) {
+        resolvedMainRef.current = mainAudioUrl;
+        console.log('[NEW-SECTION-PLAYER] ✓ Main audio using direct URL');
+      } else {
+        const { data } = supabase.storage
+          .from('guide-audio')
+          .getPublicUrl(mainAudioUrl);
+        resolvedMainRef.current = data?.publicUrl;
+        console.log('[NEW-SECTION-PLAYER] ✓ Main audio public URL ready');
+      }
     }
+    
+    setPreResolved(true);
+    const readyCount = resolved.filter(Boolean).length;
+    console.log(`[NEW-SECTION-PLAYER] ✅ Pre-resolve completed SYNCHRONOUSLY: ${readyCount}/${sections.length} URLs ready`);
   }, [sections, mainAudioUrl, guideId]);
 
   // Cleanup on unmount

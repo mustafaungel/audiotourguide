@@ -27,27 +27,12 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const App = () => {
-  // Cache-bust logic: force fresh bundle on new builds
+  // Simple build tracking (no aggressive cache-busting)
   React.useEffect(() => {
     const storedBuild = localStorage.getItem('app_build');
-    const currentUrl = window.location.href;
-    const urlHasVersion = currentUrl.includes('v=');
-    
-    console.log(`[APP] build=${APP_BUILD}, stored=${storedBuild}, urlHasVersion=${urlHasVersion}`);
-    
-    // Case 1: Build değişmiş veya URL'de version yok
-    if (storedBuild !== APP_BUILD || !urlHasVersion) {
-      console.log('[APP] Cache-bust triggered');
+    if (!storedBuild || storedBuild !== APP_BUILD) {
       localStorage.setItem('app_build', APP_BUILD);
-      sessionStorage.clear(); // Session cache'i de temizle
-      
-      const hasQuery = window.location.search.length > 0;
-      const separator = hasQuery ? '&' : '?';
-      const newUrl = window.location.pathname + window.location.search + separator + 'v=' + APP_BUILD + '&t=' + Date.now();
-      
-      // Timestamp de ekle, daha agresif
-      location.replace(newUrl);
-      return;
+      console.log('[APP] Build version updated:', APP_BUILD);
     }
   }, []);
   try {
