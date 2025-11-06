@@ -23,9 +23,9 @@ export default defineConfig(({ mode }) => ({
     cssCodeSplit: true,
     rollupOptions: {
       output: {
-        chunkFileNames: 'assets/[name]-[hash].js',
-        entryFileNames: 'assets/[name]-[hash].js',
-        assetFileNames: 'assets/[name]-[hash].[ext]'
+        chunkFileNames: 'assets/[name]-[hash]-v3.js',
+        entryFileNames: 'assets/[name]-[hash]-v3.js',
+        assetFileNames: 'assets/[name]-[hash]-v3.[ext]'
       }
     },
     chunkSizeWarningLimit: 500,
