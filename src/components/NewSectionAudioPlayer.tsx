@@ -48,26 +48,44 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   const hasIndividualSections = sections.some(section => section.audio_url);
   const audioMode = hasIndividualSections ? 'sections' : 'main';
 
-  const loadAudioSource = async (audioUrl?: string) => {
+  const loadAudioSource = async (audioUrl?: string, sectionIndex?: number) => {
+    console.log('[NEW-SECTION-PLAYER] Loading audio source:', {
+      audioUrl: audioUrl?.substring(0, 50),
+      sectionIndex,
+      guideId,
+      audioMode
+    });
+
     if (!audioUrl) {
       const fallbackUrl = `/tmp/${guideId}.mp3`;
+      console.log('[NEW-SECTION-PLAYER] No audio URL provided, using fallback:', fallbackUrl);
       return fallbackUrl;
     }
     
     try {
+      // If it's a Supabase storage path (not full URL)
       if (audioUrl && !audioUrl.startsWith('http')) {
-        const { data: urlData } = await supabase.storage
+        console.log('[NEW-SECTION-PLAYER] Fetching signed URL from Supabase storage');
+        const { data: urlData, error } = await supabase.storage
           .from('guide-audio')
           .createSignedUrl(audioUrl, 3600);
         
+        if (error) {
+          console.error('[NEW-SECTION-PLAYER] Supabase storage error:', error);
+          throw error;
+        }
+        
         if (urlData?.signedUrl) {
+          console.log('[NEW-SECTION-PLAYER] Got signed URL:', urlData.signedUrl.substring(0, 50) + '...');
           return urlData.signedUrl;
         }
       }
       
+      console.log('[NEW-SECTION-PLAYER] Using provided URL directly');
       return audioUrl;
     } catch (error) {
-      console.error('Error loading audio source:', error);
+      console.error('[NEW-SECTION-PLAYER] Error loading audio source:', error);
+      // Return original URL as fallback
       return audioUrl;
     }
   };
@@ -131,10 +149,17 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     });
     
     audioElement.addEventListener('error', (e) => {
-      console.error('Audio playback error:', e);
+      const target = e.target as HTMLAudioElement;
+      console.error('[NEW-SECTION-PLAYER] Audio element error:', {
+        error: e,
+        code: target?.error?.code,
+        message: target?.error?.message,
+        src: target?.src?.substring(0, 50) + '...'
+      });
+      
       toast({
         title: 'Playback Error',
-        description: 'Failed to play audio file',
+        description: 'Failed to play audio file. Please check your connection and try again.',
         variant: 'destructive',
       });
       setIsPlaying(false);
@@ -143,10 +168,21 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   };
 
   const playSection = async (sectionIndex: number) => {
-    if (sectionIndex < 0 || sectionIndex >= sections.length) return;
+    if (sectionIndex < 0 || sectionIndex >= sections.length) {
+      console.error('[NEW-SECTION-PLAYER] Invalid section index:', sectionIndex);
+      return;
+    }
+    
+    console.log('[NEW-SECTION-PLAYER] Play section called:', {
+      sectionIndex,
+      currentIndex: currentSectionIndex,
+      isPlaying,
+      audioMode
+    });
     
     // Smart toggle: if same section is playing, pause it
     if (sectionIndex === currentSectionIndex && isPlaying) {
+      console.log('[NEW-SECTION-PLAYER] Toggling pause for current section');
       if (audioRef.current) {
         audioRef.current.pause();
         setIsPlaying(false);
@@ -157,35 +193,53 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     setLoading(true);
     setCurrentSectionIndex(sectionIndex);
     
-    // Mobile volume helper disabled - users should use device volume controls
-    
     try {
       // Stop current audio if playing
       if (audioRef.current) {
+        console.log('[NEW-SECTION-PLAYER] Stopping current audio');
         audioRef.current.pause();
         audioRef.current.src = '';
       }
 
-      let audioUrl: string;
+      // Load audio URL with proper error handling
+      let audioUrl: string | null = null;
       
       if (audioMode === 'sections') {
         const section = sections[sectionIndex];
-        audioUrl = await loadAudioSource(section.audio_url);
+        console.log('[NEW-SECTION-PLAYER] Loading section audio:', {
+          title: section.title,
+          hasAudioUrl: !!section.audio_url
+        });
+        audioUrl = await loadAudioSource(section.audio_url, sectionIndex);
       } else {
-        audioUrl = await loadAudioSource(mainAudioUrl);
+        console.log('[NEW-SECTION-PLAYER] Loading main audio URL');
+        audioUrl = await loadAudioSource(mainAudioUrl, sectionIndex);
       }
 
+      if (!audioUrl) {
+        console.error('[NEW-SECTION-PLAYER] Failed to load audio URL');
+        throw new Error('Audio URL is empty');
+      }
+
+      console.log('[NEW-SECTION-PLAYER] Audio URL loaded successfully:', audioUrl.substring(0, 50) + '...');
+
+      // Create or reuse audio element
       if (!audioRef.current) {
+        console.log('[NEW-SECTION-PLAYER] Creating new Audio element');
         audioRef.current = new Audio();
         setupAudioElement(audioRef.current);
       }
 
+      // Set audio source and properties
+      console.log('[NEW-SECTION-PLAYER] Setting audio properties and starting playback');
       audioRef.current.src = audioUrl;
       audioRef.current.volume = volume;
       audioRef.current.playbackRate = playbackSpeed;
       
+      // Attempt playback
       await audioRef.current.play();
       setIsPlaying(true);
+      console.log('[NEW-SECTION-PLAYER] Playback started successfully');
       
       toast({
         title: 'Now Playing',
@@ -193,10 +247,21 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
       });
       
     } catch (error) {
-      console.error('Play error:', error);
+      console.error('[NEW-SECTION-PLAYER] Play error:', error);
+      
+      // Provide more specific error message
+      let errorMsg = 'Failed to start playback';
+      if (error instanceof Error) {
+        if (error.message.includes('NotAllowedError') || error.name === 'NotAllowedError') {
+          errorMsg = 'Please tap the play button again to start playback';
+        } else if (error.message.includes('NotSupportedError') || error.name === 'NotSupportedError') {
+          errorMsg = 'Audio format not supported on this device';
+        }
+      }
+      
       toast({
         title: 'Playback Error',
-        description: 'Failed to start playback',
+        description: errorMsg,
         variant: 'destructive',
       });
     } finally {
