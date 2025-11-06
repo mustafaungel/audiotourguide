@@ -45,10 +45,11 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   const [preResolved, setPreResolved] = useState(false);
   
   // iOS/Android audio unlock
-  const [unlocked, setUnlocked] = useState(false);
+  const [audioUnlocked, setAudioUnlocked] = useState(false);
   const triedUnlockRef = useRef(false);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const unlockAudioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const { markChapterCompleted, isChapterCompleted, autoAdvanceEnabled, setAutoAdvance } = useAudioProgress({ guideId });
@@ -187,42 +188,44 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     });
   };
 
-  // iOS/Android audio unlock mechanism
+  // iOS/Mobile audio unlock with dedicated temporary element
   const ensureAudioUnlocked = () => {
-    if (triedUnlockRef.current || !isMobileDevice) {
+    if (triedUnlockRef.current) {
+      console.log('[PLAYER] 🔓 Already tried unlock, skipping');
       return;
     }
-    
-    console.log('[NEW-SECTION-PLAYER] 🔓 Attempting audio unlock for mobile device...');
-    
-    if (!audioRef.current) {
-      console.log('[NEW-SECTION-PLAYER] Creating audio element for unlock');
-      audioRef.current = new Audio();
-      audioRef.current.preload = 'metadata';
-      audioRef.current.crossOrigin = 'anonymous';
-      audioRef.current.setAttribute('playsinline', '');
-      setupAudioElement(audioRef.current);
-    }
-    
-    audioRef.current.src = SILENT_MP3;
-    audioRef.current.volume = 0.01;
-    
-    const playPromise = audioRef.current.play();
-    if (playPromise) {
-      playPromise
+
+    triedUnlockRef.current = true;
+    console.log('[PLAYER] 🔓 Attempting mobile unlock with temp element...');
+
+    try {
+      // Create temporary audio element separate from main player
+      unlockAudioRef.current = new Audio();
+      unlockAudioRef.current.setAttribute('playsinline', '');
+      unlockAudioRef.current.preload = 'metadata';
+      unlockAudioRef.current.volume = 0.01;
+      unlockAudioRef.current.src = SILENT_MP3;
+
+      unlockAudioRef.current.play()
         .then(() => {
-          console.log('[NEW-SECTION-PLAYER] ✅ Audio unlock SUCCESS');
-          if (audioRef.current) {
-            audioRef.current.pause();
-            audioRef.current.currentTime = 0;
+          console.log('[PLAYER] ✅ unlock SUCCESS');
+          setAudioUnlocked(true);
+          if (unlockAudioRef.current) {
+            unlockAudioRef.current.pause();
+            unlockAudioRef.current.currentTime = 0;
+            unlockAudioRef.current = null;
           }
-          triedUnlockRef.current = true;
-          setUnlocked(true);
         })
         .catch((err) => {
-          console.warn('[NEW-SECTION-PLAYER] ⚠️ Audio unlock FAILED:', err);
-          triedUnlockRef.current = true;
+          console.log('[PLAYER] ⚠️ unlock FAILED:', err);
+          setAudioUnlocked(false);
+          if (unlockAudioRef.current) {
+            unlockAudioRef.current = null;
+          }
         });
+    } catch (err) {
+      console.log('[PLAYER] ⚠️ unlock exception:', err);
+      setAudioUnlocked(false);
     }
   };
 
@@ -256,28 +259,31 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     
     // Stop current audio if playing
     if (audioRef.current) {
-      console.log('[NEW-SECTION-PLAYER] ⏹️ Stopping current audio');
+      console.log('[PLAYER] ⏹️ Stopping current audio');
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
     }
     
-    // First touch unlock attempt (NO AWAIT!)
-    ensureAudioUnlocked();
+    // Mobile unlock guard: only if mobile and not yet tried
+    if (isMobileDevice && !triedUnlockRef.current) {
+      console.log('[PLAYER] mobile unlock guard triggered');
+      ensureAudioUnlocked();
+    }
     
     // Get pre-resolved URL
     let audioUrl: string | undefined;
     
     if (audioMode === 'sections') {
       audioUrl = resolvedUrlsRef.current[sectionIndex];
-      console.log('[NEW-SECTION-PLAYER] 📦 Using pre-resolved section URL:', audioUrl?.substring(0, 60) + '...');
+      console.log('[PLAYER] 📦 Using pre-resolved section URL:', audioUrl?.substring(0, 60) + '...');
     } else {
       audioUrl = resolvedMainRef.current;
-      console.log('[NEW-SECTION-PLAYER] 📦 Using pre-resolved main URL:', audioUrl?.substring(0, 60) + '...');
+      console.log('[PLAYER] 📦 Using pre-resolved main URL:', audioUrl?.substring(0, 60) + '...');
     }
     
     // If URL not pre-resolved, do lazy resolve
     if (!audioUrl) {
-      console.warn('[NEW-SECTION-PLAYER] ⚠️ URL not pre-resolved, attempting lazy resolve...');
+      console.warn('[PLAYER] ⚠️ URL not pre-resolved, attempting lazy resolve...');
       
       toast({
         title: 'Preparing Audio',
@@ -306,12 +312,12 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
               .from('guide-audio')
               .createSignedUrl(resolvedUrl, 3600);
             resolvedUrl = data?.signedUrl || resolvedUrl;
-            console.log('[NEW-SECTION-PLAYER] ✓ Lazy resolve successful');
+            console.log('[PLAYER] ✓ Lazy resolve successful');
           } catch (err) {
-            console.error('[NEW-SECTION-PLAYER] ❌ Lazy resolve error:', err);
+            console.error('[PLAYER] ❌ Lazy resolve error:', err);
             // Fallback: try /tmp folder
             resolvedUrl = `/tmp/${guideId}.mp3`;
-            console.log('[NEW-SECTION-PLAYER] 🔄 Using fallback URL:', resolvedUrl);
+            console.log('[PLAYER] 🔄 Using fallback URL:', resolvedUrl);
           }
         }
         
@@ -332,7 +338,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     
     // Create or reuse audio element
     if (!audioRef.current) {
-      console.log('[NEW-SECTION-PLAYER] 🎵 Creating new Audio element');
+      console.log('[PLAYER] 🎵 Creating new Audio element');
       audioRef.current = new Audio();
       audioRef.current.preload = 'metadata';
       audioRef.current.crossOrigin = 'anonymous';
@@ -341,7 +347,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     }
     
     // ⚡ SYNCHRONOUS: Set src immediately and play (NO AWAIT!)
-    console.log('[NEW-SECTION-PLAYER] ⚡ Setting source SYNCHRONOUSLY and playing...');
+    console.log('[PLAYER] SYNCH PLAY start');
     audioRef.current.src = audioUrl;
     audioRef.current.volume = volume;
     audioRef.current.playbackRate = playbackSpeed;
@@ -351,7 +357,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     if (playPromise) {
       playPromise
         .then(() => {
-          console.log('[NEW-SECTION-PLAYER] ✅ Playback started SUCCESSFULLY');
+          console.log('[PLAYER] PLAY started OK');
           setIsPlaying(true);
           setLoading(false);
           
@@ -361,20 +367,17 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
           });
         })
         .catch((error) => {
-          console.error('[NEW-SECTION-PLAYER] ❌ Play error:', error);
+          console.error('[PLAYER] PLAY ERROR:', error);
           setLoading(false);
           
           // NotAllowedError handling
           if (error.name === 'NotAllowedError' || error.message?.includes('NotAllowedError')) {
-            console.warn('[NEW-SECTION-PLAYER] 🔒 NotAllowedError detected, retrying after unlock...');
-            
-            // Retry unlock
-            ensureAudioUnlocked();
+            console.warn('[PLAYER] 🔒 NotAllowedError detected');
             
             toast({
-              title: 'Tap to Play',
-              description: 'Please tap the play button again to start audio',
-              variant: 'destructive',
+              title: 'Audio Locked',
+              description: 'Please tap again to play',
+              variant: 'default',
             });
           } else if (error.name === 'NotSupportedError') {
             toast({
@@ -408,10 +411,10 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
           playPromise
             .then(() => {
               setIsPlaying(true);
-              console.log('[NEW-SECTION-PLAYER] ▶️ Resumed playback');
+              console.log('[PLAYER] ▶️ Resumed playback');
             })
             .catch((err) => {
-              console.error('[NEW-SECTION-PLAYER] ❌ Resume error:', err);
+              console.error('[PLAYER] ❌ Resume error:', err);
               toast({
                 title: 'Resume Error',
                 description: 'Failed to resume playback',
@@ -490,6 +493,24 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     }
     setCurrentSectionIndex(-1);
   };
+
+  // Global first interaction listener for mobile unlock
+  useEffect(() => {
+    if (!isMobileDevice) return;
+
+    const handleFirstInteraction = () => {
+      console.log('[PLAYER] global unlock attached (first interaction)');
+      ensureAudioUnlocked();
+    };
+
+    document.addEventListener('pointerdown', handleFirstInteraction, { once: true });
+    document.addEventListener('touchstart', handleFirstInteraction, { once: true, passive: true });
+    
+    return () => {
+      document.removeEventListener('pointerdown', handleFirstInteraction);
+      document.removeEventListener('touchstart', handleFirstInteraction);
+    };
+  }, [isMobileDevice]);
 
   // Pre-resolve all audio URLs on mount
   useEffect(() => {

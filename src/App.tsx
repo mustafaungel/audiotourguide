@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { FaviconUpdater } from "@/components/FaviconUpdater";
 import PreloadBrandingAssets from "@/components/PreloadBrandingAssets";
 import { PerformanceMonitor } from "@/components/PerformanceMonitor";
+import { APP_BUILD } from "@/lib/utils";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AdminPanel from "./pages/AdminPanel";
@@ -26,6 +27,25 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const App = () => {
+  // Cache-bust logic: force fresh bundle on new builds
+  React.useEffect(() => {
+    const storedBuild = localStorage.getItem('app_build');
+    console.log(`[APP] build=${APP_BUILD}, stored=${storedBuild}`);
+    
+    if (storedBuild && storedBuild !== APP_BUILD) {
+      console.log('[APP] reloadNeeded=true, cache-busting...');
+      localStorage.setItem('app_build', APP_BUILD);
+      const hasQuery = window.location.search.length > 0;
+      const separator = hasQuery ? '&' : '?';
+      location.replace(window.location.pathname + window.location.search + separator + 'v=' + APP_BUILD);
+      return;
+    }
+    
+    if (!storedBuild) {
+      localStorage.setItem('app_build', APP_BUILD);
+      console.log('[APP] first run, build stored');
+    }
+  }, []);
   try {
     return (
   <QueryClientProvider client={queryClient}>
