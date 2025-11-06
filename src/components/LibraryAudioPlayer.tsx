@@ -3,8 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Slider } from '@/components/ui/slider';
-import { Play, Pause, Volume2, VolumeX, SkipForward, SkipBack } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, SkipForward, SkipBack, WifiOff } from 'lucide-react';
 import { useLibraryAudio } from '@/hooks/useLibraryAudio';
+import { Badge } from './ui/badge';
 
 interface LibraryAudioPlayerProps {
   guide: {
@@ -24,6 +25,7 @@ export const LibraryAudioPlayer: React.FC<LibraryAudioPlayerProps> = ({
   const [isMuted, setIsMuted] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
   
   const {
     isPlaying,
@@ -106,7 +108,15 @@ export const LibraryAudioPlayer: React.FC<LibraryAudioPlayerProps> = ({
   };
 
   React.useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
     return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
       cleanup();
     };
   }, [cleanup]);
@@ -116,13 +126,21 @@ export const LibraryAudioPlayer: React.FC<LibraryAudioPlayerProps> = ({
   return (
     <Card className="fixed bottom-4 left-4 right-4 md:left-auto md:w-96 z-50 shadow-tourism bg-gradient-card border border-border/50">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-semibold truncate text-foreground">{guide.title}</CardTitle>
-          {onClose && (
-            <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0 touch-manipulation">
-              ×
-            </Button>
-          )}
+        <div className="flex items-center justify-between gap-2">
+          <CardTitle className="text-sm font-semibold truncate text-foreground flex-1">{guide.title}</CardTitle>
+          <div className="flex items-center gap-2 shrink-0">
+            {!isOnline && (
+              <Badge variant="secondary" className="gap-1 text-xs py-0 px-2">
+                <WifiOff className="h-3 w-3" />
+                Offline
+              </Badge>
+            )}
+            {onClose && (
+              <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0 touch-manipulation">
+                ×
+              </Button>
+            )}
+          </div>
         </div>
       </CardHeader>
       
