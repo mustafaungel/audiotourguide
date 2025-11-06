@@ -44,23 +44,10 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   const resolvedMainRef = useRef<string | undefined>(undefined);
   const [preResolved, setPreResolved] = useState(false);
   
-  // iOS/Android audio unlock
-  const [audioUnlocked, setAudioUnlocked] = useState(false);
-  const triedUnlockRef = useRef(false);
-  
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const unlockAudioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const { markChapterCompleted, isChapterCompleted, autoAdvanceEnabled, setAutoAdvance } = useAudioProgress({ guideId });
-  
-  // Mobile device detection
-  const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || 
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  const isMobileDevice = isMobile || isIOS;
-  
-  // Silent MP3 for iOS unlock (50ms)
-  const SILENT_MP3 = 'data:audio/mp3;base64,//uQxAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7////////////////////////////////////////////AAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7////////////////////////////////////////////';
 
   // Determine if we have section-based audio or main audio
   const hasIndividualSections = sections.some(section => section.audio_url);
@@ -188,65 +175,43 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     });
   };
 
-  // iOS/Mobile audio unlock with dedicated temporary element
-  const ensureAudioUnlocked = () => {
-    if (triedUnlockRef.current) {
-      console.log('[PLAYER] 🔓 Already tried unlock, skipping');
-      return;
+  // Helper to resolve audio URL (preview pattern)
+  const resolveAudioUrl = async (audioPath?: string): Promise<string> => {
+    if (!audioPath) {
+      return `/tmp/${guideId}.mp3`;
     }
-
-    triedUnlockRef.current = true;
-    console.log('[PLAYER] 🔓 Attempting mobile unlock with temp element...');
-
+    
+    if (audioPath.startsWith('http')) {
+      return audioPath;
+    }
+    
     try {
-      // Create temporary audio element separate from main player
-      unlockAudioRef.current = new Audio();
-      unlockAudioRef.current.setAttribute('playsinline', '');
-      unlockAudioRef.current.preload = 'metadata';
-      unlockAudioRef.current.volume = 0.01;
-      unlockAudioRef.current.src = SILENT_MP3;
-
-      unlockAudioRef.current.play()
-        .then(() => {
-          console.log('[PLAYER] ✅ unlock SUCCESS');
-          setAudioUnlocked(true);
-          if (unlockAudioRef.current) {
-            unlockAudioRef.current.pause();
-            unlockAudioRef.current.currentTime = 0;
-            unlockAudioRef.current = null;
-          }
-        })
-        .catch((err) => {
-          console.log('[PLAYER] ⚠️ unlock FAILED:', err);
-          setAudioUnlocked(false);
-          if (unlockAudioRef.current) {
-            unlockAudioRef.current = null;
-          }
-        });
-    } catch (err) {
-      console.log('[PLAYER] ⚠️ unlock exception:', err);
-      setAudioUnlocked(false);
+      const { data } = await supabase.storage
+        .from('guide-audio')
+        .createSignedUrl(audioPath, 3600);
+      return data?.signedUrl || audioPath;
+    } catch (error) {
+      console.error('[PLAYER] ❌ Error resolving URL:', error);
+      return `/tmp/${guideId}.mp3`;
     }
   };
 
-  const playSection = (sectionIndex: number) => {
+  const playSection = async (sectionIndex: number) => {
     if (sectionIndex < 0 || sectionIndex >= sections.length) {
-      console.error('[NEW-SECTION-PLAYER] ❌ Invalid section index:', sectionIndex);
+      console.error('[PLAYER] ❌ Invalid section index:', sectionIndex);
       return;
     }
     
-    console.log('[NEW-SECTION-PLAYER] ▶️ Play section called:', {
+    console.log('[PLAYER] ▶️ Play section called:', {
       sectionIndex,
       currentIndex: currentSectionIndex,
       isPlaying,
-      audioMode,
-      preResolved,
-      unlocked: triedUnlockRef.current
+      audioMode
     });
     
     // Smart toggle: if same section is playing, pause it
     if (sectionIndex === currentSectionIndex && isPlaying) {
-      console.log('[NEW-SECTION-PLAYER] ⏸️ Toggling pause for current section');
+      console.log('[PLAYER] ⏸️ Toggling pause for current section');
       if (audioRef.current) {
         audioRef.current.pause();
         setIsPlaying(false);
@@ -264,135 +229,93 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
       audioRef.current.currentTime = 0;
     }
     
-    // Mobile unlock guard: only if mobile and not yet tried
-    if (isMobileDevice && !triedUnlockRef.current) {
-      console.log('[PLAYER] mobile unlock guard triggered');
-      ensureAudioUnlocked();
-    }
-    
-    // Get pre-resolved URL
-    let audioUrl: string | undefined;
-    
-    if (audioMode === 'sections') {
-      audioUrl = resolvedUrlsRef.current[sectionIndex];
-      console.log('[PLAYER] 📦 Using pre-resolved section URL:', audioUrl?.substring(0, 60) + '...');
-    } else {
-      audioUrl = resolvedMainRef.current;
-      console.log('[PLAYER] 📦 Using pre-resolved main URL:', audioUrl?.substring(0, 60) + '...');
-    }
-    
-    // If URL not pre-resolved, do lazy resolve
+    // Get URL (pre-resolved or lazy resolve)
+    let audioUrl = resolvedUrlsRef.current[sectionIndex];
     if (!audioUrl) {
-      console.warn('[PLAYER] ⚠️ URL not pre-resolved, attempting lazy resolve...');
-      
-      toast({
-        title: 'Preparing Audio',
-        description: 'Loading audio file, please wait...',
-      });
-      
-      // Lazy resolve (background)
-      const lazyResolve = async () => {
-        const section = sections[sectionIndex];
-        if (!section.audio_url) {
-          setLoading(false);
-          toast({
-            title: 'Error',
-            description: 'No audio URL available for this section',
-            variant: 'destructive',
-          });
-          return;
-        }
-        
-        let resolvedUrl = section.audio_url;
-        
-        // If not HTTP, sign from Supabase
-        if (!resolvedUrl.startsWith('http')) {
-          try {
-            const { data } = await supabase.storage
-              .from('guide-audio')
-              .createSignedUrl(resolvedUrl, 3600);
-            resolvedUrl = data?.signedUrl || resolvedUrl;
-            console.log('[PLAYER] ✓ Lazy resolve successful');
-          } catch (err) {
-            console.error('[PLAYER] ❌ Lazy resolve error:', err);
-            // Fallback: try /tmp folder
-            resolvedUrl = `/tmp/${guideId}.mp3`;
-            console.log('[PLAYER] 🔄 Using fallback URL:', resolvedUrl);
-          }
-        }
-        
-        // Cache it
-        if (audioMode === 'sections') {
-          resolvedUrlsRef.current[sectionIndex] = resolvedUrl;
-        } else {
-          resolvedMainRef.current = resolvedUrl;
-        }
-        
-        // Retry playSection (URL will be ready now)
-        setTimeout(() => playSection(sectionIndex), 0);
-      };
-      
-      lazyResolve();
-      return; // Return until lazy resolve completes
+      console.log('[PLAYER] 🔄 Lazy resolving URL...');
+      const section = sections[sectionIndex];
+      audioUrl = await resolveAudioUrl(section.audio_url);
+      resolvedUrlsRef.current[sectionIndex] = audioUrl;
     }
     
-    // Create or reuse audio element
+    console.log('[PLAYER] 📦 Using URL:', audioUrl?.substring(0, 60) + '...');
+    
+    // Create or reuse audio element (preview pattern!)
     if (!audioRef.current) {
       console.log('[PLAYER] 🎵 Creating new Audio element');
       audioRef.current = new Audio();
       audioRef.current.preload = 'metadata';
-      audioRef.current.crossOrigin = 'anonymous';
       audioRef.current.setAttribute('playsinline', '');
       setupAudioElement(audioRef.current);
     }
     
-    // ⚡ SYNCHRONOUS: Set src immediately and play (NO AWAIT!)
-    console.log('[PLAYER] SYNCH PLAY start');
+    // Set source WITHIN user gesture
     audioRef.current.src = audioUrl;
     audioRef.current.volume = volume;
     audioRef.current.playbackRate = playbackSpeed;
     
-    const playPromise = audioRef.current.play();
-    
-    if (playPromise) {
-      playPromise
-        .then(() => {
-          console.log('[PLAYER] PLAY started OK');
-          setIsPlaying(true);
-          setLoading(false);
-          
-          toast({
-            title: 'Now Playing',
-            description: sections[sectionIndex]?.title || guideTitle,
-          });
-        })
-        .catch((error) => {
-          console.error('[PLAYER] PLAY ERROR:', error);
-          setLoading(false);
-          
-          // NotAllowedError handling
-          if (error.name === 'NotAllowedError' || error.message?.includes('NotAllowedError')) {
-            console.warn('[PLAYER] 🔒 NotAllowedError detected');
-            
-            toast({
-              title: 'Audio Locked',
-              description: 'Please tap again to play',
-              variant: 'default',
-            });
-          } else if (error.name === 'NotSupportedError') {
-            toast({
-              title: 'Format Error',
-              description: 'Audio format not supported on this device',
-              variant: 'destructive',
-            });
-          } else {
-            toast({
-              title: 'Playback Error',
-              description: 'Failed to start playback. Please try again.',
-              variant: 'destructive',
-            });
-          }
+    // Wait for canplay (preview pattern)
+    try {
+      await new Promise<void>((resolve, reject) => {
+        if (!audioRef.current) {
+          reject(new Error('Audio element not available'));
+          return;
+        }
+        
+        const handleCanPlay = () => {
+          audioRef.current?.removeEventListener('canplay', handleCanPlay);
+          audioRef.current?.removeEventListener('error', handleError);
+          resolve();
+        };
+        
+        const handleError = (e: Event) => {
+          audioRef.current?.removeEventListener('canplay', handleCanPlay);
+          audioRef.current?.removeEventListener('error', handleError);
+          reject(e);
+        };
+        
+        audioRef.current.addEventListener('canplay', handleCanPlay);
+        audioRef.current.addEventListener('error', handleError);
+        audioRef.current.load();
+      });
+      
+      // Play IMMEDIATELY after canplay (user gesture still active!)
+      console.log('[PLAYER] ▶️ Playing now...');
+      await audioRef.current.play();
+      
+      console.log('[PLAYER] ✅ PLAY started successfully');
+      setIsPlaying(true);
+      setLoading(false);
+      
+      toast({
+        title: 'Now Playing',
+        description: sections[sectionIndex]?.title || guideTitle,
+      });
+      
+    } catch (error: any) {
+      console.error('[PLAYER] ❌ PLAY ERROR:', error);
+      setLoading(false);
+      setIsPlaying(false);
+      
+      if (error.name === 'NotAllowedError') {
+        toast({
+          title: 'Audio Locked',
+          description: 'Please tap again to play',
+          variant: 'default',
         });
+      } else if (error.name === 'NotSupportedError') {
+        toast({
+          title: 'Format Error',
+          description: 'Audio format not supported',
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Playback Error',
+          description: 'Failed to play audio. Please try again.',
+          variant: 'destructive',
+        });
+      }
     }
   };
 
@@ -494,23 +417,6 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     setCurrentSectionIndex(-1);
   };
 
-  // Global first interaction listener for mobile unlock
-  useEffect(() => {
-    if (!isMobileDevice) return;
-
-    const handleFirstInteraction = () => {
-      console.log('[PLAYER] global unlock attached (first interaction)');
-      ensureAudioUnlocked();
-    };
-
-    document.addEventListener('pointerdown', handleFirstInteraction, { once: true });
-    document.addEventListener('touchstart', handleFirstInteraction, { once: true, passive: true });
-    
-    return () => {
-      document.removeEventListener('pointerdown', handleFirstInteraction);
-      document.removeEventListener('touchstart', handleFirstInteraction);
-    };
-  }, [isMobileDevice]);
 
   // Pre-resolve all audio URLs on mount
   useEffect(() => {
