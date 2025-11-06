@@ -43,35 +43,41 @@ export const useSpotifyAudio = ({
   const loadAudioSource = async (sectionIndex?: number) => {
     try {
       setLoading(true);
+      console.log('[AUDIO] Loading audio source:', { guideId, sectionIndex, hasMainUrl: !!mainAudioUrl });
       
       let audioUrl = mainAudioUrl;
       
       // If we have sections and a specific section is requested
       if (sections.length > 0 && sectionIndex !== undefined && sections[sectionIndex]?.audio_url) {
         audioUrl = sections[sectionIndex].audio_url;
+        console.log('[AUDIO] Using section audio URL');
       }
       
       if (audioUrl) {
+        console.log('[AUDIO] Using provided audio URL:', audioUrl.substring(0, 50) + '...');
         setAudioSrc(audioUrl);
         return audioUrl;
       }
       
       // Try to get audio from Supabase storage
+      console.log('[AUDIO] Fetching from Supabase storage...');
       const { data: urlData } = await supabase.storage
         .from('guide-audio')
         .createSignedUrl(`${guideId}.mp3`, 3600);
       
       if (urlData?.signedUrl) {
+        console.log('[AUDIO] Got Supabase signed URL');
         setAudioSrc(urlData.signedUrl);
         return urlData.signedUrl;
       }
       
       // Fallback to public directory
       const fallbackUrl = `/tmp/${guideId}.mp3`;
+      console.log('[AUDIO] Using fallback URL:', fallbackUrl);
       setAudioSrc(fallbackUrl);
       return fallbackUrl;
     } catch (error) {
-      console.error('Error loading audio source:', error);
+      console.error('[AUDIO] Error loading audio source:', error);
       toast({
         title: 'Audio Error',
         description: 'Failed to load audio source',
@@ -149,33 +155,50 @@ export const useSpotifyAudio = ({
         setupAudioElement(audio);
       }
 
+      // Load audio source if needed and store in local variable
+      let currentAudioSrc = audioSrc;
       if (!audioSrc || sectionIndex !== undefined) {
+        console.log('[AUDIO] Play: Loading audio source for section', targetSection);
         const src = await loadAudioSource(targetSection);
-        if (!src) return;
+        if (!src) {
+          console.error('[AUDIO] Play: Failed to load audio source');
+          return;
+        }
+        currentAudioSrc = src; // Use freshly loaded src
+        console.log('[AUDIO] Play: Audio source loaded successfully');
       }
 
-      if (audioRef.current && audioSrc) {
-        audioRef.current.src = audioSrc;
+      // Use currentAudioSrc (not audioSrc state) to ensure we have the latest value
+      if (audioRef.current && currentAudioSrc) {
+        console.log('[AUDIO] Play: Setting audio src and starting playback');
+        audioRef.current.src = currentAudioSrc;
         audioRef.current.volume = volume;
         audioRef.current.playbackRate = playbackSpeed;
         
         // If playing a specific section with start time
         if (sections[targetSection]?.start_time) {
           audioRef.current.currentTime = sections[targetSection].start_time!;
+          console.log('[AUDIO] Play: Set start time to', sections[targetSection].start_time);
         }
         
         await audioRef.current.play();
         setIsPlaying(true);
         setCurrentSection(targetSection);
+        console.log('[AUDIO] Play: Playback started successfully');
         
         const sectionTitle = sections[targetSection]?.title || title;
         toast({
           title: 'Now Playing',
           description: sectionTitle,
         });
+      } else {
+        console.error('[AUDIO] Play: Missing audio ref or src', { 
+          hasAudioRef: !!audioRef.current, 
+          currentAudioSrc 
+        });
       }
     } catch (error) {
-      console.error('Play error:', error);
+      console.error('[AUDIO] Play error:', error);
       toast({
         title: 'Playback Error',
         description: 'Failed to start playback',
