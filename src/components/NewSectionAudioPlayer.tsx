@@ -39,15 +39,34 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [showVolumeHelper, setShowVolumeHelper] = useState(false);
   
+  // URL pre-resolution for synchronous playback
+  const resolvedUrlsRef = useRef<(string | undefined)[]>([]);
+  const resolvedMainRef = useRef<string | undefined>(undefined);
+  const [preResolved, setPreResolved] = useState(false);
+  
+  // iOS/Android audio unlock
+  const [unlocked, setUnlocked] = useState(false);
+  const triedUnlockRef = useRef(false);
+  
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const { markChapterCompleted, isChapterCompleted, autoAdvanceEnabled, setAutoAdvance } = useAudioProgress({ guideId });
+  
+  // Mobile device detection
+  const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || 
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isMobileDevice = isMobile || isIOS;
+  
+  // Silent MP3 for iOS unlock (50ms)
+  const SILENT_MP3 = 'data:audio/mp3;base64,//uQxAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7////////////////////////////////////////////AAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7////////////////////////////////////////////';
 
   // Determine if we have section-based audio or main audio
   const hasIndividualSections = sections.some(section => section.audio_url);
   const audioMode = hasIndividualSections ? 'sections' : 'main';
 
+  // DEPRECATED: No longer used - URLs are pre-resolved in useEffect
+  /*
   const loadAudioSource = async (audioUrl?: string, sectionIndex?: number) => {
     console.log('[NEW-SECTION-PLAYER] Loading audio source:', {
       audioUrl: audioUrl?.substring(0, 50),
@@ -89,6 +108,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
       return audioUrl;
     }
   };
+  */
 
   const setupAudioElement = (audioElement: HTMLAudioElement) => {
     audioElement.addEventListener('timeupdate', () => {
@@ -167,22 +187,63 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     });
   };
 
-  const playSection = async (sectionIndex: number) => {
-    if (sectionIndex < 0 || sectionIndex >= sections.length) {
-      console.error('[NEW-SECTION-PLAYER] Invalid section index:', sectionIndex);
+  // iOS/Android audio unlock mechanism
+  const ensureAudioUnlocked = () => {
+    if (triedUnlockRef.current || !isMobileDevice) {
       return;
     }
     
-    console.log('[NEW-SECTION-PLAYER] Play section called:', {
+    console.log('[NEW-SECTION-PLAYER] 🔓 Attempting audio unlock for mobile device...');
+    
+    if (!audioRef.current) {
+      console.log('[NEW-SECTION-PLAYER] Creating audio element for unlock');
+      audioRef.current = new Audio();
+      audioRef.current.preload = 'metadata';
+      audioRef.current.crossOrigin = 'anonymous';
+      audioRef.current.setAttribute('playsinline', '');
+      setupAudioElement(audioRef.current);
+    }
+    
+    audioRef.current.src = SILENT_MP3;
+    audioRef.current.volume = 0.01;
+    
+    const playPromise = audioRef.current.play();
+    if (playPromise) {
+      playPromise
+        .then(() => {
+          console.log('[NEW-SECTION-PLAYER] ✅ Audio unlock SUCCESS');
+          if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
+          }
+          triedUnlockRef.current = true;
+          setUnlocked(true);
+        })
+        .catch((err) => {
+          console.warn('[NEW-SECTION-PLAYER] ⚠️ Audio unlock FAILED:', err);
+          triedUnlockRef.current = true;
+        });
+    }
+  };
+
+  const playSection = (sectionIndex: number) => {
+    if (sectionIndex < 0 || sectionIndex >= sections.length) {
+      console.error('[NEW-SECTION-PLAYER] ❌ Invalid section index:', sectionIndex);
+      return;
+    }
+    
+    console.log('[NEW-SECTION-PLAYER] ▶️ Play section called:', {
       sectionIndex,
       currentIndex: currentSectionIndex,
       isPlaying,
-      audioMode
+      audioMode,
+      preResolved,
+      unlocked: triedUnlockRef.current
     });
     
     // Smart toggle: if same section is playing, pause it
     if (sectionIndex === currentSectionIndex && isPlaying) {
-      console.log('[NEW-SECTION-PLAYER] Toggling pause for current section');
+      console.log('[NEW-SECTION-PLAYER] ⏸️ Toggling pause for current section');
       if (audioRef.current) {
         audioRef.current.pause();
         setIsPlaying(false);
@@ -193,83 +254,146 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     setLoading(true);
     setCurrentSectionIndex(sectionIndex);
     
-    try {
-      // Stop current audio if playing
-      if (audioRef.current) {
-        console.log('[NEW-SECTION-PLAYER] Stopping current audio');
-        audioRef.current.pause();
-        audioRef.current.src = '';
-      }
-
-      // Load audio URL with proper error handling
-      let audioUrl: string | null = null;
+    // Stop current audio if playing
+    if (audioRef.current) {
+      console.log('[NEW-SECTION-PLAYER] ⏹️ Stopping current audio');
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    
+    // First touch unlock attempt (NO AWAIT!)
+    ensureAudioUnlocked();
+    
+    // Get pre-resolved URL
+    let audioUrl: string | undefined;
+    
+    if (audioMode === 'sections') {
+      audioUrl = resolvedUrlsRef.current[sectionIndex];
+      console.log('[NEW-SECTION-PLAYER] 📦 Using pre-resolved section URL:', audioUrl?.substring(0, 60) + '...');
+    } else {
+      audioUrl = resolvedMainRef.current;
+      console.log('[NEW-SECTION-PLAYER] 📦 Using pre-resolved main URL:', audioUrl?.substring(0, 60) + '...');
+    }
+    
+    // If URL not pre-resolved, do lazy resolve
+    if (!audioUrl) {
+      console.warn('[NEW-SECTION-PLAYER] ⚠️ URL not pre-resolved, attempting lazy resolve...');
       
-      if (audioMode === 'sections') {
+      toast({
+        title: 'Preparing Audio',
+        description: 'Loading audio file, please wait...',
+      });
+      
+      // Lazy resolve (background)
+      const lazyResolve = async () => {
         const section = sections[sectionIndex];
-        console.log('[NEW-SECTION-PLAYER] Loading section audio:', {
-          title: section.title,
-          hasAudioUrl: !!section.audio_url
-        });
-        audioUrl = await loadAudioSource(section.audio_url, sectionIndex);
-      } else {
-        console.log('[NEW-SECTION-PLAYER] Loading main audio URL');
-        audioUrl = await loadAudioSource(mainAudioUrl, sectionIndex);
-      }
-
-      if (!audioUrl) {
-        console.error('[NEW-SECTION-PLAYER] Failed to load audio URL');
-        throw new Error('Audio URL is empty');
-      }
-
-      console.log('[NEW-SECTION-PLAYER] Audio URL loaded successfully:', audioUrl.substring(0, 50) + '...');
-
-      // Create or reuse audio element
-      if (!audioRef.current) {
-        console.log('[NEW-SECTION-PLAYER] Creating new Audio element');
-        audioRef.current = new Audio();
-        setupAudioElement(audioRef.current);
-      }
-
-      // Set audio source and properties
-      console.log('[NEW-SECTION-PLAYER] Setting audio properties and starting playback');
-      audioRef.current.src = audioUrl;
-      audioRef.current.volume = volume;
-      audioRef.current.playbackRate = playbackSpeed;
-      
-      // Attempt playback
-      await audioRef.current.play();
-      setIsPlaying(true);
-      console.log('[NEW-SECTION-PLAYER] Playback started successfully');
-      
-      toast({
-        title: 'Now Playing',
-        description: sections[sectionIndex]?.title || guideTitle,
-      });
-      
-    } catch (error) {
-      console.error('[NEW-SECTION-PLAYER] Play error:', error);
-      
-      // Provide more specific error message
-      let errorMsg = 'Failed to start playback';
-      if (error instanceof Error) {
-        if (error.message.includes('NotAllowedError') || error.name === 'NotAllowedError') {
-          errorMsg = 'Please tap the play button again to start playback';
-        } else if (error.message.includes('NotSupportedError') || error.name === 'NotSupportedError') {
-          errorMsg = 'Audio format not supported on this device';
+        if (!section.audio_url) {
+          setLoading(false);
+          toast({
+            title: 'Error',
+            description: 'No audio URL available for this section',
+            variant: 'destructive',
+          });
+          return;
         }
-      }
+        
+        let resolvedUrl = section.audio_url;
+        
+        // If not HTTP, sign from Supabase
+        if (!resolvedUrl.startsWith('http')) {
+          try {
+            const { data } = await supabase.storage
+              .from('guide-audio')
+              .createSignedUrl(resolvedUrl, 3600);
+            resolvedUrl = data?.signedUrl || resolvedUrl;
+            console.log('[NEW-SECTION-PLAYER] ✓ Lazy resolve successful');
+          } catch (err) {
+            console.error('[NEW-SECTION-PLAYER] ❌ Lazy resolve error:', err);
+            // Fallback: try /tmp folder
+            resolvedUrl = `/tmp/${guideId}.mp3`;
+            console.log('[NEW-SECTION-PLAYER] 🔄 Using fallback URL:', resolvedUrl);
+          }
+        }
+        
+        // Cache it
+        if (audioMode === 'sections') {
+          resolvedUrlsRef.current[sectionIndex] = resolvedUrl;
+        } else {
+          resolvedMainRef.current = resolvedUrl;
+        }
+        
+        // Retry playSection (URL will be ready now)
+        setTimeout(() => playSection(sectionIndex), 0);
+      };
       
-      toast({
-        title: 'Playback Error',
-        description: errorMsg,
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
+      lazyResolve();
+      return; // Return until lazy resolve completes
+    }
+    
+    // Create or reuse audio element
+    if (!audioRef.current) {
+      console.log('[NEW-SECTION-PLAYER] 🎵 Creating new Audio element');
+      audioRef.current = new Audio();
+      audioRef.current.preload = 'metadata';
+      audioRef.current.crossOrigin = 'anonymous';
+      audioRef.current.setAttribute('playsinline', '');
+      setupAudioElement(audioRef.current);
+    }
+    
+    // ⚡ SYNCHRONOUS: Set src immediately and play (NO AWAIT!)
+    console.log('[NEW-SECTION-PLAYER] ⚡ Setting source SYNCHRONOUSLY and playing...');
+    audioRef.current.src = audioUrl;
+    audioRef.current.volume = volume;
+    audioRef.current.playbackRate = playbackSpeed;
+    
+    const playPromise = audioRef.current.play();
+    
+    if (playPromise) {
+      playPromise
+        .then(() => {
+          console.log('[NEW-SECTION-PLAYER] ✅ Playback started SUCCESSFULLY');
+          setIsPlaying(true);
+          setLoading(false);
+          
+          toast({
+            title: 'Now Playing',
+            description: sections[sectionIndex]?.title || guideTitle,
+          });
+        })
+        .catch((error) => {
+          console.error('[NEW-SECTION-PLAYER] ❌ Play error:', error);
+          setLoading(false);
+          
+          // NotAllowedError handling
+          if (error.name === 'NotAllowedError' || error.message?.includes('NotAllowedError')) {
+            console.warn('[NEW-SECTION-PLAYER] 🔒 NotAllowedError detected, retrying after unlock...');
+            
+            // Retry unlock
+            ensureAudioUnlocked();
+            
+            toast({
+              title: 'Tap to Play',
+              description: 'Please tap the play button again to start audio',
+              variant: 'destructive',
+            });
+          } else if (error.name === 'NotSupportedError') {
+            toast({
+              title: 'Format Error',
+              description: 'Audio format not supported on this device',
+              variant: 'destructive',
+            });
+          } else {
+            toast({
+              title: 'Playback Error',
+              description: 'Failed to start playback. Please try again.',
+              variant: 'destructive',
+            });
+          }
+        });
     }
   };
 
-  const togglePlayPause = async () => {
+  const togglePlayPause = () => {
     if (!audioRef.current || currentSectionIndex === -1) return;
 
     if (isPlaying) {
@@ -277,10 +401,24 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
       setIsPlaying(false);
     } else {
       if (!audioRef.current.src) {
-        await playSection(currentSectionIndex);
+        playSection(currentSectionIndex);
       } else {
-        await audioRef.current.play();
-        setIsPlaying(true);
+        const playPromise = audioRef.current.play();
+        if (playPromise) {
+          playPromise
+            .then(() => {
+              setIsPlaying(true);
+              console.log('[NEW-SECTION-PLAYER] ▶️ Resumed playback');
+            })
+            .catch((err) => {
+              console.error('[NEW-SECTION-PLAYER] ❌ Resume error:', err);
+              toast({
+                title: 'Resume Error',
+                description: 'Failed to resume playback',
+                variant: 'destructive',
+              });
+            });
+        }
       }
     }
   };
@@ -353,6 +491,76 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     setCurrentSectionIndex(-1);
   };
 
+  // Pre-resolve all audio URLs on mount
+  useEffect(() => {
+    const preResolveUrls = async () => {
+      console.log('[NEW-SECTION-PLAYER] 🔄 Pre-resolve started for', sections.length, 'sections');
+      setPreResolved(false);
+      
+      // Resolve all section URLs in parallel
+      const promises = sections.map(async (section, idx) => {
+        if (!section.audio_url) {
+          console.log(`[NEW-SECTION-PLAYER] ⚠️ Section ${idx} has no audio_url`);
+          return undefined;
+        }
+        
+        // Use direct URL if it starts with http
+        if (section.audio_url.startsWith('http')) {
+          console.log(`[NEW-SECTION-PLAYER] ✓ Section ${idx} using direct URL`);
+          return section.audio_url;
+        }
+        
+        // Get signed URL from Supabase storage
+        try {
+          const { data, error } = await supabase.storage
+            .from('guide-audio')
+            .createSignedUrl(section.audio_url, 3600);
+          
+          if (error) {
+            console.error(`[NEW-SECTION-PLAYER] ❌ Pre-resolve error section ${idx}:`, error);
+            return undefined;
+          }
+          
+          console.log(`[NEW-SECTION-PLAYER] ✓ Section ${idx} signed successfully`);
+          return data?.signedUrl;
+        } catch (err) {
+          console.error(`[NEW-SECTION-PLAYER] ❌ Pre-resolve exception section ${idx}:`, err);
+          return undefined;
+        }
+      });
+      
+      const resolved = await Promise.all(promises);
+      resolvedUrlsRef.current = resolved;
+      
+      // Resolve main audio URL if exists
+      if (mainAudioUrl) {
+        if (mainAudioUrl.startsWith('http')) {
+          resolvedMainRef.current = mainAudioUrl;
+          console.log('[NEW-SECTION-PLAYER] ✓ Main audio using direct URL');
+        } else {
+          try {
+            const { data } = await supabase.storage
+              .from('guide-audio')
+              .createSignedUrl(mainAudioUrl, 3600);
+            resolvedMainRef.current = data?.signedUrl;
+            console.log('[NEW-SECTION-PLAYER] ✓ Main audio signed successfully');
+          } catch (err) {
+            console.error('[NEW-SECTION-PLAYER] ❌ Main audio pre-resolve error:', err);
+          }
+        }
+      }
+      
+      setPreResolved(true);
+      const readyCount = resolved.filter(Boolean).length;
+      console.log(`[NEW-SECTION-PLAYER] ✅ Pre-resolve completed: ${readyCount}/${sections.length} URLs ready`);
+    };
+    
+    if (sections.length > 0 || mainAudioUrl) {
+      preResolveUrls();
+    }
+  }, [sections, mainAudioUrl, guideId]);
+
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (audioRef.current) {
