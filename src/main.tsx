@@ -4,6 +4,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { ErrorBoundary } from "./components/ErrorBoundary.tsx";
 import App from "./App.tsx";
 import "./index.css";
+import { registerServiceWorker } from "./utils/serviceWorkerRegistration";
 
 const root = document.getElementById("root");
 if (!root) {
@@ -17,3 +18,12 @@ createRoot(root).render(
     </ErrorBoundary>
   </HelmetProvider>
 );
+
+// Register service worker for offline audio caching
+if (import.meta.env.PROD) {
+  registerServiceWorker().then(registration => {
+    if (registration) {
+      console.log('✅ Offline audio caching enabled');
+    }
+  });
+}

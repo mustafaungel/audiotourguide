@@ -21,6 +21,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { ChapterPreviewButton } from "@/components/ChapterPreviewButton";
 import { toast } from "sonner";
+import { OfflineStatusIndicator } from "@/components/OfflineStatusIndicator";
 
 // Demo guide data
 const guideData = {
@@ -658,6 +659,7 @@ const GuideDetail = () => {
         />
       )}
       <Navigation />
+      <OfflineStatusIndicator />
       
       <div className="container mx-auto px-4 py-6">
         {/* Back Button */}

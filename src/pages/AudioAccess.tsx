@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { withRetry, isNetworkError, getRegionalErrorMessage, getErrorRecoveryActions } from "@/utils/networkUtils";
+import { OfflineStatusIndicator } from "@/components/OfflineStatusIndicator";
 
 export default function AudioAccess() {
   const { guideId } = useParams();
@@ -629,6 +630,7 @@ export default function AudioAccess() {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
+      <OfflineStatusIndicator />
       
       <div className="container mx-auto px-4 py-6">
         <div className="max-w-4xl mx-auto">
