@@ -178,11 +178,21 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   // Helper to resolve audio URL synchronously (getPublicUrl)
   const resolveAudioUrl = (audioPath?: string): string => {
     if (!audioPath) {
+      console.warn('[PLAYER] No audio path, using fallback');
       return `/tmp/${guideId}.mp3`;
     }
     
-    if (audioPath.startsWith('http')) {
+    // ✅ If full URL (http/https), use directly
+    if (audioPath.startsWith('http://') || audioPath.startsWith('https://')) {
+      console.log('[PLAYER] Using direct URL:', audioPath.substring(0, 60) + '...');
       return audioPath;
+    }
+    
+    // ✅ If storage path without domain, add it
+    if (audioPath.startsWith('/storage/v1/object/public')) {
+      const fullUrl = `https://dsaqlgxajdnwoqvtsrqd.supabase.co${audioPath}`;
+      console.log('[PLAYER] Converted storage path to URL:', fullUrl.substring(0, 60) + '...');
+      return fullUrl;
     }
     
     // Use getPublicUrl for synchronous resolution
@@ -190,7 +200,9 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
       .from('guide-audio')
       .getPublicUrl(audioPath);
     
-    return data?.publicUrl || `/tmp/${guideId}.mp3`;
+    const publicUrl = data?.publicUrl || `/tmp/${guideId}.mp3`;
+    console.log('[PLAYER] Generated public URL:', publicUrl.substring(0, 60) + '...');
+    return publicUrl;
   };
 
   const playSection = (sectionIndex: number) => {
@@ -243,6 +255,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
       audioRef.current = new Audio();
       audioRef.current.preload = 'auto';
       audioRef.current.setAttribute('playsinline', '');
+      audioRef.current.crossOrigin = 'anonymous'; // ✅ CORS support
       setupAudioElement(audioRef.current);
     }
     
@@ -397,47 +410,25 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   useEffect(() => {
     console.log('[NEW-SECTION-PLAYER] 🔄 Pre-resolve started for', sections.length, 'sections');
     
-    // Resolve all section URLs synchronously
+    // ✅ Resolve all section URLs using resolveAudioUrl helper
     const resolved = sections.map((section, idx) => {
       if (!section.audio_url) {
-        console.log(`[NEW-SECTION-PLAYER] ⚠️ Section ${idx} has no audio_url`);
-        return undefined;
+        console.log(`[NEW-SECTION-PLAYER] ⚠️ Section ${idx} has no audio_url, using fallback`);
+        return mainAudioUrl ? resolveAudioUrl(mainAudioUrl) : `/tmp/${guideId}.mp3`;
       }
       
-      // Use direct URL if it starts with http
-      if (section.audio_url.startsWith('http')) {
-        console.log(`[NEW-SECTION-PLAYER] ✓ Section ${idx} using direct URL`);
-        return section.audio_url;
-      }
-      
-      // Get public URL synchronously
-      const { data } = supabase.storage
-        .from('guide-audio')
-        .getPublicUrl(section.audio_url);
-      
-      if (data?.publicUrl) {
-        console.log(`[NEW-SECTION-PLAYER] ✓ Section ${idx} public URL ready`);
-        return data.publicUrl;
-      }
-      
-      console.log(`[NEW-SECTION-PLAYER] ⚠️ Section ${idx} fallback to /tmp`);
-      return undefined;
+      // ✅ Use section's audio_url directly through helper
+      const url = resolveAudioUrl(section.audio_url);
+      console.log(`[NEW-SECTION-PLAYER] ✓ Section ${idx} resolved:`, url.substring(0, 60) + '...');
+      return url;
     });
     
     resolvedUrlsRef.current = resolved;
     
     // Resolve main audio URL if exists
     if (mainAudioUrl) {
-      if (mainAudioUrl.startsWith('http')) {
-        resolvedMainRef.current = mainAudioUrl;
-        console.log('[NEW-SECTION-PLAYER] ✓ Main audio using direct URL');
-      } else {
-        const { data } = supabase.storage
-          .from('guide-audio')
-          .getPublicUrl(mainAudioUrl);
-        resolvedMainRef.current = data?.publicUrl;
-        console.log('[NEW-SECTION-PLAYER] ✓ Main audio public URL ready');
-      }
+      resolvedMainRef.current = resolveAudioUrl(mainAudioUrl);
+      console.log('[NEW-SECTION-PLAYER] ✓ Main audio resolved');
     }
     
     setPreResolved(true);
