@@ -64,6 +64,7 @@ export const useSpotifyAudio = ({
   const loadAudioSource = async (sectionIndex?: number) => {
     try {
       setLoading(true);
+      console.log('[AUDIO] Loading audio source:', { guideId, sectionIndex, hasMainUrl: !!mainAudioUrl });
       
       let audioUrl = mainAudioUrl;
       
@@ -73,6 +74,7 @@ export const useSpotifyAudio = ({
       }
       
       if (audioUrl) {
+        console.log('[AUDIO] Using provided audio URL:', audioUrl.substring(0, 50) + '...');
         setAudioSrc(audioUrl);
         return audioUrl;
       }
@@ -181,16 +183,19 @@ export const useSpotifyAudio = ({
         setupAudioElement(audio);
       }
 
+      // Load audio source if needed and store in local variable
+      let currentAudioSrc = audioSrc;
       if (!audioSrc || sectionIndex !== undefined) {
         const src = await loadAudioSource(targetSection);
         if (!src) {
           setIsBuffering(false);
           return;
         }
+        currentAudioSrc = src; // Use freshly loaded src immediately
       }
 
-      if (audioRef.current && audioSrc) {
-        audioRef.current.src = audioSrc;
+      if (audioRef.current && currentAudioSrc) {
+        audioRef.current.src = currentAudioSrc;
         audioRef.current.volume = volume;
         audioRef.current.playbackRate = playbackSpeed;
         
