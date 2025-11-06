@@ -28,7 +28,6 @@ export const useSpotifyAudio = ({
 }: UseSpotifyAudioProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [isBuffering, setIsBuffering] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
@@ -41,30 +40,9 @@ export const useSpotifyAudio = ({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
 
-  // Load resume position from localStorage
-  useEffect(() => {
-    const savedPosition = localStorage.getItem(`audio-resume-${guideId}`);
-    if (savedPosition) {
-      const { time, section } = JSON.parse(savedPosition);
-      setCurrentTime(time);
-      setCurrentSection(section);
-    }
-  }, [guideId]);
-
-  // Save position to localStorage
-  useEffect(() => {
-    if (currentTime > 0 && duration > 0) {
-      localStorage.setItem(`audio-resume-${guideId}`, JSON.stringify({
-        time: currentTime,
-        section: currentSection
-      }));
-    }
-  }, [currentTime, currentSection, guideId, duration]);
-
   const loadAudioSource = async (sectionIndex?: number) => {
     try {
       setLoading(true);
-      console.log('[AUDIO] Loading audio source:', { guideId, sectionIndex, hasMainUrl: !!mainAudioUrl });
       
       let audioUrl = mainAudioUrl;
       
@@ -74,7 +52,6 @@ export const useSpotifyAudio = ({
       }
       
       if (audioUrl) {
-        console.log('[AUDIO] Using provided audio URL:', audioUrl.substring(0, 50) + '...');
         setAudioSrc(audioUrl);
         return audioUrl;
       }
@@ -115,15 +92,6 @@ export const useSpotifyAudio = ({
       setDuration(audio.duration);
       audio.playbackRate = playbackSpeed;
       audio.volume = volume;
-      setIsBuffering(false);
-    });
-    
-    audio.addEventListener('waiting', () => {
-      setIsBuffering(true);
-    });
-    
-    audio.addEventListener('canplay', () => {
-      setIsBuffering(false);
     });
     
     audio.addEventListener('ended', () => {
@@ -137,7 +105,6 @@ export const useSpotifyAudio = ({
         variant: 'destructive',
       });
       setIsPlaying(false);
-      setIsBuffering(false);
     });
   }, [playbackSpeed, volume]);
 
@@ -174,7 +141,6 @@ export const useSpotifyAudio = ({
 
   const play = async (sectionIndex?: number) => {
     try {
-      setIsBuffering(true);
       const targetSection = sectionIndex ?? currentSection;
       
       if (!audioRef.current) {
@@ -183,30 +149,15 @@ export const useSpotifyAudio = ({
         setupAudioElement(audio);
       }
 
-      // Load audio source if needed and store in local variable
-      let currentAudioSrc = audioSrc;
       if (!audioSrc || sectionIndex !== undefined) {
         const src = await loadAudioSource(targetSection);
-        if (!src) {
-          setIsBuffering(false);
-          return;
-        }
-        currentAudioSrc = src; // Use freshly loaded src immediately
+        if (!src) return;
       }
 
-      if (audioRef.current && currentAudioSrc) {
-        audioRef.current.src = currentAudioSrc;
+      if (audioRef.current && audioSrc) {
+        audioRef.current.src = audioSrc;
         audioRef.current.volume = volume;
         audioRef.current.playbackRate = playbackSpeed;
-        
-        // Resume from saved position if available
-        const savedPosition = localStorage.getItem(`audio-resume-${guideId}`);
-        if (savedPosition && sectionIndex === undefined) {
-          const { time, section } = JSON.parse(savedPosition);
-          if (section === targetSection && time > 0) {
-            audioRef.current.currentTime = time;
-          }
-        }
         
         // If playing a specific section with start time
         if (sections[targetSection]?.start_time) {
@@ -216,10 +167,6 @@ export const useSpotifyAudio = ({
         await audioRef.current.play();
         setIsPlaying(true);
         setCurrentSection(targetSection);
-        setIsBuffering(false);
-        
-        // Update MediaSession metadata
-        updateMediaSession(targetSection);
         
         const sectionTitle = sections[targetSection]?.title || title;
         toast({
@@ -229,7 +176,6 @@ export const useSpotifyAudio = ({
       }
     } catch (error) {
       console.error('Play error:', error);
-      setIsBuffering(false);
       toast({
         title: 'Playback Error',
         description: 'Failed to start playback',
@@ -238,37 +184,10 @@ export const useSpotifyAudio = ({
     }
   };
 
-  // MediaSession API integration
-  const updateMediaSession = (sectionIndex: number) => {
-    if ('mediaSession' in navigator) {
-      const sectionTitle = sections[sectionIndex]?.title || title;
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: sectionTitle,
-        artist: 'Audio Guide',
-        album: title,
-      });
-
-      navigator.mediaSession.setActionHandler('play', () => play());
-      navigator.mediaSession.setActionHandler('pause', () => pause());
-      navigator.mediaSession.setActionHandler('previoustrack', () => previousSection());
-      navigator.mediaSession.setActionHandler('nexttrack', () => nextSection());
-      navigator.mediaSession.setActionHandler('seekbackward', () => skip(-10));
-      navigator.mediaSession.setActionHandler('seekforward', () => skip(10));
-      navigator.mediaSession.setActionHandler('seekto', (details) => {
-        if (details.seekTime) {
-          seek(details.seekTime);
-        }
-      });
-    }
-  };
-
   const pause = () => {
     if (audioRef.current) {
       audioRef.current.pause();
       setIsPlaying(false);
-    }
-    if ('mediaSession' in navigator) {
-      navigator.mediaSession.playbackState = 'paused';
     }
   };
 
@@ -371,10 +290,6 @@ export const useSpotifyAudio = ({
     }
     setIsPlaying(false);
     setCurrentTime(0);
-    // Clear MediaSession
-    if ('mediaSession' in navigator) {
-      navigator.mediaSession.metadata = null;
-    }
   };
 
   // Update audio settings when they change
@@ -392,7 +307,6 @@ export const useSpotifyAudio = ({
     // Playback state
     isPlaying,
     loading,
-    isBuffering,
     currentTime,
     duration,
     progress,

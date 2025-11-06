@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Play, Pause, SkipBack, SkipForward, ChevronDown, Volume2, VolumeX, Shuffle, Repeat, Repeat1, WifiOff } from 'lucide-react';
+import { X, Play, Pause, SkipBack, SkipForward, ChevronDown, Volume2, VolumeX, Shuffle, Repeat, Repeat1 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Slider } from './ui/slider';
-import { Badge } from './ui/badge';
 import { useSpotifyAudio } from '@/hooks/useSpotifyAudio';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useSwipeable } from 'react-swipeable';
@@ -52,13 +51,11 @@ export const SpotifyStylePlayer: React.FC<SpotifyStylePlayerProps> = ({
   const [showSpeedSheet, setShowSpeedSheet] = useState(false);
   const [touchFeedback, setTouchFeedback] = useState(false);
   const [dominantColor, setDominantColor] = useState<string>('hsl(var(--primary))');
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   // Audio Hook
   const {
     isPlaying,
     loading,
-    isBuffering,
     currentTime,
     duration,
     volume,
@@ -87,77 +84,12 @@ export const SpotifyStylePlayer: React.FC<SpotifyStylePlayerProps> = ({
   // Preload next section
   useAudioPreload(sections, currentSection);
 
-  // Monitor online status
-  useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
-
   // Extract dominant color from album art
   useEffect(() => {
     if (guide.image_url) {
       extractDominantColor(guide.image_url).then(setDominantColor);
     }
   }, [guide.image_url]);
-
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if user is typing in an input
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-        return;
-      }
-
-      switch (e.key) {
-        case ' ':
-        case 'k':
-          e.preventDefault();
-          handlePlayPause();
-          break;
-        case 'ArrowLeft':
-        case 'j':
-          e.preventDefault();
-          handleSkip(-10);
-          break;
-        case 'ArrowRight':
-        case 'l':
-          e.preventDefault();
-          handleSkip(10);
-          break;
-        case 'ArrowUp':
-          e.preventDefault();
-          handleVolumeChange([Math.min(100, volume * 100 + 10)]);
-          break;
-        case 'ArrowDown':
-          e.preventDefault();
-          handleVolumeChange([Math.max(0, volume * 100 - 10)]);
-          break;
-        case 'm':
-          e.preventDefault();
-          handleMute();
-          break;
-        case 'n':
-          e.preventDefault();
-          handleNextSection();
-          break;
-        case 'p':
-          e.preventDefault();
-          handlePreviousSection();
-          break;
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isPlaying, volume, currentTime, duration]);
 
   // Sync section data
   useEffect(() => {
@@ -192,16 +124,6 @@ export const SpotifyStylePlayer: React.FC<SpotifyStylePlayerProps> = ({
     } else {
       play();
     }
-  };
-
-  const handleNext = () => {
-    haptics.light();
-    nextSection();
-  };
-
-  const handlePrevious = () => {
-    haptics.light();
-    previousSection();
   };
 
   const handleVolumeChange = (newVolume: number[]) => {
@@ -418,14 +340,8 @@ export const SpotifyStylePlayer: React.FC<SpotifyStylePlayerProps> = ({
                   className="cursor-pointer h-2"
                   aria-label="Seek audio"
                 />
-                <div className="flex justify-between items-center mt-2 text-sm font-semibold text-muted-foreground">
+                <div className="flex justify-between mt-2 text-sm font-semibold text-muted-foreground">
                   <span>{formatTime(currentTime)}</span>
-                  {!isOnline && (
-                    <Badge variant="secondary" className="gap-1 text-xs py-0 px-2">
-                      <WifiOff className="h-3 w-3" />
-                      Offline
-                    </Badge>
-                  )}
                   <span>{formatTime(duration)}</span>
                 </div>
               </div>
@@ -447,7 +363,7 @@ export const SpotifyStylePlayer: React.FC<SpotifyStylePlayerProps> = ({
 
                 <Button
                   onClick={handlePlayPause}
-                  disabled={loading || isBuffering}
+                  disabled={loading}
                   className={cn(
                     "h-20 w-20 rounded-full shadow-lg transition-all duration-300",
                     "bg-primary hover:bg-primary/90",
@@ -456,9 +372,7 @@ export const SpotifyStylePlayer: React.FC<SpotifyStylePlayerProps> = ({
                   aria-label={isPlaying ? 'Pause' : 'Play'}
                   aria-pressed={isPlaying}
                 >
-                  {loading || isBuffering ? (
-                    <div className="h-6 w-6 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                  ) : isPlaying ? (
+                  {isPlaying ? (
                     <Pause className="h-8 w-8" fill="currentColor" />
                   ) : (
                     <Play className="h-8 w-8 ml-1" fill="currentColor" />
@@ -575,16 +489,9 @@ export const SpotifyStylePlayer: React.FC<SpotifyStylePlayerProps> = ({
               className="flex-1 min-w-0 cursor-pointer"
               onClick={handleExpand}
             >
-              <div className="flex items-center gap-2">
-                <h3 className="text-[15px] font-medium text-foreground truncate flex-1">
-                  {displayTitle}
-                </h3>
-                {!isOnline && (
-                  <Badge variant="secondary" className="gap-1 text-xs py-0 px-1.5 shrink-0">
-                    <WifiOff className="h-2.5 w-2.5" />
-                  </Badge>
-                )}
-              </div>
+              <h3 className="text-[15px] font-medium text-foreground truncate">
+                {displayTitle}
+              </h3>
               <p className="text-xs text-muted-foreground truncate mb-2">
                 {sections.length > 0 ? `${sections.length} chapters` : guide.description}
               </p>
@@ -627,14 +534,12 @@ export const SpotifyStylePlayer: React.FC<SpotifyStylePlayerProps> = ({
               {/* Play/Pause Button */}
               <Button
                 onClick={handlePlayPause}
-                disabled={loading || isBuffering}
+                disabled={loading}
                 size="icon"
                 className="flex-shrink-0 h-14 w-14 min-h-[56px] rounded-full bg-primary hover:bg-primary/90 shadow-md touch-manipulation"
                 aria-label={isPlaying ? 'Pause' : 'Play'}
               >
-                {loading || isBuffering ? (
-                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                ) : isPlaying ? (
+                {isPlaying ? (
                   <Pause className="h-5 w-5" fill="currentColor" />
                 ) : (
                   <Play className="h-5 w-5 ml-0.5" fill="currentColor" />
@@ -709,8 +614,7 @@ export const SpotifyStylePlayer: React.FC<SpotifyStylePlayerProps> = ({
 
       {/* Accessibility */}
       <div role="status" aria-live="polite" className="sr-only">
-        {isBuffering ? 'Buffering' : isPlaying ? 'Playing' : 'Paused'}: {displayTitle}
-        {!isOnline && ' - Offline mode'}
+        {isPlaying ? 'Playing' : 'Paused'} {displayTitle}
       </div>
     </>
   );

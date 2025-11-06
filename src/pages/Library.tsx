@@ -10,8 +10,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
 import { EnhancedLibrary } from '@/components/EnhancedLibrary';
-import { OfflineStatusIndicator } from '@/components/OfflineStatusIndicator';
-import { AudioCacheManager } from '@/components/AudioCacheManager';
 
 export default function Library() {
   const [purchasedGuides, setPurchasedGuides] = useState<any[]>([]);
@@ -126,7 +124,6 @@ export default function Library() {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <OfflineStatusIndicator />
       
       <div className="max-w-7xl mx-auto px-6 py-16">
         <div className="text-center mb-8">
@@ -134,11 +131,6 @@ export default function Library() {
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Your collection of purchased audio guides, ready for your next adventure
           </p>
-        </div>
-
-        {/* Offline Cache Manager */}
-        <div className="mb-8 max-w-md mx-auto">
-          <AudioCacheManager />
         </div>
 
         {/* Enhanced Library Component */}
