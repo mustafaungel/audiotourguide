@@ -349,7 +349,7 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
         .from('guide-audio')
         .upload(fileName, file, {
           cacheControl: '3600',
-          upsert: false,
+          upsert: true,
           contentType: file.type || 'audio/mpeg'
         });
 
