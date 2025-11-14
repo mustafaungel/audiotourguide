@@ -300,18 +300,27 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
   const handleFileSelect = (sectionId: string, file: File) => {
     if (!file) return;
 
-    // Validate file type
-    if (!file.type.startsWith('audio/')) {
-      toast.error('Please select an audio file');
+    // Validate file type - accept common audio formats
+    const validAudioTypes = ['audio/mpeg', 'audio/mp3', 'audio/mp4', 'audio/x-m4a', 'audio/aac', 'audio/wav', 'audio/ogg', 'audio/webm'];
+    const isValidAudio = file.type.startsWith('audio/') || validAudioTypes.includes(file.type);
+    
+    if (!isValidAudio) {
+      toast.error('Please select a valid audio file (MP3, M4A, WAV, OGG, or WEBM)');
       return;
     }
 
     // Validate file size (max 50MB)
     const maxSize = 50 * 1024 * 1024;
     if (file.size > maxSize) {
-      toast.error('File size must be less than 50MB');
+      toast.error(`File size is ${(file.size / 1024 / 1024).toFixed(1)}MB. Maximum allowed is 50MB.`);
       return;
     }
+
+    console.log('[AUDIO-UPLOAD] File validation passed:', {
+      name: file.name,
+      type: file.type,
+      size: `${(file.size / 1024 / 1024).toFixed(2)}MB`
+    });
 
     uploadAudioFile(sectionId, file);
   };
@@ -321,18 +330,27 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
     setUploadProgress(0);
 
     try {
-      // Generate unique file name
+      // Detect file extension from the actual file name
+      const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'mp3';
       const timestamp = Date.now();
       const fileName = guideId 
-        ? `guide-${guideId}-section-${sectionId}-${timestamp}.mp3`
-        : `section-${sectionId}-${timestamp}.mp3`;
+        ? `guide-${guideId}-section-${sectionId}-${timestamp}.${fileExtension}`
+        : `section-${sectionId}-${timestamp}.${fileExtension}`;
 
-      // Upload to Supabase Storage
+      console.log('[AUDIO-UPLOAD] Starting upload:', {
+        fileName,
+        fileSize: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
+        fileType: file.type,
+        extension: fileExtension
+      });
+
+      // Upload to Supabase Storage with explicit content type
       const { data, error } = await supabase.storage
         .from('guide-audio')
         .upload(fileName, file, {
           cacheControl: '3600',
-          upsert: false
+          upsert: false,
+          contentType: file.type || 'audio/mpeg'
         });
 
       if (error) throw error;
@@ -341,6 +359,8 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
       const { data: { publicUrl } } = supabase.storage
         .from('guide-audio')
         .getPublicUrl(fileName);
+
+      console.log('[AUDIO-UPLOAD] Upload successful, public URL:', publicUrl.substring(0, 60) + '...');
 
       // Get audio duration
       const duration = await getAudioDuration(file);
@@ -372,8 +392,35 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
       toast.success('Audio uploaded successfully!');
 
     } catch (error: any) {
-      console.error('Error uploading audio:', error);
-      toast.error('Failed to upload audio file');
+      // Detailed error logging
+      console.error('❌ [AUDIO-UPLOAD] Upload failed with detailed error:', {
+        message: error.message,
+        name: error.name,
+        status: error.status,
+        statusCode: error.statusCode,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        statusText: error.statusText,
+        fullError: error
+      });
+
+      // User-friendly error messages based on error type
+      let errorMessage = 'Failed to upload audio file';
+      
+      if (error.status === 413 || error.statusCode === 413 || error.message?.includes('Payload too large')) {
+        errorMessage = 'File is too large (max 50MB). Please use a smaller file.';
+      } else if (error.status === 415 || error.statusCode === 415 || error.message?.includes('Unsupported Media Type')) {
+        errorMessage = 'File format not supported. Please use MP3, M4A, WAV, or OGG.';
+      } else if (error.status === 401 || error.status === 403 || error.statusCode === 401 || error.statusCode === 403) {
+        errorMessage = 'Permission denied. Please check your authentication.';
+      } else if (error.message?.includes('duplicate')) {
+        errorMessage = 'File already exists. Please try again.';
+      } else if (error.message) {
+        errorMessage = `Upload failed: ${error.message}`;
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setUploadingSection(null);
       setUploadProgress(0);
