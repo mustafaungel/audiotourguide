@@ -1214,8 +1214,8 @@ export type Database = {
             Args: {
               p_access_code: string
               p_language_code?: string
-              p_linked_guide_id: string
               p_main_guide_id: string
+              p_target_guide_id: string
             }
             Returns: {
               audio_url: string
@@ -1237,8 +1237,8 @@ export type Database = {
             Args: {
               p_access_code: string
               p_language_code?: string
+              p_linked_guide_id: string
               p_main_guide_id: string
-              p_target_guide_id: string
             }
             Returns: {
               audio_url: string

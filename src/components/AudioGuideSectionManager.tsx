@@ -325,6 +325,43 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
     uploadAudioFile(sectionId, file);
   };
 
+  // Direct fetch fallback for when SDK fails with JSON parse errors
+  const uploadViaFetch = async (fileName: string, file: File): Promise<{ success: boolean; error?: string }> => {
+    const SUPABASE_URL = "https://dsaqlgxajdnwoqvtsrqd.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRzYXFsZ3hhamRud29xdnRzcnFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxOTA0MzgsImV4cCI6MjA3Mjc2NjQzOH0.qTVG_v_NqqX-vi7PDuf8p9qu_6pD5xKNhiPksqwJuzA";
+    
+    const { data: { session } } = await supabase.auth.getSession();
+    const accessToken = session?.access_token;
+    
+    if (!accessToken) {
+      return { success: false, error: 'No auth session found' };
+    }
+
+    const url = `${SUPABASE_URL}/storage/v1/object/guide-audio/${fileName}`;
+    
+    console.log('[AUDIO-UPLOAD][FALLBACK] Uploading via direct fetch:', url);
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'apikey': SUPABASE_KEY,
+        'Content-Type': file.type || 'audio/mpeg',
+        'Cache-Control': '3600',
+        'x-upsert': 'true',
+      },
+      body: file,
+    });
+
+    const responseText = await response.text();
+    console.log('[AUDIO-UPLOAD][FALLBACK] Response:', { status: response.status, ok: response.ok, body: responseText.substring(0, 200) });
+
+    if (response.ok) {
+      return { success: true };
+    }
+    return { success: false, error: `HTTP ${response.status}: ${responseText.substring(0, 100)}` };
+  };
+
   const uploadAudioFile = async (sectionId: string, file: File) => {
     setUploadingSection(sectionId);
     setUploadProgress(0);
@@ -344,16 +381,42 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
         extension: fileExtension
       });
 
-      // Upload to Supabase Storage with explicit content type
-      const { data, error } = await supabase.storage
-        .from('guide-audio')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: true,
-          contentType: file.type || 'audio/mpeg'
-        });
+      let uploadSuccess = false;
 
-      if (error) throw error;
+      // Try SDK upload first
+      try {
+        const { data, error } = await supabase.storage
+          .from('guide-audio')
+          .upload(fileName, file, {
+            cacheControl: '3600',
+            upsert: true,
+            contentType: file.type || 'audio/mpeg'
+          });
+
+        if (error) throw error;
+        uploadSuccess = true;
+      } catch (sdkError: any) {
+        const msg = sdkError?.message || '';
+        const isJsonParseError = msg.includes('not valid JSON') || msg.includes('Unexpected token');
+        
+        if (isJsonParseError) {
+          console.warn('[AUDIO-UPLOAD][FALLBACK] SDK failed with JSON parse error, trying direct fetch...', msg);
+          const fallbackResult = await uploadViaFetch(fileName, file);
+          
+          if (fallbackResult.success) {
+            uploadSuccess = true;
+            console.log('[AUDIO-UPLOAD][FALLBACK] Direct fetch upload succeeded!');
+          } else {
+            throw new Error(fallbackResult.error || 'Fallback upload failed');
+          }
+        } else {
+          throw sdkError;
+        }
+      }
+
+      if (!uploadSuccess) {
+        throw new Error('Upload failed through all methods');
+      }
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
@@ -392,20 +455,14 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
       toast.success('Audio uploaded successfully!');
 
     } catch (error: any) {
-      // Detailed error logging
-      console.error('❌ [AUDIO-UPLOAD] Upload failed with detailed error:', {
+      console.error('❌ [AUDIO-UPLOAD] Upload failed:', {
         message: error.message,
         name: error.name,
         status: error.status,
         statusCode: error.statusCode,
-        code: error.code,
-        details: error.details,
-        hint: error.hint,
-        statusText: error.statusText,
         fullError: error
       });
 
-      // User-friendly error messages based on error type
       let errorMessage = 'Failed to upload audio file';
       
       if (error.status === 413 || error.statusCode === 413 || error.message?.includes('Payload too large')) {
