@@ -1,61 +1,36 @@
 
 
-## Plan: Fetch Fallback ile Audio Upload Hatasini Cozme
+## Plan: Site Temizliği ve Performans İyileştirmeleri
 
-### Sorun
-Supabase JS SDK, storage upload yaniti olarak duz metin ("Audio not available") aliyor ve bunu JSON olarak parse etmeye calisiyor. Bu bir SDK sinirlamasi -- SDK her zaman JSON bekliyor ama sunucu bazen duz metin donduruyor.
+### Sorunlar
 
-### Cozum
-`src/components/AudioGuideSectionManager.tsx` dosyasindaki `uploadAudioFile` fonksiyonuna **direct fetch fallback** eklenecek.
+1. **URL'de versiyon parametreleri** (`?v=2025-11-06-v3&t=...`) — `App.tsx`'teki cache-busting mekanizması URL'ye `v=` ve `t=` parametreleri ekliyor ve her sayfa yüklenişinde `window.location.replace` ile yeniden yüklüyor. Bu hem URL'yi kirletiyor hem de gereksiz reload'lara neden oluyor.
 
-### Adimlar
+2. **"Static OK" badge** — `public/healthcheck.js` sağ alt köşeye sabit bir "Static OK" div ekliyor. Bu bir debug aracı, production'da görünmemeli.
 
-**1. `uploadViaFetch` yardimci fonksiyonu ekle**
-- Supabase Storage REST API'sine dogrudan `fetch` ile POST yapacak
-- `Authorization: Bearer <jwt>` ve `apikey` header'lari kullanacak
-- Yaniti `response.text()` ile okuyacak (JSON parse denemeyecek)
-- `response.ok` ise basarili kabul edecek ve `getPublicUrl` ile URL olusturacak
-- Basarisizsa status ve ham yanitla hata dondurecek
+3. **Sayfa her sekme değişiminde refresh atıyor** — Yine aynı cache-busting mekanizması: URL'de `v=` parametresi yoksa veya `APP_BUILD` değişmişse `window.location.replace` çağırıyor. Bu, React Router ile navigasyon yaparken bile tetiklenebiliyor.
 
-**2. `uploadAudioFile` akisini guncelle**
-- Oncelikle mevcut SDK upload'i denenecek (degisiklik yok)
-- Eger hata mesaji "not valid JSON" veya "Unexpected token" iceriyorsa:
-  - Console'a `[AUDIO-UPLOAD][FALLBACK]` uyarisi yazilacak
-  - `uploadViaFetch` cagirilacak
-  - Basariliysa normal akis devam edecek (publicUrl, duration, section update)
-  - Basarisizsa HTTP status ve ham metin toast ile gosterilecek
-- Diger hata tiplerinde mevcut ozel mesajlar korunacak (413, 415, 401/403)
+### Yapılacaklar
 
-**3. `x-upsert` header'i**
-- Fetch fallback'te `'x-upsert': 'true'` header'i eklenecek (SDK'daki upsert: true'nun karsiligi)
+**1. Cache-busting mekanizmasını kaldır** (`src/App.tsx`)
+- `useEffect` içindeki tüm cache-busting bloğunu (satır 30-50) sil
+- `APP_BUILD` import'unu kaldır
+- Vite zaten dosya adlarına hash ekliyor (`[name]-[hash]-v3.js`), bu yeterli
 
-### Teknik Detay
+**2. `APP_BUILD` sabitini kaldır** (`src/lib/utils.ts`)
+- `export const APP_BUILD = '2025-11-06-v3';` satırını sil
 
-```text
-uploadAudioFile(sectionId, file)
-  |
-  +--> SDK upload dene
-  |      |
-  |      +--> Basarili? --> devam (URL, duration, update)
-  |      |
-  |      +--> Hata "not valid JSON"?
-  |             |
-  |             +--> uploadViaFetch(fileName, file)
-  |                    |
-  |                    +--> fetch POST /storage/v1/object/guide-audio/{fileName}
-  |                    |    Headers: Authorization, apikey, Content-Type, x-upsert
-  |                    |    Body: file
-  |                    |
-  |                    +--> response.ok? --> getPublicUrl --> devam
-  |                    +--> !response.ok? --> toast.error(status + text)
-  |
-  +--> Diger hatalar --> mevcut error handling (413/415/401 vs.)
-```
+**3. Healthcheck badge'ini kaldır** (`public/healthcheck.js`)
+- `addBadge()` fonksiyonunu ve çağrısını tamamen sil
+- Sadece `ensureRootPlaceholder()` ve console log'u bırak (ya da dosyayı tamamen sil)
 
-### Etkilenen Dosya
-- `src/components/AudioGuideSectionManager.tsx` -- sadece upload fonksiyonu
+**4. `index.html` temizliği**
+- `<meta http-equiv="Cache-Control" ...>` satırlarını kaldır (gereksiz, CDN cache'i bunlarla yönetilmez)
+- `<script defer src="/healthcheck.js"></script>` satırını kaldır (badge kaldırıldığı için)
 
-### Risk
-- Dusuk. Fallback yalnizca SDK basarisiz oldugunda devreye girer. Basarili SDK upload'lari etkilenmez.
-- Player, URL parametreleri, diger bilesenler degismez.
+### Etki
+- URL temiz kalacak (`/`, `/guides`, `/guide/slug` vs.)
+- Sağ alttaki "Static OK" yazısı kaybolacak
+- Sekme değiştirirken veya sayfa açarken gereksiz reload olmayacak
+- Vite'ın hash'li dosya adları cache-busting için yeterli
 
