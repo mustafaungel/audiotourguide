@@ -90,7 +90,7 @@ export const ChapterList: React.FC<ChapterListProps> = ({
     <>
       <Card className={cn("bg-card/50 border-border/50", className)}>
         <CardHeader className="pb-4 flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-lg font-semibold">Up Next</CardTitle>
+          <CardTitle className="text-lg font-semibold">{t('upNext', lang)}</CardTitle>
           
           {/* Playback Controls */}
           {currentSectionIndex >= 0 && (
