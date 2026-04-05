@@ -57,8 +57,24 @@ export const FeaturedGuides = () => {
     }
   };
 
-  const handleGuideClick = async (guideId: string) => {
-    await trackEngagement('view', guideId);
+  const handleGuideClick = (guide: AudioGuide) => {
+    // Fire-and-forget tracking
+    trackEngagement('view', guide.id);
+    navigate(`/guide/${guide.id}`, {
+      state: {
+        guidePreview: {
+          id: guide.id,
+          title: guide.title,
+          description: guide.description,
+          location: guide.location,
+          price: guide.price_usd,
+          duration: guide.duration,
+          category: guide.category,
+          difficulty: guide.difficulty,
+          imageUrl: guide.image_url,
+        }
+      }
+    });
   };
 
   const formatPrice = (price: number) => {
