@@ -20,12 +20,20 @@ const Library = React.lazy(() => import("./pages/Library"));
 const Guides = React.lazy(() => import("./pages/Guides"));
 const PaymentSuccess = React.lazy(() => import("./pages/PaymentSuccess"));
 const PaymentCancelled = React.lazy(() => import("./pages/PaymentCancelled"));
-const GuideDetail = React.lazy(() => import("./pages/GuideDetail"));
+const guideDetailImport = () => import("./pages/GuideDetail");
+const GuideDetail = React.lazy(guideDetailImport);
 const AudioAccess = React.lazy(() => import("./pages/AudioAccess"));
 const Countries = React.lazy(() => import("./pages/Countries"));
 const CountryDetail = React.lazy(() => import("./pages/CountryDetail"));
 const FeaturedGuides = React.lazy(() => import("./pages/FeaturedGuides"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
+
+// Preload GuideDetail chunk after initial render
+if (typeof window !== 'undefined') {
+  window.addEventListener('load', () => {
+    setTimeout(() => { guideDetailImport(); }, 1000);
+  });
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {

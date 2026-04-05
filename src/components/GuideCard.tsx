@@ -52,7 +52,7 @@ export function GuideCard({
   const navigate = useNavigate();
 
   const handleShare = async () => {
-    await trackEngagement('share', id, { platform: 'native' });
+    trackEngagement('share', id, { platform: 'native' });
     
     if (navigator.share) {
       try {
@@ -73,16 +73,16 @@ export function GuideCard({
     }
   };
 
-  const handleBookmark = async () => {
-    await trackEngagement('bookmark', id);
+  const handleBookmark = () => {
+    trackEngagement('bookmark', id);
     toast({
       title: "Bookmarked!",
       description: "Guide saved to your library",
     });
   };
 
-  const handleView = async () => {
-    await trackEngagement('view', id);
+  const handleView = () => {
+    trackEngagement('view', id);
     navigate(`/guide/${slug || id}`, {
       state: {
         guidePreview: { id, slug, title, description, location, price, duration, category, difficulty, imageUrl }

@@ -12,12 +12,23 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
+const GUIDES_CACHE_KEY = 'guides_list_cache';
+
+const getCachedGuides = (): any[] => {
+  try {
+    const cached = localStorage.getItem(GUIDES_CACHE_KEY);
+    if (cached) return JSON.parse(cached);
+  } catch {}
+  return [];
+};
+
 const Guides = () => {
   const navigate = useNavigate();
   const [selectedGuide, setSelectedGuide] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [guides, setGuides] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const cachedGuides = getCachedGuides();
+  const [guides, setGuides] = useState<any[]>(cachedGuides);
+  const [loading, setLoading] = useState(cachedGuides.length === 0);
   const [userPurchases, setUserPurchases] = useState<string[]>([]);
   const [processingPayment, setProcessingPayment] = useState<string | null>(null);
   const { user } = useAuth();
@@ -42,13 +53,16 @@ const Guides = () => {
 
       if (error) throw error;
       setGuides(data || []);
+      try { localStorage.setItem(GUIDES_CACHE_KEY, JSON.stringify(data || [])); } catch {}
     } catch (error) {
       console.error('Error fetching guides:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load guides",
-        variant: "destructive"
-      });
+      if (cachedGuides.length === 0) {
+        toast({
+          title: "Error",
+          description: "Failed to load guides",
+          variant: "destructive"
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -125,19 +139,11 @@ const Guides = () => {
     guide.location.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handlePlayGuide = async (guide: any) => {
+  const handlePlayGuide = (guide: any) => {
     setSelectedGuide(guide);
-
-    try {
-      await supabase.functions.invoke('track-viral-engagement', {
-        body: {
-          action: 'view',
-          guide_id: guide.id
-        }
-      });
-    } catch (error) {
-      console.error('Error tracking guide view:', error);
-    }
+    supabase.functions.invoke('track-viral-engagement', {
+      body: { action: 'view', guide_id: guide.id }
+    }).catch(err => console.error('Error tracking guide view:', err));
   };
 
   const breadcrumbSchema = {
