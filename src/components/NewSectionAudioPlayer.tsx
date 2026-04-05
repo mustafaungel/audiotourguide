@@ -135,10 +135,10 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
           }, 500);
         } else {
           // Show next chapter prompt
-          const nextChapterTitle = sections[currentSectionIndex + 1]?.title || 'Next Chapter';
+          const nextChapterTitle = sections[currentSectionIndex + 1]?.title || t('playNext', lang);
           toast({
-            title: 'Chapter completed!',
-            description: `Ready to play: ${nextChapterTitle}`,
+            title: t('chapterCompleted', lang),
+            description: `${t('readyToPlay', lang)}: ${nextChapterTitle}`,
             action: (
               <Button
                 size="sm"
