@@ -1,17 +1,16 @@
 
-## Plan: Fotoğraf Yükleme Limitini Artır
 
-### Sorun
-`src/components/ImageUploader.tsx` dosyasında fotoğraf boyut limiti 5MB olarak ayarlanmış. Büyük fotoğraflar yüklenemiyor.
+## Plan: Fotoğraf Yükleme Limitini 200MB'a Çıkar
 
 ### Yapılacak
 **`src/components/ImageUploader.tsx`** dosyasında:
-- Satır 33: `maxSize` değerini `5 * 1024 * 1024` → `20 * 1024 * 1024` (20MB) olarak değiştir
-- Satır 35: Hata mesajını "Image must be smaller than 20MB" olarak güncelle
-- Satır 156: Kullanıcıya gösterilen bilgi metnini "Max 5MB each" → "Max 20MB each" olarak güncelle
+- `maxSize` değerini `20 * 1024 * 1024` → `200 * 1024 * 1024` (200MB) olarak değiştir
+- Hata mesajını "Image must be smaller than 200MB" olarak güncelle
+- Kullanıcıya gösterilen bilgi metnini "Max 200MB each" olarak güncelle
 
 ### Not
-Zaten `resizeImage` fonksiyonu mevcut — yüklenen büyük fotoğraflar otomatik olarak 1200x800px'e küçültülüp JPEG olarak sıkıştırılıyor. Yani Supabase storage'a giden dosya boyutu zaten küçük olacak, buradaki limit sadece istemci tarafında gereksiz kısıtlama.
+`resizeImage` fonksiyonu yüklenen fotoğrafları otomatik olarak 1200x800px JPEG'e sıkıştırdığı için Supabase'e giden dosya boyutu küçük kalacak. Bu limit sadece istemci tarafı kontrol.
 
 ### Risk
-Düşük. Tek dosyada 3 satır değişiklik.
+Düşük. 3 satır değişiklik.
+
