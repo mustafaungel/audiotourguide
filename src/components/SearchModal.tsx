@@ -246,18 +246,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ children }) => {
           {/* Results */}
           <div className="max-h-[50vh] overflow-y-auto">
             {loading && (
-              <div className="mobile-spacing">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="flex gap-4 mobile-padding animate-pulse">
-                    <div className="w-16 h-16 bg-muted rounded-lg" />
-                    <div className="flex-1 mobile-spacing">
-                      <div className="h-4 bg-muted rounded w-3/4" />
-                      <div className="h-3 bg-muted rounded w-1/2" />
-                      <div className="h-3 bg-muted rounded w-1/4" />
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <AudioGuideLoader variant="inline" message="Searching guides..." />
             )}
 
             {!loading && results.length === 0 && searchTerm && (
