@@ -28,6 +28,7 @@ export const FeaturedGuides = () => {
   const [guides, setGuides] = useState<AudioGuide[]>([]);
   const [loading, setLoading] = useState(true);
   const { trackEngagement } = useViralTracking();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchGuides();
