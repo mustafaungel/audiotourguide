@@ -7,10 +7,12 @@ import { Label } from '@/components/ui/label';
 import { Star } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { t } from '@/lib/translations';
 
 interface GuestReviewFormProps {
   guideId: string;
   onReviewSubmitted?: () => void;
+  lang?: string;
 }
 
 export const GuestReviewForm = ({ guideId, onReviewSubmitted }: GuestReviewFormProps) => {
