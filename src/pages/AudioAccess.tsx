@@ -510,7 +510,6 @@ export default function AudioAccess() {
             variant="page" 
             message={sessionId ? 'Verifying payment...' : 'Unlocking your audio tour...'} 
           />
-          </div>
         </div>
       </div>
     );
