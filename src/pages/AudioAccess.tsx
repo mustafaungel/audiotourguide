@@ -711,8 +711,8 @@ export default function AudioAccess() {
 
           {/* Guest Review Form */}
           <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-4">Leave a Review</h3>
-            <GuestReviewForm guideId={guide.id} />
+            <h3 className="text-lg font-semibold mb-4">{t('leaveReview', selectedLanguage)}</h3>
+            <GuestReviewForm guideId={guide.id} lang={selectedLanguage} />
           </div>
         </div>
       </div>
