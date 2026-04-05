@@ -1,40 +1,91 @@
 
 
-## Plan: Mobil Tıklama UX + AudioAccess Dil Değişikliği Layout Shift Düzeltmeleri
+## Plan: AudioAccess Sayfası — Kullanıcı Dostu Yeniden Tasarım + Tam Sayfa Çevirisi
 
-### Sorun 1: Mobil GuideCard Tıklama Problemi
-`GuideCard.tsx` satır 159-172'de bir play button overlay var: `absolute inset-0` ile tüm image alanını kaplıyor. `opacity-0 group-hover:opacity-100` kullanıyor — mobilde hover olmadığı için bu overlay **görünmez ama pointer event'leri yakalıyor**. Kullanıcı resme tıkladığında aslında bu görünmez overlay'e tıklıyor ve çalışıyor, ama metin/fiyat/buton alanına tıkladığında da Card onClick çalışıyor. Asıl sorun **görsel**: mobilde kartın tıklanabilir olduğu belli olmuyor, hover efekti yok, active/pressed state yok.
+### Araştırma Bulguları
 
-### Sorun 2: AudioAccess Dil Değişikliğinde Layout Shift
-`AudioAccess.tsx` satır 695'te `MultiTabAudioPlayer`'ın `key` prop'u `selectedLanguage` içeriyor. Dil değiştiğinde **tüm player unmount/remount** oluyor → tam bir layout kayması. Ayrıca `handleLanguageChange` async olarak yeni section'ları fetch ediyor — bu sürede sections boşalıyor ve player kapanıp açılıyor.
+**Veritabanı kontrolü**: Tüm audio guide'larda İngilizce (`en`) section'lar mevcut — her guide'da en az 1 İngilizce section var. Dolayısıyla varsayılan dil güvenle `en` olabilir.
+
+**Mevcut sorun — Varsayılan dil**: `detectAvailableLanguages()` (satır 282) RPC'den dönen **ilk dili** seçiyor, bu her zaman İngilizce olmayabilir (alfabetik sıralama `de` > `en` yapabilir).
+
+**Mevcut sorun — Sayfa çevirisi yok**: Dil değiştiğinde sadece audio section'lar değişiyor. Sayfadaki tüm statik metinler İngilizce kalıyor:
+- `AudioAccess.tsx`: "Leave a Review", konum/süre bilgileri
+- `ChapterList.tsx`: "Up Next", "Playback Speed", "Normal", zaman formatları
+- `GuestReviewForm.tsx`: "Leave a Review", "Name", "Email", "Rating", "Submit Review", placeholder'lar, hata mesajları
+- `GuideLanguageSelector.tsx`: "Language" etiketi
+- `MultiTabAudioPlayer.tsx`: "Loading...", tab başlıkları
+- `NewSectionAudioPlayer.tsx`: "No audio content available"
+- Hata/erişim sayfaları: "Access Denied", "Browse Guides", "Go Home"
 
 ---
 
-### Değişiklik 1: `src/components/GuideCard.tsx` — Mobil tıklama UX iyileştirmesi
+### Değişiklikler
 
-- Play overlay'e `pointer-events-none` ekle (tüm click'ler Card'ın onClick'ine gitsin)
-- Overlay'deki Button'ın ayrı onClick'ini kaldır (zaten Card onClick var)
-- Karta `active:scale-[0.98]` ekle → mobilde basınca hafif küçülme efekti (pressed state)
-- `cursor-pointer` zaten var, ek olarak `select-none` ekle
+#### 1. Çeviri sistemi oluştur — `src/lib/translations.ts`
+Desteklenen diller için tüm UI etiketlerini içeren bir çeviri sözlüğü:
 
-### Değişiklik 2: `src/pages/AudioAccess.tsx` — Dil değişikliği kayma düzeltmesi
+```text
+Anahtarlar:
+- upNext, language, leaveReview, name, email, rating, review
+- submitReview, submitting, playbackSpeed, normal
+- noAudioContent, loading, accessDenied, browseGuides, goHome
+- shareFeedback, reviewDescription, namePlaceholder, emailPlaceholder
+- reviewPlaceholder, minutes (min), reviewSuccess
+- connectionIssue, retryConnection, paymentRetry
+```
 
-- `MultiTabAudioPlayer`'ın `key` prop'undan `selectedLanguage`'ı **kaldır** → dil değiştiğinde player unmount/remount olmasın
-- `handleLanguageChange`'de sections'ı **boşaltmadan** yeni sections'ı fetch et: eski sections gösterilmeye devam etsin, yeni veri geldiğinde değişsin
-- Player container'a `min-h-[400px]` ver (mevcut `min-h-[200px]` yetersiz)
+Desteklenen diller: en, tr, es, fr, de, it, pt, ru, zh, ja, ko, ar (veritabanındaki tüm aktif diller).
 
-### Değişiklik 3: `src/components/FeaturedGuides.tsx` — Carousel kart tıklama UX
+Basit bir `t(key, lang)` fonksiyonu — harici kütüphane yok.
 
-- Kart container'a `active:scale-[0.98]` ekle → mobilde pressed state
+#### 2. Varsayılan dili İngilizce yap — `AudioAccess.tsx`
+- `selectedLanguage` başlangıç değerini `'en'` yap (mevcut: `''`)
+- `detectAvailableLanguages()` içinde: İngilizce varsa onu seç, yoksa ilk mevcut dili seç
+- Sayfa ilk açıldığında her zaman İngilizce section'lar yüklensin
+
+#### 3. Sayfa çevirisini uygula — `AudioAccess.tsx`
+- Tüm statik metinleri `t(key, selectedLanguage)` ile değiştir:
+  - "Leave a Review" başlığı
+  - Konum/süre etiketleri
+  - Hata sayfası metinleri ("Access Denied", buton yazıları)
+
+#### 4. ChapterList çevirisi — `ChapterList.tsx`
+- `lang` prop'u ekle
+- "Up Next" → `t('upNext', lang)`
+- "Playback Speed" → `t('playbackSpeed', lang)`
+- "Normal" → `t('normal', lang)`
+
+#### 5. GuestReviewForm çevirisi — `GuestReviewForm.tsx`
+- `lang` prop'u ekle
+- Tüm label, placeholder ve buton metinlerini çevir
+- Hata mesajlarını çevir (toast'lar dahil)
+
+#### 6. GuideLanguageSelector çevirisi — `GuideLanguageSelector.tsx`
+- "Language" etiketini `t('language', selectedLanguage)` ile değiştir
+
+#### 7. NewSectionAudioPlayer çevirisi — `NewSectionAudioPlayer.tsx`
+- `lang` prop'u ekle, ChapterList'e ilet
+- "No audio content available" → çevrilmiş metin
+
+#### 8. UX iyileştirmeleri — `AudioAccess.tsx`
+- Dil seçicisini Card header'ının içinde daha belirgin konuma taşı (guide bilgilerinin hemen altında, ayrı bir satırda)
+- Section sayısını ve toplam süreyi dil seçici yanında göster (kullanıcı hangi dilde kaç bölüm olduğunu görsün)
+- Review formunu görsel olarak ayır — daha belirgin bir bölüm başlığı ve ikon ekle
 
 ---
 
 ### Etkilenen Dosyalar
-- `src/components/GuideCard.tsx` — overlay pointer-events fix + active state
-- `src/pages/AudioAccess.tsx` — key prop fix + sections transition stabilizasyonu
-- `src/components/FeaturedGuides.tsx` — active state
+- `src/lib/translations.ts` — **YENİ** (çeviri sözlüğü + `t()` fonksiyonu)
+- `src/pages/AudioAccess.tsx` — varsayılan dil + çeviri + UX
+- `src/components/ChapterList.tsx` — lang prop + çeviri
+- `src/components/GuestReviewForm.tsx` — lang prop + çeviri
+- `src/components/GuideLanguageSelector.tsx` — etiket çevirisi
+- `src/components/NewSectionAudioPlayer.tsx` — lang prop geçişi
+- `src/components/MultiTabAudioPlayer.tsx` — lang prop geçişi
 
 ### Sonuç
-- Mobilde kartlara tıklandığında görsel geri bildirim (pressed effect)
-- Dil değişikliğinde sıfır layout shift — player yerinde kalır, sadece içerik güncellenir
+- Sayfa her zaman İngilizce açılır
+- Dil değiştirildiğinde tüm UI metinleri (başlıklar, butonlar, form etiketleri, hatalar) seçilen dile çevrilir
+- Audio section içerikleri zaten mevcut sistemle dil bazlı yükleniyor — bu korunur
+- Kullanıcı deneyimi tutarlı ve erişilebilir
 
