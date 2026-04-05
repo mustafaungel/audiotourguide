@@ -277,7 +277,7 @@ export const ChapterList: React.FC<ChapterListProps> = ({
         <BottomSheet
           open={showSpeedSheet}
           onOpenChange={setShowSpeedSheet}
-          title="Playback Speed"
+          title={t('playbackSpeed', lang)}
           defaultSnap="mini"
         >
           <div className="pb-6">
