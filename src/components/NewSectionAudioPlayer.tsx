@@ -330,8 +330,8 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
             .catch((err) => {
               console.error('[PLAYER] ❌ Resume error:', err);
               toast({
-                title: 'Resume Error',
-                description: 'Failed to resume playback',
+                title: t('resumeError', lang),
+                description: t('resumeErrorDesc', lang),
                 variant: 'destructive',
               });
             });
