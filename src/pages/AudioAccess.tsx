@@ -731,9 +731,8 @@ export default function AudioAccess() {
       {/* Content area */}
       <div className="px-4 pb-6">
         {/* Multi-tab Audio Interface */}
-        <div className="mb-5 min-h-[300px] animate-fade-in" style={{ animationDelay: '150ms' }}>
+        <div className="mb-5">
           <MultiTabAudioPlayer
-            key={`${guide.id}-${accessCode || ''}`}
             mainGuide={{
               id: guide.id,
               title: guide.title,
