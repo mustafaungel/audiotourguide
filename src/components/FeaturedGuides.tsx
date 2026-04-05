@@ -231,7 +231,7 @@ export const FeaturedGuides = () => {
                       
                       <Button 
                         className="w-full mt-4 touch-target"
-                        onClick={() => handleGuideClick(guide.id)}
+                        onClick={(e) => { e.stopPropagation(); handleGuideClick(guide); }}
                       >
                         Explore Guide
                       </Button>
