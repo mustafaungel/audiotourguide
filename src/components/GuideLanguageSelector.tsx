@@ -119,7 +119,7 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
               key={language.language_code}
               onClick={() => handleLanguageSelect(language.language_code)}
               className={cn(
-                "inline-flex items-center justify-center gap-2 px-3 min-h-[44px] rounded-xl text-sm font-medium transition-all duration-200",
+                "inline-flex items-center justify-center gap-2 px-3 min-h-[44px] min-w-[calc(50%-0.25rem)] rounded-xl text-sm font-medium transition-all duration-200",
                 "border active:scale-[0.97]",
                 isSelected
                   ? "bg-primary/10 border-primary text-primary shadow-sm ring-2 ring-primary/20"
