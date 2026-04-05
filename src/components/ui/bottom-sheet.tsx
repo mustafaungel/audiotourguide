@@ -227,8 +227,8 @@ export function BottomSheet({
 
         {/* Content */}
         <div
-          className="flex-1 overflow-y-auto px-4 pb-safe"
-          style={{ overscrollBehavior: 'contain' }}
+          className="flex-1 overflow-y-auto min-h-0 px-4 pb-safe"
+          style={{ overscrollBehavior: 'contain', touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}
         >
           {children}
         </div>
