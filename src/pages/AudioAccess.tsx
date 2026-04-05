@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { withRetry, isNetworkError, getRegionalErrorMessage, getErrorRecoveryActions } from "@/utils/networkUtils";
+import { t } from "@/lib/translations";
 
 export default function AudioAccess() {
   const { guideId } = useParams();
@@ -31,7 +32,7 @@ export default function AudioAccess() {
   const [isRetrying, setIsRetrying] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [isNetworkIssue, setIsNetworkIssue] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('');
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
   const [sections, setSections] = useState<any[]>([]);
   const [activeGuideId, setActiveGuideId] = useState<string>('main');
   const [availableLanguages, setAvailableLanguages] = useState<any[]>([]);
@@ -278,10 +279,11 @@ export default function AudioAccess() {
 
       if (languages && languages.length > 0) {
         setAvailableLanguages(languages);
-        // Auto-select first available language
-        const firstLang = languages[0].language_code;
-        setSelectedLanguage(firstLang);
-        await fetchSectionsForLanguage(guideId, firstLang);
+        // Prefer English if available, otherwise first language
+        const enLang = languages.find((l: any) => l.language_code === 'en');
+        const selectedLang = enLang ? 'en' : languages[0].language_code;
+        setSelectedLanguage(selectedLang);
+        await fetchSectionsForLanguage(guideId, selectedLang);
       } else {
         console.warn('No languages available for this guide');
         setSections([]);
@@ -508,7 +510,7 @@ export default function AudioAccess() {
         <div className="container mx-auto px-4 py-6">
           <AudioGuideLoader 
             variant="page" 
-            message={sessionId ? 'Verifying payment...' : 'Unlocking your audio tour...'} 
+            message={sessionId ? t('verifyingPayment', selectedLanguage) : t('unlockingTour', selectedLanguage)} 
           />
         </div>
       </div>
@@ -525,9 +527,9 @@ export default function AudioAccess() {
               <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
                 <Lock className="w-8 h-8 text-destructive" />
               </div>
-              <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
+              <h1 className="text-2xl font-bold mb-4">{t('accessDenied', selectedLanguage)}</h1>
               <p className="text-muted-foreground mb-4">
-                {error || "You don't have access to this audio guide."}
+                {error || t('noAccess', selectedLanguage)}
               </p>
               
               {/* Show different actions based on the error type */}
@@ -537,8 +539,8 @@ export default function AudioAccess() {
                   <div className="mb-4 p-4 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
                     <div className="flex items-center gap-2 mb-3">
                       <WifiOff className="w-5 h-5 text-blue-600" />
-                      <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
-                        Connection Issue Detected
+                       <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                        {t('connectionIssue', selectedLanguage)}
                       </p>
                     </div>
                     <p className="text-xs text-blue-600 dark:text-blue-400 mb-3">
@@ -558,14 +560,14 @@ export default function AudioAccess() {
                       className="w-full"
                     >
                       {isRetrying ? (
-                        <>
+                         <>
                           <RotateCcw className="w-4 h-4 mr-2 animate-spin" />
-                          Retrying Connection...
+                          {t('retrying', selectedLanguage)}
                         </>
                       ) : (
                         <>
                           <Wifi className="w-4 h-4 mr-2" />
-                          Retry Connection (Attempt {retryCount + 1})
+                          {t('retryConnection', selectedLanguage)} ({retryCount + 1})
                         </>
                       )}
                     </Button>
@@ -581,37 +583,36 @@ export default function AudioAccess() {
                     }}
                     className="mb-2"
                   >
-                    Retry Payment Verification
+                    {t('paymentRetry', selectedLanguage)}
                   </Button>
                 )}
                 
                 <div className="flex gap-2 justify-center">
                   <Button onClick={() => navigate('/guides')}>
-                    Browse Guides
+                    {t('browseGuides', selectedLanguage)}
                   </Button>
                   <Button variant="outline" onClick={() => navigate('/')}>
-                    Go Home
+                    {t('goHome', selectedLanguage)}
                   </Button>
                 </div>
                 
                 {sessionId && (
                   <p className="text-xs text-muted-foreground mt-2">
-                    If you just completed a payment and are seeing this error, 
-                    please contact support with session ID: {sessionId.slice(-8)}
+                    {t('contactSupport', selectedLanguage)} {sessionId.slice(-8)}
                   </p>
                 )}
                 
                 {/* Regional troubleshooting info */}
                 {isNetworkIssue && (
                   <div className="mt-4 p-3 rounded-lg bg-gray-50 dark:bg-gray-900 border">
-                    <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Troubleshooting Tips for Regional Access:
+                     <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      {t('troubleshootingTips', selectedLanguage)}
                     </p>
                     <ul className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
-                      <li>• Try switching to a different network (mobile data vs WiFi)</li>
-                      <li>• Check if you can access other websites normally</li>
-                      <li>• If using a VPN, try disabling it temporarily</li>
-                      <li>• Clear your browser cache and try again</li>
+                      <li>• {t('trySwitchingNetwork', selectedLanguage)}</li>
+                      <li>• {t('checkOtherWebsites', selectedLanguage)}</li>
+                      <li>• {t('tryDisablingVpn', selectedLanguage)}</li>
+                      <li>• {t('clearBrowserCache', selectedLanguage)}</li>
                     </ul>
                   </div>
                 )}
@@ -666,8 +667,8 @@ export default function AudioAccess() {
                     <div className="flex items-center gap-1">
                       <Clock className="w-4 h-4" />
                       {sections && sections.length > 0 
-                        ? `${Math.floor(sections.reduce((total, section) => total + (section.duration_seconds || 0), 0) / 60)} min`
-                        : `${Math.floor(guide.duration / 60)} min`
+                        ? `${Math.floor(sections.reduce((total: number, section: any) => total + (section.duration_seconds || 0), 0) / 60)} ${t('min', selectedLanguage)}`
+                        : `${Math.floor(guide.duration / 60)} ${t('min', selectedLanguage)}`
                       }
                     </div>
                    </div>
@@ -709,8 +710,8 @@ export default function AudioAccess() {
 
           {/* Guest Review Form */}
           <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-4">Leave a Review</h3>
-            <GuestReviewForm guideId={guide.id} />
+            <h3 className="text-lg font-semibold mb-4">{t('leaveReview', selectedLanguage)}</h3>
+            <GuestReviewForm guideId={guide.id} lang={selectedLanguage} />
           </div>
         </div>
       </div>

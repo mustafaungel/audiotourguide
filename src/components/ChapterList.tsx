@@ -5,6 +5,7 @@ import { Button } from './ui/button';
 import { BottomSheet } from './ui/bottom-sheet';
 import { haptics } from '@/lib/haptics';
 import { cn } from '@/lib/utils';
+import { t } from '@/lib/translations';
 
 interface Section {
   id: string;
@@ -41,6 +42,7 @@ interface ChapterListProps {
   onVolumeChange?: (newVolume: number[]) => void;
   onSpeedChange?: (speed: number) => void;
   onAutoAdvanceChange?: (enabled: boolean) => void;
+  lang?: string;
 }
 
 export const ChapterList: React.FC<ChapterListProps> = ({
@@ -60,6 +62,7 @@ export const ChapterList: React.FC<ChapterListProps> = ({
   canGoNext = true,
   canGoPrevious = true,
   className,
+  lang = 'en',
 }) => {
   const [showSpeedSheet, setShowSpeedSheet] = useState(false);
   
@@ -87,7 +90,7 @@ export const ChapterList: React.FC<ChapterListProps> = ({
     <>
       <Card className={cn("bg-card/50 border-border/50", className)}>
         <CardHeader className="pb-4 flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-lg font-semibold">Up Next</CardTitle>
+          <CardTitle className="text-lg font-semibold">{t('upNext', lang)}</CardTitle>
           
           {/* Playback Controls */}
           {currentSectionIndex >= 0 && (
@@ -274,7 +277,7 @@ export const ChapterList: React.FC<ChapterListProps> = ({
         <BottomSheet
           open={showSpeedSheet}
           onOpenChange={setShowSpeedSheet}
-          title="Playback Speed"
+          title={t('playbackSpeed', lang)}
           defaultSnap="mini"
         >
           <div className="pb-6">
@@ -299,7 +302,7 @@ export const ChapterList: React.FC<ChapterListProps> = ({
                         "text-base transition-all",
                         isSelected ? "text-lg font-semibold" : "text-muted-foreground"
                       )}>
-                        {speed === 1.0 ? 'Normal' : `${speed}×`}
+                        {speed === 1.0 ? t('normal', lang) : `${speed}×`}
                       </span>
                     </button>
                   );

@@ -5,6 +5,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useAudioProgress } from '@/hooks/useAudioProgress';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
+import { t } from '@/lib/translations';
 
 interface Section {
   id: string;
@@ -20,13 +21,15 @@ interface NewSectionAudioPlayerProps {
   guideTitle: string;
   sections: Section[];
   mainAudioUrl?: string;
+  lang?: string;
 }
 
 export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   guideId,
   guideTitle,
   sections,
-  mainAudioUrl
+  mainAudioUrl,
+  lang = 'en'
 }) => {
   const [currentSectionIndex, setCurrentSectionIndex] = useState(-1); // -1 means no player shown
   const [isPlaying, setIsPlaying] = useState(false);
@@ -132,17 +135,17 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
           }, 500);
         } else {
           // Show next chapter prompt
-          const nextChapterTitle = sections[currentSectionIndex + 1]?.title || 'Next Chapter';
+          const nextChapterTitle = sections[currentSectionIndex + 1]?.title || t('playNext', lang);
           toast({
-            title: 'Chapter completed!',
-            description: `Ready to play: ${nextChapterTitle}`,
+            title: t('chapterCompleted', lang),
+            description: `${t('readyToPlay', lang)}: ${nextChapterTitle}`,
             action: (
               <Button
                 size="sm"
                 onClick={() => playSection(currentSectionIndex + 1)}
                 className="ml-2"
               >
-                Play Next
+                {t('playNext', lang)}
               </Button>
             ),
           });
@@ -150,8 +153,8 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
       } else if (currentSectionIndex >= sections.length - 1) {
         // All chapters completed
         toast({
-          title: 'Guide completed!',
-          description: 'You have finished listening to all chapters.',
+          title: t('guideCompleted', lang),
+          description: t('allChaptersFinished', lang),
         });
       }
     });
@@ -166,8 +169,8 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
       });
       
       toast({
-        title: 'Playback Error',
-        description: 'Failed to play audio file. Please check your connection and try again.',
+        title: t('playbackError', lang),
+        description: t('playbackErrorDesc', lang),
         variant: 'destructive',
       });
       setIsPlaying(false);
@@ -275,7 +278,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
           setLoading(false);
           
           toast({
-            title: 'Now Playing',
+            title: t('nowPlaying', lang),
             description: sections[sectionIndex]?.title || guideTitle,
           });
         })
@@ -286,20 +289,20 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
           
           if (error.name === 'NotAllowedError') {
             toast({
-              title: 'Audio Locked',
-              description: 'Please tap again to play',
+              title: t('audioLocked', lang),
+              description: t('tapToPlay', lang),
               variant: 'default',
             });
           } else if (error.name === 'NotSupportedError') {
             toast({
-              title: 'Format Error',
-              description: 'Audio format not supported',
+              title: t('formatError', lang),
+              description: t('formatNotSupported', lang),
               variant: 'destructive',
             });
           } else {
             toast({
-              title: 'Playback Error',
-              description: 'Failed to play audio. Please try again.',
+              title: t('playbackError', lang),
+              description: t('playbackErrorDesc', lang),
               variant: 'destructive',
             });
           }
@@ -327,8 +330,8 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
             .catch((err) => {
               console.error('[PLAYER] ❌ Resume error:', err);
               toast({
-                title: 'Resume Error',
-                description: 'Failed to resume playback',
+                title: t('resumeError', lang),
+                description: t('resumeErrorDesc', lang),
                 variant: 'destructive',
               });
             });
@@ -449,7 +452,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   if (!sections.length) {
     return (
       <div className="text-center p-6 text-muted-foreground">
-        No audio content available for this guide.
+        {t('noAudioContent', lang)}
       </div>
     );
   }
@@ -481,6 +484,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
         onVolumeChange={handleVolumeChange}
         onSpeedChange={handleSpeedChange}
         onAutoAdvanceChange={setAutoAdvance}
+        lang={lang}
       />
     </div>
   );

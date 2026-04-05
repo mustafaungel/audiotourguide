@@ -4,6 +4,7 @@ import { NewSectionAudioPlayer } from './NewSectionAudioPlayer';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from './ui/badge';
 import { Music } from 'lucide-react';
+import { t } from '@/lib/translations';
 
 interface Section {
   id: string;
@@ -324,6 +325,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     return (
       <div className="flex items-center justify-center p-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <span className="ml-3 text-muted-foreground">{t('loading', languageCode)}</span>
       </div>
     );
   }
@@ -336,6 +338,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
         guideTitle={mainGuide.title}
         sections={mainSections}
         mainAudioUrl={mainGuide.audio_url}
+        lang={languageCode}
       />
     );
   }
@@ -385,19 +388,20 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
               className="flex items-center gap-2 min-h-[44px] px-3 py-2 text-sm font-medium opacity-70"
             >
               <Music className="w-4 h-4 shrink-0" />
-              <span className="truncate">Loading...</span>
+              <span className="truncate">{t('loading', languageCode)}</span>
             </TabsTrigger>
           )}
         </TabsList>
 
         <TabsContent value="main" className="mt-0">
-          <NewSectionAudioPlayer
-            key={`${mainGuide.id}-${languageByGuide[mainGuide.id] || languageCode}`}
-            guideId={mainGuide.id}
-            guideTitle={mainGuide.title}
-            sections={mainSections}
-            mainAudioUrl={mainGuide.audio_url}
-          />
+            <NewSectionAudioPlayer
+              key={`${mainGuide.id}-${languageByGuide[mainGuide.id] || languageCode}`}
+              guideId={mainGuide.id}
+              guideTitle={mainGuide.title}
+              sections={mainSections}
+              mainAudioUrl={mainGuide.audio_url}
+              lang={languageByGuide[mainGuide.id] || languageCode}
+            />
         </TabsContent>
 
         {linkedGuides.map((linkedGuide) => (
@@ -408,6 +412,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
               guideTitle={linkedGuide.custom_title || linkedGuide.title}
               sections={sectionsByGuide[linkedGuide.guide_id] || []}
               mainAudioUrl=""
+              lang={languageByGuide[linkedGuide.guide_id] || languageCode}
             />
           </TabsContent>
         ))}
@@ -417,7 +422,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
           <TabsContent value={pendingGuideId} className="mt-0">
             <div className="flex items-center justify-center p-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              <span className="ml-3">Loading guide...</span>
+              <span className="ml-3">{t('loadingGuide', languageCode)}</span>
             </div>
           </TabsContent>
         )}
