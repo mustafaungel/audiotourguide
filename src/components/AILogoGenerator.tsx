@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { LogoGenerationService, LogoGenerationOptions } from '@/services/logoGenerationService';
-import { Wand2, Sparkles, Loader2 } from 'lucide-react';
+import { Wand2, Sparkles } from 'lucide-react';
+import { ButtonLoader } from '@/components/AudioGuideLoader';
 import { toast } from 'sonner';
 
 export const AILogoGenerator: React.FC = () => {
