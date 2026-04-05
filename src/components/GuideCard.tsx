@@ -83,8 +83,11 @@ export function GuideCard({
 
   const handleView = async () => {
     await trackEngagement('view', id);
-    // Check if user has purchased this guide
-    navigate(`/guide/${slug || id}`);
+    navigate(`/guide/${slug || id}`, {
+      state: {
+        guidePreview: { id, slug, title, description, location, price, duration, category, difficulty, imageUrl }
+      }
+    });
   };
 
   const getCategoryColor = (cat: string) => {
