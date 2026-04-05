@@ -157,18 +157,10 @@ export function GuideCard({
         </div>
 
         {/* Play Button Overlay */}
-        <div className="absolute inset-0 bg-background/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-          <Button 
-            variant="hero" 
-            size="lg" 
-            className="rounded-full h-16 w-16"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleView();
-            }}
-          >
-            <Play className="h-6 w-6 ml-1" />
-          </Button>
+        <div className="absolute inset-0 bg-background/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center pointer-events-none">
+          <div className="rounded-full h-16 w-16 bg-primary flex items-center justify-center shadow-lg">
+            <Play className="h-6 w-6 ml-1 text-primary-foreground" />
+          </div>
         </div>
       </CardHeader>
 
