@@ -345,9 +345,6 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     );
   }
 
-  // Dynamic height lock: measure active content and lock wrapper min-height during transitions
-  const contentWrapperRef = useRef<HTMLDivElement>(null);
-  const [lockedHeight, setLockedHeight] = useState<number | undefined>(undefined);
 
   const handleTabChange = useCallback((value: string) => {
     // Lock current height before switching
