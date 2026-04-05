@@ -1,45 +1,47 @@
 
 
-## Plan: Drawer Animasyonu Düzeltme + Main Guide Drawer Olarak Açılması
+## Plan: Animasyon Kalitesini Artır (Performanslı)
 
-### Sorun 1: BottomSheet Animasyonu Kötü
-`BottomSheet` bileşeni `open` false olduğunda `return null` yapıyor (satır 136). Bu yüzden kapanırken hiç animasyon yok — DOM'dan anında siliniyor. Açılırken de sadece Tailwind `animate-in slide-in-from-bottom-2` var ama bu çok küçük bir hareket (8px). Gerçek bir slide-up animasyonu yok.
+### Sorunlar
+1. **BottomSheet**: `backdrop-filter: blur(20px/40px)` mobilde her karede GPU'yu zorluyor. `height` animasyonu layout reflow tetikliyor. Touch handler'da 4 ayrı `setState` her frame'de re-render yapıyor.
+2. **Dil seçimi**: `max-height` + `hidden` geçişi ani, smooth değil — `hidden` anında display:none yapar, animasyon olmaz.
 
-### Çözüm 1: Mount/unmount yerine CSS transform ile açılıp kapanma
-- `open` false olduğunda `return null` yapmak yerine, bileşeni her zaman render et
-- `translateY(100%)` ile ekran dışına it (kapalı), `translateY(0)` ile yerine getir (açık)
-- Transition: `transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)`
-- Backdrop da `opacity` transition ile fade in/out yapsın
-- Unmount için: transition bitince (`onTransitionEnd`) gerçekten DOM'dan kaldır veya her zaman mount tut
+### Çözümler
 
-### Sorun 2: Main Guide Her Zaman Inline, Drawer Olarak Açılmıyor
-Şu anki kodda main guide her zaman sayfada inline render ediliyor (satır 266-270). Main guide pill'e tıklayınca sadece sheet kapanıyor, ama main guide zaten hep görünür. Kullanıcı tüm guide'ların eşit şekilde drawer'da açılmasını istiyor.
+#### 1. BottomSheet Performans (`src/components/ui/bottom-sheet.tsx`)
 
-### Çözüm 2: Main guide'ı da drawer'da aç
-- Main guide inline render'ı kaldır
-- Başlangıçta hiçbir pill seçili olmasın (tüm pill'ler pasif stilde)
-- Main guide pill'e tıklayınca: `selectedGuide = 'main'`, `sheetOpen = true` → main guide BottomSheet'te açılır
-- Linked guide pill'e tıklayınca: mevcut davranış (linked guide BottomSheet'te açılır)
-- Sheet kapatılınca: hiçbir pill seçili değil
+**Blur kaldır:**
+- Backdrop: `backdrop-filter: blur(20px)` → kaldır, `rgba(0,0,0,0.5)` yeterli
+- Sheet: `backdrop-filter: blur(40px) saturate(180%)` → kaldır, `bg-background` opak kullan
 
-### Değişiklik — `src/components/ui/bottom-sheet.tsx`
+**Height → Transform:**
+- Sheet yüksekliğini sabit `95vh` yap
+- Snap geçişlerini `translateY` ile: kapalı=`100%`, half=`35vh`, full=`0`
+- `height` transition kaldır — sadece `transform` animate et (GPU-accelerated)
 
-1. **Her zaman render et**, `if (!open) return null` kaldır
-2. Backdrop ve sheet'e `open` state'ine göre conditional class/style:
-   - Kapalı: backdrop `opacity-0 pointer-events-none`, sheet `translate-y-full`
-   - Açık: backdrop `opacity-100`, sheet `translate-y-0`
-3. `transition` property'lerini hem açılma hem kapanma için uygula
-4. Backdrop'a `transition-opacity duration-300` ekle
+**Touch handler ref'e taşı:**
+- `startY`, `currentY`, `velocity`, `lastMoveTime` → `useRef`
+- Sürükleme sırasında `sheetRef.current.style.transform` ile doğrudan DOM güncelle (setState yok, re-render yok)
+- `requestAnimationFrame` ile throttle
 
-### Değişiklik — `src/components/MultiTabAudioPlayer.tsx`
+**Backdrop transition:**
+- `opacity 0.35s ease` — smooth fade
 
-1. **Inline main guide render'ı kaldır** (satır 265-270)
-2. **Yeni state:** `selectedGuideType: 'main' | 'linked' | null` (veya mevcut state'leri refactor et)
-3. **Main guide pill onClick:** `setSheetOpen(true)` + selected guide bilgisini main olarak ayarla
-4. **BottomSheet içeriği:** main veya linked guide'a göre doğru player'ı render et
-5. **Pill styling:** Hiçbir pill başlangıçta aktif olmasın, sadece sheet açıkken ve o guide seçiliyken aktif stil
+#### 2. Dil Seçimi Animasyonu (`src/components/GuideLanguageSelector.tsx`)
+
+**`hidden` yerine `opacity + scale + max-height` animasyonu:**
+- Collapsed modda seçili olmayan butonlara: `opacity-0 scale-95 max-h-0 overflow-hidden m-0 p-0 border-0` + `transition-all duration-300`
+- Açık modda: `opacity-100 scale-100 max-h-[52px]`
+- Seçili buton `gridColumn` ile sütun pozisyonunu korur (mevcut mantık kalır)
+- Container `max-height` animasyonu da kalır ama artık içerideki butonlar da smooth olarak küçülür
 
 ### Etkilenen Dosyalar
-- `src/components/ui/bottom-sheet.tsx` — animasyon düzeltmesi
-- `src/components/MultiTabAudioPlayer.tsx` — main guide drawer mantığı
+- `src/components/ui/bottom-sheet.tsx` — blur kaldır, height→transform, touch ref optimizasyonu
+- `src/components/GuideLanguageSelector.tsx` — hidden→animated collapse
+
+### Sonuç
+- Drawer açılıp kapanırken 60fps smooth transform animasyonu
+- Blur yükü sıfır
+- Touch sürükleme kasma yok (ref-based, rAF throttled)
+- Dil seçimi açılıp kapanırken butonlar smooth fade+scale ile görünür/kaybolur
 
