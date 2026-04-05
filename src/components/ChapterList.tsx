@@ -62,6 +62,7 @@ export const ChapterList: React.FC<ChapterListProps> = ({
   canGoNext = true,
   canGoPrevious = true,
   className,
+  lang = 'en',
 }) => {
   const [showSpeedSheet, setShowSpeedSheet] = useState(false);
   
