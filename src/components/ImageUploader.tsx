@@ -30,9 +30,9 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
     }
 
     // Check file size (5MB limit)
-    const maxSize = 20 * 1024 * 1024; // 20MB in bytes
+    const maxSize = 200 * 1024 * 1024; // 200MB in bytes
     if (file.size > maxSize) {
-      return 'Image must be smaller than 20MB';
+      return 'Image must be smaller than 200MB';
     }
 
     return null;
