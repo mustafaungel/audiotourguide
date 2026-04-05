@@ -483,7 +483,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
         onToggleMute={toggleMute}
         onVolumeChange={handleVolumeChange}
         onSpeedChange={handleSpeedChange}
-        onAutoAdvanceChange={setAutoAdvance}
+        lang={lang}
       />
     </div>
   );
