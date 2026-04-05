@@ -278,7 +278,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
           setLoading(false);
           
           toast({
-            title: 'Now Playing',
+            title: t('nowPlaying', lang),
             description: sections[sectionIndex]?.title || guideTitle,
           });
         })
