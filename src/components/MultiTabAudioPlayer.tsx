@@ -341,7 +341,17 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
 
   return (
     <div className="w-full max-w-4xl mx-auto">
-      <Tabs value={activeTab} onValueChange={(value) => { const scrollY = window.scrollY; setActiveTab(value); onActiveTabChange?.(value); requestAnimationFrame(() => window.scrollTo(0, scrollY)); }} className="w-full">
+      <Tabs value={activeTab} onValueChange={(value) => {
+        const scrollY = window.scrollY;
+        setActiveTab(value);
+        onActiveTabChange?.(value);
+        // Double-rAF: wait for React render + DOM paint
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            window.scrollTo({ top: scrollY, behavior: 'instant' as ScrollBehavior });
+          });
+        });
+      }} className="w-full">
         {/* iOS-style horizontal scroll pill tabs */}
         <TabsList className="flex flex-wrap w-full mb-4 h-auto p-1 gap-2 bg-transparent">
           <TabsTrigger
@@ -389,36 +399,37 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
           )}
         </TabsList>
 
-        <TabsContent value="main" className="mt-0">
-          <NewSectionAudioPlayer
-            key={`${mainGuide.id}-${languageByGuide[mainGuide.id] || languageCode}`}
-            guideId={mainGuide.id}
-            guideTitle={mainGuide.title}
-            sections={mainSections}
-            mainAudioUrl={mainGuide.audio_url}
-            lang={languageByGuide[mainGuide.id] || languageCode}
-          />
-        </TabsContent>
-
-        {linkedGuides.map((linkedGuide) => (
-          <TabsContent key={linkedGuide.guide_id} value={linkedGuide.guide_id} className="mt-0">
+        {/* forceMount + hidden: prevent layout shift & re-mount */}
+        <div className="min-h-[400px]">
+          <TabsContent value="main" forceMount className={activeTab !== 'main' ? 'hidden' : 'mt-0'}>
             <NewSectionAudioPlayer
-              key={`${linkedGuide.guide_id}-${languageByGuide[linkedGuide.guide_id] || languageCode}`}
-              guideId={linkedGuide.guide_id}
-              guideTitle={linkedGuide.custom_title || linkedGuide.title}
-              sections={sectionsByGuide[linkedGuide.guide_id] || []}
-              mainAudioUrl=""
-              lang={languageByGuide[linkedGuide.guide_id] || languageCode}
+              guideId={mainGuide.id}
+              guideTitle={mainGuide.title}
+              sections={mainSections}
+              mainAudioUrl={mainGuide.audio_url}
+              lang={languageByGuide[mainGuide.id] || languageCode}
             />
           </TabsContent>
-        ))}
 
-        {/* Loading state for pending guide */}
-        {pendingGuideId && !linkedGuides.some(g => g.guide_id === pendingGuideId) && (
-          <TabsContent value={pendingGuideId} className="mt-0">
-            <AudioGuideLoader variant="inline" message={t('loadingGuide', languageCode)} />
-          </TabsContent>
-        )}
+          {linkedGuides.map((linkedGuide) => (
+            <TabsContent key={linkedGuide.guide_id} value={linkedGuide.guide_id} forceMount className={activeTab !== linkedGuide.guide_id ? 'hidden' : 'mt-0'}>
+              <NewSectionAudioPlayer
+                guideId={linkedGuide.guide_id}
+                guideTitle={linkedGuide.custom_title || linkedGuide.title}
+                sections={sectionsByGuide[linkedGuide.guide_id] || []}
+                mainAudioUrl=""
+                lang={languageByGuide[linkedGuide.guide_id] || languageCode}
+              />
+            </TabsContent>
+          ))}
+
+          {/* Loading state for pending guide */}
+          {pendingGuideId && !linkedGuides.some(g => g.guide_id === pendingGuideId) && (
+            <TabsContent value={pendingGuideId} forceMount className={activeTab !== pendingGuideId ? 'hidden' : 'mt-0'}>
+              <AudioGuideLoader variant="inline" message={t('loadingGuide', languageCode)} />
+            </TabsContent>
+          )}
+        </div>
       </Tabs>
     </div>
   );
