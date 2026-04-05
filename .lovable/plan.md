@@ -1,43 +1,37 @@
 
 
-## Plan: Ana Sayfada Yatay Kaydırmalı Guide Carousel
+## Plan: Bottom Sheet Görsel İyileştirme ve Performans
 
-### Sorun
-Ana sayfada (Index) guide kartları `grid-cols-1` ile alt alta listeleniyor. Mobilde tek tek kaydırmak zahmetli ve alan verimsiz kullanılıyor.
+### Mevcut Durum
+Bottom sheet açıldığında içeride düz bir `NewSectionAudioPlayer` (ChapterList kartı) render ediliyor. Görsel olarak sade, sheet'in kendisi ile içerik arasında tasarım uyumu yok. Ayrıca her tıklamada section verisi yeniden yüklenebiliyor.
 
-### Çözüm
-`src/pages/Index.tsx` dosyasındaki guide grid'ini mobilde Embla Carousel'e dönüştür. Zaten projede `FeaturedGuides.tsx`'te kullanılan carousel pattern'i aynen uygula.
+### Değişiklikler
 
-### Değişiklikler — `src/pages/Index.tsx`
+#### 1. `src/components/ui/bottom-sheet.tsx` — Görsel İyileştirme
+- Drag handle'ı daha belirgin yap: `w-10 h-1` → `w-12 h-1.5`, renk `bg-muted-foreground/30`
+- Header'a alt çizgi (separator) ekle: `border-b border-border/30`
+- Kapatma butonunu daha belirgin yap: `bg-muted/50 rounded-full p-2`
+- Sheet arka planını güçlendir: `bg-background/95` (daha opak, daha okunaklı)
+- Açılış animasyonunu GPU-optimized yap: `will-change: transform` ekle
+- Bouncy spring animasyonunu hafiflet (kasma riski): `cubic-bezier(0.25, 1, 0.5, 1)` (daha doğal, daha az CPU)
 
-**1. Grid'i Carousel'e dönüştür (mobilde):**
-- `grid grid-cols-1` → `Carousel` + `CarouselContent` + `CarouselItem` yapısı
-- Her kart `basis-[85%]` ile ekranın %85'ini kaplayacak, yanındaki kartın kenarı görünecek (kaydırma ipucu)
-- `loop: true`, `align: "start"` — sonsuz döngü, kolay swipe
-- Desktop'ta (`sm:basis-1/2 lg:basis-1/3`) yan yana gösterim korunur
+#### 2. `src/components/MultiTabAudioPlayer.tsx` — Performans
+- Bottom sheet `open` olmadığında `NewSectionAudioPlayer`'ı render etme (lazy render)
+- `selectedLinkedGuide` değiştiğinde section verisi zaten cache'de ise tekrar fetch etme (mevcut `ensureGuideSections` zaten bunu yapıyor, sadece sheet içi render'ı optimize et)
+- Sheet content'i `React.memo` veya conditional render ile sararak gereksiz re-render önle
 
-**2. Kartların eşit boyutta olması:**
-- `CarouselItem` içinde `h-full` class'ı ile tüm kartlar aynı yükseklikte
-- `GuideCard`'a `className="h-full"` prop'u geçilecek (Card zaten flex column yapabilir)
-
-**3. GuideCard'da eşit yükseklik desteği:**
-- `src/components/GuideCard.tsx` — Root `Card` elementine `h-full flex flex-col` ekle
-- `CardContent`'e `flex-1` ekleyerek içeriğin esnemesini sağla
-- Böylece tüm kartlar carousel'de aynı boyutta olur
-
-**4. Performans:**
-- Carousel zaten `overflow-hidden` kullanıyor, sadece görünen kartlar render ediliyor
-- `OptimizedImage` ile `loading="lazy"` mevcut
-- LocalStorage cache (`GUIDES_CACHE_KEY`) zaten mevcut — anında render
-- Ek performans değişikliği gerekmez
+#### 3. `src/components/ChapterList.tsx` — Sheet İçi Görsel Uyum
+- Sheet içinde açıldığında Card'ın border ve shadow'unu kaldır (sheet zaten container): Card'a `border-0 shadow-none bg-transparent` uygula (sheet context'inde)
+- Bu sayede sheet içinde çift çerçeve görünümü olmaz, daha temiz bir görünüm sağlanır
 
 ### Etkilenen Dosyalar
-- `src/pages/Index.tsx` — grid → carousel dönüşümü
-- `src/components/GuideCard.tsx` — `h-full flex flex-col` eşit yükseklik desteği
+- `src/components/ui/bottom-sheet.tsx` — görsel polish + animasyon optimizasyonu
+- `src/components/MultiTabAudioPlayer.tsx` — lazy render + performans
+- `src/components/ChapterList.tsx` — isteğe bağlı `variant` prop ile sheet içi stil
 
-### Beklenen Sonuç
-- Mobilde sağa-sola parmakla kaydırarak guide'lar arası geçiş
-- Tüm kartlar aynı boyutta
-- Yanındaki kartın kenarı görünerek kaydırma ipucu verir
-- Mevcut performans optimizasyonları korunur
+### Performans Garantisi
+- `will-change: transform` ile GPU compositing
+- Daha hafif animasyon eğrisi (bouncy → smooth)
+- Sheet kapalıyken içerik render edilmez
+- `overscrollBehavior: contain` zaten mevcut
 
