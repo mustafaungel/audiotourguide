@@ -137,7 +137,7 @@ export const GuestReviewForm = ({ guideId, onReviewSubmitted, lang = 'en' }: Gue
           </div>
 
           <div>
-            <Label>Rating *</Label>
+            <Label>{t('rating', lang)} *</Label>
             <div className="flex items-center space-x-1 mt-1">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
