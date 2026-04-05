@@ -44,9 +44,20 @@ const queryClient = new QueryClient({
   },
 });
 
+const AudioGuideLoaderLazy = React.lazy(() => import("@/components/AudioGuideLoader").then(m => ({ default: m.AudioGuideLoader })));
+
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
-    <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+    <div className="text-center space-y-4">
+      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto audio-icon-pulse">
+        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+      <div className="flex items-center justify-center gap-[3px]">
+        {[0, 1, 2, 3, 4].map((i) => (
+          <span key={i} className="w-1 rounded-full bg-primary audio-wave-bar" style={{ animationDelay: `${i * 0.12}s` }} />
+        ))}
+      </div>
+    </div>
   </div>
 );
 
