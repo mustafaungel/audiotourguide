@@ -511,10 +511,7 @@ const AdminPanel = () => {
                         className="w-full mt-2"
                       >
                         {descriptionLoading ? (
-                          <>
-                            <Loader2 className="w-3 h-3 mr-2 animate-spin" />
-                            Generating...
-                          </>
+                          <ButtonLoader text="Generating..." />
                         ) : (
                           'Generate AI Description'
                         )}
