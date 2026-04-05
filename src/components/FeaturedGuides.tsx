@@ -22,6 +22,7 @@ interface AudioGuide {
   rating: number;
   total_reviews: number;
   languages: string[];
+  slug: string;
 }
 
 export const FeaturedGuides = () => {
@@ -60,10 +61,11 @@ export const FeaturedGuides = () => {
   const handleGuideClick = (guide: AudioGuide) => {
     // Fire-and-forget tracking
     trackEngagement('view', guide.id);
-    navigate(`/guide/${guide.id}`, {
+    navigate(`/guide/${guide.slug || guide.id}`, {
       state: {
         guidePreview: {
           id: guide.id,
+          slug: guide.slug,
           title: guide.title,
           description: guide.description,
           location: guide.location,

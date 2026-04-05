@@ -25,6 +25,7 @@ interface AudioGuide {
   category: string;
   difficulty: string;
   languages: string[];
+  slug: string;
 }
 
 const FeaturedGuides = () => {
@@ -159,10 +160,11 @@ const FeaturedGuides = () => {
                 <Card 
                   key={guide.id}
                   className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02] cursor-pointer group"
-                  onClick={() => navigate(`/guide/${guide.id}`, {
+                  onClick={() => navigate(`/guide/${guide.slug || guide.id}`, {
                     state: {
                       guidePreview: {
                         id: guide.id,
+                        slug: guide.slug,
                         title: guide.title,
                         description: guide.description,
                         location: guide.location,
