@@ -4,6 +4,7 @@ import { Globe, Check } from 'lucide-react';
 import { getLanguageFlag, getLanguageDisplay } from '@/lib/language-utils';
 import { haptics } from '@/lib/haptics';
 import { cn } from '@/lib/utils';
+import { t } from '@/lib/translations';
 
 interface GuideLanguageSelectorProps {
   guideId: string;
