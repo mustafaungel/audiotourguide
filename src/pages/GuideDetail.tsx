@@ -1,4 +1,4 @@
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { SEO } from "@/components/SEO";
 import { Navigation } from "@/components/Navigation";
@@ -103,12 +103,16 @@ const reviews = [
 // Related guides will be fetched dynamically
 
 const GuideDetail = () => {
-  console.log('🔧 GuideDetail component loading');
   const { slug } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const { trackEngagement } = useViralTracking();
   const [searchParams] = useSearchParams();
+  
+  // Get preview data from navigation state for instant rendering
+  const guidePreview = (location.state as any)?.guidePreview;
+  
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [playingGuide, setPlayingGuide] = useState(false);
   const [isPurchased, setIsPurchased] = useState(false);
@@ -116,8 +120,25 @@ const GuideDetail = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showQRCode, setShowQRCode] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [realGuideData, setRealGuideData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(!guidePreview);
+  const [realGuideData, setRealGuideData] = useState<any>(guidePreview ? {
+    id: guidePreview.id,
+    slug: guidePreview.slug,
+    title: guidePreview.title,
+    description: guidePreview.description,
+    location: guidePreview.location,
+    price_usd: guidePreview.price,
+    price: `$${(guidePreview.price / 100).toFixed(2)}`,
+    duration: guidePreview.duration,
+    category: guidePreview.category,
+    difficulty: guidePreview.difficulty,
+    image_url: guidePreview.imageUrl,
+    image_urls: guidePreview.imageUrl ? [guidePreview.imageUrl] : [],
+    creator: { name: 'Loading...', avatar: '', bio: '' },
+    features: [],
+    sections: [],
+    languages: [],
+  } : null);
   const [error, setError] = useState<string | null>(null);
   const [relatedGuides, setRelatedGuides] = useState<any[]>([]);
   const [selectedLanguage, setSelectedLanguage] = useState<string>('');
@@ -183,7 +204,10 @@ const GuideDetail = () => {
       return;
     }
     
-    setIsLoading(true);
+    // Only show loading spinner if we don't have preview data
+    if (!realGuideData) {
+      setIsLoading(true);
+    }
     
     try {
       // First, get the guide data by slug
