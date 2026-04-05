@@ -34,6 +34,8 @@ export default function AudioAccess() {
   const [activeGuideId, setActiveGuideId] = useState<string>('main');
   const [availableLanguages, setAvailableLanguages] = useState<any[]>([]);
   const [linkedLanguageByGuide, setLinkedLanguageByGuide] = useState<Record<string, string>>({});
+  const [showFullDescription, setShowFullDescription] = useState(false);
+  const [showReviewForm, setShowReviewForm] = useState(false);
 
   const accessCode = searchParams.get('access_code') || searchParams.get('access');
   const sessionId = searchParams.get('session_id');
