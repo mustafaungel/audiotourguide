@@ -673,7 +673,7 @@ export default function AudioAccess() {
       <div className="relative overflow-hidden">
         {/* Blurred background from guide image */}
         <div
-          className="absolute inset-0 scale-110 blur-3xl opacity-30 will-change-transform"
+          className="absolute inset-0 scale-110 blur-2xl opacity-30 will-change-transform"
           style={{
             backgroundImage: `url(${guideImageUrl})`,
             backgroundSize: 'cover',
