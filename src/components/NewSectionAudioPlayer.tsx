@@ -289,8 +289,8 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
           
           if (error.name === 'NotAllowedError') {
             toast({
-              title: 'Audio Locked',
-              description: 'Please tap again to play',
+              title: t('audioLocked', lang),
+              description: t('tapToPlay', lang),
               variant: 'default',
             });
           } else if (error.name === 'NotSupportedError') {
