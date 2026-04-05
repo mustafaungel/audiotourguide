@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useRef, useCallback, useState } from "react";
+import { useRef, useCallback, useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -41,37 +41,46 @@ export function BottomSheet({
   });
 
   const [currentSnap, setCurrentSnap] = useState<'mini' | 'half' | 'full'>(defaultSnap);
-  const [mounted, setMounted] = useState(false);
+  // Two-phase mount: rendered = in DOM, visible = animated to position
+  const [rendered, setRendered] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const scrollYRef = useRef(0);
 
-  React.useEffect(() => {
+  // Open: mount first, then animate in next frame
+  useEffect(() => {
     if (open) {
-      setMounted(true);
       setCurrentSnap(defaultSnap);
+      setRendered(true);
+      // Force a layout read before animating in
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setVisible(true);
+        });
+      });
+    } else {
+      // Close: animate out first, unmount after transition
+      setVisible(false);
     }
   }, [open, defaultSnap]);
 
-  React.useEffect(() => {
-    if (open) {
-      const scrollY = window.scrollY;
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.width = '100%';
+  // Lightweight scroll lock — no position:fixed, no scroll jump
+  useEffect(() => {
+    if (rendered && visible) {
+      scrollYRef.current = window.scrollY;
+      document.documentElement.style.overflow = 'hidden';
       document.body.style.overflow = 'hidden';
       return () => {
-        document.body.style.position = '';
-        document.body.style.top = '';
-        document.body.style.width = '';
+        document.documentElement.style.overflow = '';
         document.body.style.overflow = '';
-        window.scrollTo(0, scrollY);
       };
     }
-  }, [open]);
+  }, [rendered, visible]);
 
   const handleTransitionEnd = useCallback(() => {
-    if (!open) {
-      setMounted(false);
+    if (!visible) {
+      setRendered(false);
     }
-  }, [open]);
+  }, [visible]);
 
   const applyDragTransform = useCallback((deltaY: number) => {
     if (!sheetRef.current) return;
@@ -147,9 +156,9 @@ export function BottomSheet({
     d.velocity = 0;
   }, [currentSnap, onOpenChange]);
 
-  if (!mounted && !open) return null;
+  if (!rendered) return null;
 
-  const translateY = open ? snapToOffset(currentSnap) : '100%';
+  const translateY = visible ? snapToOffset(currentSnap) : '100%';
 
   return (
     <>
@@ -159,8 +168,8 @@ export function BottomSheet({
         style={{
           background: 'rgba(0, 0, 0, 0.5)',
           touchAction: 'none',
-          opacity: open ? 1 : 0,
-          pointerEvents: open ? 'auto' : 'none',
+          opacity: visible ? 1 : 0,
+          pointerEvents: visible ? 'auto' : 'none',
           transition: 'opacity 0.35s ease',
           willChange: 'opacity',
         }}
