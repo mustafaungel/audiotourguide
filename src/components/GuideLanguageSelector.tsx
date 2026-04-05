@@ -117,6 +117,7 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
         {displayLanguages.map((language) => {
           const isSelected = language.language_code === selectedLanguage;
           const isHidden = collapsed && !isSelected;
+          return (
             <button
               key={language.language_code}
               onClick={() => handleLanguageSelect(language.language_code)}
@@ -125,7 +126,8 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
                 "border active:scale-[0.97]",
                 isSelected
                   ? "bg-primary/10 border-primary text-primary shadow-sm ring-2 ring-primary/20"
-                  : "bg-card border-border text-foreground hover:bg-muted"
+                  : "bg-card border-border text-foreground hover:bg-muted",
+                isHidden && "invisible"
               )}
             >
               <span className="text-lg" aria-hidden="true">
