@@ -27,28 +27,6 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const App = () => {
-  // Aggressive cache-busting mechanism
-  React.useEffect(() => {
-    const storedBuild = localStorage.getItem('app_build');
-    const currentUrl = window.location.href;
-    const hasVersionParam = currentUrl.includes('v=');
-    
-    // Force reload if build changed OR no version in URL
-    if (storedBuild !== APP_BUILD || !hasVersionParam) {
-      console.log('[CACHE-BUST] Reloading for new build:', APP_BUILD);
-      localStorage.setItem('app_build', APP_BUILD);
-      sessionStorage.clear();
-      
-      // Add version + timestamp to URL to bypass all caching layers
-      const separator = window.location.search ? '&' : '?';
-      const timestamp = Date.now();
-      const newUrl = `${window.location.pathname}${window.location.search}${separator}v=${APP_BUILD}&t=${timestamp}`;
-      
-      // Replace current page (no back button issues)
-      window.location.replace(newUrl);
-      return;
-    }
-  }, []);
   try {
     return (
   <QueryClientProvider client={queryClient}>
