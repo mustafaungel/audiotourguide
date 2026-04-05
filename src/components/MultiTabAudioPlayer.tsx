@@ -292,6 +292,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
       >
         {selectedGuideId && (
           <NewSectionAudioPlayer
+            key={`${selectedGuideId}-${languageByGuide[selectedGuideId] || languageCode}-${getSheetSections().map(s => s.id).join(',')}`}
             guideId={selectedGuideId}
             guideTitle={getSheetTitle() || ''}
             sections={getSheetSections()}
