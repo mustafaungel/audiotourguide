@@ -1102,7 +1102,7 @@ const GuideDetail = () => {
           {/* Sidebar - Hidden on mobile when player is active */}
           <div className="space-y-6">
             {/* Purchase Card - Compact on mobile */}
-            <Card>
+            <Card className="min-h-[200px]">
               <CardContent className="space-y-3 pt-4 md:pt-6 px-4 md:px-6">
                 {isPurchased ? (
                   <Button className="w-full" size="lg" disabled>
