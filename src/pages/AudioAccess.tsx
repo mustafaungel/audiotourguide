@@ -606,14 +606,14 @@ export default function AudioAccess() {
                 {/* Regional troubleshooting info */}
                 {isNetworkIssue && (
                   <div className="mt-4 p-3 rounded-lg bg-gray-50 dark:bg-gray-900 border">
-                    <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Troubleshooting Tips for Regional Access:
+                     <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      {t('troubleshootingTips', selectedLanguage)}
                     </p>
                     <ul className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
-                      <li>• Try switching to a different network (mobile data vs WiFi)</li>
-                      <li>• Check if you can access other websites normally</li>
-                      <li>• If using a VPN, try disabling it temporarily</li>
-                      <li>• Clear your browser cache and try again</li>
+                      <li>• {t('trySwitchingNetwork', selectedLanguage)}</li>
+                      <li>• {t('checkOtherWebsites', selectedLanguage)}</li>
+                      <li>• {t('tryDisablingVpn', selectedLanguage)}</li>
+                      <li>• {t('clearBrowserCache', selectedLanguage)}</li>
                     </ul>
                   </div>
                 )}
