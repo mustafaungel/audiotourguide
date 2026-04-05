@@ -214,7 +214,12 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
       <div className="grid w-full mb-4 gap-2 grid-cols-1">
         {/* Main guide pill - always active look */}
         <button
-          className="flex items-center justify-between gap-2 min-h-[48px] px-4 py-2.5 text-sm font-medium rounded-xl bg-primary text-primary-foreground shadow-md ring-2 ring-primary/30 transition-all active:scale-[0.97]"
+          className={cn(
+            "flex items-center justify-between gap-2 min-h-[48px] px-4 py-2.5 text-sm font-medium rounded-xl border border-transparent transition-all active:scale-[0.97]",
+            !sheetOpen
+              ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/30"
+              : "bg-muted/50 hover:bg-muted"
+          )}
           onClick={() => { setSheetOpen(false); setSelectedLinkedGuide(null); }}
         >
           <span className="flex items-center gap-2 min-w-0">
