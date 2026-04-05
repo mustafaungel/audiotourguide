@@ -1,4 +1,5 @@
 import { useParams, useNavigate, useSearchParams, useLocation } from "react-router-dom";
+import { AudioGuideLoader } from '@/components/AudioGuideLoader';
 import { useState, useEffect } from "react";
 import { SEO } from "@/components/SEO";
 import { Navigation } from "@/components/Navigation";
@@ -582,12 +583,7 @@ const GuideDetail = () => {
             <ChevronLeft className="w-4 h-4 mr-2" />
             Back to Guides
           </Button>
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-muted-foreground">Loading guide details...</p>
-            </div>
-          </div>
+          <AudioGuideLoader variant="page" message="Preparing your audio experience..." />
         </div>
       </div>
     );

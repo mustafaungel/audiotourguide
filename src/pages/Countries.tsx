@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { AudioGuideLoader } from '@/components/AudioGuideLoader';
 import { useNavigate } from 'react-router-dom';
 import { SEO } from '@/components/SEO';
 import { Navigation } from '@/components/Navigation';
@@ -128,17 +129,7 @@ const Countries = () => {
 
           {/* Loading State */}
           {loading && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {[...Array(12)].map((_, i) => (
-                <Card key={i} className="mobile-card animate-pulse">
-                  <CardContent className="p-4 text-center">
-                    <div className="w-16 h-16 bg-muted rounded-full mx-auto mb-3"></div>
-                    <div className="h-4 bg-muted rounded mb-2"></div>
-                    <div className="h-3 bg-muted rounded w-3/4 mx-auto"></div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            <AudioGuideLoader variant="grid" count={12} />
           )}
 
           {/* Countries Grid */}

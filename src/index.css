@@ -530,4 +530,33 @@ All colors MUST be HSL.
     line-height: 1.4;
     letter-spacing: -0.01em;
   }
+
+  /* Audio Guide Themed Loader Animations */
+  .audio-wave-bar {
+    height: 4px;
+    animation: audio-wave 1s ease-in-out infinite;
+  }
+
+  @keyframes audio-wave {
+    0%, 100% { height: 4px; }
+    50% { height: 20px; }
+  }
+
+  .audio-icon-pulse {
+    animation: icon-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes icon-pulse {
+    0%, 100% { opacity: 0.7; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.05); }
+  }
+
+  .audio-message-fade {
+    animation: message-fade 1.5s ease-in forwards;
+  }
+
+  @keyframes message-fade {
+    0% { opacity: 0; transform: translateY(4px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
 }

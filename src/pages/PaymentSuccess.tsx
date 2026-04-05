@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { AudioGuideLoader } from '@/components/AudioGuideLoader';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
@@ -133,11 +134,7 @@ export default function PaymentSuccess() {
       <div className="min-h-screen bg-background">
         <Navigation />
         <div className="flex items-center justify-center min-h-[80vh]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
-            <h2 className="text-xl font-semibold text-foreground mb-2">Verifying Payment...</h2>
-            <p className="text-muted-foreground">Please wait while we confirm your purchase</p>
-          </div>
+          <AudioGuideLoader variant="page" message="Confirming your purchase..." />
         </div>
       </div>
     );
