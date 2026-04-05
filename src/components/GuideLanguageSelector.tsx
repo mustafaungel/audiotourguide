@@ -110,10 +110,7 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
         <Globe className="h-4 w-4 text-muted-foreground" />
         <span className="text-sm text-muted-foreground font-medium">{t('language', selectedLanguage)}</span>
       </div>
-      <div className={cn(
-        "grid gap-2 transition-all duration-200 overflow-hidden",
-        displayLanguages.length === 2 ? "grid-cols-2" : displayLanguages.length >= 3 ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-1"
-      )}>
+      <div className="flex flex-wrap gap-2 transition-all duration-200">
         {displayLanguages.map((language) => {
           const isSelected = language.language_code === selectedLanguage;
           const isHidden = collapsed && !isSelected;
@@ -122,12 +119,12 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
               key={language.language_code}
               onClick={() => handleLanguageSelect(language.language_code)}
               className={cn(
-                "inline-flex items-center justify-center gap-2 px-3 min-h-[44px] rounded-xl text-sm font-medium transition-all duration-200",
+                "inline-flex items-center justify-center gap-2 px-3 min-h-[44px] min-w-[calc(50%-0.25rem)] rounded-xl text-sm font-medium transition-all duration-200",
                 "border active:scale-[0.97]",
                 isSelected
                   ? "bg-primary/10 border-primary text-primary shadow-sm ring-2 ring-primary/20"
                   : "bg-card border-border text-foreground hover:bg-muted",
-                isHidden && "invisible"
+                isHidden && "hidden"
               )}
             >
               <span className="text-lg" aria-hidden="true">
