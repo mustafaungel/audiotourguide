@@ -84,7 +84,7 @@ export const GuestReviewForm = ({ guideId, onReviewSubmitted, lang = 'en' }: Gue
         return;
       }
 
-      toast.success('Review submitted successfully! It will be visible after admin approval.');
+      toast.success(t('reviewSuccess', lang));
       setFormData({ name: '', email: '', comment: '', rating: 0 });
       onReviewSubmitted?.();
     } catch (error) {
