@@ -144,6 +144,7 @@ export function BottomSheet({
           background: 'rgba(0, 0, 0, 0.4)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
+          touchAction: 'none',
         }}
         onClick={() => onOpenChange(false)}
       />
@@ -161,18 +162,27 @@ export function BottomSheet({
           backdropFilter: 'blur(40px) saturate(180%)',
           WebkitBackdropFilter: 'blur(40px) saturate(180%)',
         }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
       >
         {/* Drag Handle */}
-        <div className="flex justify-center pt-3 pb-2">
+        <div
+          className="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          style={{ touchAction: 'none' }}
+        >
           <div className="w-10 h-1 bg-muted rounded-full" />
         </div>
 
         {/* Header */}
         {title && (
-          <div className="flex items-center justify-between px-4 pb-3 pt-1">
+          <div
+            className="flex items-center justify-between px-4 pb-3 pt-1"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            style={{ touchAction: 'none' }}
+          >
             <h3 className="text-lg font-semibold">{title}</h3>
             <button
               onClick={() => onOpenChange(false)}
@@ -184,7 +194,10 @@ export function BottomSheet({
         )}
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-4 pb-safe">
+        <div
+          className="flex-1 overflow-y-auto px-4 pb-safe"
+          style={{ overscrollBehavior: 'contain' }}
+        >
           {children}
         </div>
       </div>
