@@ -590,10 +590,7 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
           </CardHeader>
           <CardContent>
             {sectionsLoading ? (
-              <div className="flex items-center justify-center p-8">
-                <Loader2 className="w-6 h-6 animate-spin mr-2" />
-                Loading sections...
-              </div>
+              <AudioGuideLoader variant="inline" message="Loading sections..." />
             ) : (
               <AudioGuideSectionManager
                 sections={sections}
