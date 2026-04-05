@@ -81,8 +81,8 @@ export function GuideCard({
     });
   };
 
-  const handleView = async () => {
-    await trackEngagement('view', id);
+  const handleView = () => {
+    trackEngagement('view', id);
     navigate(`/guide/${slug || id}`, {
       state: {
         guidePreview: { id, slug, title, description, location, price, duration, category, difficulty, imageUrl }

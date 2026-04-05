@@ -58,7 +58,7 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const loadBranding = useCallback(async () => {
     try {
-      setLoading(true);
+      if (!hasCachedData) setLoading(true);
       setError(null);
 
       const { data, error } = await supabase
