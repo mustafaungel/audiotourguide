@@ -752,7 +752,7 @@ const GuideDetail = () => {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Hero Image - Responsive aspect ratio */}
-            <div className="relative aspect-video md:aspect-[16/10] rounded-3xl overflow-hidden shadow-xl">
+            <div className="relative aspect-video md:aspect-[16/10] rounded-3xl overflow-hidden shadow-xl min-h-[200px] md:min-h-[300px]">
               <img
                 src={
                   (guide.image_urls?.[0] || guide.image_url)?.startsWith('data:image') 
