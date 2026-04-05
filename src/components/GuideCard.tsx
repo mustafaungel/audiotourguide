@@ -111,7 +111,7 @@ export function GuideCard({
   };
 
   return (
-    <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer bg-gradient-card border-border/50 shadow-card hover:shadow-glow hover:scale-[1.02]" onClick={handleView}>
+    <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer select-none bg-gradient-card border-border/50 shadow-card hover:shadow-glow hover:scale-[1.02] active:scale-[0.98]" onClick={handleView}>
       <CardHeader className="p-0 relative">
         <div className="aspect-video overflow-hidden bg-muted">
           <OptimizedImage
