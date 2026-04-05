@@ -152,9 +152,14 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     // Determine effective language: override > stored > default
     const effectiveLang = overrideLanguage || languageByGuide[guideId] || languageCode;
     
-    if (sectionsByGuide[guideId] || !accessCode) {
-      console.log('MultiTabAudioPlayer: Skipping sections load for guide:', guideId, 'Already loaded or no access code');
-      return; // Already loaded or no access code
+    // If override language, always reload. Otherwise skip if already loaded.
+    if (!overrideLanguage && sectionsByGuide[guideId] && sectionsByGuide[guideId].length > 0) {
+      console.log('MultiTabAudioPlayer: Skipping sections load for guide:', guideId, 'Already loaded');
+      return;
+    }
+    if (!accessCode) {
+      console.log('MultiTabAudioPlayer: No access code, skipping');
+      return;
     }
 
     console.log('MultiTabAudioPlayer: Starting sections load for guide:', guideId, 'with language:', effectiveLang);
