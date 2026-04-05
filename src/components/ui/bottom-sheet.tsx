@@ -135,7 +135,7 @@ export function BottomSheet({
       if (d.velocity > 0) {
         if (currentSnap === 'full') setCurrentSnap('half');
         else if (currentSnap === 'half') setCurrentSnap('mini');
-        else onOpenChange(false);
+        else setCurrentSnap('mini');
       } else {
         if (currentSnap === 'mini') setCurrentSnap('half');
         else if (currentSnap === 'half') setCurrentSnap('full');
