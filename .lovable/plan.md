@@ -1,42 +1,42 @@
 
 
-## Plan: Dil Seçimi Açık Gösterim + Logo Cache ile Anlık Yükleme
+## Plan: GuideCard Tıklama ve Hızlı Sayfa Yükleme
 
-### Sorun 1: Çift Logo → localStorage Cache Çözümü
+### Sorun
+1. Ana sayfada guide kartına tıklayınca `GuideDetail` sayfası açılıyor ama `isLoading: true` ile başlayıp Supabase sorgusu bitene kadar spinner gösteriyor → kullanıcı gecikme yaşıyor
+2. Console loglarında `GuideDetail component loading` her navigasyonda 4-6 kez tekrarlanıyor → gereksiz re-render
 
-Sorun: Branding verisi Supabase'den gelene kadar `FallbackIcon` gösteriliyor, sonra gerçek logo yükleniyor → iki farklı logo görünüyor.
+### Çözüm: Navigation State ile Anlık Gösterim
 
-Boş div göstermek yerine **localStorage cache** kullanacağız: Logo URL'si bir kez Supabase'den geldiğinde localStorage'a kaydedilecek. Sonraki sayfa yüklemelerinde BrandingContext, Supabase sorgusu bitmeden önce cache'teki değeri kullanacak → logo anında görünecek, FallbackIcon hiç gösterilmeyecek.
+Ana sayfa zaten tüm guide verilerini Supabase'den çekiyor. Bu veriyi React Router'ın `navigate` state'i ile GuideDetail'e aktaracağız. GuideDetail, state'ten gelen veriyi anında gösterecek, arka planda güncel veriyi Supabase'den çekecek.
 
-**Dosya: `src/contexts/BrandingContext.tsx`**
-- `defaultBranding` yerine `localStorage`'dan okunan cached branding ile başla
-- Supabase sorgusu tamamlandığında hem state'i hem cache'i güncelle
-- İlk yüklemede cache varsa `loading` baştan `false` olacak
+### Yapılacak Değişiklikler
 
-**Dosya: `src/components/ResponsiveLogo.tsx`**
-- Değişiklik yok — cache sayesinde `logoUrl` zaten ilk render'da dolu olacak, FallbackIcon hiç tetiklenmeyecek
+**1. `src/components/GuideCard.tsx`**
+- `handleView` fonksiyonunda `navigate`'e guide verilerini state olarak ekle:
+  ```
+  navigate(`/guide/${slug || id}`, { state: { guidePreview: { id, slug, title, description, location, price, duration, category, imageUrl } } })
+  ```
 
----
+**2. `src/pages/GuideDetail.tsx`**
+- `useLocation()`'dan `state.guidePreview` oku
+- Eğer preview verisi varsa, `isLoading`'i `false` olarak başlat ve `realGuideData`'yı preview ile initialize et
+- Supabase fetch arka planda çalışmaya devam edecek, gelince veriyi güncelleyecek
+- `console.log('🔧 GuideDetail component loading')` satırını kaldır (gereksiz re-render spam'i)
 
-### Sorun 2: Dil Seçimi → Açık Butonlar
+**3. `src/pages/Index.tsx`**
+- `GuideCard`'a zaten tüm gerekli prop'lar geçiriliyor, ek değişiklik gerekmez
 
-**Dosya: `src/components/GuideLanguageSelector.tsx`**
-- BottomSheet mekanizmasını kaldır
-- Dilleri `flex flex-wrap gap-2` ile yatay bayrak+isim butonları olarak direkt göster
-- Seçili dil vurgulanacak (primary border/background)
-- Tıklayınca direkt `onLanguageChange` çağrılacak
-
+### Akış
 ```text
-┌──────────┐ ┌──────────┐ ┌──────────┐
-│ 🇺🇸 English │ │ 🇹🇷 Türkçe │ │ 🇪🇸 Español │
-└──────────┘ └──────────┘ └──────────┘
-  (seçili)
+Mevcut:  Kart tıkla → Navigate → Loading spinner (1-2s) → İçerik
+Yeni:    Kart tıkla → Navigate → İçerik anında görünür → Arka plan güncelleme
 ```
 
 ### Etkilenen Dosyalar
-- `src/contexts/BrandingContext.tsx` — localStorage cache ekle
-- `src/components/GuideLanguageSelector.tsx` — bottom sheet → inline butonlar
+- `src/components/GuideCard.tsx` — navigate state ekle
+- `src/pages/GuideDetail.tsx` — location state'ten preview verisi oku
 
 ### Risk
-Düşük. Cache mekanizması sadece performans iyileştirmesi, mevcut işlevsellik korunuyor.
+Düşük. Mevcut fetch mantığı korunuyor, sadece başlangıç state'i optimize ediliyor.
 
