@@ -25,6 +25,7 @@ interface AudioGuide {
   category: string;
   difficulty: string;
   languages: string[];
+  slug: string;
 }
 
 const FeaturedGuides = () => {
