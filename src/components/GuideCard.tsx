@@ -73,8 +73,8 @@ export function GuideCard({
     }
   };
 
-  const handleBookmark = async () => {
-    await trackEngagement('bookmark', id);
+  const handleBookmark = () => {
+    trackEngagement('bookmark', id);
     toast({
       title: "Bookmarked!",
       description: "Guide saved to your library",
