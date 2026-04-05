@@ -8,7 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { FaviconUpdater } from "@/components/FaviconUpdater";
 import PreloadBrandingAssets from "@/components/PreloadBrandingAssets";
 import { PerformanceMonitor } from "@/components/PerformanceMonitor";
-import { APP_BUILD } from "@/lib/utils";
+
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AdminPanel from "./pages/AdminPanel";
