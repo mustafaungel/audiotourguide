@@ -22,6 +22,7 @@ interface AudioGuide {
   rating: number;
   total_reviews: number;
   languages: string[];
+  slug: string;
 }
 
 export const FeaturedGuides = () => {
