@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload, Loader2, Download, Eye, Trash2, Wand2 } from 'lucide-react';
-import { AudioGuideLoader } from './AudioGuideLoader';
+import { AudioGuideLoader, ButtonLoader } from './AudioGuideLoader';
 import { supabase } from '@/integrations/supabase/client';
 import { useSiteBranding } from '@/hooks/useSiteBranding';
 import { toast } from 'sonner';
