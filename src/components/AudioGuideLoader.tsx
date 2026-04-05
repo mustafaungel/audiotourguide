@@ -2,7 +2,7 @@ import { Headphones } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
 interface AudioGuideLoaderProps {
-  variant?: 'page' | 'card' | 'grid' | 'initial';
+  variant?: 'page' | 'card' | 'grid' | 'initial' | 'inline';
   message?: string;
   count?: number;
 }
@@ -27,6 +27,22 @@ const AudioWave = ({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) => {
     </div>
   );
 };
+
+// Tiny inline wave for buttons (no headphones icon)
+export const ButtonLoader = ({ text }: { text?: string }) => (
+  <span className="inline-flex items-center gap-2">
+    <span className="flex items-center gap-[2px]">
+      {[0, 1, 2, 3].map((i) => (
+        <span
+          key={i}
+          className="w-[3px] rounded-full bg-current audio-wave-bar"
+          style={{ animationDelay: `${i * 0.12}s` }}
+        />
+      ))}
+    </span>
+    {text && <span>{text}</span>}
+  </span>
+);
 
 // Full page loader (GuideDetail, AudioAccess, PaymentSuccess)
 const PageLoader = ({ message }: { message?: string }) => (
@@ -100,6 +116,23 @@ const InitialLoader = () => (
   </div>
 );
 
+// Compact inline loader for small sections (reviews, search, admin tables)
+const InlineLoader = ({ message }: { message?: string }) => (
+  <div className="flex items-center justify-center min-h-[100px] py-6">
+    <div className="flex items-center gap-3">
+      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center audio-icon-pulse">
+        <Headphones className="w-4 h-4 text-primary" />
+      </div>
+      <AudioWave size="sm" />
+      {message && (
+        <p className="text-muted-foreground text-sm audio-message-fade">
+          {message}
+        </p>
+      )}
+    </div>
+  </div>
+);
+
 export const AudioGuideLoader = ({ variant = 'page', message, count }: AudioGuideLoaderProps) => {
   switch (variant) {
     case 'page':
@@ -110,6 +143,8 @@ export const AudioGuideLoader = ({ variant = 'page', message, count }: AudioGuid
       return <GridLoader count={count} />;
     case 'initial':
       return <InitialLoader />;
+    case 'inline':
+      return <InlineLoader message={message} />;
     default:
       return <PageLoader message={message} />;
   }
