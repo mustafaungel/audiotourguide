@@ -111,25 +111,25 @@ export const GuestReviewForm = ({ guideId, onReviewSubmitted, lang = 'en' }: Gue
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="name">Name *</Label>
+              <Label htmlFor="name">{t('name', lang)} *</Label>
               <Input
                 id="name"
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Your full name"
+                placeholder={t('namePlaceholder', lang)}
                 required
                 disabled={loading}
               />
             </div>
             <div>
-              <Label htmlFor="email">Email *</Label>
+              <Label htmlFor="email">{t('email', lang)} *</Label>
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                placeholder="your@email.com"
+                placeholder={t('emailPlaceholder', lang)}
                 required
                 disabled={loading}
               />
