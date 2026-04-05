@@ -169,8 +169,8 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
       });
       
       toast({
-        title: 'Playback Error',
-        description: 'Failed to play audio file. Please check your connection and try again.',
+        title: t('playbackError', lang),
+        description: t('playbackErrorDesc', lang),
         variant: 'destructive',
       });
       setIsPlaying(false);
