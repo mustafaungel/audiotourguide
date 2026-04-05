@@ -1,58 +1,40 @@
 
 
-## Plan: Tüm Sayfalarda Layout Shift Düzeltmeleri — AudioGuideLoader Temalı
+## Plan: Mobil Tıklama UX + AudioAccess Dil Değişikliği Layout Shift Düzeltmeleri
 
-### Kapsam
-GuideDetail + AudioAccess + Ortak bileşenler (OptimizedImage, GuideCard, FeaturedGuides)
+### Sorun 1: Mobil GuideCard Tıklama Problemi
+`GuideCard.tsx` satır 159-172'de bir play button overlay var: `absolute inset-0` ile tüm image alanını kaplıyor. `opacity-0 group-hover:opacity-100` kullanıyor — mobilde hover olmadığı için bu overlay **görünmez ama pointer event'leri yakalıyor**. Kullanıcı resme tıkladığında aslında bu görünmez overlay'e tıklıyor ve çalışıyor, ama metin/fiyat/buton alanına tıkladığında da Card onClick çalışıyor. Asıl sorun **görsel**: mobilde kartın tıklanabilir olduğu belli olmuyor, hover efekti yok, active/pressed state yok.
+
+### Sorun 2: AudioAccess Dil Değişikliğinde Layout Shift
+`AudioAccess.tsx` satır 695'te `MultiTabAudioPlayer`'ın `key` prop'u `selectedLanguage` içeriyor. Dil değiştiğinde **tüm player unmount/remount** oluyor → tam bir layout kayması. Ayrıca `handleLanguageChange` async olarak yeni section'ları fetch ediyor — bu sürede sections boşalıyor ve player kapanıp açılıyor.
 
 ---
 
-### 1. `src/pages/GuideDetail.tsx` — Loading state'i AudioGuideLoader'a çevir
+### Değişiklik 1: `src/components/GuideCard.tsx` — Mobil tıklama UX iyileştirmesi
 
-**Mevcut sorun**: Satır 577-651'de generic gri `animate-pulse` skeleton kullanılıyor.
+- Play overlay'e `pointer-events-none` ekle (tüm click'ler Card'ın onClick'ine gitsin)
+- Overlay'deki Button'ın ayrı onClick'ini kaldır (zaten Card onClick var)
+- Karta `active:scale-[0.98]` ekle → mobilde basınca hafif küçülme efekti (pressed state)
+- `cursor-pointer` zaten var, ek olarak `select-none` ekle
 
-**Yapılacak**:
-- Mevcut grid yapısını koru (layout shift olmasın) ama iç skeleton'ları AudioGuideLoader temalı elementlere çevir:
-  - Hero image alanı: `bg-muted` + ortada kulaklık ikonu + ses dalgası animasyonu (`audio-wave-bar`, `audio-icon-pulse` class'ları)
-  - Sidebar ve info alanları: aynı min-h ile ama AudioGuideLoader'ın pulse/wave stilini kullansın
-- Preview → gerçek veri geçişinde: `creator.name === ''` ise creator bölümünü gizle, `currentChapters.length === 0` ise chapters'ı gizle, `languages` boşsa `GuideLanguageSelector`'ı render etme
+### Değişiklik 2: `src/pages/AudioAccess.tsx` — Dil değişikliği kayma düzeltmesi
 
-### 2. `src/pages/AudioAccess.tsx` — Image + layout stabilizasyonu
+- `MultiTabAudioPlayer`'ın `key` prop'undan `selectedLanguage`'ı **kaldır** → dil değiştiğinde player unmount/remount olmasın
+- `handleLanguageChange`'de sections'ı **boşaltmadan** yeni sections'ı fetch et: eski sections gösterilmeye devam etsin, yeni veri geldiğinde değişsin
+- Player container'a `min-h-[400px]` ver (mevcut `min-h-[200px]` yetersiz)
 
-**Mevcut sorun**: 
-- Satır 638: Image container'da `bg-muted` yok — görsel yüklenene kadar boş
-- `GuideLanguageSelector` async yüklendiğinde kayma yaratıyor
-- Loading state zaten `AudioGuideLoader variant="page"` kullanıyor ✓
+### Değişiklik 3: `src/components/FeaturedGuides.tsx` — Carousel kart tıklama UX
 
-**Yapılacak**:
-- Satır 638 `div`'e `bg-muted` ekle
-- `GuideLanguageSelector` zaten `availableLanguages.length < 1` ise `null` döndürüyor — bu yeterli, ek önlem olarak wrapper'a `min-h` eklenmeyecek (selector gizliyken yer kaplamasın)
-- MultiTabAudioPlayer container'a (satır 693) `min-h-[200px]` ekle
-
-### 3. `src/components/OptimizedImage.tsx` — Global bg-muted
-
-**Yapılacak**: `img` elementinin `className`'ine `bg-muted` ekle — tüm kullanım noktalarında image yüklenene kadar gri placeholder
-
-### 4. `src/components/GuideCard.tsx` — Image container bg
-
-**Yapılacak**: Satır ~117 `aspect-video overflow-hidden` div'ine `bg-muted` ekle
-
-### 5. `src/components/FeaturedGuides.tsx` — Carousel loading
-
-**Yapılacak**: Mevcut loading skeleton'ı `AudioGuideLoader variant="card"` ile değiştir, carousel image container'larına `bg-muted` ekle
+- Kart container'a `active:scale-[0.98]` ekle → mobilde pressed state
 
 ---
 
 ### Etkilenen Dosyalar
-- `src/pages/GuideDetail.tsx` — AudioGuideLoader temalı skeleton + conditional gizleme
-- `src/pages/AudioAccess.tsx` — bg-muted + min-h stabilizasyon
-- `src/components/OptimizedImage.tsx` — bg-muted default
-- `src/components/GuideCard.tsx` — image container bg
-- `src/components/FeaturedGuides.tsx` — AudioGuideLoader + bg-muted
+- `src/components/GuideCard.tsx` — overlay pointer-events fix + active state
+- `src/pages/AudioAccess.tsx` — key prop fix + sections transition stabilizasyonu
+- `src/components/FeaturedGuides.tsx` — active state
 
 ### Sonuç
-- Tüm yükleme ekranları audio guide temasına uygun
-- Preview → gerçek veri geçişinde sıfır layout shift
-- Image yüklenirken sıfır kayma
-- Hem mobil hem masaüstünde tutarlı deneyim
+- Mobilde kartlara tıklandığında görsel geri bildirim (pressed effect)
+- Dil değişikliğinde sıfır layout shift — player yerinde kalır, sadece içerik güncellenir
 
