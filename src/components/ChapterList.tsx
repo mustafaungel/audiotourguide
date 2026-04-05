@@ -302,7 +302,7 @@ export const ChapterList: React.FC<ChapterListProps> = ({
                         "text-base transition-all",
                         isSelected ? "text-lg font-semibold" : "text-muted-foreground"
                       )}>
-                        {speed === 1.0 ? 'Normal' : `${speed}×`}
+                        {speed === 1.0 ? t('normal', lang) : `${speed}×`}
                       </span>
                     </button>
                   );

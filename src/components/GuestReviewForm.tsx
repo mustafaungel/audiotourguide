@@ -175,7 +175,7 @@ export const GuestReviewForm = ({ guideId, onReviewSubmitted, lang = 'en' }: Gue
           </div>
 
           <Button type="submit" disabled={loading} className="w-full">
-            {loading ? 'Submitting...' : 'Submit Review'}
+            {loading ? t('submitting', lang) : t('submitReview', lang)}
           </Button>
         </form>
       </CardContent>

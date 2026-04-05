@@ -74,7 +74,7 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
     <div className="space-y-2">
       <div className="flex items-center gap-2 px-1">
         <Globe className="h-4 w-4 text-muted-foreground" />
-        <span className="text-sm text-muted-foreground font-medium">Language</span>
+        <span className="text-sm text-muted-foreground font-medium">{t('language', selectedLanguage)}</span>
       </div>
       <div className="flex flex-wrap gap-2">
         {availableLanguages.map((language) => {
