@@ -102,9 +102,9 @@ export const GuestReviewForm = ({ guideId, onReviewSubmitted, lang = 'en' }: Gue
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>Leave a Review</CardTitle>
+        <CardTitle>{t('leaveReview', lang)}</CardTitle>
         <CardDescription>
-          Share your experience with this audio guide. Your review will be visible after approval.
+          {t('reviewDescription', lang)}
         </CardDescription>
       </CardHeader>
       <CardContent>
