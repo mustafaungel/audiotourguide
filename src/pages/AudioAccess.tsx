@@ -366,8 +366,27 @@ export default function AudioAccess() {
     setSelectedLanguage(languageCode);
     
     if (guideId) {
-      // Fetch new sections for main guide only
-      await fetchSectionsForLanguage(guideId, languageCode);
+      // Stale-while-revalidate: keep old sections visible until new ones arrive
+      const oldSections = sections;
+      try {
+        const { data: sectionsData, error } = await supabase
+          .rpc('get_sections_with_access', {
+            p_guide_id: guideId,
+            p_access_code: accessCode || '',
+            p_language_code: languageCode
+          });
+        
+        if (!error && sectionsData && sectionsData.length > 0) {
+          setSections(sectionsData);
+        } else if (!error && (!sectionsData || sectionsData.length === 0)) {
+          // No sections for this language, keep old for now
+          console.warn('No sections for language:', languageCode);
+          setSections(oldSections);
+        }
+      } catch (err) {
+        console.error('Error fetching sections:', err);
+        // Keep old sections on error
+      }
     }
   };
 
