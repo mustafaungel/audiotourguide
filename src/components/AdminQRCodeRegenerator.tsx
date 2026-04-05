@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { RefreshCw, ExternalLink, QrCode, Copy } from "lucide-react";
+import { ButtonLoader } from '@/components/AudioGuideLoader';
 
 interface Guide {
   id: string;
@@ -229,8 +230,8 @@ export function AdminQRCodeRegenerator() {
                   title="Generate/regenerate QR code with master access"
                   className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
-                  {regenerating === guide.id ? (
-                    <RefreshCw className="h-4 w-4 animate-spin" />
+                {regenerating === guide.id ? (
+                    <ButtonLoader />
                   ) : (
                     <QrCode className="h-4 w-4" />
                   )}

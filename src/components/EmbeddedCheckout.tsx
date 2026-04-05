@@ -7,7 +7,8 @@ import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { CreditCard, ShoppingCart, User, Mail, Lock, Loader2 } from 'lucide-react';
+import { CreditCard, ShoppingCart, User, Mail, Lock } from 'lucide-react';
+import { ButtonLoader } from '@/components/AudioGuideLoader';
 
 interface EmbeddedCheckoutProps {
   guide: {
@@ -300,10 +301,7 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
             size="sm"
           >
             {loading ? (
-              <>
-                <Loader2 className="w-3 h-3 mr-2 animate-spin" />
-                Processing...
-              </>
+              <ButtonLoader text="Processing..." />
             ) : (
               <>
                 <CreditCard className="w-3 h-3 mr-2" />
@@ -372,10 +370,7 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
             size="sm"
           >
             {loading ? (
-              <>
-                <Loader2 className="w-3 h-3 mr-2 animate-spin" />
-                Processing...
-              </>
+              <ButtonLoader text="Processing..." />
             ) : (
               <>
                 <CreditCard className="w-3 h-3 mr-2" />

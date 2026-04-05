@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Loader2, Plus, Trash2, Play, Pause, Upload, ChevronUp, ChevronDown } from 'lucide-react';
+import { AudioGuideLoader, ButtonLoader } from './AudioGuideLoader';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -169,13 +170,7 @@ export const GuideSectionsManager = ({ guideId }: GuideSectionsManagerProps) => 
   };
 
   if (loading) {
-    return (
-      <Card>
-        <CardContent className="flex items-center justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin" />
-        </CardContent>
-      </Card>
-    );
+    return <Card><CardContent className="py-4"><AudioGuideLoader variant="inline" /></CardContent></Card>;
   }
 
   return (
@@ -194,7 +189,7 @@ export const GuideSectionsManager = ({ guideId }: GuideSectionsManagerProps) => 
               onKeyPress={(e) => e.key === 'Enter' && addSection()}
             />
             <Button onClick={addSection} disabled={saving}>
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+              {saving ? <ButtonLoader /> : <Plus className="h-4 w-4" />}
               Add
             </Button>
           </div>

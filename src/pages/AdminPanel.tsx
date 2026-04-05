@@ -12,7 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, FileText, Plus, ImageIcon, Copy, QrCode, Edit2, Mail, Palette, BarChart3, Languages } from 'lucide-react';
+import { FileText, Plus, ImageIcon, Copy, QrCode, Edit2, Mail, Palette, BarChart3, Languages } from 'lucide-react';
+import { ButtonLoader } from '@/components/AudioGuideLoader';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -510,10 +511,7 @@ const AdminPanel = () => {
                         className="w-full mt-2"
                       >
                         {descriptionLoading ? (
-                          <>
-                            <Loader2 className="w-3 h-3 mr-2 animate-spin" />
-                            Generating...
-                          </>
+                          <ButtonLoader text="Generating..." />
                         ) : (
                           'Generate AI Description'
                         )}
@@ -708,10 +706,7 @@ const AdminPanel = () => {
                     size="lg"
                   >
                     {publishLoading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Creating Guide...
-                      </>
+                      <ButtonLoader text="Creating Guide..." />
                     ) : (
                       <>
                         <Plus className="w-4 h-4 mr-2" />

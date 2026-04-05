@@ -314,7 +314,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
             className="h-20 w-20 sm:h-24 sm:w-24 rounded-full min-h-[80px] touch-manipulation bg-gradient-primary hover:bg-gradient-primary/90 shadow-lg"
           >
             {loading ? (
-              <div className="animate-spin h-8 w-8 border-2 border-current border-t-transparent rounded-full" />
+              <span className="flex items-center gap-[2px]">{[0,1,2,3].map(i=><span key={i} className="w-[3px] rounded-full bg-current audio-wave-bar" style={{animationDelay:`${i*0.12}s`}}/>)}</span>
             ) : isPlaying ? (
               <Pause className="h-8 w-8" />
             ) : (

@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { Mail, Send, Eye, TestTube, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Mail, Send, Eye, TestTube, CheckCircle, AlertCircle } from 'lucide-react';
+import { ButtonLoader } from '@/components/AudioGuideLoader';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -268,10 +269,7 @@ export const AdminEmailTesting = () => {
             className="flex-1"
           >
             {previewLoading ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Loading...
-              </>
+              <ButtonLoader text="Loading..." />
             ) : (
               <>
                 <Eye className="h-4 w-4 mr-2" />
@@ -286,10 +284,7 @@ export const AdminEmailTesting = () => {
             className="flex-1"
           >
             {loading ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Sending...
-              </>
+              <ButtonLoader text="Sending..." />
             ) : (
               <>
                 <Send className="h-4 w-4 mr-2" />

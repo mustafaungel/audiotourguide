@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LanguagePreferences } from '@/components/LanguagePreferences';
+import { AudioGuideLoader } from '@/components/AudioGuideLoader';
 import { 
   User, 
   Mail, 
@@ -27,15 +28,7 @@ export const EnhancedProfile: React.FC<EnhancedProfileProps> = ({
   const { user, userProfile } = useAuth();
 
   if (!user || !userProfile) {
-    return (
-      <div className="space-y-6">
-        <Card>
-          <CardContent className="p-8 text-center">
-            <div className="text-muted-foreground">Loading profile...</div>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <AudioGuideLoader variant="page" message="Loading profile..." />;
   }
 
   const getRoleBadge = () => {

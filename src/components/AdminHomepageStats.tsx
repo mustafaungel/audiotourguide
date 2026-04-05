@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, Plus, Edit, Trash2, Save, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X } from 'lucide-react';
+import { AudioGuideLoader } from '@/components/AudioGuideLoader';
 import { toast } from 'sonner';
 
 interface HomepageStat {
@@ -155,11 +156,7 @@ export default function AdminHomepageStats() {
   const commonIcons = ['🏛️', '🗺️', '🎨', '🌍', '📍', '🏛', '🖼️', '🎭', '🏰', '⛩️'];
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
+    return <AudioGuideLoader variant="inline" />;
   }
 
   return (

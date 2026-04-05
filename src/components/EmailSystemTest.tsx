@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle, XCircle, Loader2, Mail } from 'lucide-react';
+import { CheckCircle, XCircle, Mail } from 'lucide-react';
+import { ButtonLoader } from '@/components/AudioGuideLoader';
 import { supabase } from '@/integrations/supabase/client';
 
 export const EmailSystemTest = () => {
@@ -57,10 +58,7 @@ export const EmailSystemTest = () => {
           className="w-full"
         >
           {testing ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Testing...
-            </>
+            <ButtonLoader text="Testing..." />
           ) : (
             <>
               <Mail className="mr-2 h-4 w-4" />

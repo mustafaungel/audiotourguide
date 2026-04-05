@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Badge } from './ui/badge';
 import { Music } from 'lucide-react';
 import { t } from '@/lib/translations';
+import { AudioGuideLoader } from './AudioGuideLoader';
 
 interface Section {
   id: string;
@@ -322,12 +323,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        <span className="ml-3 text-muted-foreground">{t('loading', languageCode)}</span>
-      </div>
-    );
+    return <AudioGuideLoader variant="inline" message={t('loading', languageCode)} />;
   }
 
   // If no linked guides, use the regular single player
@@ -345,7 +341,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
 
   return (
     <div className="w-full max-w-4xl mx-auto">
-      <Tabs value={activeTab} onValueChange={(value) => { setActiveTab(value); onActiveTabChange?.(value); }} className="w-full">
+      <Tabs value={activeTab} onValueChange={(value) => { const scrollY = window.scrollY; setActiveTab(value); onActiveTabChange?.(value); requestAnimationFrame(() => window.scrollTo(0, scrollY)); }} className="w-full">
         {/* iOS-style horizontal scroll pill tabs */}
         <TabsList className="flex w-full mb-4 h-auto p-1 gap-2 bg-transparent overflow-x-auto scrollbar-hide snap-x snap-mandatory">
           <TabsTrigger
@@ -420,10 +416,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
         {/* Loading state for pending guide */}
         {pendingGuideId && !linkedGuides.some(g => g.guide_id === pendingGuideId) && (
           <TabsContent value={pendingGuideId} className="mt-0">
-            <div className="flex items-center justify-center p-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              <span className="ml-3 text-muted-foreground">{t('loadingGuide', languageCode)}</span>
-            </div>
+            <AudioGuideLoader variant="inline" message={t('loadingGuide', languageCode)} />
           </TabsContent>
         )}
       </Tabs>

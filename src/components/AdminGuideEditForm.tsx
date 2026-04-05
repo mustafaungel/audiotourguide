@@ -6,7 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, Save, ArrowLeft, QrCode, ExternalLink, Copy, Link2, Edit3 } from 'lucide-react';
+import { Save, ArrowLeft, QrCode, ExternalLink, Copy, Link2, Edit3 } from 'lucide-react';
+import { ButtonLoader, AudioGuideLoader } from '@/components/AudioGuideLoader';
 import { Badge } from '@/components/ui/badge';
 import { ImageUploader } from './ImageUploader';
 import { supabase } from '@/integrations/supabase/client';
@@ -571,10 +572,7 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
               size="lg"
             >
               {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Updating Guide...
-                </>
+                <ButtonLoader text="Updating Guide..." />
               ) : (
                 <>
                   <Save className="w-4 h-4 mr-2" />
@@ -592,10 +590,7 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
           </CardHeader>
           <CardContent>
             {sectionsLoading ? (
-              <div className="flex items-center justify-center p-8">
-                <Loader2 className="w-6 h-6 animate-spin mr-2" />
-                Loading sections...
-              </div>
+              <AudioGuideLoader variant="inline" message="Loading sections..." />
             ) : (
               <AudioGuideSectionManager
                 sections={sections}
@@ -635,7 +630,7 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
               disabled={generatingQR}
             >
               {generatingQR ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <ButtonLoader />
               ) : (
                 <QrCode className="w-4 h-4 mr-2" />
               )}

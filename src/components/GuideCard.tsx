@@ -2,7 +2,8 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Clock, MapPin, Users, Heart, Share2, Bookmark, Play, Loader2 } from "lucide-react";
+import { Clock, MapPin, Users, Heart, Share2, Bookmark, Play } from "lucide-react";
+import { ButtonLoader } from "@/components/AudioGuideLoader";
 import { useToast } from "@/hooks/use-toast";
 import { useViralTracking } from "@/hooks/useViralTracking";
 import { useNavigate } from "react-router-dom";
@@ -207,10 +208,7 @@ export function GuideCard({
             }}
           >
             {isProcessingPayment ? (
-              <>
-                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                Processing...
-              </>
+              <ButtonLoader text="Processing..." />
             ) : (
               <>
                 <Play className="h-5 w-5 mr-2" />

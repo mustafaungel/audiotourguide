@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload, Loader2, Download, Eye, Trash2, Wand2 } from 'lucide-react';
+import { AudioGuideLoader, ButtonLoader } from './AudioGuideLoader';
 import { supabase } from '@/integrations/supabase/client';
 import { useSiteBranding } from '@/hooks/useSiteBranding';
 import { toast } from 'sonner';
@@ -142,14 +143,7 @@ export function EnhancedLogoUploader({ className }: EnhancedLogoUploaderProps) {
   };
 
   if (brandingLoading) {
-    return (
-      <Card className={className}>
-        <CardContent className="flex items-center justify-center py-8">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span className="ml-2">Loading logo settings...</span>
-        </CardContent>
-      </Card>
-    );
+    return <Card className={className}><CardContent className="py-4"><AudioGuideLoader variant="inline" message="Loading logo settings..." /></CardContent></Card>;
   }
 
   return (
@@ -256,10 +250,7 @@ export function EnhancedLogoUploader({ className }: EnhancedLogoUploaderProps) {
             className="w-full"
           >
             {isUploading || isProcessing ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                {isProcessing ? 'Processing...' : 'Uploading...'}
-              </>
+              <ButtonLoader text={isProcessing ? 'Processing...' : 'Uploading...'} />
             ) : (
               <>
                 <Upload className="h-4 w-4 mr-2" />
@@ -319,10 +310,7 @@ export function EnhancedLogoUploader({ className }: EnhancedLogoUploaderProps) {
             className="w-full"
           >
             {isUploading || isProcessing ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                {isProcessing ? 'Processing...' : 'Uploading...'}
-              </>
+              <ButtonLoader text={isProcessing ? 'Processing...' : 'Uploading...'} />
             ) : (
               <>
                 <Upload className="h-4 w-4 mr-2" />

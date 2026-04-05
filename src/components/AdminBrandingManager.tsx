@@ -10,6 +10,7 @@ import { useSiteBranding } from '@/hooks/useSiteBranding';
 import { ResponsiveLogo } from '@/components/ResponsiveLogo';
 import { AILogoGenerator } from '@/components/AILogoGenerator';
 import { Upload, Eye, Trash2, Monitor, Smartphone, Palette } from 'lucide-react';
+import { AudioGuideLoader } from '@/components/AudioGuideLoader';
 import logosCultural from '@/assets/logo-cultural-heritage.png';
 import logosPremium from '@/assets/logo-premium-badge.png';
 import logosCompass from '@/assets/logo-audio-compass.png';
@@ -102,13 +103,7 @@ export const AdminBrandingManager: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <Card>
-        <CardContent className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </CardContent>
-      </Card>
-    );
+    return <AudioGuideLoader variant="page" />;
   }
 
   return (
