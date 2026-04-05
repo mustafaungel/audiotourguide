@@ -250,10 +250,7 @@ export function EnhancedLogoUploader({ className }: EnhancedLogoUploaderProps) {
             className="w-full"
           >
             {isUploading || isProcessing ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                {isProcessing ? 'Processing...' : 'Uploading...'}
-              </>
+              <ButtonLoader text={isProcessing ? 'Processing...' : 'Uploading...'} />
             ) : (
               <>
                 <Upload className="h-4 w-4 mr-2" />
