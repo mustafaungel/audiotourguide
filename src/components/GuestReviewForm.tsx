@@ -162,12 +162,12 @@ export const GuestReviewForm = ({ guideId, onReviewSubmitted, lang = 'en' }: Gue
           </div>
 
           <div>
-            <Label htmlFor="comment">Review *</Label>
+            <Label htmlFor="comment">{t('review', lang)} *</Label>
             <Textarea
               id="comment"
               value={formData.comment}
               onChange={(e) => setFormData(prev => ({ ...prev, comment: e.target.value }))}
-              placeholder="Share your thoughts about this audio guide..."
+              placeholder={t('reviewPlaceholder', lang)}
               rows={4}
               required
               disabled={loading}
