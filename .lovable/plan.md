@@ -1,24 +1,35 @@
 
 
-## Plan: Drawer Kaydırma ve Tam Ekran Kayma Düzeltmesi
+## Plan: Dil Değişikliğinde Ses Dosyasının Güncellenmemesi
 
-### Kök Sorun Analizi
+### Kök Sorun
 
-**Sorun 1 — Kaydırma çalışmıyor**: Content div'in `maxHeight`'ı `calc(95vh - 80px)` (~87vh). Ama drawer "half" snap'te açılırken sadece ~60vh'lık alan görünür (sheet 95vh, translateY 35vh → görünen = 65vh). Content alanı 87vh yüksekliğinde ama sadece 65vh görünüyor — taşan kısım ekranın altında, scroll tetiklenmiyor çünkü content container ekrana sığıyor gibi görünüyor.
+`MultiTabAudioPlayer` içindeki `NewSectionAudioPlayer` bileşeninde **React key** dile bağlı değil. Dil değiştiğinde:
 
-**Sorun 2 — Drawer tam ekrana kayıyor**: `snapPoints={['half', 'full']}` ile drawer sürükleme ile full'a geçebiliyor. Kullanıcı content'te scroll yapmaya çalışırken parmağı hafif kaydığında drag handle/header'daki touch handlers tetikleniyor ve sheet full snap'e geçiyor.
+1. `sections` prop'u yeni dildeki bölümlerle güncelleniyor ✓
+2. `lang` prop'u güncelleniyor ✓
+3. **AMA** `NewSectionAudioPlayer` aynı component instance'ı kullanmaya devam ediyor
+4. `audioRef.current` eski dildeki ses dosyasını çalmaya devam ediyor
+5. `resolvedUrlsRef` güncellense de, zaten çalan `audioRef.current.src` değişmiyor
 
-### Çözüm — `src/components/ui/bottom-sheet.tsx`
+Karşılaştırma: `EnhancedAudioPlayer` bunu doğru yapıyor — `key={guide.id}-${selectedLanguage}-${sections.map(s => s.id).join('-')}` kullanarak dil değiştiğinde component'ı tamamen yeniden oluşturuyor.
 
-**1. maxHeight'ı currentSnap'e göre dinamik hesapla**
+### Çözüm — `src/components/MultiTabAudioPlayer.tsx`
 
-Content alanının yüksekliğini sabit 95vh'ye göre değil, görünen alana göre hesapla:
-- `half` snap → görünen alan = `65vh`, content maxHeight = `calc(65vh - 80px)` (title varsa) veya `calc(65vh - 28px)` (title yoksa)
-- `full` snap → görünen alan = `95vh`, content maxHeight = `calc(95vh - 80px)`
-- `mini` snap → görünen alan = `88px`, content maxHeight = minimal
+`NewSectionAudioPlayer`'a dil ve section ID'lerini içeren `key` prop'u ekle. Bu sayede dil değiştiğinde React component'ı unmount edip yeniden mount eder, eski ses durur ve yeni dildeki bölümler yüklenir.
 
-Bu sayede content her zaman görünen alana sığar ve `overflow-y-scroll` gerçekten tetiklenir.
+**3 yerde değişiklik:**
 
-**2. Drag handler'ların content'e bulaşmasını engelle**
+1. **Satır 220-225** — Linked guide yokken render edilen player:
+```tsx
+<NewSectionAudioPlayer
+  key={`${mainGuide.id}-${languageByGuide[mainGuide.id] || languageCode}-${mainSections.map(s=>s.id).join(',')}`}
+  guideId={mainGuide.id}
+  ...
+/>
+```
 
-Content div'e `onTouchStart` handler
+2. **Satır 293-299** — BottomSheet içindeki player:
+```tsx
+<NewSectionAudioPlayer
+  key={`${selectedGuideId}-${languageByGuide[selectedGuideId] || languageCode}-${getSheetSections().map(s=>s.id).
