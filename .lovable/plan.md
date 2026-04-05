@@ -1,37 +1,32 @@
 
 
-## Plan: Bottom Sheet Görsel İyileştirme ve Performans
+## Plan: Dil Seçildiğinde Diğer Dilleri Gizle / Toggle
 
-### Mevcut Durum
-Bottom sheet açıldığında içeride düz bir `NewSectionAudioPlayer` (ChapterList kartı) render ediliyor. Görsel olarak sade, sheet'in kendisi ile içerik arasında tasarım uyumu yok. Ayrıca her tıklamada section verisi yeniden yüklenebiliyor.
+### Davranış
+- Bir dil butonuna tıklanınca: sadece seçili dil görünür, diğerleri gizlenir
+- Aynı dil tekrar tıklanınca: seçim iptal edilmez ama tüm diller tekrar görünür (toggle)
+- Tek dil varsa hiçbir şey değişmez
 
-### Değişiklikler
+### Değişiklik — `src/components/GuideLanguageSelector.tsx`
 
-#### 1. `src/components/ui/bottom-sheet.tsx` — Görsel İyileştirme
-- Drag handle'ı daha belirgin yap: `w-10 h-1` → `w-12 h-1.5`, renk `bg-muted-foreground/30`
-- Header'a alt çizgi (separator) ekle: `border-b border-border/30`
-- Kapatma butonunu daha belirgin yap: `bg-muted/50 rounded-full p-2`
-- Sheet arka planını güçlendir: `bg-background/95` (daha opak, daha okunaklı)
-- Açılış animasyonunu GPU-optimized yap: `will-change: transform` ekle
-- Bouncy spring animasyonunu hafiflet (kasma riski): `cubic-bezier(0.25, 1, 0.5, 1)` (daha doğal, daha az CPU)
+**1. Yeni state ekle:** `collapsed` (boolean, default `false`)
 
-#### 2. `src/components/MultiTabAudioPlayer.tsx` — Performans
-- Bottom sheet `open` olmadığında `NewSectionAudioPlayer`'ı render etme (lazy render)
-- `selectedLinkedGuide` değiştiğinde section verisi zaten cache'de ise tekrar fetch etme (mevcut `ensureGuideSections` zaten bunu yapıyor, sadece sheet içi render'ı optimize et)
-- Sheet content'i `React.memo` veya conditional render ile sararak gereksiz re-render önle
+**2. `handleLanguageSelect` güncelle:**
+- Eğer tıklanan dil zaten seçili VE `collapsed` true ise → `setCollapsed(false)` (dilleri aç)
+- Aksi halde → dil değiştir + `setCollapsed(true)` (diğerlerini gizle)
 
-#### 3. `src/components/ChapterList.tsx` — Sheet İçi Görsel Uyum
-- Sheet içinde açıldığında Card'ın border ve shadow'unu kaldır (sheet zaten container): Card'a `border-0 shadow-none bg-transparent` uygula (sheet context'inde)
-- Bu sayede sheet içinde çift çerçeve görünümü olmaz, daha temiz bir görünüm sağlanır
+**3. Render'da filtreleme:**
+- `collapsed` true ise sadece `selectedLanguage` ile eşleşen dili göster
+- `collapsed` false ise tüm dilleri göster
+- Animasyon için `transition-all duration-200` + `overflow-hidden` kullan
 
-### Etkilenen Dosyalar
-- `src/components/ui/bottom-sheet.tsx` — görsel polish + animasyon optimizasyonu
-- `src/components/MultiTabAudioPlayer.tsx` — lazy render + performans
-- `src/components/ChapterList.tsx` — isteğe bağlı `variant` prop ile sheet içi stil
+**4. Performans:**
+- Sadece bir boolean state toggle — DOM manipülasyonu minimal
+- `key` prop'ları sabit kalacak, React reconciliation hızlı
+- Fetch/network çağrısı yok, tamamen client-side
 
-### Performans Garantisi
-- `will-change: transform` ile GPU compositing
-- Daha hafif animasyon eğrisi (bouncy → smooth)
-- Sheet kapalıyken içerik render edilmez
-- `overscrollBehavior: contain` zaten mevcut
+### Etkilenen Dosya
+- `src/components/GuideLanguageSelector.tsx` — tek dosya, ~15 satır değişiklik
+
+Bu bileşen zaten hem AudioAccess hem GuideDetail sayfalarında kullanılıyor, değişiklik her iki sayfada otomatik geçerli olacak.
 
