@@ -749,10 +749,10 @@ export default function AudioAccess() {
         </div>
       </div>
 
-      {/* Content area */}
-      <div className="px-4 pb-6">
+      {/* Content area — consistent padding */}
+      <div className="px-4 pb-6 space-y-4">
         {/* Multi-tab Audio Interface */}
-        <div className="mb-5">
+        <div>
           <MultiTabAudioPlayer
             mainGuide={{
               id: guide.id,
@@ -773,7 +773,7 @@ export default function AudioAccess() {
           {!showReviewForm ? (
             <button
               onClick={() => setShowReviewForm(true)}
-              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-muted/50 text-sm font-medium text-foreground active:scale-[0.98] transition-all duration-200"
+              className="w-full flex items-center justify-center gap-2 min-h-[48px] py-3.5 rounded-2xl bg-muted/50 text-sm font-medium text-foreground active:scale-[0.98] transition-all duration-200"
             >
               <Star className="w-4 h-4 text-yellow-500" />
               {t('leaveReview', selectedLanguage)}
