@@ -173,7 +173,7 @@ export function BottomSheet({
           transition: 'opacity 0.35s ease',
           willChange: 'opacity',
         }}
-        onClick={() => onOpenChange(false)}
+        onClick={() => {}}
       />
 
       {/* Bottom Sheet */}
