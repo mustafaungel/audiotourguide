@@ -510,7 +510,7 @@ export default function AudioAccess() {
         <div className="container mx-auto px-4 py-6">
           <AudioGuideLoader 
             variant="page" 
-            message={sessionId ? 'Verifying payment...' : 'Unlocking your audio tour...'} 
+            message={sessionId ? t('verifyingPayment', selectedLanguage) : t('unlockingTour', selectedLanguage)} 
           />
         </div>
       </div>
