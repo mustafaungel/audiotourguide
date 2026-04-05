@@ -189,7 +189,7 @@ export const GuideSectionsManager = ({ guideId }: GuideSectionsManagerProps) => 
               onKeyPress={(e) => e.key === 'Enter' && addSection()}
             />
             <Button onClick={addSection} disabled={saving}>
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+              {saving ? <ButtonLoader /> : <Plus className="h-4 w-4" />}
               Add
             </Button>
           </div>
