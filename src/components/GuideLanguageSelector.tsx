@@ -66,7 +66,22 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
     }
   };
 
-  if (loading || availableLanguages.length < 1) {
+  if (loading) {
+    // Stable placeholder to prevent layout shift
+    return (
+      <div className="space-y-2 min-h-[48px]">
+        <div className="flex items-center gap-2 px-1">
+          <Globe className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground font-medium">{t('language', selectedLanguage)}</span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <div className="h-9 w-24 rounded-xl bg-muted/50 animate-pulse" />
+        </div>
+      </div>
+    );
+  }
+
+  if (availableLanguages.length < 1) {
     return null;
   }
 

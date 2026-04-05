@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { NewSectionAudioPlayer } from './NewSectionAudioPlayer';
 import { supabase } from '@/integrations/supabase/client';
@@ -56,6 +56,25 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
   const [languageByGuide, setLanguageByGuide] = useState<Record<string, string>>({
     [mainGuide.id]: languageCode
   });
+  const contentWrapperRef = useRef<HTMLDivElement>(null);
+  const [lockedHeight, setLockedHeight] = useState<number | undefined>(undefined);
+
+  const handleTabChange = useCallback((value: string) => {
+    // Lock current height before switching
+    if (contentWrapperRef.current) {
+      setLockedHeight(contentWrapperRef.current.offsetHeight);
+    }
+    const scrollY = window.scrollY;
+    setActiveTab(value);
+    onActiveTabChange?.(value);
+    // Double-rAF: wait for React render + DOM paint, then unlock height
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: scrollY, behavior: 'instant' as ScrollBehavior });
+        setTimeout(() => setLockedHeight(undefined), 100);
+      });
+    });
+  }, [onActiveTabChange]);
 
   useEffect(() => {
     loadLinkedGuides();
@@ -117,8 +136,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
       if (targetGuideId && newLanguageCode) {
         setLanguageByGuide(prev => ({ ...prev, [targetGuideId]: newLanguageCode }));
         
-        // Clear and reload sections with new language
-        setSectionsByGuide(prev => ({ ...prev, [targetGuideId]: [] }));
+        // Reload sections with new language (stale-while-revalidate: keep old until new arrives)
         await ensureGuideSections(targetGuideId, newLanguageCode);
         
         // activeTab stays the same - no tab switch!
@@ -152,9 +170,14 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     // Determine effective language: override > stored > default
     const effectiveLang = overrideLanguage || languageByGuide[guideId] || languageCode;
     
-    if (sectionsByGuide[guideId] || !accessCode) {
-      console.log('MultiTabAudioPlayer: Skipping sections load for guide:', guideId, 'Already loaded or no access code');
-      return; // Already loaded or no access code
+    // If override language, always reload. Otherwise skip if already loaded.
+    if (!overrideLanguage && sectionsByGuide[guideId] && sectionsByGuide[guideId].length > 0) {
+      console.log('MultiTabAudioPlayer: Skipping sections load for guide:', guideId, 'Already loaded');
+      return;
+    }
+    if (!accessCode) {
+      console.log('MultiTabAudioPlayer: No access code, skipping');
+      return;
     }
 
     console.log('MultiTabAudioPlayer: Starting sections load for guide:', guideId, 'with language:', effectiveLang);
@@ -341,17 +364,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
 
   return (
     <div className="w-full max-w-4xl mx-auto">
-      <Tabs value={activeTab} onValueChange={(value) => {
-        const scrollY = window.scrollY;
-        setActiveTab(value);
-        onActiveTabChange?.(value);
-        // Double-rAF: wait for React render + DOM paint
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            window.scrollTo({ top: scrollY, behavior: 'instant' as ScrollBehavior });
-          });
-        });
-      }} className="w-full">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         {/* iOS-style horizontal scroll pill tabs */}
         <TabsList className="flex flex-wrap w-full mb-4 h-auto p-1 gap-2 bg-transparent">
           <TabsTrigger
@@ -400,7 +413,11 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
         </TabsList>
 
         {/* forceMount + hidden: prevent layout shift & re-mount */}
-        <div className="min-h-[400px]">
+        <div
+          ref={contentWrapperRef}
+          className="relative"
+          style={{ minHeight: lockedHeight ? `${lockedHeight}px` : '300px' }}
+        >
           <TabsContent value="main" forceMount className={activeTab !== 'main' ? 'hidden' : 'mt-0'}>
             <NewSectionAudioPlayer
               guideId={mainGuide.id}

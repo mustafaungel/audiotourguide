@@ -366,8 +366,27 @@ export default function AudioAccess() {
     setSelectedLanguage(languageCode);
     
     if (guideId) {
-      // Fetch new sections for main guide only
-      await fetchSectionsForLanguage(guideId, languageCode);
+      // Stale-while-revalidate: keep old sections visible until new ones arrive
+      const oldSections = sections;
+      try {
+        const { data: sectionsData, error } = await supabase
+          .rpc('get_sections_with_access', {
+            p_guide_id: guideId,
+            p_access_code: accessCode || '',
+            p_language_code: languageCode
+          });
+        
+        if (!error && sectionsData && sectionsData.length > 0) {
+          setSections(sectionsData);
+        } else if (!error && (!sectionsData || sectionsData.length === 0)) {
+          // No sections for this language, keep old for now
+          console.warn('No sections for language:', languageCode);
+          setSections(oldSections);
+        }
+      } catch (err) {
+        console.error('Error fetching sections:', err);
+        // Keep old sections on error
+      }
     }
   };
 
@@ -663,7 +682,7 @@ export default function AudioAccess() {
 
         <div className="relative px-4 pt-6 pb-5">
           {/* Guide Image — centered, large, rounded */}
-          <div className="flex justify-center mb-5 animate-scale-in">
+          <div className="flex justify-center mb-5">
             <div className="relative">
               <img
                 src={guideImageUrl}
@@ -678,7 +697,7 @@ export default function AudioAccess() {
           </div>
 
           {/* Title & metadata — centered */}
-          <div className="text-center space-y-2 animate-fade-in">
+          <div className="text-center space-y-2">
             <h1 className="text-xl font-bold text-foreground leading-tight">
               {guide.title}
             </h1>
@@ -713,7 +732,7 @@ export default function AudioAccess() {
           </div>
 
           {/* Language Selector — compact, under hero */}
-          <div className="mt-4">
+          <div className="mt-4 min-h-[48px]">
             <GuideLanguageSelector
               guideId={guide.id}
               selectedLanguage={
@@ -731,9 +750,8 @@ export default function AudioAccess() {
       {/* Content area */}
       <div className="px-4 pb-6">
         {/* Multi-tab Audio Interface */}
-        <div className="mb-5 min-h-[300px] animate-fade-in" style={{ animationDelay: '150ms' }}>
+        <div className="mb-5">
           <MultiTabAudioPlayer
-            key={`${guide.id}-${accessCode || ''}`}
             mainGuide={{
               id: guide.id,
               title: guide.title,
@@ -749,7 +767,7 @@ export default function AudioAccess() {
         </div>
 
         {/* Collapsible Guest Review Section */}
-        <div className="animate-fade-in" style={{ animationDelay: '250ms' }}>
+        <div>
           {!showReviewForm ? (
             <button
               onClick={() => setShowReviewForm(true)}
