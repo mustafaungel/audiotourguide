@@ -213,10 +213,14 @@ export function BottomSheet({
           >
             <h3 className="text-lg font-semibold">{title}</h3>
             <button
-              onClick={() => onOpenChange(false)}
-              className="rounded-full p-2 bg-muted/50 hover:bg-muted transition-colors"
+              onClick={(e) => { e.stopPropagation(); e.preventDefault(); onOpenChange(false); }}
+              onTouchStart={(e) => e.stopPropagation()}
+              onTouchEnd={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
+              className="rounded-full p-2.5 bg-foreground/10 border border-border hover:bg-foreground/20 transition-colors"
+              aria-label="Close"
             >
-              <X className="h-5 w-5 text-muted-foreground" />
+              <X className="h-5 w-5 text-foreground" />
             </button>
           </div>
         )}
