@@ -619,8 +619,6 @@ export default function AudioAccess() {
     );
   }
 
-  const [showFullDescription, setShowFullDescription] = useState(false);
-  const [showReviewForm, setShowReviewForm] = useState(false);
 
   const guideImageUrl = (guide.image_urls?.[0] || guide.image_url)?.startsWith('data:image')
     ? (guide.image_urls?.[0] || guide.image_url)
