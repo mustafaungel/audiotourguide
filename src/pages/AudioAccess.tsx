@@ -600,7 +600,6 @@ export default function AudioAccess() {
                   <p className="text-xs text-muted-foreground mt-2">
                     {t('contactSupport', selectedLanguage)} {sessionId.slice(-8)}
                   </p>
-                  </p>
                 )}
                 
                 {/* Regional troubleshooting info */}
