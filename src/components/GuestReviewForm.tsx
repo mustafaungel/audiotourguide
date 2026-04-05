@@ -15,7 +15,7 @@ interface GuestReviewFormProps {
   lang?: string;
 }
 
-export const GuestReviewForm = ({ guideId, onReviewSubmitted }: GuestReviewFormProps) => {
+export const GuestReviewForm = ({ guideId, onReviewSubmitted, lang = 'en' }: GuestReviewFormProps) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
