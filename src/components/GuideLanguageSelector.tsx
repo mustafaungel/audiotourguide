@@ -112,11 +112,11 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
       </div>
       <div className={cn(
         "grid gap-2 transition-all duration-200 overflow-hidden",
-        filteredLanguages.length === 2 ? "grid-cols-2" : filteredLanguages.length >= 3 ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-1"
+        displayLanguages.length === 2 ? "grid-cols-2" : displayLanguages.length >= 3 ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-1"
       )}>
-        {filteredLanguages.map((language) => {
+        {displayLanguages.map((language) => {
           const isSelected = language.language_code === selectedLanguage;
-          return (
+          const isHidden = collapsed && !isSelected;
             <button
               key={language.language_code}
               onClick={() => handleLanguageSelect(language.language_code)}
