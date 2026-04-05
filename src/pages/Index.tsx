@@ -222,21 +222,46 @@ const Index = () => {
           {/* Loading State */}
           {loading && <AudioGuideLoader variant="card" count={6} />}
 
-          {/* Guides Grid */}
-          {!loading && <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredGuides.map(guide => {
-            const isPurchased = userPurchases.includes(guide.id);
-            const formattedPrice = guide.price_usd === 0 ? "Free" : `$${(guide.price_usd / 100).toFixed(2)}`;
-            const formattedDuration = `${Math.floor(guide.duration / 60)} min`;
-            return <GuideCard key={guide.id} id={guide.id} slug={guide.slug} title={guide.title} description={guide.description} duration={guide.duration} location={guide.location} rating={guide.rating || 0} category={guide.category} price={guide.price_usd} difficulty={guide.difficulty} imageUrl={guide.image_urls?.[0] || guide.image_url} totalPurchases={guide.total_purchases || 0} creatorName="Guide Creator" isProcessingPayment={processingPayment === guide.id} onViewGuide={() => {
-              if (isPurchased || guide.price_usd === 0) {
-                handlePlayGuide(guide);
-              } else {
-                handlePurchaseGuide(guide.id);
-              }
-            }} />;
-          })}
-            </div>}
+          {/* Guides Carousel */}
+          {!loading && filteredGuides.length > 0 && (
+            <CarouselComponents.Carousel
+              opts={{ align: "start", loop: true }}
+              className="w-full"
+            >
+              <CarouselComponents.CarouselContent className="-ml-3">
+                {filteredGuides.map(guide => {
+                  const isPurchased = userPurchases.includes(guide.id);
+                  return (
+                    <CarouselComponents.CarouselItem key={guide.id} className="pl-3 basis-[85%] sm:basis-1/2 lg:basis-1/3">
+                      <GuideCard
+                        id={guide.id}
+                        slug={guide.slug}
+                        title={guide.title}
+                        description={guide.description}
+                        duration={guide.duration}
+                        location={guide.location}
+                        rating={guide.rating || 0}
+                        category={guide.category}
+                        price={guide.price_usd}
+                        difficulty={guide.difficulty}
+                        imageUrl={guide.image_urls?.[0] || guide.image_url}
+                        totalPurchases={guide.total_purchases || 0}
+                        creatorName="Guide Creator"
+                        isProcessingPayment={processingPayment === guide.id}
+                        onViewGuide={() => {
+                          if (isPurchased || guide.price_usd === 0) {
+                            handlePlayGuide(guide);
+                          } else {
+                            handlePurchaseGuide(guide.id);
+                          }
+                        }}
+                      />
+                    </CarouselComponents.CarouselItem>
+                  );
+                })}
+              </CarouselComponents.CarouselContent>
+            </CarouselComponents.Carousel>
+          )}
 
           {/* No Results */}
           {!loading && filteredGuides.length === 0 && <div className="text-center py-16 mobile-spacing">

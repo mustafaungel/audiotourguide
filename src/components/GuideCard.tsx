@@ -165,7 +165,7 @@ export function GuideCard({
         </div>
       </CardHeader>
 
-      <CardContent className="p-4 sm:p-6">
+      <CardContent className="p-4 sm:p-6 flex-1 flex flex-col">
         <div className="space-y-3 sm:space-y-4">
           <div>
             <h3 className="font-semibold text-base sm:text-lg leading-tight line-clamp-2">{title}</h3>
