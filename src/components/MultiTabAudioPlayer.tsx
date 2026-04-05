@@ -272,7 +272,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
         defaultSnap="half"
         snapPoints={['half', 'full']}
       >
-        {selectedLinkedGuide && (
+        {sheetOpen && selectedLinkedGuide && (
           <NewSectionAudioPlayer
             guideId={selectedLinkedGuide.guide_id}
             guideTitle={selectedLinkedGuide.custom_title || selectedLinkedGuide.title}
