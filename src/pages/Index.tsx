@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { AudioGuideLoader } from '@/components/AudioGuideLoader';
 import { useNavigate } from 'react-router-dom';
 import { SEO } from '@/components/SEO';
 import { HeroSection } from '@/components/HeroSection';
