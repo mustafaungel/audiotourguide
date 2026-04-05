@@ -145,7 +145,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
                 onClick={() => playSection(currentSectionIndex + 1)}
                 className="ml-2"
               >
-                Play Next
+                {t('playNext', lang)}
               </Button>
             ),
           });
