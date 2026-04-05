@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { BrandingProvider } from "@/contexts/BrandingContext";
 import { FaviconUpdater } from "@/components/FaviconUpdater";
 import PreloadBrandingAssets from "@/components/PreloadBrandingAssets";
+import ScrollToTop from "@/components/ScrollToTop";
 import { PerformanceMonitor } from "@/components/PerformanceMonitor";
 
 // Eager load Index for fast initial render
