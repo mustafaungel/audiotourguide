@@ -1,52 +1,59 @@
 
-Durumu anladım: videodaki temel bozukluk sadece “tab değişince küçük bir jump” değil; mobilde AudioAccess içinde guide/tab/language tıklamalarında içerik bloğunun yeniden ölçülüp sayfanın yukarı-aşağı oynaması.
 
-Koddaki ana nedenler:
-1. `AudioAccess.tsx` içinde `MultiTabAudioPlayer` hâlâ `key={`${guide.id}-${accessCode || ''}`}` ile render ediliyor. Bu, parent tarafta gereksiz re-mount riskini açık tutuyor.
-2. `MultiTabAudioPlayer.tsx` içinde `forceMount + hidden + min-h-[400px]` var ama bu sabit yükseklik gerçek içerik yüksekliğini garanti etmiyor; chapter sayısı fazla/az olduğunda mobilde yine görsel kayma oluşabilir.
-3. Tab/language değişimlerinde veri temizlenip yeniden yükleniyor (`setSectionsByGuide(...[])`, `setSections(...)`), bu da içerik yüksekliğini anlık değiştiriyor.
-4. `GuideLanguageSelector` aktif guide değişince kendi dil listesini yeniden çekiyor; bu sırada üst blokların yüksekliği değişebiliyor.
+## Plan: AudioAccess Sayfası ve Genel Mobil UX Düzeni — Hizalama, Okunabilirlik, Dokunma Kolaylığı
 
-Uygulama planı:
+### Sorun
+AudioAccess sayfasında yazılar dağınık, hizasız; mobilde tıklama alanları küçük, seçim yapıldığı net anlaşılmıyor. Tab pill'leri, chapter listesi, dil seçici ve metadata alanları düzensiz görünüyor.
 
-1. `src/pages/AudioAccess.tsx`
-- `MultiTabAudioPlayer` üzerindeki gereksiz `key` prop’unu kaldır.
-- Hero + language selector + player alanını tek bir stabil içerik kolonuna çevir.
-- Player container’a sabit değil, korumalı bir outer wrapper ver: geçiş sırasında alan küçülmesin.
-- Gerekirse guide başlık/açıklama alanı için de minimum yükseklik tanımla; dil değişiminde üst alan zıplamasın.
+---
 
-2. `src/components/MultiTabAudioPlayer.tsx`
-- Mevcut `min-h-[400px]` yaklaşımını dinamik yükseklik korumasına yükselt.
-- Aktif tab content yüksekliğini `ref` ile ölçüp wrapper’a `style={{ minHeight }}` uygula.
-- Tab değişiminden hemen önce mevcut content yüksekliğini kilitle; yeni içerik render olduktan sonra kontrollü güncelle.
-- `hidden` yerine layout’u çökertmeyen bir görünürlük stratejisi kullanmayı değerlendir: aktif olmayan content’leri absolute/inert tarzında saklayıp wrapper yüksekliğini aktif içerikten yönet.
-- `onValueChange` içindeki scroll restore kalsın ama yalnız başına çözüm gibi davranmasın; esas çözüm layout stabilizasyonu olsun.
+### Değişiklik 1: `src/pages/AudioAccess.tsx` — Hero & Metadata Hizalama
 
-3. Dil değişimi akışını stabilize et
-- Ana guide için `AudioAccess.tsx` içinde, linked guide için `MultiTabAudioPlayer.tsx` içinde “önce eski içerik dursun, yeni veri gelince swap et” modeli kullan.
-- Yani kullanıcı dil değiştirince mevcut chapter listesi hemen boşaltılmasın.
-- Yeni dil verisi gelene kadar audio-temalı inline loading overlay gösterilsin; içerik alanı boşalıp küçülmesin.
+- Hero bölümünde metadata (konum, süre) satırını `justify-center` ile ortalı tut, aralarında tutarlı `gap-3`
+- Description alanını `text-center` ile ortala, `max-w-sm mx-auto` ile mobilde taşmayı önle
+- Language selector container'a `px-2` ekle, içerikle aynı hizada olsun
+- "Leave a Review" butonuna `min-h-[48px]` (Apple HIG minimum dokunma alanı) ekle
+- Navbar title'ı `text-center flex-1` yap, sağ-sol butonlarla simetrik hizala
 
-4. `src/components/GuideLanguageSelector.tsx`
-- Dil chip alanının yüksekliğini daha öngörülebilir yap.
-- Loading sırasında `null` dönmek yerine küçük sabit yükseklikli placeholder/inline loader kullan.
-- Böylece dil listesinin kaybolup tekrar gelmesinden kaynaklanan üst blok zıplaması engellenir.
+### Değişiklik 2: `src/components/MultiTabAudioPlayer.tsx` — Tab Pill Düzeni
 
-5. AudioAccess mobil özel iyileştirme
-- Sticky top bar, hero, language picker ve player arasında spacing değerlerini sabitle.
-- `animate-fade-in`, `animate-scale-in` gibi giriş animasyonlarının tab/language geçişlerinde istemeden yeniden tetiklenmediğini kontrol et; gerekiyorsa sadece ilk sayfa yüklemesinde çalışacak şekilde sınırlandır.
-- Özellikle mobilde blur hero alanı ile content başlangıcı arasında reflow oluşturan class’lar sadeleştirilsin.
+- Tab pill'leri `w-full` yaparak tam genişlikte göster — her pill aynı genişlikte olsun
+- `flex flex-wrap gap-2` yerine `grid grid-cols-1 gap-2` kullan — her tab kendi satırında, düzenli
+- Eğer 2 tab varsa `grid-cols-2`, 3+ ise `grid-cols-1` — adaptive grid
+- Aktif tab'a belirgin `ring-2 ring-primary scale-[1.02]` efekti ekle — seçim net anlaşılsın
+- Pill'lerdeki `truncate max-w-[180px]` yerine tam genişlikte yazı göster — başlık kesilmesin
+- `min-h-[48px]` ile dokunma alanını genişlet
+- Badge (section sayısı) her zaman sağa hizalı, `ml-auto` ile
 
-6. Güvenli kapsam
-- `NewSectionAudioPlayer.tsx`, audio playback mantığı, source çözümü ve chapter play/pause akışı korunacak.
-- Değişiklik sadece render stabilitesi, loading swap stratejisi ve container ölçüm mantığında olacak.
+### Değişiklik 3: `src/components/ChapterList.tsx` — Chapter Kartları Düzeni
 
-Beklenen sonuç:
-- Guide başlığına tıklayınca mobilde içerik “çekilip bırakılıyor” gibi görünmeyecek.
-- Dil değişiminde chapter listesi boşalıp sayfa sıçramayacak.
-- AudioAccess sayfası genel olarak iOS-vari, daha sabit ve daha “native” hissedecek.
+- Her chapter kartı `min-h-[72px]` zaten var ama tıklama alanı artırılmalı → `min-h-[76px] p-4`
+- Chapter numarası badge'i sol hizalı, play ikonu ve başlık aynı satırda
+- Description `line-clamp-2` ile sınırlı, başlıkla arası `gap-1`
+- Süre bilgisi her zaman sağ üstte, `tabular-nums` ile sabit genişlik
+- Aktif chapter'ın border ve background'u daha belirgin: `border-2 border-primary` + subtle glow
+- Card header "Up Next" başlığı ve kontroller arasında `justify-between` düzgün çalışsın
 
-Etkilenecek dosyalar:
-- `src/pages/AudioAccess.tsx`
-- `src/components/MultiTabAudioPlayer.tsx`
-- `src/components/GuideLanguageSelector.tsx`
+### Değişiklik 4: `src/components/GuideLanguageSelector.tsx` — Dil Butonları Düzeni
+
+- Dil butonları `min-h-[44px] min-w-[44px]` ile dokunma dostu
+- `flex flex-wrap gap-2` yerine mobilde `grid grid-cols-2 gap-2` kullan — eşit genişlikte 2 sütun
+- Seçili dile daha belirgin görsel geri bildirim: `ring-2 ring-primary` + scale efekti
+- Flag emoji ve dil adı arasında tutarlı `gap-2`
+- Tüm butonlar eşit yükseklikte ve genişlikte olsun
+
+### Değişiklik 5: Genel Spacing & Touch Target Standardizasyonu
+
+- Tüm interaktif elemanlar minimum `44px` yükseklik (Apple HIG)
+- `px-4` sabit padding tüm content alanlarında — sol-sağ hizalama tutarlı
+- Section aralarında `space-y-4` standardı
+- Tüm `active:scale-[0.97]` efektleri korunsun — dokunma geri bildirimi
+
+---
+
+### Etkilenen Dosyalar
+- `src/pages/AudioAccess.tsx` — hero, metadata, spacing düzeni
+- `src/components/MultiTabAudioPlayer.tsx` — tab pill grid layout
+- `src/components/ChapterList.tsx` — chapter kart hizalaması
+- `src/components/GuideLanguageSelector.tsx` — dil butonları grid layout
+
