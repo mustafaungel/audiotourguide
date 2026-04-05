@@ -572,10 +572,7 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
               size="lg"
             >
               {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Updating Guide...
-                </>
+                <ButtonLoader text="Updating Guide..." />
               ) : (
                 <>
                   <Save className="w-4 h-4 mr-2" />
