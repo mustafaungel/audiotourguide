@@ -301,8 +301,8 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
             });
           } else {
             toast({
-              title: 'Playback Error',
-              description: 'Failed to play audio. Please try again.',
+              title: t('playbackError', lang),
+              description: t('playbackErrorDesc', lang),
               variant: 'destructive',
             });
           }
