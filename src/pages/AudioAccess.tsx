@@ -514,8 +514,7 @@ export default function AudioAccess() {
   if (error || !hasAccess) {
     return (
       <div className="min-h-screen bg-background">
-        <Navigation />
-        <div className="container mx-auto px-4 py-6">
+        <div className="px-4 py-6">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
               <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
