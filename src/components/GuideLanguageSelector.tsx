@@ -112,15 +112,13 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
       </div>
       {(() => {
         const selectedIndex = displayLanguages.findIndex(l => l.language_code === selectedLanguage);
-        const selectedRow = Math.floor(Math.max(selectedIndex, 0) / 2);
         const rowHeight = 52;
         const gap = 8;
-        const visibleRows = selectedRow + 1;
+        const totalRows = Math.ceil(displayLanguages.length / 2);
         const maxH = collapsed
-          ? visibleRows * rowHeight + (visibleRows - 1) * gap
-          : displayLanguages.length > 0
-            ? Math.ceil(displayLanguages.length / 2) * rowHeight + (Math.ceil(displayLanguages.length / 2) - 1) * gap
-            : rowHeight;
+          ? rowHeight
+          : totalRows * rowHeight + (totalRows - 1) * gap;
+        const selectedCol = collapsed ? (Math.max(selectedIndex, 0) % 2) + 1 : undefined;
 
         return (
           <div
@@ -134,13 +132,14 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
                 <button
                   key={language.language_code}
                   onClick={() => handleLanguageSelect(language.language_code)}
+                  style={isSelected && collapsed ? { gridColumn: selectedCol } : undefined}
                   className={cn(
                     "inline-flex items-center justify-center gap-2 px-3 min-h-[44px] rounded-xl text-sm font-medium transition-all duration-200",
                     "border active:scale-[0.97]",
                     isSelected
                       ? "bg-primary/10 border-primary text-primary shadow-sm ring-2 ring-primary/20"
                       : "bg-card border-border text-foreground hover:bg-muted",
-                    isHidden && "invisible"
+                    isHidden && "hidden"
                   )}
                 >
                   <span className="text-lg" aria-hidden="true">
