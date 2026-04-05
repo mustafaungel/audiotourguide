@@ -1,19 +1,16 @@
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { AudioGuideLoader } from '@/components/AudioGuideLoader';
 import { useState, useEffect } from "react";
-import { Navigation } from "@/components/Navigation";
 import { MultiTabAudioPlayer } from "@/components/MultiTabAudioPlayer";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { GuestReviewForm } from "@/components/GuestReviewForm";
 import { GuideLanguageSelector } from '@/components/GuideLanguageSelector';
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Star, MapPin, Clock, ChevronLeft, Lock, CheckCircle, Wifi, WifiOff, RotateCcw } from "lucide-react";
+import { Star, MapPin, Clock, ChevronLeft, Lock, Wifi, WifiOff, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { withRetry, isNetworkError, getRegionalErrorMessage, getErrorRecoveryActions } from "@/utils/networkUtils";
+import { withRetry, isNetworkError, getRegionalErrorMessage } from "@/utils/networkUtils";
 import { t } from "@/lib/translations";
 
 export default function AudioAccess() {
