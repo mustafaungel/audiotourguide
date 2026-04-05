@@ -89,7 +89,7 @@ export const GuestReviewForm = ({ guideId, onReviewSubmitted, lang = 'en' }: Gue
       onReviewSubmitted?.();
     } catch (error) {
       console.error('Error submitting review:', error);
-      toast.error('Failed to submit review. Please try again.');
+      toast.error(t('submitError', lang));
     } finally {
       setLoading(false);
     }
