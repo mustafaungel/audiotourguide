@@ -142,14 +142,7 @@ export function EnhancedLogoUploader({ className }: EnhancedLogoUploaderProps) {
   };
 
   if (brandingLoading) {
-    return (
-      <Card className={className}>
-        <CardContent className="flex items-center justify-center py-8">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span className="ml-2">Loading logo settings...</span>
-        </CardContent>
-      </Card>
-    );
+    return <Card className={className}><CardContent className="py-4"><AudioGuideLoader variant="inline" message="Loading logo settings..." /></CardContent></Card>;
   }
 
   return (
