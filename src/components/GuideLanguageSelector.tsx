@@ -134,12 +134,13 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
                   onClick={() => handleLanguageSelect(language.language_code)}
                   style={isSelected && collapsed ? { gridColumn: selectedCol } : undefined}
                   className={cn(
-                    "inline-flex items-center justify-center gap-2 px-3 min-h-[44px] rounded-xl text-sm font-medium transition-all duration-200",
+                    "inline-flex items-center justify-center gap-2 px-3 rounded-xl text-sm font-medium",
                     "border active:scale-[0.97]",
+                    "transition-all duration-300 ease-in-out",
                     isSelected
-                      ? "bg-primary/10 border-primary text-primary shadow-sm ring-2 ring-primary/20"
-                      : "bg-card border-border text-foreground hover:bg-muted",
-                    isHidden && "hidden"
+                      ? "bg-primary/10 border-primary text-primary shadow-sm ring-2 ring-primary/20 min-h-[44px] opacity-100 scale-100"
+                      : "bg-card border-border text-foreground hover:bg-muted min-h-[44px] opacity-100 scale-100",
+                    isHidden && "opacity-0 scale-90 max-h-0 min-h-0 py-0 my-0 border-0 overflow-hidden pointer-events-none"
                   )}
                 >
                   <span className="text-lg" aria-hidden="true">
