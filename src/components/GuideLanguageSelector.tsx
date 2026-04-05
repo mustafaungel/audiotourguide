@@ -25,7 +25,6 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
   const [loading, setLoading] = useState(true);
   const [fetching, setFetching] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  // Keep last known languages to prevent layout jump during refetch
   const lastLanguagesRef = useRef<GuideLanguage[]>([]);
 
   useEffect(() => {
@@ -33,7 +32,6 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
   }, [guideId, activeGuideId]);
 
   const fetchAvailableLanguages = async () => {
-    // If we already have languages, show them while refetching (stale-while-revalidate)
     if (lastLanguagesRef.current.length > 0) {
       setFetching(true);
     } else {
@@ -82,10 +80,10 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
 
   const displayLanguages = availableLanguages.length > 0 ? availableLanguages : lastLanguagesRef.current;
 
-
+  // Find selected language info for the header badge
+  const selectedLangInfo = displayLanguages.find(l => l.language_code === selectedLanguage);
 
   if (loading && displayLanguages.length === 0) {
-    // First load: stable placeholder
     return (
       <div className="space-y-2 min-h-[48px]">
         <div className="flex items-center gap-2 px-1">
@@ -99,16 +97,22 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
     );
   }
 
-  // No languages at all — return stable-height empty placeholder instead of null
   if (displayLanguages.length < 1) {
     return <div className="min-h-[48px]" />;
   }
 
   return (
     <div className={cn("space-y-2 transition-opacity duration-200", fetching && "opacity-70 pointer-events-none")}>
+      {/* Header with selected language badge */}
       <div className="flex items-center gap-2 px-1">
         <Globe className="h-4 w-4 text-muted-foreground" />
         <span className="text-sm text-muted-foreground font-medium">{t('language', selectedLanguage)}</span>
+        {collapsed && selectedLangInfo && (
+          <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+            <span>{getLanguageFlag(selectedLanguage)}</span>
+            <span>{selectedLangInfo.native_name}</span>
+          </span>
+        )}
       </div>
       {(() => {
         const selectedIndex = displayLanguages.findIndex(l => l.language_code === selectedLanguage);
@@ -138,7 +142,7 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
                     "border active:scale-[0.97]",
                     "transition-all duration-300 ease-in-out",
                     isSelected
-                      ? "bg-primary/10 border-primary text-primary shadow-sm ring-2 ring-primary/20 min-h-[44px] opacity-100 scale-100"
+                      ? "bg-primary/15 border-primary text-primary shadow-md ring-2 ring-primary/30 min-h-[44px] opacity-100 scale-100"
                       : "bg-card border-border text-foreground hover:bg-muted min-h-[44px] opacity-100 scale-100",
                     isHidden && "opacity-0 scale-90 max-h-0 min-h-0 py-0 my-0 border-0 overflow-hidden pointer-events-none"
                   )}
@@ -148,7 +152,9 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
                   </span>
                   <span>{language.native_name}</span>
                   {isSelected && (
-                    <Check className="h-4 w-4 text-primary shrink-0" />
+                    <span className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground shrink-0">
+                      <Check className="h-3 w-3" />
+                    </span>
                   )}
                 </button>
               );
