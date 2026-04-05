@@ -135,7 +135,7 @@ const GuideDetail = () => {
     difficulty: guidePreview.difficulty,
     image_url: guidePreview.imageUrl,
     image_urls: guidePreview.imageUrl ? [guidePreview.imageUrl] : [],
-    creator: { name: 'Loading...', avatar: '', bio: '' },
+    creator: { name: '', avatar: '', bio: '' },
     features: [],
     sections: [],
     languages: [],
