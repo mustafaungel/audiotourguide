@@ -16,11 +16,29 @@ interface BrandingContextType {
   refreshBranding: () => Promise<void>;
 }
 
+const BRANDING_CACHE_KEY = 'site_branding_cache';
+
 const defaultBranding: SiteBranding = {
   logoUrl: null,
   darkLogoUrl: null,
   faviconUrl: null,
   companyName: 'Audio Guides',
+};
+
+const getCachedBranding = (): SiteBranding => {
+  try {
+    const cached = localStorage.getItem(BRANDING_CACHE_KEY);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+  } catch {}
+  return defaultBranding;
+};
+
+const setCachedBranding = (branding: SiteBranding) => {
+  try {
+    localStorage.setItem(BRANDING_CACHE_KEY, JSON.stringify(branding));
+  } catch {}
 };
 
 const BrandingContext = createContext<BrandingContextType>({
@@ -32,8 +50,10 @@ const BrandingContext = createContext<BrandingContextType>({
 });
 
 export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [branding, setBranding] = useState<SiteBranding>(defaultBranding);
-  const [loading, setLoading] = useState(true);
+  const cachedBranding = getCachedBranding();
+  const hasCachedData = cachedBranding.logoUrl !== null || cachedBranding.companyName !== 'Audio Guides';
+  const [branding, setBranding] = useState<SiteBranding>(cachedBranding);
+  const [loading, setLoading] = useState(!hasCachedData);
   const [error, setError] = useState<string | null>(null);
 
   const loadBranding = useCallback(async () => {
@@ -68,6 +88,7 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }, { ...defaultBranding } as SiteBranding);
 
       setBranding(brandingData);
+      setCachedBranding(brandingData);
     } catch (err: any) {
       console.error('Error loading site branding:', err);
       setError(err.message);
