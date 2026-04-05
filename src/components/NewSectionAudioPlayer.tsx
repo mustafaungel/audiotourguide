@@ -452,7 +452,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   if (!sections.length) {
     return (
       <div className="text-center p-6 text-muted-foreground">
-        No audio content available for this guide.
+        {t('noAudioContent', lang)}
       </div>
     );
   }
