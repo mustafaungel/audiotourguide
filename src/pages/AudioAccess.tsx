@@ -583,7 +583,7 @@ export default function AudioAccess() {
                     }}
                     className="mb-2"
                   >
-                    Retry Payment Verification
+                    {t('paymentRetry', selectedLanguage)}
                   </Button>
                 )}
                 
