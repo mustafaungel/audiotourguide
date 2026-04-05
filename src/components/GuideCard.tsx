@@ -52,7 +52,7 @@ export function GuideCard({
   const navigate = useNavigate();
 
   const handleShare = async () => {
-    await trackEngagement('share', id, { platform: 'native' });
+    trackEngagement('share', id, { platform: 'native' });
     
     if (navigator.share) {
       try {
