@@ -113,7 +113,7 @@ export function GuideCard({
   return (
     <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer bg-gradient-card border-border/50 shadow-card hover:shadow-glow hover:scale-[1.02]" onClick={handleView}>
       <CardHeader className="p-0 relative">
-        <div className="aspect-video overflow-hidden">
+        <div className="aspect-video overflow-hidden bg-muted">
           <OptimizedImage
             src={imageUrl}
             alt={`${title} - Audio tour guide in ${location}`}

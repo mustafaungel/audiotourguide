@@ -46,7 +46,7 @@ export function OptimizedImage({
       alt={alt}
       width={width}
       height={height}
-      className={className}
+      className={`bg-muted ${className || ''}`}
       loading={loading}
       onError={handleError}
     />

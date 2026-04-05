@@ -690,7 +690,7 @@ export default function AudioAccess() {
           </Card>
 
           {/* Multi-tab Audio Interface */}
-          <div className="mb-6">
+          <div className="mb-6 min-h-[200px]">
             <MultiTabAudioPlayer
               key={`${guide.id}-${selectedLanguage}-${accessCode || ''}`}
               mainGuide={{
