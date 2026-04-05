@@ -333,7 +333,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
           >
             <span className="flex items-center gap-2 min-w-0">
               <Music className="w-4 h-4 shrink-0" />
-              <span className="truncate">{mainGuide.title}</span>
+              <span className="line-clamp-2 break-words text-left">{mainGuide.title}</span>
             </span>
             {mainSections.length > 0 && (
               <Badge variant="secondary" className="shrink-0 text-[10px] px-1.5 py-0 h-5 rounded-full tabular-nums">
