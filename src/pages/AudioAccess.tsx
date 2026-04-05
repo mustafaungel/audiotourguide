@@ -279,10 +279,11 @@ export default function AudioAccess() {
 
       if (languages && languages.length > 0) {
         setAvailableLanguages(languages);
-        // Auto-select first available language
-        const firstLang = languages[0].language_code;
-        setSelectedLanguage(firstLang);
-        await fetchSectionsForLanguage(guideId, firstLang);
+        // Prefer English if available, otherwise first language
+        const enLang = languages.find((l: any) => l.language_code === 'en');
+        const selectedLang = enLang ? 'en' : languages[0].language_code;
+        setSelectedLanguage(selectedLang);
+        await fetchSectionsForLanguage(guideId, selectedLang);
       } else {
         console.warn('No languages available for this guide');
         setSections([]);
