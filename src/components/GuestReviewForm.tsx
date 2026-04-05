@@ -30,30 +30,30 @@ export const GuestReviewForm = ({ guideId, onReviewSubmitted, lang = 'en' }: Gue
     
     // Client-side validation (server-side validation is now enforced via database trigger)
     if (!formData.name.trim() || !formData.email.trim() || !formData.comment.trim()) {
-      toast.error('Please fill in all required fields');
+      toast.error(t('fillAllFields', lang));
       return;
     }
 
     if (formData.rating === 0) {
-      toast.error('Please select a rating');
+      toast.error(t('selectRating', lang));
       return;
     }
 
     // Enhanced email validation
     const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
     if (!emailRegex.test(formData.email.trim())) {
-      toast.error('Please enter a valid email address');
+      toast.error(t('invalidEmail', lang));
       return;
     }
 
     // Length validations (matching server-side rules)
     if (formData.name.trim().length < 2 || formData.name.trim().length > 100) {
-      toast.error('Name must be between 2 and 100 characters');
+      toast.error(t('nameLengthError', lang));
       return;
     }
 
     if (formData.comment.trim().length < 10 || formData.comment.trim().length > 2000) {
-      toast.error('Comment must be between 10 and 2000 characters');
+      toast.error(t('commentLengthError', lang));
       return;
     }
 
