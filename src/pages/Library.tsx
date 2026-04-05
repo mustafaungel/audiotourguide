@@ -60,7 +60,7 @@ export default function Library() {
     if (guideId) {
       // Navigate to access page with access code
       const url = `/access/${guideId}${accessCode ? `?access_code=${accessCode}` : ''}`;
-      window.location.href = url;
+      navigate(url);
     } else {
       toast({
         title: "Error",
