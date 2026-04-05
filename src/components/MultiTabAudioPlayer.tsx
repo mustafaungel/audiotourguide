@@ -388,7 +388,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
               className="flex items-center gap-2 min-h-[44px] px-3 py-2 text-sm font-medium opacity-70"
             >
               <Music className="w-4 h-4 shrink-0" />
-              <span className="truncate">Loading...</span>
+              <span className="truncate">{t('loading', languageCode)}</span>
             </TabsTrigger>
           )}
         </TabsList>
