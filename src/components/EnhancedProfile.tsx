@@ -27,15 +27,7 @@ export const EnhancedProfile: React.FC<EnhancedProfileProps> = ({
   const { user, userProfile } = useAuth();
 
   if (!user || !userProfile) {
-    return (
-      <div className="space-y-6">
-        <Card>
-          <CardContent className="p-8 text-center">
-            <div className="text-muted-foreground">Loading profile...</div>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <AudioGuideLoader variant="page" message="Loading profile..." />;
   }
 
   const getRoleBadge = () => {
