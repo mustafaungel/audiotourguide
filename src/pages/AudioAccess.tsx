@@ -697,7 +697,7 @@ export default function AudioAccess() {
           </div>
 
           {/* Title & metadata — centered */}
-          <div className="text-center space-y-2 animate-fade-in">
+          <div className="text-center space-y-2">
             <h1 className="text-xl font-bold text-foreground leading-tight">
               {guide.title}
             </h1>
