@@ -422,7 +422,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
           <TabsContent value={pendingGuideId} className="mt-0">
             <div className="flex items-center justify-center p-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              <span className="ml-3">Loading guide...</span>
+              <span className="ml-3">{t('loadingGuide', languageCode)}</span>
             </div>
           </TabsContent>
         )}
