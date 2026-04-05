@@ -527,9 +527,9 @@ export default function AudioAccess() {
               <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
                 <Lock className="w-8 h-8 text-destructive" />
               </div>
-              <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
+              <h1 className="text-2xl font-bold mb-4">{t('accessDenied', selectedLanguage)}</h1>
               <p className="text-muted-foreground mb-4">
-                {error || "You don't have access to this audio guide."}
+                {error || t('noAccess', selectedLanguage)}
               </p>
               
               {/* Show different actions based on the error type */}
