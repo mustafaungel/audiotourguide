@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2 } from 'lucide-react';
+import { AudioGuideLoader } from './AudioGuideLoader';
 interface HomepageStat {
   id: string;
   stat_type: string;
