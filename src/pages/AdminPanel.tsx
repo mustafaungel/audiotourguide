@@ -37,6 +37,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 const AdminPanel = () => {
   const { user, userProfile } = useAuth();
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
 
   // Listen for tab change events from GuideManagement
