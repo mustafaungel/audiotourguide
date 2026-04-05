@@ -502,14 +502,11 @@ export default function AudioAccess() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
-        <div className="container mx-auto px-4 py-6">
-          <AudioGuideLoader 
-            variant="page" 
-            message={sessionId ? t('verifyingPayment', selectedLanguage) : t('unlockingTour', selectedLanguage)} 
-          />
-        </div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <AudioGuideLoader 
+          variant="page" 
+          message={sessionId ? t('verifyingPayment', selectedLanguage) : t('unlockingTour', selectedLanguage)} 
+        />
       </div>
     );
   }
