@@ -598,8 +598,8 @@ export default function AudioAccess() {
                 
                 {sessionId && (
                   <p className="text-xs text-muted-foreground mt-2">
-                    If you just completed a payment and are seeing this error, 
-                    please contact support with session ID: {sessionId.slice(-8)}
+                    {t('contactSupport', selectedLanguage)} {sessionId.slice(-8)}
+                  </p>
                   </p>
                 )}
                 
