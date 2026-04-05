@@ -65,6 +65,11 @@ type TranslationKeys = {
   clearBrowserCache: string;
   contactSupport: string;
   languageAutoSelected: string;
+  // AudioAccess iOS redesign
+  back: string;
+  showMore: string;
+  showLess: string;
+  close: string;
 };
 
 const translations: Record<string, TranslationKeys> = {
