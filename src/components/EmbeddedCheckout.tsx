@@ -301,10 +301,7 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
             size="sm"
           >
             {loading ? (
-              <>
-                <Loader2 className="w-3 h-3 mr-2 animate-spin" />
-                Processing...
-              </>
+              <ButtonLoader text="Processing..." />
             ) : (
               <>
                 <CreditCard className="w-3 h-3 mr-2" />
