@@ -110,34 +110,52 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
         <Globe className="h-4 w-4 text-muted-foreground" />
         <span className="text-sm text-muted-foreground font-medium">{t('language', selectedLanguage)}</span>
       </div>
-      <div className="flex flex-wrap gap-2 transition-all duration-200">
-        {displayLanguages.map((language) => {
-          const isSelected = language.language_code === selectedLanguage;
-          const isHidden = collapsed && !isSelected;
-          return (
-            <button
-              key={language.language_code}
-              onClick={() => handleLanguageSelect(language.language_code)}
-              className={cn(
-                "inline-flex items-center justify-center gap-2 px-3 min-h-[44px] min-w-[calc(50%-0.25rem)] rounded-xl text-sm font-medium transition-all duration-200",
-                "border active:scale-[0.97]",
-                isSelected
-                  ? "bg-primary/10 border-primary text-primary shadow-sm ring-2 ring-primary/20"
-                  : "bg-card border-border text-foreground hover:bg-muted",
-                isHidden && "hidden"
-              )}
-            >
-              <span className="text-lg" aria-hidden="true">
-                {getLanguageFlag(language.language_code)}
-              </span>
-              <span>{language.native_name}</span>
-              {isSelected && (
-                <Check className="h-4 w-4 text-primary shrink-0" />
-              )}
-            </button>
-          );
-        })}
-      </div>
+      {(() => {
+        const selectedIndex = displayLanguages.findIndex(l => l.language_code === selectedLanguage);
+        const selectedRow = Math.floor(Math.max(selectedIndex, 0) / 2);
+        const rowHeight = 52;
+        const gap = 8;
+        const visibleRows = selectedRow + 1;
+        const maxH = collapsed
+          ? visibleRows * rowHeight + (visibleRows - 1) * gap
+          : displayLanguages.length > 0
+            ? Math.ceil(displayLanguages.length / 2) * rowHeight + (Math.ceil(displayLanguages.length / 2) - 1) * gap
+            : rowHeight;
+
+        return (
+          <div
+            className="grid grid-cols-2 gap-2 overflow-hidden transition-[max-height] duration-300 ease-in-out"
+            style={{ maxHeight: `${maxH}px` }}
+          >
+            {displayLanguages.map((language) => {
+              const isSelected = language.language_code === selectedLanguage;
+              const isHidden = collapsed && !isSelected;
+              return (
+                <button
+                  key={language.language_code}
+                  onClick={() => handleLanguageSelect(language.language_code)}
+                  className={cn(
+                    "inline-flex items-center justify-center gap-2 px-3 min-h-[44px] rounded-xl text-sm font-medium transition-all duration-200",
+                    "border active:scale-[0.97]",
+                    isSelected
+                      ? "bg-primary/10 border-primary text-primary shadow-sm ring-2 ring-primary/20"
+                      : "bg-card border-border text-foreground hover:bg-muted",
+                    isHidden && "invisible"
+                  )}
+                >
+                  <span className="text-lg" aria-hidden="true">
+                    {getLanguageFlag(language.language_code)}
+                  </span>
+                  <span>{language.native_name}</span>
+                  {isSelected && (
+                    <Check className="h-4 w-4 text-primary shrink-0" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        );
+      })()}
     </div>
   );
 }
