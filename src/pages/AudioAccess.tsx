@@ -652,18 +652,20 @@ export default function AudioAccess() {
     <div className="min-h-screen bg-background">
       {/* iOS-style minimal navbar */}
       <div className="sticky top-0 z-50 backdrop-blur-xl bg-background/80 border-b border-border/50">
-        <div className="flex items-center justify-between px-4 h-12">
+        <div className="grid grid-cols-[48px_1fr_48px] items-center px-2 h-12">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-1 text-primary text-sm font-medium active:opacity-60 transition-opacity"
+            className="flex items-center justify-center w-10 h-10 text-primary active:opacity-60 transition-opacity"
+            aria-label={t('back', selectedLanguage)}
           >
             <ChevronLeft className="w-5 h-5" />
-            <span>{t('back', selectedLanguage)}</span>
           </button>
-          <span className="text-sm font-semibold text-foreground truncate max-w-[200px]">
+          <span className="text-sm font-semibold text-foreground truncate text-center px-1">
             {guide.title}
           </span>
-          <ThemeToggle />
+          <div className="flex items-center justify-center">
+            <ThemeToggle />
+          </div>
         </div>
       </div>
 
