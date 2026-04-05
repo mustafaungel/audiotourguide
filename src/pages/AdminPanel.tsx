@@ -419,6 +419,10 @@ const AdminPanel = () => {
               <Languages className="h-4 w-4" />
               <span>Languages</span>
             </TabsTrigger>
+            <TabsTrigger value="preview" className="flex items-center gap-2 text-sm" onClick={() => navigate('/admin/preview')}>
+              <Eye className="h-4 w-4" />
+              <span>Preview</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard">
