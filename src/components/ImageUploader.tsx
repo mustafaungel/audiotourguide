@@ -30,9 +30,9 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
     }
 
     // Check file size (5MB limit)
-    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    const maxSize = 20 * 1024 * 1024; // 20MB in bytes
     if (file.size > maxSize) {
-      return 'Image must be smaller than 5MB';
+      return 'Image must be smaller than 20MB';
     }
 
     return null;
@@ -177,7 +177,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
             <div>
               <h3 className="text-lg font-medium">Upload Guide Images</h3>
               <p className="text-sm text-muted-foreground">
-                Choose up to {maxImages} images. JPG, PNG, or WebP. Max 5MB each.
+                Choose up to {maxImages} images. JPG, PNG, or WebP. Max 20MB each.
               </p>
               <p className="text-xs text-muted-foreground mt-1">
                 Images will be automatically resized to 1200x800px for optimal performance.
