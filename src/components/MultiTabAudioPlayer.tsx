@@ -350,7 +350,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
             >
               <span className="flex items-center gap-2 min-w-0">
                 <Music className="w-4 h-4 shrink-0" />
-                <span className="truncate">{linkedGuide.custom_title || linkedGuide.title}</span>
+                <span className="line-clamp-2 break-words text-left">{linkedGuide.custom_title || linkedGuide.title}</span>
               </span>
               {(() => {
                 const sectionCount = sectionsByGuide[linkedGuide.guide_id]?.length || 0;
