@@ -81,9 +81,8 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
   };
 
   const displayLanguages = availableLanguages.length > 0 ? availableLanguages : lastLanguagesRef.current;
-  const filteredLanguages = collapsed
-    ? displayLanguages.filter(l => l.language_code === selectedLanguage)
-    : displayLanguages;
+
+
 
   if (loading && displayLanguages.length === 0) {
     // First load: stable placeholder
@@ -113,10 +112,11 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
       </div>
       <div className={cn(
         "grid gap-2 transition-all duration-200 overflow-hidden",
-        filteredLanguages.length === 2 ? "grid-cols-2" : filteredLanguages.length >= 3 ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-1"
+        displayLanguages.length === 2 ? "grid-cols-2" : displayLanguages.length >= 3 ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-1"
       )}>
-        {filteredLanguages.map((language) => {
+        {displayLanguages.map((language) => {
           const isSelected = language.language_code === selectedLanguage;
+          const isHidden = collapsed && !isSelected;
           return (
             <button
               key={language.language_code}
@@ -126,7 +126,8 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
                 "border active:scale-[0.97]",
                 isSelected
                   ? "bg-primary/10 border-primary text-primary shadow-sm ring-2 ring-primary/20"
-                  : "bg-card border-border text-foreground hover:bg-muted"
+                  : "bg-card border-border text-foreground hover:bg-muted",
+                isHidden && "invisible"
               )}
             >
               <span className="text-lg" aria-hidden="true">
