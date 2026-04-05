@@ -177,7 +177,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
             <div>
               <h3 className="text-lg font-medium">Upload Guide Images</h3>
               <p className="text-sm text-muted-foreground">
-                Choose up to {maxImages} images. JPG, PNG, or WebP. Max 20MB each.
+                Choose up to {maxImages} images. JPG, PNG, or WebP. Max 200MB each.
               </p>
               <p className="text-xs text-muted-foreground mt-1">
                 Images will be automatically resized to 1200x800px for optimal performance.
