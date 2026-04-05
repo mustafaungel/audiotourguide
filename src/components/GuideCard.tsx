@@ -190,7 +190,7 @@ export function GuideCard({
             )}
           </div>
 
-          <div className="flex justify-center pt-2">
+          <div className="flex justify-center pt-2 mt-auto">
             <div className="text-center">
               <div className="text-lg sm:text-xl font-bold">${(price / 100).toFixed(2)}</div>
             </div>
