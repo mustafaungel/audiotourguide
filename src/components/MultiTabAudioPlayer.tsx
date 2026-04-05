@@ -4,6 +4,7 @@ import { NewSectionAudioPlayer } from './NewSectionAudioPlayer';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from './ui/badge';
 import { Music } from 'lucide-react';
+import { t } from '@/lib/translations';
 
 interface Section {
   id: string;
