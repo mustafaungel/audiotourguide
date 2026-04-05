@@ -42,6 +42,7 @@ interface ChapterListProps {
   onVolumeChange?: (newVolume: number[]) => void;
   onSpeedChange?: (speed: number) => void;
   onAutoAdvanceChange?: (enabled: boolean) => void;
+  lang?: string;
 }
 
 export const ChapterList: React.FC<ChapterListProps> = ({
