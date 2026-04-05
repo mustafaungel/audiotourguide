@@ -5,6 +5,7 @@ import { Button } from './ui/button';
 import { BottomSheet } from './ui/bottom-sheet';
 import { haptics } from '@/lib/haptics';
 import { cn } from '@/lib/utils';
+import { t } from '@/lib/translations';
 
 interface Section {
   id: string;
