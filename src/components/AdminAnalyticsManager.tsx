@@ -189,22 +189,7 @@ export const AdminAnalyticsManager = () => {
   }));
 
   if (loading) {
-    return (
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Analytics Dashboard</CardTitle>
-            <CardDescription>Loading analytics data...</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-8">
-              <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground">Fetching analytics data</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <AudioGuideLoader variant="page" message="Loading analytics..." />;
   }
 
   return (
