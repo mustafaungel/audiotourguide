@@ -110,10 +110,7 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
         <Globe className="h-4 w-4 text-muted-foreground" />
         <span className="text-sm text-muted-foreground font-medium">{t('language', selectedLanguage)}</span>
       </div>
-      <div className={cn(
-        "grid gap-2 transition-all duration-200 overflow-hidden",
-        displayLanguages.length === 2 ? "grid-cols-2" : displayLanguages.length >= 3 ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-1"
-      )}>
+      <div className="flex flex-wrap gap-2 transition-all duration-200">
         {displayLanguages.map((language) => {
           const isSelected = language.language_code === selectedLanguage;
           const isHidden = collapsed && !isSelected;
