@@ -59,6 +59,23 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
   const contentWrapperRef = useRef<HTMLDivElement>(null);
   const [lockedHeight, setLockedHeight] = useState<number | undefined>(undefined);
 
+  const handleTabChange = useCallback((value: string) => {
+    // Lock current height before switching
+    if (contentWrapperRef.current) {
+      setLockedHeight(contentWrapperRef.current.offsetHeight);
+    }
+    const scrollY = window.scrollY;
+    setActiveTab(value);
+    onActiveTabChange?.(value);
+    // Double-rAF: wait for React render + DOM paint, then unlock height
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: scrollY, behavior: 'instant' as ScrollBehavior });
+        setTimeout(() => setLockedHeight(undefined), 100);
+      });
+    });
+  }, [onActiveTabChange]);
+
   useEffect(() => {
     loadLinkedGuides();
   }, [mainGuide.id, accessCode]);
