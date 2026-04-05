@@ -1,91 +1,120 @@
 
 
-## Plan: AudioAccess Sayfası — Kullanıcı Dostu Yeniden Tasarım + Tam Sayfa Çevirisi
+## Plan: AudioAccess Sayfası — iOS-Vari Tam Yeniden Tasarım (Mobil Öncelikli)
 
-### Araştırma Bulguları
+### Mevcut Durum Analizi (Mobil Ekran Görüntülerinden)
 
-**Veritabanı kontrolü**: Tüm audio guide'larda İngilizce (`en`) section'lar mevcut — her guide'da en az 1 İngilizce section var. Dolayısıyla varsayılan dil güvenle `en` olabilir.
-
-**Mevcut sorun — Varsayılan dil**: `detectAvailableLanguages()` (satır 282) RPC'den dönen **ilk dili** seçiyor, bu her zaman İngilizce olmayabilir (alfabetik sıralama `de` > `en` yapabilir).
-
-**Mevcut sorun — Sayfa çevirisi yok**: Dil değiştiğinde sadece audio section'lar değişiyor. Sayfadaki tüm statik metinler İngilizce kalıyor:
-- `AudioAccess.tsx`: "Leave a Review", konum/süre bilgileri
-- `ChapterList.tsx`: "Up Next", "Playback Speed", "Normal", zaman formatları
-- `GuestReviewForm.tsx`: "Leave a Review", "Name", "Email", "Rating", "Submit Review", placeholder'lar, hata mesajları
-- `GuideLanguageSelector.tsx`: "Language" etiketi
-- `MultiTabAudioPlayer.tsx`: "Loading...", tab başlıkları
-- `NewSectionAudioPlayer.tsx`: "No audio content available"
-- Hata/erişim sayfaları: "Access Denied", "Browse Guides", "Go Home"
+Mevcut sayfa klasik bir Card layout kullanıyor — büyük resim, altında başlık/açıklama, dil seçici, tab bar (linked guides), chapter list, review formu. Sorunlar:
+- Görsel hiyerarşi zayıf — her şey aynı ağırlıkta
+- Tab bar mobilde çok yer kaplıyor (grid-cols-1)
+- "Leave a Review" başlığı iki kez tekrar ediyor (h3 + CardTitle)
+- Chapter list'teki butonlar küçük ve birbirine benziyor
+- Genel tasarım "web app" gibi, "native app" hissi yok
+- Description tamamı gösteriliyor — mobilde çok uzun olabilir
 
 ---
 
-### Değişiklikler
+### Tasarım Vizyonu: iOS Music/Podcast Player Tarzı
 
-#### 1. Çeviri sistemi oluştur — `src/lib/translations.ts`
-Desteklenen diller için tüm UI etiketlerini içeren bir çeviri sözlüğü:
+Sayfayı 3 net bölüme ayırıyoruz:
 
 ```text
-Anahtarlar:
-- upNext, language, leaveReview, name, email, rating, review
-- submitReview, submitting, playbackSpeed, normal
-- noAudioContent, loading, accessDenied, browseGuides, goHome
-- shareFeedback, reviewDescription, namePlaceholder, emailPlaceholder
-- reviewPlaceholder, minutes (min), reviewSuccess
-- connectionIssue, retryConnection, paymentRetry
+┌─────────────────────────┐
+│  ← Back      Guide Hero │  Compact header + blurred bg
+│  ┌───────────────────┐  │
+│  │   Guide Image     │  │  Rounded, centered
+│  └───────────────────┘  │
+│  Title (bold, centered) │
+│  📍 Location · ⏱ 12min │
+│  🌐 [EN] [TR] [日本語]   │  Pill-style language chips
+├─────────────────────────┤
+│  Tab Pills (horizontal) │  Scrollable, pill-shaped
+│  ┌─ Chapter 1 ─────── ┐│
+│  │ ▶ Avanos    2:39   ││  Clean rows, tap to play
+│  │ ▶ Uchisar   2:34   ││
+│  └─────────────────────┘│
+├─────────────────────────┤
+│  ⭐ Rate this guide      │  Collapsible review section
+│  [Star Rating]           │
+│  [Comment] [Submit]      │
+└─────────────────────────┘
 ```
 
-Desteklenen diller: en, tr, es, fr, de, it, pt, ru, zh, ja, ko, ar (veritabanındaki tüm aktif diller).
+---
 
-Basit bir `t(key, lang)` fonksiyonu — harici kütüphane yok.
+### Değişiklik 1: `src/pages/AudioAccess.tsx` — Tam Yeniden Tasarım
 
-#### 2. Varsayılan dili İngilizce yap — `AudioAccess.tsx`
-- `selectedLanguage` başlangıç değerini `'en'` yap (mevcut: `''`)
-- `detectAvailableLanguages()` içinde: İngilizce varsa onu seç, yoksa ilk mevcut dili seç
-- Sayfa ilk açıldığında her zaman İngilizce section'lar yüklensin
+**Guide Hero Section** (üst kısım):
+- Navigation kaldır, yerine minimal back button + guide title (iOS navbar stili)
+- Guide image: `w-48 h-48 rounded-2xl mx-auto shadow-xl` — merkezi, büyük köşeli
+- Image arkasına blur gradient arka plan (guide image'ın renklerinden)
+- Title: merkezi, `text-xl font-bold`
+- Location + duration: tek satır, ikonlarla, `text-sm text-muted-foreground`
+- Category badge: image üstünde overlay olarak (sol üst köşe)
+- Description: `line-clamp-2` ile kısalt, "more" ile genişletilebilir
 
-#### 3. Sayfa çevirisini uygula — `AudioAccess.tsx`
-- Tüm statik metinleri `t(key, selectedLanguage)` ile değiştir:
-  - "Leave a Review" başlığı
-  - Konum/süre etiketleri
-  - Hata sayfası metinleri ("Access Denied", buton yazıları)
+**Language Selector** (guide hero altında):
+- Mevcut GuideLanguageSelector'ı koruyoruz (zaten pill-style)
+- Ama daha compact — padding azalt, `mt-4` ile hero'ya bağla
 
-#### 4. ChapterList çevirisi — `ChapterList.tsx`
-- `lang` prop'u ekle
-- "Up Next" → `t('upNext', lang)`
-- "Playback Speed" → `t('playbackSpeed', lang)`
-- "Normal" → `t('normal', lang)`
+**Tab Bar** (linked guides):
+- `grid-cols-1` yerine **horizontal scroll** (`flex overflow-x-auto gap-2`)
+- Her tab: pill-shaped chip, `rounded-full px-4 py-2`
+- Active tab: `bg-primary text-white`, inactive: `bg-muted/50`
+- Tek guide varsa tab bar gösterme (mevcut davranış korunuyor)
 
-#### 5. GuestReviewForm çevirisi — `GuestReviewForm.tsx`
-- `lang` prop'u ekle
-- Tüm label, placeholder ve buton metinlerini çevir
-- Hata mesajlarını çevir (toast'lar dahil)
+**Chapter List** (değişmez — çalışan bir yapı, dokunulmuyor):
+- ChapterList component'i olduğu gibi kalıyor
+- Sadece container'a `rounded-2xl overflow-hidden` ekle
 
-#### 6. GuideLanguageSelector çevirisi — `GuideLanguageSelector.tsx`
-- "Language" etiketini `t('language', selectedLanguage)` ile değiştir
+**Review Section**:
+- "Leave a Review" h3 tekrarı kaldır (zaten Card içinde var)
+- Collapsible yap — başlangıçta kapalı, "⭐ Share your feedback" butonu ile açılır
+- Açıldığında smooth `max-h` animasyonu ile
 
-#### 7. NewSectionAudioPlayer çevirisi — `NewSectionAudioPlayer.tsx`
-- `lang` prop'u ekle, ChapterList'e ilet
-- "No audio content available" → çevrilmiş metin
+**Error/Loading States**:
+- Mevcut AudioGuideLoader korunuyor (zaten iOS-vari)
+- Error state'de daha yumuşak tasarım — rounded card, soft renkler
 
-#### 8. UX iyileştirmeleri — `AudioAccess.tsx`
-- Dil seçicisini Card header'ının içinde daha belirgin konuma taşı (guide bilgilerinin hemen altında, ayrı bir satırda)
-- Section sayısını ve toplam süreyi dil seçici yanında göster (kullanıcı hangi dilde kaç bölüm olduğunu görsün)
-- Review formunu görsel olarak ayır — daha belirgin bir bölüm başlığı ve ikon ekle
+### Değişiklik 2: `src/components/MultiTabAudioPlayer.tsx` — Tab Bar iOS Stili
+
+- TabsList'i horizontal scroll pill-bar'a çevir
+- `grid-cols-1` kaldır → `flex overflow-x-auto snap-x gap-2 pb-2`
+- Her TabsTrigger: `rounded-full whitespace-nowrap` pill stili
+- Loading state'i daha subtle yap (skeleton pills)
+
+### Değişiklik 3: `src/components/GuestReviewForm.tsx` — Compact Mobil Form
+
+- Card border'ını kaldır → `border-0 shadow-none bg-transparent`
+- CardHeader'ı sadeleştir
+- Input/Textarea: iOS-vari `rounded-xl bg-muted/30` stili
+- Star rating: daha büyük touch target (`w-8 h-8`)
+- Submit button: `rounded-xl` full width
+
+### Dokunulmayacak Dosyalar (Ses Güvenliği)
+- `NewSectionAudioPlayer.tsx` — **DOKUNULMAZ** (audio playback logic)
+- `ChapterList.tsx` — **DOKUNULMAZ** (çalışan chapter list + progress bar)
+- `useAudioProgress.ts`, `useAudioSource.ts` — **DOKUNULMAZ**
+- Audio URL resolution, playback, pre-resolve logic — **DOKUNULMAZ**
+
+### Animasyonlar
+- Tüm geçişler `transition-all duration-300` veya CSS `transition` ile
+- `transform` ve `opacity` tabanlı — layout shift yok, GPU accelerated
+- `will-change: transform` kullan
+- Hero image: `animate-in fade-in-0 zoom-in-95 duration-500`
+- Chapters: `animate-in fade-in-0 slide-in-from-bottom-2` staggered
 
 ---
 
 ### Etkilenen Dosyalar
-- `src/lib/translations.ts` — **YENİ** (çeviri sözlüğü + `t()` fonksiyonu)
-- `src/pages/AudioAccess.tsx` — varsayılan dil + çeviri + UX
-- `src/components/ChapterList.tsx` — lang prop + çeviri
-- `src/components/GuestReviewForm.tsx` — lang prop + çeviri
-- `src/components/GuideLanguageSelector.tsx` — etiket çevirisi
-- `src/components/NewSectionAudioPlayer.tsx` — lang prop geçişi
-- `src/components/MultiTabAudioPlayer.tsx` — lang prop geçişi
+- `src/pages/AudioAccess.tsx` — tam layout yeniden tasarım
+- `src/components/MultiTabAudioPlayer.tsx` — tab bar stili
+- `src/components/GuestReviewForm.tsx` — compact form stili
 
 ### Sonuç
-- Sayfa her zaman İngilizce açılır
-- Dil değiştirildiğinde tüm UI metinleri (başlıklar, butonlar, form etiketleri, hatalar) seçilen dile çevrilir
-- Audio section içerikleri zaten mevcut sistemle dil bazlı yükleniyor — bu korunur
-- Kullanıcı deneyimi tutarlı ve erişilebilir
+- iOS Music app hissi — temiz, minimal, hiyerarşik
+- Ses dosyaları ve playback logic'e **sıfır** müdahale
+- Tüm çeviriler korunuyor
+- GPU-accelerated animasyonlar, sıfır kasma
+- Mobilde mükemmel touch target'lar
 
