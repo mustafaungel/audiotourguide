@@ -204,11 +204,12 @@ const GuideDetail = () => {
       return;
     }
     
-    setIsLoading(true);
+    // Only show loading spinner if we don't have preview data
+    if (!realGuideData) {
+      setIsLoading(true);
+    }
     
     try {
-      // First, get the guide data by slug
-      const { data: guideData, error: guideError } = await supabase
         .from('audio_guides')
         .select('*')
         .eq('slug', slug)
