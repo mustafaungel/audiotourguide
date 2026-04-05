@@ -75,9 +75,9 @@ export const GuestReviewForm = ({ guideId, onReviewSubmitted, lang = 'en' }: Gue
         if (error.message.includes('must be between')) {
           toast.error(error.message);
         } else if (error.message.includes('Invalid email')) {
-          toast.error('Invalid email format. Please check and try again.');
+          toast.error(t('invalidEmail', lang));
         } else if (error.message.includes('prohibited content')) {
-          toast.error('Your comment contains prohibited content. Please revise and try again.');
+          toast.error(t('prohibitedContent', lang));
         } else {
           throw error;
         }
