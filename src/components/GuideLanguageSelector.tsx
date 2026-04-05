@@ -65,6 +65,10 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
 
   const handleLanguageSelect = (languageCode: string) => {
     haptics.selection();
+    if (languageCode === selectedLanguage && collapsed) {
+      setCollapsed(false);
+      return;
+    }
     const isInMultiTab = !!activeGuideId;
     if (isInMultiTab) {
       window.dispatchEvent(new CustomEvent('changeGuideLanguage', {
@@ -73,6 +77,7 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
     } else {
       onLanguageChange(languageCode);
     }
+    setCollapsed(true);
   };
 
   // Use displayed languages: current if available, otherwise last known
