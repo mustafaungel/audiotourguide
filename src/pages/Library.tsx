@@ -17,6 +17,7 @@ export default function Library() {
   const [useEnhancedView, setUseEnhancedView] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (user) {
