@@ -584,31 +584,15 @@ const GuideDetail = () => {
             Back to Guides
           </Button>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Main Content Skeleton */}
+            {/* Main Content - Audio Themed Loading */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Hero Image Skeleton - matches aspect-video md:aspect-[16/10] */}
-              <div className="relative aspect-video md:aspect-[16/10] rounded-3xl overflow-hidden bg-muted min-h-[200px] md:min-h-[300px]">
-                <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-muted via-muted/70 to-muted" />
-                <div className="absolute bottom-4 left-4 space-y-2">
-                  <div className="h-6 w-20 bg-muted-foreground/20 rounded animate-pulse" />
-                  <div className="h-8 w-64 bg-muted-foreground/20 rounded animate-pulse" />
-                </div>
+              {/* Hero Image Area - Audio themed placeholder */}
+              <div className="relative aspect-video md:aspect-[16/10] rounded-3xl overflow-hidden bg-muted min-h-[200px] md:min-h-[300px] flex items-center justify-center">
+                <AudioGuideLoader variant="page" message="Preparing your audio experience..." />
               </div>
-              {/* Guide Info Skeleton */}
+              {/* Guide Info Skeleton - themed */}
               <Card className="min-h-[120px]">
-                <CardHeader>
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-4">
-                      <div className="h-4 w-32 bg-muted rounded animate-pulse" />
-                      <div className="h-4 w-20 bg-muted rounded animate-pulse" />
-                    </div>
-                    <div className="flex gap-2">
-                      <div className="h-8 w-8 bg-muted rounded animate-pulse" />
-                      <div className="h-8 w-8 bg-muted rounded animate-pulse" />
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
+                <CardContent className="p-6">
                   <div className="space-y-3">
                     <div className="h-4 bg-muted rounded w-full animate-pulse" />
                     <div className="h-4 bg-muted rounded w-5/6 animate-pulse" />
@@ -616,19 +600,6 @@ const GuideDetail = () => {
                   </div>
                 </CardContent>
               </Card>
-              {/* Tabs Skeleton */}
-              <div>
-                <div className="grid grid-cols-3 gap-1 h-10 bg-muted rounded-lg mb-4">
-                  <div className="rounded animate-pulse bg-muted-foreground/10" />
-                  <div className="rounded animate-pulse bg-muted-foreground/5" />
-                  <div className="rounded animate-pulse bg-muted-foreground/5" />
-                </div>
-                <div className="space-y-2">
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className="h-16 bg-muted rounded-lg animate-pulse" />
-                  ))}
-                </div>
-              </div>
             </div>
             {/* Sidebar Skeleton */}
             <div className="space-y-6">
@@ -637,11 +608,6 @@ const GuideDetail = () => {
                   <div className="h-8 w-24 bg-muted rounded animate-pulse" />
                   <div className="h-4 w-full bg-muted rounded animate-pulse" />
                   <div className="h-12 w-full bg-muted rounded-lg animate-pulse" />
-                  <div className="space-y-2 pt-4">
-                    <div className="h-3 w-3/4 bg-muted rounded animate-pulse" />
-                    <div className="h-3 w-2/3 bg-muted rounded animate-pulse" />
-                    <div className="h-3 w-1/2 bg-muted rounded animate-pulse" />
-                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -752,7 +718,7 @@ const GuideDetail = () => {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Hero Image - Responsive aspect ratio */}
-            <div className="relative aspect-video md:aspect-[16/10] rounded-3xl overflow-hidden shadow-xl min-h-[200px] md:min-h-[300px]">
+            <div className="relative aspect-video md:aspect-[16/10] rounded-3xl overflow-hidden shadow-xl min-h-[200px] md:min-h-[300px] bg-muted">
               <img
                 src={
                   (guide.image_urls?.[0] || guide.image_url)?.startsWith('data:image') 

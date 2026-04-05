@@ -6,6 +6,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { MapPin, Clock, Star, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { AudioGuideLoader } from '@/components/AudioGuideLoader';
 import { useViralTracking } from '@/hooks/useViralTracking';
 import { OptimizedImage } from '@/components/OptimizedImage';
 
@@ -114,35 +115,7 @@ export const FeaturedGuides = () => {
             <h2 className="mobile-heading sm:text-3xl text-foreground mb-4">Featured Audio Guides</h2>
             <p className="mobile-text sm:text-lg text-muted-foreground">Discover extraordinary places with expert-crafted audio tours</p>
           </div>
-          <Carousel
-            opts={{
-              align: "start",
-              loop: true,
-            }}
-            className="w-full"
-          >
-            <CarouselContent className="-ml-2">
-              {[...Array(6)].map((_, i) => (
-                <CarouselItem key={i} className="pl-2 basis-[85%] sm:basis-[75%] md:basis-1/2 lg:basis-1/3">
-                  <Card className="animate-pulse mobile-card">
-                    <div className="aspect-mobile bg-muted rounded-t-lg"></div>
-                    <CardHeader>
-                      <div className="h-4 bg-muted rounded w-3/4"></div>
-                      <div className="h-3 bg-muted rounded w-1/2"></div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="mobile-spacing">
-                        <div className="h-3 bg-muted rounded"></div>
-                        <div className="h-3 bg-muted rounded w-2/3"></div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious />
-            <CarouselNext />
-          </Carousel>
+          <AudioGuideLoader variant="card" count={6} />
         </div>
       </section>
     );
@@ -167,7 +140,7 @@ export const FeaturedGuides = () => {
             {guides.map((guide) => (
               <CarouselItem key={guide.id} className="pl-2 basis-[85%] sm:basis-[75%] md:basis-1/2 lg:basis-1/3">{/* Mobile-first carousel items */}
                 <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden mobile-card cursor-pointer" onClick={() => handleGuideClick(guide)}>
-                  <div className="relative aspect-mobile overflow-hidden">
+                  <div className="relative aspect-mobile overflow-hidden bg-muted">
                     <OptimizedImage
                       src={guide.image_url}
                       alt={guide.title}

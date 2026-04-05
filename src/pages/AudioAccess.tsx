@@ -635,7 +635,7 @@ export default function AudioAccess() {
             <CardContent className="p-6">
               <div className="flex flex-col md:flex-row gap-6">
                 {/* Guide Image */}
-                <div className="w-full md:w-48 h-48 rounded-lg overflow-hidden flex-shrink-0">
+                <div className="w-full md:w-48 h-48 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
                   <img 
                     src={
                       (guide.image_urls?.[0] || guide.image_url)?.startsWith('data:image') 
@@ -690,7 +690,7 @@ export default function AudioAccess() {
           </Card>
 
           {/* Multi-tab Audio Interface */}
-          <div className="mb-6">
+          <div className="mb-6 min-h-[200px]">
             <MultiTabAudioPlayer
               key={`${guide.id}-${selectedLanguage}-${accessCode || ''}`}
               mainGuide={{
