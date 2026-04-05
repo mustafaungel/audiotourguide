@@ -117,8 +117,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
       if (targetGuideId && newLanguageCode) {
         setLanguageByGuide(prev => ({ ...prev, [targetGuideId]: newLanguageCode }));
         
-        // Clear and reload sections with new language
-        setSectionsByGuide(prev => ({ ...prev, [targetGuideId]: [] }));
+        // Reload sections with new language (stale-while-revalidate: keep old until new arrives)
         await ensureGuideSections(targetGuideId, newLanguageCode);
         
         // activeTab stays the same - no tab switch!
