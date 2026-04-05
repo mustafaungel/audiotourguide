@@ -8,7 +8,7 @@ import { Play, Download, Search, Clock, MapPin, Star } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { EnhancedLibrary } from '@/components/EnhancedLibrary';
 
 export default function Library() {
@@ -17,6 +17,7 @@ export default function Library() {
   const [useEnhancedView, setUseEnhancedView] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (user) {
@@ -59,7 +60,7 @@ export default function Library() {
     if (guideId) {
       // Navigate to access page with access code
       const url = `/access/${guideId}${accessCode ? `?access_code=${accessCode}` : ''}`;
-      window.location.href = url;
+      navigate(url);
     } else {
       toast({
         title: "Error",
