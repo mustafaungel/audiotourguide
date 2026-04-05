@@ -139,19 +139,11 @@ const Guides = () => {
     guide.location.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handlePlayGuide = async (guide: any) => {
+  const handlePlayGuide = (guide: any) => {
     setSelectedGuide(guide);
-
-    try {
-      await supabase.functions.invoke('track-viral-engagement', {
-        body: {
-          action: 'view',
-          guide_id: guide.id
-        }
-      });
-    } catch (error) {
-      console.error('Error tracking guide view:', error);
-    }
+    supabase.functions.invoke('track-viral-engagement', {
+      body: { action: 'view', guide_id: guide.id }
+    }).catch(err => console.error('Error tracking guide view:', err));
   };
 
   const breadcrumbSchema = {
