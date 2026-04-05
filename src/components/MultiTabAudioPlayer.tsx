@@ -361,10 +361,10 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
             <TabsTrigger
               key={linkedGuide.guide_id}
               value={linkedGuide.guide_id}
-              className="flex items-center gap-1.5 min-h-[40px] px-4 py-2 text-sm font-medium whitespace-nowrap rounded-full snap-center shrink-0 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md bg-muted/50 transition-all duration-200"
+              className="flex items-center gap-1.5 min-h-[40px] px-4 py-2 text-sm font-medium rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md bg-muted/50 transition-all duration-200"
             >
               <Music className="w-3.5 h-3.5 shrink-0" />
-              <span className="truncate max-w-[140px]">{linkedGuide.custom_title || linkedGuide.title}</span>
+              <span className="truncate max-w-[180px]">{linkedGuide.custom_title || linkedGuide.title}</span>
               {(() => {
                 const sectionCount = sectionsByGuide[linkedGuide.guide_id]?.length || 0;
                 return sectionCount > 0 ? (
