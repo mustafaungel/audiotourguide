@@ -560,14 +560,14 @@ export default function AudioAccess() {
                       className="w-full"
                     >
                       {isRetrying ? (
-                        <>
+                         <>
                           <RotateCcw className="w-4 h-4 mr-2 animate-spin" />
-                          Retrying Connection...
+                          {t('retrying', selectedLanguage)}
                         </>
                       ) : (
                         <>
                           <Wifi className="w-4 h-4 mr-2" />
-                          Retry Connection (Attempt {retryCount + 1})
+                          {t('retryConnection', selectedLanguage)} ({retryCount + 1})
                         </>
                       )}
                     </Button>
