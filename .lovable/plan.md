@@ -1,62 +1,62 @@
 
 
-## Plan: AudioAccess Dark/Light Toggle + Tab UX Fix + İçerik Çevirisi + Admin Test Sayfası
+## Plan: AudioAccess Tab Kayma Sorununu Kökten Çöz
 
-### 4 değişiklik yapılacak:
+### Sorunun Kök Nedeni
+Tab değişiminde 3 şey aynı anda oluyor:
+1. Eski `TabsContent` gizleniyor (yükseklik → 0)
+2. Yeni `TabsContent` gösteriliyor (yükseklik → yeni değer)
+3. `NewSectionAudioPlayer` `key` prop'u değiştiği için tamamen re-mount oluyor
 
----
-
-### 1. Dark/Light Toggle — AudioAccess Navbar'a Ekle
-`src/pages/AudioAccess.tsx` — Mevcut sticky navbar'daki "spacer div" yerine `ThemeToggle` bileşenini koy. Böylece sağ üst köşede güneş/ay ikonu ile tema değiştirilebilir.
-
-Satır 646'daki `<div className="w-12" />` → `<ThemeToggle />`
-
----
-
-### 2. Linked Guide Tab'ları — Horizontal Scroll Yerine Dikey Liste
-Mevcut `overflow-x-auto` horizontal scroll mobilde keşfedilemez — kullanıcı yana kaydırılacağını anlamıyor.
-
-**Çözüm**: `MultiTabAudioPlayer.tsx`'te tab'ları dikey chip listesi (wrap) olarak göster:
-- `flex overflow-x-auto snap-x` → `flex flex-wrap gap-2`
-- `whitespace-nowrap shrink-0` → kaldır, tab'lar wrap yaparak alta geçsin
-- `max-w-[140px] truncate` → `max-w-[180px]` ile daha okunabilir
-- Bu sayede tüm guide başlıkları ekranda görünür, yana kaydırma gerekmez
+Bu üçlü kombinasyon 1-2 frame'lik layout shift yaratıyor ve kullanıcı "kayma" görüyor.
 
 ---
 
-### 3. Dil Değişiminde İçerik Çevirisi (Title, Description)
-Mevcut durumda `guide.title` ve `guide.description` sadece `audio_guides` tablosundan geliyor — tek dil. Section title'ları zaten `guide_sections` tablosunda dil bazlı.
+### Çözüm: 3 Katmanlı Düzeltme
 
-**Çözüm**: `AudioAccess.tsx`'te dil değiştiğinde:
-- Section title/description zaten dil bazlı yükleniyor (mevcut davranış ✓)
-- Ana guide title ve description için: `guide_sections` tablosundaki ilk section'ın dil grubundan title kullanmak yerine, sayfada gösterilen `guide.title` ve `guide.description`'ı olduğu gibi bırak (bunlar veritabanında tek dilde) — ama UI label'ları (butonlar, "min", "Leave a Review" vb.) zaten `t()` fonksiyonu ile çevriliyor ✓
-- Eğer kullanıcı farklı dile tıklarsa, chapter listesi o dildeki section'lar ile güncelleniyor — bu zaten çalışıyor
+#### Değişiklik 1: `MultiTabAudioPlayer.tsx` — Content Container'a Sabit Min-Height
+- `TabsContent` wrapper'ına `min-h-[400px]` ekle — tab içeriği değişirken yükseklik asla 0'a düşmez
+- Daha da iyisi: aktif tab'ın yüksekliğini `ref` ile ölç ve container'a `style={{ minHeight }}` olarak uygula
+- Bu tek başına kaymanın %80'ini çözer
 
-**Not**: `audio_guides.title` ve `audio_guides.description` alanları tek dilde saklanıyor (genelde İngilizce). Bunları çevirmek için ya veritabanına çeviri tablosu eklemek ya da client-side çeviri API'si kullanmak gerekir. Şu an en pratik çözüm: mevcut `t()` fonksiyonu ile tüm UI metinlerinin çevrilmesini sağlamak ve guide content'in section bazlı çevirisini korumak.
+#### Değişiklik 2: `MultiTabAudioPlayer.tsx` — Scroll Restore'u Güçlendir
+- `requestAnimationFrame` yerine çift-frame approach: `rAF` içinde bir `rAF` daha — DOM'un gerçekten güncellenmesini bekle
+- Ek olarak `window.scrollTo` yerine `{ behavior: 'instant' }` kullan — smooth scroll yapmasın
+
+```typescript
+onValueChange={(value) => {
+  const scrollY = window.scrollY;
+  setActiveTab(value);
+  onActiveTabChange?.(value);
+  // Double-rAF: wait for React render + DOM paint
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: scrollY, behavior: 'instant' });
+    });
+  });
+}}
+```
+
+#### Değişiklik 3: `MultiTabAudioPlayer.tsx` — Radix TabsContent forceMount
+- `TabsContent` bileşenlerine `forceMount` prop ekle ve CSS ile gizle/göster
+- Bu sayede tab değişiminde DOM'dan kaldırma/ekleme olmaz, sadece `visibility` değişir
+- Layout reflow sıfırlanır
+
+```typescript
+<TabsContent value="main" forceMount className={activeTab !== 'main' ? 'hidden' : 'mt-0'}>
+```
+
+Bu approach ile:
+- Tüm tab'lar DOM'da kalır, sadece `hidden` class ile gizlenir
+- Yükseklik değişimi olmaz çünkü content zaten render edilmiş
+- `NewSectionAudioPlayer` re-mount olmaz — audio playback bile korunur
 
 ---
 
-### 4. Admin Test/Preview Sayfası
-Yeni sayfa: `src/pages/AdminPreview.tsx` — Admin'in publish öncesi AudioAccess sayfasını test etmesi için.
+### Etkilenen Dosya
+- `src/components/MultiTabAudioPlayer.tsx` — 3 düzeltme (min-height + double-rAF + forceMount)
 
-**Özellikler**:
-- `/admin/preview` rotası (App.tsx'e ekle)
-- Admin'in guide seçebileceği bir dropdown (tüm guide'lar — published veya değil)
-- Seçilen guide'ın AudioAccess sayfasını `master_access_code` ile iframe veya inline olarak göster
-- Checklist paneli: ses çalıyor mu, dil değişimi çalışıyor mu, linked guide'lar yükleniyor mu
-- Sadece admin erişimi (`useIsAdmin` hook)
-
-**Yapı**:
-1. `src/pages/AdminPreview.tsx` — guide listesi + preview iframe
-2. `src/App.tsx` — `/admin/preview` rotası ekle
-3. `src/pages/AdminPanel.tsx` — "Preview & Test" tab'ı ekle (link olarak)
-
----
-
-### Etkilenen Dosyalar
-- `src/pages/AudioAccess.tsx` — ThemeToggle import + navbar'a ekle
-- `src/components/MultiTabAudioPlayer.tsx` — tab layout: horizontal scroll → flex-wrap
-- `src/pages/AdminPreview.tsx` — **yeni dosya**
-- `src/App.tsx` — yeni rota
-- `src/pages/AdminPanel.tsx` — preview tab linki
+### Dokunulmayacak
+- `NewSectionAudioPlayer.tsx`, `ChapterList.tsx` — ses logic'i
+- `AudioAccess.tsx` — sayfa layout'u
 
