@@ -6,6 +6,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { MapPin, Clock, Star, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { AudioGuideLoader } from '@/components/AudioGuideLoader';
 import { useViralTracking } from '@/hooks/useViralTracking';
 import { OptimizedImage } from '@/components/OptimizedImage';
 
