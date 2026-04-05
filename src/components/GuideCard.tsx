@@ -208,10 +208,7 @@ export function GuideCard({
             }}
           >
             {isProcessingPayment ? (
-              <>
-                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                Processing...
-              </>
+              <ButtonLoader text="Processing..." />
             ) : (
               <>
                 <Play className="h-5 w-5 mr-2" />

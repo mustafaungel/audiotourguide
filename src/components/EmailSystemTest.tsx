@@ -58,10 +58,7 @@ export const EmailSystemTest = () => {
           className="w-full"
         >
           {testing ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Testing...
-            </>
+            <ButtonLoader text="Testing..." />
           ) : (
             <>
               <Mail className="mr-2 h-4 w-4" />

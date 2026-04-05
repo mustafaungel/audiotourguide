@@ -100,10 +100,7 @@ export const AILogoGenerator: React.FC = () => {
           size="lg"
         >
           {isGenerating ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Generating Your Logo...
-            </>
+            <ButtonLoader text="Generating Your Logo..." />
           ) : (
             <>
               <Wand2 className="w-4 h-4 mr-2" />

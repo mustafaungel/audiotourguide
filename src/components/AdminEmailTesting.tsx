@@ -284,10 +284,7 @@ export const AdminEmailTesting = () => {
             className="flex-1"
           >
             {loading ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Sending...
-              </>
+              <ButtonLoader text="Sending..." />
             ) : (
               <>
                 <Send className="h-4 w-4 mr-2" />

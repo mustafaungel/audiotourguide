@@ -630,7 +630,7 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
               disabled={generatingQR}
             >
               {generatingQR ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <ButtonLoader />
               ) : (
                 <QrCode className="w-4 h-4 mr-2" />
               )}

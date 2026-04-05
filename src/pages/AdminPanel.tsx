@@ -706,10 +706,7 @@ const AdminPanel = () => {
                     size="lg"
                   >
                     {publishLoading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Creating Guide...
-                      </>
+                      <ButtonLoader text="Creating Guide..." />
                     ) : (
                       <>
                         <Plus className="w-4 h-4 mr-2" />

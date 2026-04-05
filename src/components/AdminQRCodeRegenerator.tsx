@@ -230,8 +230,8 @@ export function AdminQRCodeRegenerator() {
                   title="Generate/regenerate QR code with master access"
                   className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
-                  {regenerating === guide.id ? (
-                    <RefreshCw className="h-4 w-4 animate-spin" />
+                {regenerating === guide.id ? (
+                    <ButtonLoader />
                   ) : (
                     <QrCode className="h-4 w-4" />
                   )}
