@@ -149,22 +149,7 @@ const FeaturedGuides = () => {
 
           {/* Loading State */}
           {loading && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <Card key={i} className="animate-pulse">
-                  <div className="aspect-video bg-muted rounded-t-lg"></div>
-                  <CardContent className="p-6">
-                    <div className="h-6 bg-muted rounded mb-4"></div>
-                    <div className="h-4 bg-muted rounded mb-2"></div>
-                    <div className="h-4 bg-muted rounded w-3/4 mb-4"></div>
-                    <div className="flex justify-between">
-                      <div className="h-6 bg-muted rounded w-16"></div>
-                      <div className="h-6 bg-muted rounded w-20"></div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            <AudioGuideLoader variant="card" count={6} />
           )}
 
           {/* Guides Grid */}
