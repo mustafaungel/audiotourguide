@@ -1,35 +1,16 @@
 
-
-## Plan: Mobil Kaydırma Titremesi & Başlık Kısaltma Düzeltmesi
+## Plan: Tab Pill Başlık Kısaltmasını Kaldır
 
 ### Sorun
-1. **Mobilde en alta kaydırınca sekme/titreme**: iOS ve Android'de `overscroll bounce` efekti sayfa içeriğini sallıyor. `min-h-screen` + sticky navbar + blur background kombinasyonu bunu kötüleştiriyor.
-2. **Başlık kısaltması (truncate)**: Navbar'daki `truncate` class'ı uzun guide başlıklarını "..." ile kesiyor.
-3. **Hero bölümündeki `blur-3xl` + `scale-110`**: Mobilde GPU-intensive, kaydırma sırasında jank yaratıyor.
+Dil seçicinin altındaki guide tab butonlarında (`MultiTabAudioPlayer.tsx` satır 336 ve 353) `truncate` class'ı kullanılıyor. Bu, uzun guide başlıklarını "Hot Air Balloon T..." ve "Cappadocia Val..." şeklinde kesiyor.
 
-### Değişiklikler
+### Çözüm
+`src/components/MultiTabAudioPlayer.tsx` dosyasında 2 yerde `truncate` → `line-clamp-2 break-words text-left` değişikliği:
 
-#### 1. `src/index.css` — Overscroll bounce'u engelle
-```css
-html, body {
-  overscroll-behavior: none;
-  -webkit-overflow-scrolling: touch;
-}
-```
-Bu, tüm sayfalarda (AudioAccess dahil) en üst/alt kaydırmada rubber-band bounce'u kapatır.
+- **Satır 336**: `<span className="truncate">` → `<span className="line-clamp-2 break-words text-left">`
+- **Satır 353**: `<span className="truncate">` → `<span className="line-clamp-2 break-words text-left">`
 
-#### 2. `src/pages/AudioAccess.tsx` — Navbar başlık kısaltmasını kaldır + blur optimizasyonu
+Bu sayede başlıklar kesilmek yerine en fazla 2 satıra sarılır ve tam okunabilir olur.
 
-- Navbar'daki `truncate` class'ını kaldır, yerine `line-clamp-2 text-center break-words` koy. Böylece uzun başlıklar 2 satıra kadar görünür, hiçbir şey kesilmez.
-- Navbar yüksekliğini `h-12` → `min-h-12 h-auto py-1` yap (2 satırlık başlığa uyum).
-- Hero'daki `blur-3xl scale-110` background div'ine `will-change-transform` zaten var; ek olarak mobilde blur yoğunluğunu `blur-2xl` olarak düşür veya `@media (prefers-reduced-motion)` ile tamamen kapat.
-- Tüm sayfayı `overscroll-behavior-y: none` ile wrap et (CSS'teki global rule bunu karşılar).
-
-#### 3. `src/pages/AudioAccess.tsx` — Genel title/description okunabilirliği
-- Hero altındaki description'daki `line-clamp-2` default'unu koruyarak ama "Show more" butonunu her zaman göstererek kullanıcıya kontrol ver.
-- Metadata satırındaki yazılar `whitespace-nowrap` olmamalı, gerekirse wrap olabilmeli.
-
-### Etkilenen Dosyalar
-- `src/index.css` — overscroll-behavior ekleme (2 satır)
-- `src/pages/AudioAccess.tsx` — navbar truncate kaldır, blur azalt, title wrap
-
+### Etkilenen Dosya
+- `src/components/MultiTabAudioPlayer.tsx` — 2 satır değişiklik
