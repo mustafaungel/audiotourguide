@@ -31,18 +31,19 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   mainAudioUrl,
   lang = 'en'
 }) => {
-  const [currentSectionIndex, setCurrentSectionIndex] = useState(-1); // -1 means no player shown
+  const [currentSectionIndex, setCurrentSectionIndex] = useState(-1);
   const [isPlaying, setIsPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
-  const [previousVolume, setPreviousVolume] = useState(1); // Store volume before muting
+  const [previousVolume, setPreviousVolume] = useState(1);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
-  const [showVolumeHelper, setShowVolumeHelper] = useState(false);
   
-  // URL pre-resolution for synchronous playback
+  // Keep last valid sections to prevent empty flash during language switch
+  const lastValidSectionsRef = useRef<Section[]>([]);
+  
   const resolvedUrlsRef = useRef<(string | undefined)[]>([]);
   const resolvedMainRef = useRef<string | undefined>(undefined);
   const [preResolved, setPreResolved] = useState(false);
@@ -52,60 +53,23 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   const isMobile = useIsMobile();
   const { markChapterCompleted, isChapterCompleted, autoAdvanceEnabled, setAutoAdvance } = useAudioProgress({ guideId });
 
-  // Determine if we have section-based audio or main audio
-  const hasIndividualSections = sections.some(section => section.audio_url);
+  // Track last valid sections
+  useEffect(() => {
+    if (sections.length > 0) {
+      lastValidSectionsRef.current = sections;
+    }
+  }, [sections]);
+
+  // Use current sections if available, otherwise show last valid ones
+  const displaySections = sections.length > 0 ? sections : lastValidSectionsRef.current;
+
+  const hasIndividualSections = displaySections.some(section => section.audio_url);
   const audioMode = hasIndividualSections ? 'sections' : 'main';
-
-  // DEPRECATED: No longer used - URLs are pre-resolved in useEffect
-  /*
-  const loadAudioSource = async (audioUrl?: string, sectionIndex?: number) => {
-    console.log('[NEW-SECTION-PLAYER] Loading audio source:', {
-      audioUrl: audioUrl?.substring(0, 50),
-      sectionIndex,
-      guideId,
-      audioMode
-    });
-
-    if (!audioUrl) {
-      const fallbackUrl = `/tmp/${guideId}.mp3`;
-      console.log('[NEW-SECTION-PLAYER] No audio URL provided, using fallback:', fallbackUrl);
-      return fallbackUrl;
-    }
-    
-    try {
-      // If it's a Supabase storage path (not full URL)
-      if (audioUrl && !audioUrl.startsWith('http')) {
-        console.log('[NEW-SECTION-PLAYER] Fetching signed URL from Supabase storage');
-        const { data: urlData, error } = await supabase.storage
-          .from('guide-audio')
-          .createSignedUrl(audioUrl, 3600);
-        
-        if (error) {
-          console.error('[NEW-SECTION-PLAYER] Supabase storage error:', error);
-          throw error;
-        }
-        
-        if (urlData?.signedUrl) {
-          console.log('[NEW-SECTION-PLAYER] Got signed URL:', urlData.signedUrl.substring(0, 50) + '...');
-          return urlData.signedUrl;
-        }
-      }
-      
-      console.log('[NEW-SECTION-PLAYER] Using provided URL directly');
-      return audioUrl;
-    } catch (error) {
-      console.error('[NEW-SECTION-PLAYER] Error loading audio source:', error);
-      // Return original URL as fallback
-      return audioUrl;
-    }
-  };
-  */
 
   const setupAudioElement = (audioElement: HTMLAudioElement) => {
     audioElement.addEventListener('timeupdate', () => {
       setCurrentTime(audioElement.currentTime);
       
-      // Check if chapter is 90% complete for progress tracking
       if (currentSectionIndex >= 0 && audioElement.duration > 0) {
         const progress = audioElement.currentTime / audioElement.duration;
         if (progress >= 0.9 && !isChapterCompleted(currentSectionIndex)) {
@@ -121,21 +85,17 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     audioElement.addEventListener('ended', () => {
       setIsPlaying(false);
       
-      // Mark chapter as completed
       if (currentSectionIndex >= 0) {
         markChapterCompleted(currentSectionIndex);
       }
       
-      // Auto-advance to next chapter if enabled and available
-      if (audioMode === 'sections' && currentSectionIndex < sections.length - 1) {
+      if (audioMode === 'sections' && currentSectionIndex < displaySections.length - 1) {
         if (autoAdvanceEnabled) {
-          // Small delay for better UX
           setTimeout(() => {
             playSection(currentSectionIndex + 1);
           }, 500);
         } else {
-          // Show next chapter prompt
-          const nextChapterTitle = sections[currentSectionIndex + 1]?.title || t('playNext', lang);
+          const nextChapterTitle = displaySections[currentSectionIndex + 1]?.title || t('playNext', lang);
           toast({
             title: t('chapterCompleted', lang),
             description: `${t('readyToPlay', lang)}: ${nextChapterTitle}`,
@@ -150,8 +110,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
             ),
           });
         }
-      } else if (currentSectionIndex >= sections.length - 1) {
-        // All chapters completed
+      } else if (currentSectionIndex >= displaySections.length - 1) {
         toast({
           title: t('guideCompleted', lang),
           description: t('allChaptersFinished', lang),
@@ -165,7 +124,6 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
         error: e,
         code: target?.error?.code,
         message: target?.error?.message,
-        src: target?.src?.substring(0, 50) + '...'
       });
       
       toast({
@@ -178,52 +136,20 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     });
   };
 
-  // Helper to resolve audio URL synchronously (getPublicUrl)
   const resolveAudioUrl = (audioPath?: string): string => {
-    if (!audioPath) {
-      console.warn('[PLAYER] No audio path, using fallback');
-      return `/tmp/${guideId}.mp3`;
-    }
-    
-    // ✅ If full URL (http/https), use directly
-    if (audioPath.startsWith('http://') || audioPath.startsWith('https://')) {
-      console.log('[PLAYER] Using direct URL:', audioPath.substring(0, 60) + '...');
-      return audioPath;
-    }
-    
-    // ✅ If storage path without domain, add it
+    if (!audioPath) return `/tmp/${guideId}.mp3`;
+    if (audioPath.startsWith('http://') || audioPath.startsWith('https://')) return audioPath;
     if (audioPath.startsWith('/storage/v1/object/public')) {
-      const fullUrl = `https://dsaqlgxajdnwoqvtsrqd.supabase.co${audioPath}`;
-      console.log('[PLAYER] Converted storage path to URL:', fullUrl.substring(0, 60) + '...');
-      return fullUrl;
+      return `https://dsaqlgxajdnwoqvtsrqd.supabase.co${audioPath}`;
     }
-    
-    // Use getPublicUrl for synchronous resolution
-    const { data } = supabase.storage
-      .from('guide-audio')
-      .getPublicUrl(audioPath);
-    
-    const publicUrl = data?.publicUrl || `/tmp/${guideId}.mp3`;
-    console.log('[PLAYER] Generated public URL:', publicUrl.substring(0, 60) + '...');
-    return publicUrl;
+    const { data } = supabase.storage.from('guide-audio').getPublicUrl(audioPath);
+    return data?.publicUrl || `/tmp/${guideId}.mp3`;
   };
 
   const playSection = (sectionIndex: number) => {
-    if (sectionIndex < 0 || sectionIndex >= sections.length) {
-      console.error('[PLAYER] ❌ Invalid section index:', sectionIndex);
-      return;
-    }
+    if (sectionIndex < 0 || sectionIndex >= displaySections.length) return;
     
-    console.log('[PLAYER] ▶️ Play section called:', {
-      sectionIndex,
-      currentIndex: currentSectionIndex,
-      isPlaying,
-      audioMode
-    });
-    
-    // Smart toggle: if same section is playing, pause it
     if (sectionIndex === currentSectionIndex && isPlaying) {
-      console.log('[PLAYER] ⏸️ Toggling pause for current section');
       if (audioRef.current) {
         audioRef.current.pause();
         setIsPlaying(false);
@@ -234,77 +160,49 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     setLoading(true);
     setCurrentSectionIndex(sectionIndex);
     
-    // Stop current audio if playing
     if (audioRef.current) {
-      console.log('[PLAYER] ⏹️ Stopping current audio');
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
     }
     
-    // Get URL (pre-resolved or lazy resolve) - NOW SYNCHRONOUS
     let audioUrl = resolvedUrlsRef.current[sectionIndex];
     if (!audioUrl) {
-      console.log('[PLAYER] 🔄 Lazy resolving URL synchronously...');
-      const section = sections[sectionIndex];
-      audioUrl = resolveAudioUrl(section.audio_url); // No await!
+      const section = displaySections[sectionIndex];
+      audioUrl = resolveAudioUrl(section.audio_url);
       resolvedUrlsRef.current[sectionIndex] = audioUrl;
     }
     
-    console.log('[PLAYER] 📦 Using URL:', audioUrl?.substring(0, 60) + '...');
-    
-    // Create or reuse audio element
     if (!audioRef.current) {
-      console.log('[PLAYER] 🎵 Creating new Audio element');
       audioRef.current = new Audio();
       audioRef.current.preload = 'auto';
       audioRef.current.setAttribute('playsinline', '');
-      audioRef.current.crossOrigin = 'anonymous'; // ✅ CORS support
+      audioRef.current.crossOrigin = 'anonymous';
       setupAudioElement(audioRef.current);
     }
     
-    // Set source and play IMMEDIATELY (within user gesture)
     audioRef.current.src = audioUrl;
     audioRef.current.volume = volume;
     audioRef.current.playbackRate = playbackSpeed;
     
-    // Play immediately without waiting for canplay
     const playPromise = audioRef.current.play();
     
     if (playPromise !== undefined) {
       playPromise
         .then(() => {
-          console.log('[PLAYER] ✅ PLAY started successfully');
           setIsPlaying(true);
           setLoading(false);
-          
           toast({
             title: t('nowPlaying', lang),
-            description: sections[sectionIndex]?.title || guideTitle,
+            description: displaySections[sectionIndex]?.title || guideTitle,
           });
         })
         .catch((error: any) => {
-          console.error('[PLAYER] ❌ PLAY ERROR:', error);
           setLoading(false);
           setIsPlaying(false);
-          
           if (error.name === 'NotAllowedError') {
-            toast({
-              title: t('audioLocked', lang),
-              description: t('tapToPlay', lang),
-              variant: 'default',
-            });
-          } else if (error.name === 'NotSupportedError') {
-            toast({
-              title: t('formatError', lang),
-              description: t('formatNotSupported', lang),
-              variant: 'destructive',
-            });
+            toast({ title: t('audioLocked', lang), description: t('tapToPlay', lang) });
           } else {
-            toast({
-              title: t('playbackError', lang),
-              description: t('playbackErrorDesc', lang),
-              variant: 'destructive',
-            });
+            toast({ title: t('playbackError', lang), description: t('playbackErrorDesc', lang), variant: 'destructive' });
           }
         });
     }
@@ -312,7 +210,6 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
 
   const togglePlayPause = () => {
     if (!audioRef.current || currentSectionIndex === -1) return;
-
     if (isPlaying) {
       audioRef.current.pause();
       setIsPlaying(false);
@@ -322,35 +219,14 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
       } else {
         const playPromise = audioRef.current.play();
         if (playPromise) {
-          playPromise
-            .then(() => {
-              setIsPlaying(true);
-              console.log('[PLAYER] ▶️ Resumed playback');
-            })
-            .catch((err) => {
-              console.error('[PLAYER] ❌ Resume error:', err);
-              toast({
-                title: t('resumeError', lang),
-                description: t('resumeErrorDesc', lang),
-                variant: 'destructive',
-              });
-            });
+          playPromise.then(() => setIsPlaying(true)).catch(() => {});
         }
       }
     }
   };
 
-  const previousSection = () => {
-    if (currentSectionIndex > 0) {
-      playSection(currentSectionIndex - 1);
-    }
-  };
-
-  const nextSection = () => {
-    if (currentSectionIndex < sections.length - 1) {
-      playSection(currentSectionIndex + 1);
-    }
-  };
+  const previousSection = () => { if (currentSectionIndex > 0) playSection(currentSectionIndex - 1); };
+  const nextSection = () => { if (currentSectionIndex < displaySections.length - 1) playSection(currentSectionIndex + 1); };
 
   const handleSeek = (newProgress: number[]) => {
     if (audioRef.current) {
@@ -364,32 +240,24 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     const vol = newVolume[0] / 100;
     setVolume(vol);
     setIsMuted(vol === 0);
-    if (audioRef.current) {
-      audioRef.current.volume = vol;
-    }
+    if (audioRef.current) audioRef.current.volume = vol;
   };
 
   const toggleMute = () => {
     if (isMuted) {
-      // Restore previous volume when unmuting
-      const volumeToRestore = previousVolume > 0 ? previousVolume : 0.5;
-      setVolume(volumeToRestore);
-      setIsMuted(false);
-      if (audioRef.current) audioRef.current.volume = volumeToRestore;
+      const v = previousVolume > 0 ? previousVolume : 0.5;
+      setVolume(v); setIsMuted(false);
+      if (audioRef.current) audioRef.current.volume = v;
     } else {
-      // Store current volume before muting
       setPreviousVolume(volume > 0 ? volume : 0.5);
-      setVolume(0);
-      setIsMuted(true);
+      setVolume(0); setIsMuted(true);
       if (audioRef.current) audioRef.current.volume = 0;
     }
   };
 
   const handleSpeedChange = (speed: number) => {
     setPlaybackSpeed(speed);
-    if (audioRef.current) {
-      audioRef.current.playbackRate = speed;
-    }
+    if (audioRef.current) audioRef.current.playbackRate = speed;
   };
 
   const skip = (seconds: number) => {
@@ -400,44 +268,16 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     }
   };
 
-  const closePlayer = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    }
-    setCurrentSectionIndex(-1);
-  };
-
-
-  // Pre-resolve all audio URLs on mount - SYNCHRONOUSLY
+  // Pre-resolve all audio URLs
   useEffect(() => {
-    console.log('[NEW-SECTION-PLAYER] 🔄 Pre-resolve started for', sections.length, 'sections');
-    
-    // ✅ Resolve all section URLs using resolveAudioUrl helper
-    const resolved = sections.map((section, idx) => {
-      if (!section.audio_url) {
-        console.log(`[NEW-SECTION-PLAYER] ⚠️ Section ${idx} has no audio_url, using fallback`);
-        return mainAudioUrl ? resolveAudioUrl(mainAudioUrl) : `/tmp/${guideId}.mp3`;
-      }
-      
-      // ✅ Use section's audio_url directly through helper
-      const url = resolveAudioUrl(section.audio_url);
-      console.log(`[NEW-SECTION-PLAYER] ✓ Section ${idx} resolved:`, url.substring(0, 60) + '...');
-      return url;
+    const resolved = displaySections.map((section) => {
+      if (!section.audio_url) return mainAudioUrl ? resolveAudioUrl(mainAudioUrl) : `/tmp/${guideId}.mp3`;
+      return resolveAudioUrl(section.audio_url);
     });
-    
     resolvedUrlsRef.current = resolved;
-    
-    // Resolve main audio URL if exists
-    if (mainAudioUrl) {
-      resolvedMainRef.current = resolveAudioUrl(mainAudioUrl);
-      console.log('[NEW-SECTION-PLAYER] ✓ Main audio resolved');
-    }
-    
+    if (mainAudioUrl) resolvedMainRef.current = resolveAudioUrl(mainAudioUrl);
     setPreResolved(true);
-    const readyCount = resolved.filter(Boolean).length;
-    console.log(`[NEW-SECTION-PLAYER] ✅ Pre-resolve completed SYNCHRONOUSLY: ${readyCount}/${sections.length} URLs ready`);
-  }, [sections, mainAudioUrl, guideId]);
+  }, [displaySections, mainAudioUrl, guideId]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -449,9 +289,10 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     };
   }, []);
 
-  if (!sections.length) {
+  // Stable empty state — fixed height to prevent layout shift
+  if (!displaySections.length) {
     return (
-      <div className="text-center p-6 text-muted-foreground">
+      <div className="flex items-center justify-center min-h-[300px] text-muted-foreground text-sm">
         {t('noAudioContent', lang)}
       </div>
     );
@@ -459,9 +300,8 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Chapter List with Inline Audio Controls */}
       <ChapterList
-        sections={sections}
+        sections={displaySections}
         currentSectionIndex={currentSectionIndex}
         isPlaying={isPlaying}
         loading={loading}
@@ -470,7 +310,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
         volume={volume}
         isMuted={isMuted}
         playbackSpeed={playbackSpeed}
-        canGoNext={currentSectionIndex < sections.length - 1}
+        canGoNext={currentSectionIndex < displaySections.length - 1}
         canGoPrevious={currentSectionIndex > 0}
         autoAdvanceEnabled={autoAdvanceEnabled}
         isChapterCompleted={isChapterCompleted}

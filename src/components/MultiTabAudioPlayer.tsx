@@ -57,24 +57,54 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     [mainGuide.id]: languageCode
   });
   const contentWrapperRef = useRef<HTMLDivElement>(null);
-  const [lockedHeight, setLockedHeight] = useState<number | undefined>(undefined);
+  const lockedHeightRef = useRef<number | null>(null);
+  const [, forceRender] = useState(0);
+
+  // Centralized tab switch with layout lock
+  const switchTab = useCallback((newTab: string) => {
+    if (newTab === activeTab) return;
+    
+    // Lock current height
+    if (contentWrapperRef.current) {
+      lockedHeightRef.current = contentWrapperRef.current.offsetHeight;
+      forceRender(n => n + 1);
+    }
+    
+    const scrollY = window.scrollY;
+    setActiveTab(newTab);
+    onActiveTabChange?.(newTab);
+    
+    // Use ResizeObserver to unlock when new content settles
+    if (contentWrapperRef.current) {
+      const observer = new ResizeObserver(() => {
+        // Content has rendered with new size — unlock
+        window.scrollTo({ top: scrollY, behavior: 'instant' as ScrollBehavior });
+        lockedHeightRef.current = null;
+        forceRender(n => n + 1);
+        observer.disconnect();
+      });
+      
+      // Observe after React render
+      requestAnimationFrame(() => {
+        if (contentWrapperRef.current) {
+          observer.observe(contentWrapperRef.current);
+        }
+        // Safety: unlock after 400ms even if observer doesn't fire
+        setTimeout(() => {
+          if (lockedHeightRef.current !== null) {
+            window.scrollTo({ top: scrollY, behavior: 'instant' as ScrollBehavior });
+            lockedHeightRef.current = null;
+            forceRender(n => n + 1);
+          }
+          observer.disconnect();
+        }, 400);
+      });
+    }
+  }, [activeTab, onActiveTabChange]);
 
   const handleTabChange = useCallback((value: string) => {
-    // Lock current height before switching
-    if (contentWrapperRef.current) {
-      setLockedHeight(contentWrapperRef.current.offsetHeight);
-    }
-    const scrollY = window.scrollY;
-    setActiveTab(value);
-    onActiveTabChange?.(value);
-    // Double-rAF: wait for React render + DOM paint, then unlock height
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        window.scrollTo({ top: scrollY, behavior: 'instant' as ScrollBehavior });
-        setTimeout(() => setLockedHeight(undefined), 100);
-      });
-    });
-  }, [onActiveTabChange]);
+    switchTab(value);
+  }, [switchTab]);
 
   useEffect(() => {
     loadLinkedGuides();
@@ -100,46 +130,28 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
       const { guideId } = (event as any).detail || {};
       console.log('Switching to linked guide:', guideId);
       
-      // Check if the guide exists in linkedGuides
       const guideExists = guideId === 'main' || linkedGuides.some(g => g.guide_id === guideId);
       
       if (guideExists) {
-        // Guide exists, switch immediately
-        setActiveTab(guideId);
+        switchTab(guideId);
         setPendingGuideId(null);
-        onActiveTabChange?.(guideId);
-        // Ensure sections are loaded for this guide
         if (guideId !== 'main') {
           ensureGuideSections(guideId);
         }
       } else {
-        // Guide doesn't exist yet, set as pending and switch tab to show loading
         setPendingGuideId(guideId);
-        setActiveTab(guideId);
-        onActiveTabChange?.(guideId);
+        switchTab(guideId);
       }
       
-      // Signal that the event was handled
       window.dispatchEvent(new CustomEvent('linkedGuideHandled'));
     };
 
     const handleLanguageChange = async (e: CustomEvent) => {
       const { languageCode: newLanguageCode, guideId: targetGuideId } = (e as any).detail || {};
       
-      console.log('🔄 MultiTabAudioPlayer: Language change event:', { 
-        targetGuideId, 
-        newLanguageCode,
-        currentActiveTab: activeTab 
-      });
-      
-      // Update language for this specific guide
       if (targetGuideId && newLanguageCode) {
         setLanguageByGuide(prev => ({ ...prev, [targetGuideId]: newLanguageCode }));
-        
-        // Reload sections with new language (stale-while-revalidate: keep old until new arrives)
         await ensureGuideSections(targetGuideId, newLanguageCode);
-        
-        // activeTab stays the same - no tab switch!
       }
     };
 
@@ -149,9 +161,9 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
       window.removeEventListener('openLinkedGuide', handleOpenLinkedGuide as EventListener);
       window.removeEventListener('changeGuideLanguage', handleLanguageChange as EventListener);
     };
-  }, [linkedGuides, accessCode, languageCode]);
+  }, [linkedGuides, accessCode, switchTab]);
 
-  // Ensure activeTab always points to a valid value to avoid Radix Tabs issues
+  // Ensure activeTab always points to a valid value
   useEffect(() => {
     const allowedValues = ['main', ...linkedGuides.map(g => g.guide_id), ...(pendingGuideId ? [pendingGuideId] : [])];
     if (!allowedValues.includes(activeTab)) {
@@ -167,28 +179,18 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
   }, [activeTab, linkedGuides, accessCode]);
 
   const ensureGuideSections = async (guideId: string, overrideLanguage?: string) => {
-    // Determine effective language: override > stored > default
     const effectiveLang = overrideLanguage || languageByGuide[guideId] || languageCode;
     
-    // If override language, always reload. Otherwise skip if already loaded.
     if (!overrideLanguage && sectionsByGuide[guideId] && sectionsByGuide[guideId].length > 0) {
-      console.log('MultiTabAudioPlayer: Skipping sections load for guide:', guideId, 'Already loaded');
       return;
     }
-    if (!accessCode) {
-      console.log('MultiTabAudioPlayer: No access code, skipping');
-      return;
-    }
-
-    console.log('MultiTabAudioPlayer: Starting sections load for guide:', guideId, 'with language:', effectiveLang);
+    if (!accessCode) return;
 
     try {
       let sectionsData: any[] = [];
       let fetchSuccess = false;
 
-      // For main guide, use existing RPC
       if (guideId === mainGuide.id) {
-        console.log('MultiTabAudioPlayer: Loading main guide sections via RPC');
         const { data, error } = await supabase
           .rpc('get_sections_with_access', {
             p_guide_id: guideId,
@@ -199,13 +201,8 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
         if (!error && data && data.length > 0) {
           sectionsData = data;
           fetchSuccess = true;
-          console.log('MultiTabAudioPlayer: Main guide sections loaded via RPC:', sectionsData.length);
-        } else {
-          console.warn('MultiTabAudioPlayer: Main guide RPC failed or returned empty:', error?.message || 'No sections');
         }
       } else {
-        // For linked guides, try secure RPC first
-        console.log('MultiTabAudioPlayer: Loading linked guide sections via RPC');
         const { data, error } = await supabase
           .rpc('get_linked_guide_sections_with_access', {
             p_main_guide_id: mainGuide.id,
@@ -217,16 +214,10 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
         if (!error && data && data.length > 0) {
           sectionsData = data;
           fetchSuccess = true;
-          console.log('MultiTabAudioPlayer: Linked guide sections loaded via RPC:', sectionsData.length);
-        } else {
-          console.warn('MultiTabAudioPlayer: Linked guide RPC failed or returned empty:', error?.message || 'No sections');
         }
       }
 
-      // If RPC failed or returned empty, try direct fetch for requested language only
       if (!fetchSuccess) {
-        console.log('MultiTabAudioPlayer: Attempting direct fetch for', effectiveLang);
-        
         const { data: directData, error: directError } = await supabase
           .from('guide_sections')
           .select('*')
@@ -237,57 +228,33 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
         if (!directError && directData && directData.length > 0) {
           sectionsData = directData;
           fetchSuccess = true;
-          console.log('MultiTabAudioPlayer: Direct fetch successful, sections:', sectionsData.length);
         } else {
-          console.warn('MultiTabAudioPlayer: No sections found for language:', effectiveLang);
           sectionsData = [];
         }
       }
 
-      // Set the sections data
       setSectionsByGuide(prev => ({ ...prev, [guideId]: sectionsData }));
-
-      if (fetchSuccess) {
-        console.log('MultiTabAudioPlayer: Successfully loaded', sectionsData.length, 'sections for guide:', guideId);
-      } else {
-        console.error('MultiTabAudioPlayer: Failed to load any sections for guide:', guideId);
-      }
-
     } catch (error) {
-      console.error('MultiTabAudioPlayer: Unexpected error loading sections for guide:', guideId, error);
+      console.error('MultiTabAudioPlayer: Error loading sections:', error);
       setSectionsByGuide(prev => ({ ...prev, [guideId]: [] }));
     }
   };
 
   const loadLinkedGuides = async () => {
     if (!mainGuide?.id || !accessCode?.trim()) {
-      console.log('MultiTabAudioPlayer: Missing guide ID or access code');
       setLoading(false);
       return;
     }
 
     setLoading(true);
     try {
-      console.log('MultiTabAudioPlayer: Loading linked guides for:', mainGuide.id);
-      
-      // Try the comprehensive RPC first
       const { data: fullLinkedGuides, error: rpcError } = await supabase
         .rpc('get_full_linked_guides_with_access', {
           p_guide_id: mainGuide.id,
           p_access_code: accessCode.trim()
         });
 
-      console.log('MultiTabAudioPlayer: RPC call result:', { 
-        hasData: !!fullLinkedGuides, 
-        dataLength: fullLinkedGuides?.length || 0,
-        hasError: !!rpcError,
-        errorMessage: rpcError?.message,
-        errorCode: rpcError?.code
-      });
-
       if (!rpcError && fullLinkedGuides && fullLinkedGuides.length > 0) {
-        console.log('MultiTabAudioPlayer: Found linked guides via comprehensive RPC:', fullLinkedGuides.length);
-        
         const processedGuides: LinkedGuide[] = fullLinkedGuides.map((linkedGuide: any) => ({
           guide_id: linkedGuide.guide_id,
           custom_title: linkedGuide.custom_title,
@@ -295,14 +262,10 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
           title: linkedGuide.title,
           slug: linkedGuide.slug,
           master_access_code: linkedGuide.master_access_code,
-          sections: [] // We'll load sections separately for better control
+          sections: []
         }));
-
         setLinkedGuides(processedGuides.sort((a, b) => a.order_index - b.order_index));
       } else {
-        console.log('MultiTabAudioPlayer: Trying fallback RPC');
-        
-        // Fallback to simpler RPC
         const { data: simpleLinkedGuides, error: fallbackError } = await supabase
           .rpc('get_linked_guides_with_access', {
             p_guide_id: mainGuide.id,
@@ -310,8 +273,6 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
           });
 
         if (!fallbackError && simpleLinkedGuides && simpleLinkedGuides.length > 0) {
-          console.log('MultiTabAudioPlayer: Found linked guides via fallback RPC:', simpleLinkedGuides.length);
-          
           const processedGuides: LinkedGuide[] = simpleLinkedGuides.map((linkedGuide: any) => ({
             guide_id: linkedGuide.guide_id,
             custom_title: linkedGuide.custom_title,
@@ -319,17 +280,14 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
             title: linkedGuide.title,
             slug: linkedGuide.slug,
             master_access_code: linkedGuide.master_access_code,
-            sections: [] // We'll load sections separately
+            sections: []
           }));
-
           setLinkedGuides(processedGuides.sort((a, b) => a.order_index - b.order_index));
         } else {
-          console.log('MultiTabAudioPlayer: No linked guides found in either RPC');
           setLinkedGuides([]);
         }
       }
       
-      // Check if we have a pending guide that's now available
       if (pendingGuideId) {
         const guidesLoaded = linkedGuides.some(g => g.guide_id === pendingGuideId);
         if (guidesLoaded) {
@@ -365,7 +323,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
   return (
     <div className="w-full max-w-4xl mx-auto">
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        {/* Adaptive grid tab pills — full-width, equal sizing */}
+        {/* Adaptive grid tab pills */}
         <TabsList className={`grid w-full mb-4 h-auto p-0 gap-2 bg-transparent ${
           linkedGuides.length === 1 ? 'grid-cols-2' : 'grid-cols-1'
         }`}>
@@ -418,13 +376,14 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
           )}
         </TabsList>
 
-        {/* forceMount + hidden: prevent layout shift & re-mount */}
+        {/* Content wrapper with layout lock via ResizeObserver */}
         <div
           ref={contentWrapperRef}
-          className="relative"
-          style={{ minHeight: lockedHeight ? `${lockedHeight}px` : '300px' }}
+          className="relative overflow-hidden"
+          style={{ minHeight: lockedHeightRef.current ? `${lockedHeightRef.current}px` : '300px' }}
         >
-          <TabsContent value="main" forceMount className={activeTab !== 'main' ? 'hidden' : 'mt-0'}>
+          {/* Active panel renders normally; inactive panels are invisible but measurable */}
+          <TabsContent value="main" forceMount className={activeTab !== 'main' ? 'absolute inset-0 invisible pointer-events-none' : 'mt-0'}>
             <NewSectionAudioPlayer
               guideId={mainGuide.id}
               guideTitle={mainGuide.title}
@@ -435,7 +394,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
           </TabsContent>
 
           {linkedGuides.map((linkedGuide) => (
-            <TabsContent key={linkedGuide.guide_id} value={linkedGuide.guide_id} forceMount className={activeTab !== linkedGuide.guide_id ? 'hidden' : 'mt-0'}>
+            <TabsContent key={linkedGuide.guide_id} value={linkedGuide.guide_id} forceMount className={activeTab !== linkedGuide.guide_id ? 'absolute inset-0 invisible pointer-events-none' : 'mt-0'}>
               <NewSectionAudioPlayer
                 guideId={linkedGuide.guide_id}
                 guideTitle={linkedGuide.custom_title || linkedGuide.title}
@@ -448,7 +407,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
 
           {/* Loading state for pending guide */}
           {pendingGuideId && !linkedGuides.some(g => g.guide_id === pendingGuideId) && (
-            <TabsContent value={pendingGuideId} forceMount className={activeTab !== pendingGuideId ? 'hidden' : 'mt-0'}>
+            <TabsContent value={pendingGuideId} forceMount className={activeTab !== pendingGuideId ? 'absolute inset-0 invisible pointer-events-none' : 'mt-0'}>
               <AudioGuideLoader variant="inline" message={t('loadingGuide', languageCode)} />
             </TabsContent>
           )}
