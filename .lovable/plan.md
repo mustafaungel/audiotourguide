@@ -1,40 +1,49 @@
 
 
-## Plan: Ana Sayfa Guide Tıklama + Layout Shift Düzeltmeleri
+## Plan: Guide Detay Sayfası Geçiş Kalitesini İyileştirme
 
-### Sorun 1: Ana sayfa carousel'inde guide'a tıklayınca sayfa açılmıyor
-`src/components/FeaturedGuides.tsx` satır 58-60: `handleGuideClick` sadece `await trackEngagement('view', guideId)` çağırıyor — **navigate yok**. "Explore Guide" butonu tıklandığında hiçbir yere gitmiyor.
+### Sorun (Videoda Görülen)
+Ana sayfadan bir guide'a tıklandığında:
+1. **Slug/ID uyumsuzluğu**: `FeaturedGuides.tsx` `guide.id` ile navigate ediyor ama `GuideDetail.tsx` URL'den `slug` alıp `slug` ile sorgu yapıyor — eşleşme başarısız olabilir
+2. **Preview → Gerçek veri geçişinde layout kayması**: Preview veride `creator: { name: 'Loading...' }`, `sections: []`, `languages: []` var — gerçek veri gelince tüm sayfa kayıyor/titriyyor
+3. **Hero image alanında loader**: Loading skeleton'da hero image yerine `AudioGuideLoader variant="page"` konmuş — aspect-video container içinde tam sayfa loader çirkin gözüküyor
 
-### Sorun 2: FeaturedGuides sayfasında guidePreview geçilmiyor
-`src/pages/FeaturedGuides.tsx` satır 162: `navigate('/guide/${guide.id}')` — state geçmiyor. GuideDetail `isLoading: true` ile açılıp AudioGuideLoader gösteriyor (gereksiz bekleme).
+### Değişiklikler
 
-### Sorun 3: Layout shift / titreme
-GuideDetail sayfası `guidePreview` ile render olduğunda bazı alanlar eksik (creator: "Loading...", sections: [], languages: []). Tam veri geldiğinde bu alanlar dolunca sayfa kayıyor.
+**1. `src/components/FeaturedGuides.tsx` — Slug ile navigate et**
+- Interface'e `slug` ekle
+- Select query'e `slug` ekle  
+- Navigate URL'ini `guide.slug || guide.id` olarak güncelle
+- `guidePreview` state'e `slug` ekle
 
----
+**2. `src/pages/GuideDetail.tsx` — Layout shift'i ortadan kaldır**
 
-### Değişiklik 1: `src/components/FeaturedGuides.tsx`
-- `useNavigate` import et
-- `handleGuideClick`'i güncelle: `await` kaldır (fire-and-forget), `navigate` ekle
-- Guide verilerini `guidePreview` state olarak geçir (id, title, description, location, price_usd → price, duration, category, difficulty, image_url → imageUrl)
-- Kart'ın kendisine de `onClick` ile navigate ekle (sadece buton değil, tüm kart tıklanabilir olsun)
+**Loading skeleton'ı düzelt (satır 577-625):**
+- Hero image alanında `AudioGuideLoader variant="page"` yerine düz shimmer/pulse animasyonu kullan (gerçek sayfadaki aspect-video ile aynı boyut)
+- Skeleton yapısını gerçek sayfayla birebir aynı tut (Navigation → Back → Grid → Hero + Info Card + Sidebar)
 
-### Değişiklik 2: `src/pages/FeaturedGuides.tsx`
-- Satır 162'deki `navigate` çağrısına `guidePreview` state ekle
-- Guide verilerini (id, title, description, location, price_usd, duration, category, difficulty, image_url) state olarak geçir
+**Preview render'da eksik alanları gizle:**
+- `creator.name === 'Loading...'` ise creator bölümünü skeleton olarak göster (yazı yerine pulse bar)
+- `sections.length === 0` ise chapters tab'ında "Loading chapters..." skeleton göster
+- `languages.length === 0` ise language selector'ı gizle (gerçek veri gelince göster)
+- Bu sayede "Loading..." yazısı hiç görünmeyecek ve gerçek veri gelince layout değişmeyecek
 
-### Değişiklik 3: `src/pages/GuideDetail.tsx` — Layout shift düzeltme
-- Loading state render'ında (`isLoading` true) ve ana içerik render'ında **aynı layout yapısını** kullan
-- Loading durumunda Navigation + Back button + aynı grid yapısı (lg:grid-cols-3) içinde skeleton göster
-- Bu sayede loading → içerik geçişinde layout kayması olmaz
-- `guidePreview` ile render olduğunda eksik alanları (creator, sections vb.) göstermek yerine, bu alanlar için skeleton/placeholder kullan — tam veri gelince değişsin
-- `min-h` değerleri ekleyerek hero image, başlık ve fiyat alanlarının yüksekliğini sabitle
+**Min-height sabitleme:**
+- Hero image container'a `min-h-[200px] md:min-h-[300px]` ekle
+- Guide info card'a `min-h-[120px]` ekle
+- Sidebar price card'a `min-h-[200px]` ekle
+
+**3. `src/pages/FeaturedGuides.tsx` — Slug ile navigate et**
+- Interface'e `slug` ekle, select query'e ekle
+- Navigate URL'ini `guide.slug || guide.id` olarak güncelle
 
 ### Etkilenen Dosyalar
-- `src/components/FeaturedGuides.tsx` — navigate ekleme + fire-and-forget tracking
-- `src/pages/FeaturedGuides.tsx` — guidePreview state ekleme
-- `src/pages/GuideDetail.tsx` — layout shift düzeltme (loading ve içerik aynı grid yapısı)
+- `src/components/FeaturedGuides.tsx` — slug ekleme
+- `src/pages/FeaturedGuides.tsx` — slug ekleme  
+- `src/pages/GuideDetail.tsx` — loading skeleton düzeltme + preview render'da conditional skeleton
 
-### Risk
-Düşük. Tracking fire-and-forget olarak çalışmaya devam eder. Layout değişikliği sadece CSS/yapısal.
+### Sonuç
+- Tıklama anında sayfa açılır, preview veriyle hero image + başlık + konum anında görünür
+- Eksik alanlar (creator, chapters, languages) skeleton olarak gösterilir — "Loading..." yazısı yok
+- Gerçek veri gelince skeleton → içerik geçişi kayma olmadan gerçekleşir
 
