@@ -1,43 +1,29 @@
 
-
-## Plan: Dil Seçiminde Boyut/Konum Sabitliği
+## Plan: Dil Seçiminde İçerik Yukarı Kaysın
 
 ### Sorun
-Collapsed modda `filteredLanguages` sadece 1 eleman içerdiğinden grid `grid-cols-1` oluyor ve buton tam genişliğe yayılıyor. Açık modda ise `grid-cols-2` olduğundan butonlar daha dar. Bu boyut/konum atlama yaratıyor.
+`invisible` class kullanıldığında gizlenen butonlar hâlâ yer kaplıyor, ekran boşta kalıyor ve alttaki içerik yukarı kaymıyor.
 
 ### Çözüm
-Grid class'ını her zaman **tüm dillerin sayısına** (`displayLanguages.length`) göre belirle, `filteredLanguages.length`'e göre değil. Gizlenen butonları DOM'dan kaldırmak yerine `hidden` class ile gizle. Böylece grid yapısı sabit kalır, seçili buton aynı boyut ve konumda durur.
+`invisible` yerine `hidden` (display: none) kullan. Seçili butonun boyutunu sabit tutmak için **sabit genişlik/yükseklik** uygula — grid yerine `flex-wrap` kullanarak, buton boyutu grid sütununa bağlı olmaktan çıksın.
 
 ### Değişiklik — `src/components/GuideLanguageSelector.tsx`
 
-**1. Grid class'ını `displayLanguages` sayısına göre belirle (satır 114-116):**
-```
-displayLanguages.length === 2 ? "grid-cols-2" : displayLanguages.length >= 3 ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-1"
-```
+**1. Grid → flex-wrap geçişi (satır 113-116):**
+- `grid grid-cols-2` → `flex flex-wrap gap-2`
+- Butonlara sabit minimum genişlik ekle: `min-w-[calc(50%-0.25rem)]` (2 sütun efekti)
 
-**2. Tüm dilleri render et ama gizlenenlere `hidden` ekle (satır 118):**
-```
-{displayLanguages.map((language) => {
-  const isSelected = language.language_code === selectedLanguage;
-  const isHidden = collapsed && !isSelected;
-  return (
-    <button
-      key={language.language_code}
-      onClick={() => handleLanguageSelect(language.language_code)}
-      className={cn(
-        "inline-flex items-center justify-center gap-2 px-3 min-h-[44px] rounded-xl text-sm font-medium transition-all duration-200",
-        "border active:scale-[0.97]",
-        isSelected ? "bg-primary/10 border-primary text-primary shadow-sm ring-2 ring-primary/20"
-                   : "bg-card border-border text-foreground hover:bg-muted",
-        isHidden && "invisible"
-      )}
-    >
-```
+**2. Gizleme: `invisible` → `hidden` (satır 130):**
+- `isHidden && "invisible"` → `isHidden && "hidden"`
+- Bu sayede gizlenen butonlar yer kaplamaz, içerik yukarı kayar
 
-`invisible` kullanarak buton yer kaplar ama görünmez olur → seçili butonun grid pozisyonu ve boyutu değişmez.
-
-**3. `filteredLanguages` değişkenini kaldır** — artık gerek yok.
+**3. Buton boyut sabitleme:**
+- Seçili buton flex-wrap'te kendi doğal boyutunda kalır — grid sütununa bağlı olmadığından boyut değişmez
 
 ### Etkilenen Dosya
-- `src/components/GuideLanguageSelector.tsx` — ~5 satır değişiklik
+- `src/components/GuideLanguageSelector.tsx` — ~3 satır değişiklik
 
+### Sonuç
+- Dil seçilince diğerleri kaybolur, alan daralır, alttaki içerik yukarı kayar
+- Seçili buton aynı boyutta kalır (flex item olarak doğal genişliğini korur)
+- Tekrar tıklanınca diğer diller geri gelir, alan genişler
