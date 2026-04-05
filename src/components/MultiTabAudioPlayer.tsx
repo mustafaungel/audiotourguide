@@ -416,7 +416,11 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
         </TabsList>
 
         {/* forceMount + hidden: prevent layout shift & re-mount */}
-        <div className="min-h-[400px]">
+        <div
+          ref={contentWrapperRef}
+          className="relative"
+          style={{ minHeight: lockedHeight ? `${lockedHeight}px` : '300px' }}
+        >
           <TabsContent value="main" forceMount className={activeTab !== 'main' ? 'hidden' : 'mt-0'}>
             <NewSectionAudioPlayer
               guideId={mainGuide.id}

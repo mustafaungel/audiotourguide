@@ -767,7 +767,7 @@ export default function AudioAccess() {
         </div>
 
         {/* Collapsible Guest Review Section */}
-        <div className="animate-fade-in" style={{ animationDelay: '250ms' }}>
+        <div>
           {!showReviewForm ? (
             <button
               onClick={() => setShowReviewForm(true)}
