@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import React, { useState, useEffect } from 'react';
 import { NewSectionAudioPlayer } from './NewSectionAudioPlayer';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from './ui/badge';
 import { Music } from 'lucide-react';
 import { t } from '@/lib/translations';
 import { AudioGuideLoader } from './AudioGuideLoader';
+import { BottomSheet } from './ui/bottom-sheet';
+import { cn } from '@/lib/utils';
 
 interface Section {
   id: string;
@@ -49,68 +50,18 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
   onActiveTabChange
 }) => {
   const [linkedGuides, setLinkedGuides] = useState<LinkedGuide[]>([]);
-  const [activeTab, setActiveTab] = useState('main');
   const [loading, setLoading] = useState(true);
-  const [pendingGuideId, setPendingGuideId] = useState<string | null>(null);
   const [sectionsByGuide, setSectionsByGuide] = useState<Record<string, Section[]>>({});
   const [languageByGuide, setLanguageByGuide] = useState<Record<string, string>>({
     [mainGuide.id]: languageCode
   });
-  const contentWrapperRef = useRef<HTMLDivElement>(null);
-  const lockedHeightRef = useRef<number | null>(null);
-  const [, forceRender] = useState(0);
-
-  // Centralized tab switch with layout lock
-  const switchTab = useCallback((newTab: string) => {
-    if (newTab === activeTab) return;
-    
-    // Lock current height
-    if (contentWrapperRef.current) {
-      lockedHeightRef.current = contentWrapperRef.current.offsetHeight;
-      forceRender(n => n + 1);
-    }
-    
-    const scrollY = window.scrollY;
-    setActiveTab(newTab);
-    onActiveTabChange?.(newTab);
-    
-    // Use ResizeObserver to unlock when new content settles
-    if (contentWrapperRef.current) {
-      const observer = new ResizeObserver(() => {
-        // Content has rendered with new size — unlock
-        window.scrollTo({ top: scrollY, behavior: 'instant' as ScrollBehavior });
-        lockedHeightRef.current = null;
-        forceRender(n => n + 1);
-        observer.disconnect();
-      });
-      
-      // Observe after React render
-      requestAnimationFrame(() => {
-        if (contentWrapperRef.current) {
-          observer.observe(contentWrapperRef.current);
-        }
-        // Safety: unlock after 400ms even if observer doesn't fire
-        setTimeout(() => {
-          if (lockedHeightRef.current !== null) {
-            window.scrollTo({ top: scrollY, behavior: 'instant' as ScrollBehavior });
-            lockedHeightRef.current = null;
-            forceRender(n => n + 1);
-          }
-          observer.disconnect();
-        }, 400);
-      });
-    }
-  }, [activeTab, onActiveTabChange]);
-
-  const handleTabChange = useCallback((value: string) => {
-    switchTab(value);
-  }, [switchTab]);
+  const [selectedLinkedGuide, setSelectedLinkedGuide] = useState<LinkedGuide | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   useEffect(() => {
     loadLinkedGuides();
   }, [mainGuide.id, accessCode]);
 
-  // Sync main guide language when languageCode prop changes
   useEffect(() => {
     setLanguageByGuide(prev => ({ ...prev, [mainGuide.id]: languageCode }));
   }, [languageCode, mainGuide.id]);
@@ -124,34 +75,29 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     }
   }, [linkedGuides, accessCode]);
 
-  // Add event listener for linked guide navigation
+  // Listen for external events
   useEffect(() => {
     const handleOpenLinkedGuide = (event: CustomEvent) => {
       const { guideId } = (event as any).detail || {};
-      console.log('Switching to linked guide:', guideId);
-      
-      const guideExists = guideId === 'main' || linkedGuides.some(g => g.guide_id === guideId);
-      
-      if (guideExists) {
-        switchTab(guideId);
-        setPendingGuideId(null);
-        if (guideId !== 'main') {
-          ensureGuideSections(guideId);
-        }
-      } else {
-        setPendingGuideId(guideId);
-        switchTab(guideId);
+      if (guideId === 'main') {
+        setSheetOpen(false);
+        setSelectedLinkedGuide(null);
+        return;
       }
-      
+      const guide = linkedGuides.find(g => g.guide_id === guideId);
+      if (guide) {
+        ensureGuideSections(guide.guide_id);
+        setSelectedLinkedGuide(guide);
+        setSheetOpen(true);
+      }
       window.dispatchEvent(new CustomEvent('linkedGuideHandled'));
     };
 
     const handleLanguageChange = async (e: CustomEvent) => {
-      const { languageCode: newLanguageCode, guideId: targetGuideId } = (e as any).detail || {};
-      
-      if (targetGuideId && newLanguageCode) {
-        setLanguageByGuide(prev => ({ ...prev, [targetGuideId]: newLanguageCode }));
-        await ensureGuideSections(targetGuideId, newLanguageCode);
+      const { languageCode: newLang, guideId: targetId } = (e as any).detail || {};
+      if (targetId && newLang) {
+        setLanguageByGuide(prev => ({ ...prev, [targetId]: newLang }));
+        await ensureGuideSections(targetId, newLang);
       }
     };
 
@@ -161,29 +107,12 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
       window.removeEventListener('openLinkedGuide', handleOpenLinkedGuide as EventListener);
       window.removeEventListener('changeGuideLanguage', handleLanguageChange as EventListener);
     };
-  }, [linkedGuides, accessCode, switchTab]);
-
-  // Ensure activeTab always points to a valid value
-  useEffect(() => {
-    const allowedValues = ['main', ...linkedGuides.map(g => g.guide_id), ...(pendingGuideId ? [pendingGuideId] : [])];
-    if (!allowedValues.includes(activeTab)) {
-      setActiveTab('main');
-    }
-  }, [activeTab, linkedGuides, pendingGuideId]);
-
-  // Load sections when activeTab changes
-  useEffect(() => {
-    if (activeTab !== 'main' && activeTab && linkedGuides.some(g => g.guide_id === activeTab)) {
-      ensureGuideSections(activeTab);
-    }
-  }, [activeTab, linkedGuides, accessCode]);
+  }, [linkedGuides, accessCode]);
 
   const ensureGuideSections = async (guideId: string, overrideLanguage?: string) => {
     const effectiveLang = overrideLanguage || languageByGuide[guideId] || languageCode;
-    
-    if (!overrideLanguage && sectionsByGuide[guideId] && sectionsByGuide[guideId].length > 0) {
-      return;
-    }
+
+    if (!overrideLanguage && sectionsByGuide[guideId]?.length > 0) return;
     if (!accessCode) return;
 
     try {
@@ -191,46 +120,22 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
       let fetchSuccess = false;
 
       if (guideId === mainGuide.id) {
-        const { data, error } = await supabase
-          .rpc('get_sections_with_access', {
-            p_guide_id: guideId,
-            p_access_code: accessCode.trim(),
-            p_language_code: effectiveLang
-          });
-
-        if (!error && data && data.length > 0) {
-          sectionsData = data;
-          fetchSuccess = true;
-        }
+        const { data, error } = await supabase.rpc('get_sections_with_access', {
+          p_guide_id: guideId, p_access_code: accessCode.trim(), p_language_code: effectiveLang
+        });
+        if (!error && data?.length > 0) { sectionsData = data; fetchSuccess = true; }
       } else {
-        const { data, error } = await supabase
-          .rpc('get_linked_guide_sections_with_access', {
-            p_main_guide_id: mainGuide.id,
-            p_access_code: accessCode.trim(),
-            p_target_guide_id: guideId,
-            p_language_code: effectiveLang
-          });
-
-        if (!error && data && data.length > 0) {
-          sectionsData = data;
-          fetchSuccess = true;
-        }
+        const { data, error } = await supabase.rpc('get_linked_guide_sections_with_access', {
+          p_main_guide_id: mainGuide.id, p_access_code: accessCode.trim(),
+          p_target_guide_id: guideId, p_language_code: effectiveLang
+        });
+        if (!error && data?.length > 0) { sectionsData = data; fetchSuccess = true; }
       }
 
       if (!fetchSuccess) {
-        const { data: directData, error: directError } = await supabase
-          .from('guide_sections')
-          .select('*')
-          .eq('guide_id', guideId)
-          .eq('language_code', effectiveLang)
-          .order('order_index');
-
-        if (!directError && directData && directData.length > 0) {
-          sectionsData = directData;
-          fetchSuccess = true;
-        } else {
-          sectionsData = [];
-        }
+        const { data, error } = await supabase.from('guide_sections')
+          .select('*').eq('guide_id', guideId).eq('language_code', effectiveLang).order('order_index');
+        if (!error && data?.length > 0) { sectionsData = data; }
       }
 
       setSectionsByGuide(prev => ({ ...prev, [guideId]: sectionsData }));
@@ -241,58 +146,29 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
   };
 
   const loadLinkedGuides = async () => {
-    if (!mainGuide?.id || !accessCode?.trim()) {
-      setLoading(false);
-      return;
-    }
-
+    if (!mainGuide?.id || !accessCode?.trim()) { setLoading(false); return; }
     setLoading(true);
     try {
       const { data: fullLinkedGuides, error: rpcError } = await supabase
-        .rpc('get_full_linked_guides_with_access', {
-          p_guide_id: mainGuide.id,
-          p_access_code: accessCode.trim()
-        });
+        .rpc('get_full_linked_guides_with_access', { p_guide_id: mainGuide.id, p_access_code: accessCode.trim() });
 
-      if (!rpcError && fullLinkedGuides && fullLinkedGuides.length > 0) {
-        const processedGuides: LinkedGuide[] = fullLinkedGuides.map((linkedGuide: any) => ({
-          guide_id: linkedGuide.guide_id,
-          custom_title: linkedGuide.custom_title,
-          order_index: linkedGuide.order_index || 0,
-          title: linkedGuide.title,
-          slug: linkedGuide.slug,
-          master_access_code: linkedGuide.master_access_code,
-          sections: []
+      if (!rpcError && fullLinkedGuides?.length > 0) {
+        const processed: LinkedGuide[] = fullLinkedGuides.map((g: any) => ({
+          guide_id: g.guide_id, custom_title: g.custom_title, order_index: g.order_index || 0,
+          title: g.title, slug: g.slug, master_access_code: g.master_access_code, sections: []
         }));
-        setLinkedGuides(processedGuides.sort((a, b) => a.order_index - b.order_index));
+        setLinkedGuides(processed.sort((a, b) => a.order_index - b.order_index));
       } else {
-        const { data: simpleLinkedGuides, error: fallbackError } = await supabase
-          .rpc('get_linked_guides_with_access', {
-            p_guide_id: mainGuide.id,
-            p_access_code: accessCode.trim()
-          });
-
-        if (!fallbackError && simpleLinkedGuides && simpleLinkedGuides.length > 0) {
-          const processedGuides: LinkedGuide[] = simpleLinkedGuides.map((linkedGuide: any) => ({
-            guide_id: linkedGuide.guide_id,
-            custom_title: linkedGuide.custom_title,
-            order_index: linkedGuide.order_index || 0,
-            title: linkedGuide.title,
-            slug: linkedGuide.slug,
-            master_access_code: linkedGuide.master_access_code,
-            sections: []
+        const { data: simple, error: fallbackError } = await supabase
+          .rpc('get_linked_guides_with_access', { p_guide_id: mainGuide.id, p_access_code: accessCode.trim() });
+        if (!fallbackError && simple?.length > 0) {
+          const processed: LinkedGuide[] = simple.map((g: any) => ({
+            guide_id: g.guide_id, custom_title: g.custom_title, order_index: g.order_index || 0,
+            title: g.title, slug: g.slug, master_access_code: g.master_access_code, sections: []
           }));
-          setLinkedGuides(processedGuides.sort((a, b) => a.order_index - b.order_index));
+          setLinkedGuides(processed.sort((a, b) => a.order_index - b.order_index));
         } else {
           setLinkedGuides([]);
-        }
-      }
-      
-      if (pendingGuideId) {
-        const guidesLoaded = linkedGuides.some(g => g.guide_id === pendingGuideId);
-        if (guidesLoaded) {
-          setPendingGuideId(null);
-          ensureGuideSections(pendingGuideId);
         }
       }
     } catch (error) {
@@ -303,116 +179,109 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     }
   };
 
+  const handleLinkedGuideClick = (guide: LinkedGuide) => {
+    ensureGuideSections(guide.guide_id);
+    setSelectedLinkedGuide(guide);
+    setSheetOpen(true);
+    onActiveTabChange?.(guide.guide_id);
+  };
+
+  const handleSheetClose = (open: boolean) => {
+    setSheetOpen(open);
+    if (!open) {
+      setSelectedLinkedGuide(null);
+      onActiveTabChange?.('main');
+    }
+  };
+
   if (loading) {
     return <AudioGuideLoader variant="inline" message={t('loading', languageCode)} />;
   }
 
-  // If no linked guides, use the regular single player
   if (linkedGuides.length === 0) {
     return (
       <NewSectionAudioPlayer
-        guideId={mainGuide.id}
-        guideTitle={mainGuide.title}
-        sections={mainSections}
-        mainAudioUrl={mainGuide.audio_url}
-        lang={languageCode}
+        guideId={mainGuide.id} guideTitle={mainGuide.title}
+        sections={mainSections} mainAudioUrl={mainGuide.audio_url}
+        lang={languageByGuide[mainGuide.id] || languageCode}
       />
     );
   }
 
   return (
     <div className="w-full max-w-4xl mx-auto">
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        {/* Adaptive grid tab pills */}
-        <TabsList className={`grid w-full mb-4 h-auto p-0 gap-2 bg-transparent ${
-          linkedGuides.length === 1 ? 'grid-cols-2' : 'grid-cols-1'
-        }`}>
-          <TabsTrigger
-            value="main"
-            className="flex items-center justify-between gap-2 min-h-[48px] px-4 py-2.5 text-sm font-medium rounded-xl border border-transparent bg-muted/50 transition-all duration-200 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md data-[state=active]:ring-2 data-[state=active]:ring-primary/30 data-[state=active]:scale-[1.01] active:scale-[0.97]"
-          >
-            <span className="flex items-center gap-2 min-w-0">
-              <Music className="w-4 h-4 shrink-0" />
-              <span className="line-clamp-2 break-words text-left">{mainGuide.title}</span>
-            </span>
-            {mainSections.length > 0 && (
-              <Badge variant="secondary" className="shrink-0 text-[10px] px-1.5 py-0 h-5 rounded-full tabular-nums">
-                {mainSections.length}
-              </Badge>
-            )}
-          </TabsTrigger>
+      {/* Pill buttons */}
+      <div className={`grid w-full mb-4 gap-2 ${linkedGuides.length === 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+        {/* Main guide pill - always active look */}
+        <button
+          className="flex items-center justify-between gap-2 min-h-[48px] px-4 py-2.5 text-sm font-medium rounded-xl bg-primary text-primary-foreground shadow-md ring-2 ring-primary/30 transition-all active:scale-[0.97]"
+          onClick={() => { setSheetOpen(false); setSelectedLinkedGuide(null); }}
+        >
+          <span className="flex items-center gap-2 min-w-0">
+            <Music className="w-4 h-4 shrink-0" />
+            <span className="line-clamp-2 break-words text-left">{mainGuide.title}</span>
+          </span>
+          {mainSections.length > 0 && (
+            <Badge variant="secondary" className="shrink-0 text-[10px] px-1.5 py-0 h-5 rounded-full tabular-nums">
+              {mainSections.length}
+            </Badge>
+          )}
+        </button>
 
-          {linkedGuides.map((linkedGuide) => (
-            <TabsTrigger
-              key={linkedGuide.guide_id}
-              value={linkedGuide.guide_id}
-              className="flex items-center justify-between gap-2 min-h-[48px] px-4 py-2.5 text-sm font-medium rounded-xl border border-transparent bg-muted/50 transition-all duration-200 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md data-[state=active]:ring-2 data-[state=active]:ring-primary/30 data-[state=active]:scale-[1.01] active:scale-[0.97]"
+        {/* Linked guide pills */}
+        {linkedGuides.map((guide) => {
+          const isSelected = selectedLinkedGuide?.guide_id === guide.guide_id && sheetOpen;
+          const sectionCount = sectionsByGuide[guide.guide_id]?.length || 0;
+          return (
+            <button
+              key={guide.guide_id}
+              onClick={() => handleLinkedGuideClick(guide)}
+              className={cn(
+                "flex items-center justify-between gap-2 min-h-[48px] px-4 py-2.5 text-sm font-medium rounded-xl border border-transparent transition-all active:scale-[0.97]",
+                isSelected
+                  ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/30"
+                  : "bg-muted/50 hover:bg-muted"
+              )}
             >
               <span className="flex items-center gap-2 min-w-0">
                 <Music className="w-4 h-4 shrink-0" />
-                <span className="line-clamp-2 break-words text-left">{linkedGuide.custom_title || linkedGuide.title}</span>
+                <span className="line-clamp-2 break-words text-left">{guide.custom_title || guide.title}</span>
               </span>
-              {(() => {
-                const sectionCount = sectionsByGuide[linkedGuide.guide_id]?.length || 0;
-                return sectionCount > 0 ? (
-                  <Badge variant="secondary" className="shrink-0 text-[10px] px-1.5 py-0 h-5 rounded-full tabular-nums">
-                    {sectionCount}
-                  </Badge>
-                ) : null;
-              })()}
-            </TabsTrigger>
-          ))}
+              {sectionCount > 0 && (
+                <Badge variant="secondary" className="shrink-0 text-[10px] px-1.5 py-0 h-5 rounded-full tabular-nums">
+                  {sectionCount}
+                </Badge>
+              )}
+            </button>
+          );
+        })}
+      </div>
 
-          {/* Pending guide pill */}
-          {pendingGuideId && !linkedGuides.some(g => g.guide_id === pendingGuideId) && (
-            <TabsTrigger
-              value={pendingGuideId}
-              disabled
-              className="flex items-center gap-2 min-h-[48px] px-4 py-2.5 text-sm font-medium rounded-xl opacity-50 bg-muted/30"
-            >
-              <Music className="w-4 h-4 shrink-0 animate-pulse" />
-              <span>{t('loading', languageCode)}</span>
-            </TabsTrigger>
-          )}
-        </TabsList>
+      {/* Main guide always inline */}
+      <NewSectionAudioPlayer
+        guideId={mainGuide.id} guideTitle={mainGuide.title}
+        sections={mainSections} mainAudioUrl={mainGuide.audio_url}
+        lang={languageByGuide[mainGuide.id] || languageCode}
+      />
 
-        {/* Content wrapper with layout lock via ResizeObserver */}
-        <div
-          ref={contentWrapperRef}
-          className="relative overflow-hidden"
-          style={{ minHeight: lockedHeightRef.current ? `${lockedHeightRef.current}px` : '300px' }}
-        >
-          {/* Active panel renders normally; inactive panels are invisible but measurable */}
-          <TabsContent value="main" forceMount className={activeTab !== 'main' ? 'absolute inset-0 invisible pointer-events-none' : 'mt-0'}>
-            <NewSectionAudioPlayer
-              guideId={mainGuide.id}
-              guideTitle={mainGuide.title}
-              sections={mainSections}
-              mainAudioUrl={mainGuide.audio_url}
-              lang={languageByGuide[mainGuide.id] || languageCode}
-            />
-          </TabsContent>
-
-          {linkedGuides.map((linkedGuide) => (
-            <TabsContent key={linkedGuide.guide_id} value={linkedGuide.guide_id} forceMount className={activeTab !== linkedGuide.guide_id ? 'absolute inset-0 invisible pointer-events-none' : 'mt-0'}>
-              <NewSectionAudioPlayer
-                guideId={linkedGuide.guide_id}
-                guideTitle={linkedGuide.custom_title || linkedGuide.title}
-                sections={sectionsByGuide[linkedGuide.guide_id] || []}
-                mainAudioUrl=""
-                lang={languageByGuide[linkedGuide.guide_id] || languageCode}
-              />
-            </TabsContent>
-          ))}
-
-          {/* Loading state for pending guide */}
-          {pendingGuideId && !linkedGuides.some(g => g.guide_id === pendingGuideId) && (
-            <TabsContent value={pendingGuideId} forceMount className={activeTab !== pendingGuideId ? 'absolute inset-0 invisible pointer-events-none' : 'mt-0'}>
-              <AudioGuideLoader variant="inline" message={t('loadingGuide', languageCode)} />
-            </TabsContent>
-          )}
-        </div>
-      </Tabs>
+      {/* Bottom sheet for linked guides */}
+      <BottomSheet
+        open={sheetOpen}
+        onOpenChange={handleSheetClose}
+        title={selectedLinkedGuide?.custom_title || selectedLinkedGuide?.title}
+        defaultSnap="half"
+        snapPoints={['half', 'full']}
+      >
+        {selectedLinkedGuide && (
+          <NewSectionAudioPlayer
+            guideId={selectedLinkedGuide.guide_id}
+            guideTitle={selectedLinkedGuide.custom_title || selectedLinkedGuide.title}
+            sections={sectionsByGuide[selectedLinkedGuide.guide_id] || []}
+            mainAudioUrl=""
+            lang={languageByGuide[selectedLinkedGuide.guide_id] || languageCode}
+          />
+        )}
+      </BottomSheet>
     </div>
   );
 };
