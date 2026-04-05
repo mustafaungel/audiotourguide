@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Badge } from '@/components/ui/badge';
-import { Globe, Music, ChevronRight, Check, ChevronDown } from 'lucide-react';
+import { Globe, Check } from 'lucide-react';
 import { getLanguageFlag, getLanguageDisplay } from '@/lib/language-utils';
-import { getBaseUrl } from '@/lib/url-utils';
-import { BottomSheet, BottomSheetListItem } from '@/components/ui/bottom-sheet';
 import { haptics } from '@/lib/haptics';
+import { cn } from '@/lib/utils';
 
 interface GuideLanguageSelectorProps {
   guideId: string;
@@ -25,7 +22,6 @@ interface GuideLanguage {
 export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageChange, activeGuideId }: GuideLanguageSelectorProps) {
   const [availableLanguages, setAvailableLanguages] = useState<GuideLanguage[]>([]);
   const [loading, setLoading] = useState(true);
-  const [languageSheetOpen, setLanguageSheetOpen] = useState(false);
 
   useEffect(() => {
     fetchAvailableLanguages();
@@ -44,8 +40,6 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
       }
 
       setAvailableLanguages(data || []);
-      
-      // DO NOT auto-select language - let user choose
     } catch (error) {
       console.error('Error fetching available languages:', error);
     } finally {
@@ -53,103 +47,60 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
     }
   };
 
-  // Only hide the language selector when there is 1 or fewer languages.
-  // We still want to show Additional Guides even if language selection is not needed.
+  const handleLanguageSelect = (languageCode: string) => {
+    haptics.selection();
 
-  const selectedLanguageData = availableLanguages.find(lang => lang.language_code === selectedLanguage);
-  const selectedDisplay = selectedLanguageData 
-    ? getLanguageDisplay(selectedLanguageData.language_code, selectedLanguageData.native_name)
-    : "Select language";
+    const isInMultiTab = !!activeGuideId;
 
-  // Always allow language selection, even for single language guides
-  const isMultiLanguage = true;
+    if (isInMultiTab) {
+      const event = new CustomEvent('changeGuideLanguage', {
+        detail: {
+          guideId: activeGuideId,
+          languageCode,
+        }
+      });
+      window.dispatchEvent(event);
+    } else {
+      onLanguageChange(languageCode);
+    }
+  };
+
+  if (loading || availableLanguages.length < 1) {
+    return null;
+  }
 
   return (
-    <div className="space-y-3">
-      {availableLanguages.length >= 1 && (
-        <>
-          {/* iOS-style Language Selector Button */}
-          <button
-            onClick={() => {
-              haptics.light();
-              setLanguageSheetOpen(true);
-            }}
-            className="ios-list-item w-full"
-          >
-            <div className="flex items-center gap-3">
-              <Globe className="h-5 w-5 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Language</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="font-medium">
-                {selectedDisplay}
+    <div className="space-y-2">
+      <div className="flex items-center gap-2 px-1">
+        <Globe className="h-4 w-4 text-muted-foreground" />
+        <span className="text-sm text-muted-foreground font-medium">Language</span>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {availableLanguages.map((language) => {
+          const isSelected = language.language_code === selectedLanguage;
+          return (
+            <button
+              key={language.language_code}
+              onClick={() => handleLanguageSelect(language.language_code)}
+              className={cn(
+                "inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all",
+                "border",
+                isSelected
+                  ? "bg-primary/10 border-primary text-primary shadow-sm"
+                  : "bg-card border-border text-foreground hover:bg-muted"
+              )}
+            >
+              <span className="text-lg" aria-hidden="true">
+                {getLanguageFlag(language.language_code)}
               </span>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </div>
-          </button>
-
-          {/* Language Selection Bottom Sheet */}
-          <BottomSheet
-            open={languageSheetOpen}
-            onOpenChange={setLanguageSheetOpen}
-            title="Select Language"
-          >
-            <div className="space-y-1 pb-4">
-              {availableLanguages.map((language) => {
-                const isSelected = language.language_code === selectedLanguage;
-                return (
-                  <BottomSheetListItem
-                    key={language.language_code}
-                    selected={isSelected}
-                    onSelect={() => {
-                      haptics.selection();
-                      
-                      // Check if we're in MultiTabAudioPlayer context
-                      const isInMultiTab = !!activeGuideId;
-                      
-                      if (isInMultiTab) {
-                        // Multi-tab context: only dispatch event
-                        const event = new CustomEvent('changeGuideLanguage', {
-                          detail: { 
-                            guideId: activeGuideId, 
-                            languageCode: language.language_code
-                          }
-                        });
-                        window.dispatchEvent(event);
-                      } else {
-                        // Single guide context: only call callback
-                        onLanguageChange(language.language_code);
-                      }
-                      
-                      setTimeout(() => setLanguageSheetOpen(false), 150);
-                    }}
-                  >
-                    <div className="flex items-center justify-between w-full">
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl" aria-hidden="true">
-                          {getLanguageFlag(language.language_code)}
-                        </span>
-                        <div className="text-left">
-                          <div className="font-medium">
-                            {language.native_name}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {language.section_count} sections
-                          </div>
-                        </div>
-                      </div>
-                      {isSelected && (
-                        <Check className="h-5 w-5 text-primary" />
-                      )}
-                    </div>
-                  </BottomSheetListItem>
-                );
-              })}
-            </div>
-          </BottomSheet>
-        </>
-      )}
-
+              <span>{language.native_name}</span>
+              {isSelected && (
+                <Check className="h-4 w-4 text-primary" />
+              )}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

@@ -16,11 +16,29 @@ interface BrandingContextType {
   refreshBranding: () => Promise<void>;
 }
 
+const BRANDING_CACHE_KEY = 'site_branding_cache';
+
 const defaultBranding: SiteBranding = {
   logoUrl: null,
   darkLogoUrl: null,
   faviconUrl: null,
   companyName: 'Audio Guides',
+};
+
+const getCachedBranding = (): SiteBranding => {
+  try {
+    const cached = localStorage.getItem(BRANDING_CACHE_KEY);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+  } catch {}
+  return defaultBranding;
+};
+
+const setCachedBranding = (branding: SiteBranding) => {
+  try {
+    localStorage.setItem(BRANDING_CACHE_KEY, JSON.stringify(branding));
+  } catch {}
 };
 
 const BrandingContext = createContext<BrandingContextType>({
