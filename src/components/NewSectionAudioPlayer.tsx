@@ -21,6 +21,7 @@ interface NewSectionAudioPlayerProps {
   guideTitle: string;
   sections: Section[];
   mainAudioUrl?: string;
+  lang?: string;
 }
 
 export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
