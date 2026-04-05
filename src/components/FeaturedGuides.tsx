@@ -164,7 +164,7 @@ export const FeaturedGuides = () => {
           <CarouselContent className="-ml-2">
             {guides.map((guide) => (
               <CarouselItem key={guide.id} className="pl-2 basis-[85%] sm:basis-[75%] md:basis-1/2 lg:basis-1/3">{/* Mobile-first carousel items */}
-                <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden mobile-card">
+                <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden mobile-card cursor-pointer" onClick={() => handleGuideClick(guide)}>
                   <div className="relative aspect-mobile overflow-hidden">
                     <OptimizedImage
                       src={guide.image_url}
