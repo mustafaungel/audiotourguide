@@ -152,15 +152,16 @@ export function BottomSheet({
       {/* Bottom Sheet */}
       <div
         className={cn(
-          "fixed bottom-0 left-0 right-0 bg-card/90 rounded-t-3xl shadow-lg z-50 animate-in slide-in-from-bottom-2 flex flex-col",
+          "fixed bottom-0 left-0 right-0 bg-background/95 rounded-t-[20px] shadow-2xl border-t border-border/20 z-50 animate-in slide-in-from-bottom-2 flex flex-col",
           className
         )}
         style={{
           height: `${snapToHeight(currentSnap)}vh`,
           transform: isDragging ? `translateY(${Math.max(0, currentY)}px)` : 'translateY(0)',
-          transition: isDragging ? 'none' : 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), height 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+          transition: isDragging ? 'none' : 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), height 0.4s cubic-bezier(0.25, 1, 0.5, 1)',
           backdropFilter: 'blur(40px) saturate(180%)',
           WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+          willChange: 'transform',
         }}
       >
         {/* Drag Handle */}
@@ -171,13 +172,13 @@ export function BottomSheet({
           onTouchEnd={handleTouchEnd}
           style={{ touchAction: 'none' }}
         >
-          <div className="w-10 h-1 bg-muted rounded-full" />
+          <div className="w-12 h-1.5 bg-muted-foreground/30 rounded-full" />
         </div>
 
         {/* Header */}
         {title && (
           <div
-            className="flex items-center justify-between px-4 pb-3 pt-1"
+            className="flex items-center justify-between px-4 pb-3 pt-1 border-b border-border/30"
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
@@ -186,9 +187,9 @@ export function BottomSheet({
             <h3 className="text-lg font-semibold">{title}</h3>
             <button
               onClick={() => onOpenChange(false)}
-              className="rounded-full p-1.5 hover:bg-muted transition-colors"
+              className="rounded-full p-2 bg-muted/50 hover:bg-muted transition-colors"
             >
-              <X className="h-5 w-5" />
+              <X className="h-5 w-5 text-muted-foreground" />
             </button>
           </div>
         )}
