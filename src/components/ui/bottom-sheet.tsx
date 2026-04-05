@@ -144,7 +144,7 @@ export function BottomSheet({
       if (d.currentY > 150) {
         if (currentSnap === 'full') setCurrentSnap('half');
         else if (currentSnap === 'half') setCurrentSnap('mini');
-        else onOpenChange(false);
+        else setCurrentSnap('mini');
       } else if (d.currentY < -150) {
         if (currentSnap === 'mini') setCurrentSnap('half');
         else if (currentSnap === 'half') setCurrentSnap('full');
