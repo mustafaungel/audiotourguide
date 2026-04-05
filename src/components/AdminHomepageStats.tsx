@@ -155,11 +155,7 @@ export default function AdminHomepageStats() {
   const commonIcons = ['🏛️', '🗺️', '🎨', '🌍', '📍', '🏛', '🖼️', '🎭', '🏰', '⛩️'];
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
+    return <AudioGuideLoader variant="inline" />;
   }
 
   return (
