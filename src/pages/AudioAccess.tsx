@@ -668,8 +668,8 @@ export default function AudioAccess() {
                     <div className="flex items-center gap-1">
                       <Clock className="w-4 h-4" />
                       {sections && sections.length > 0 
-                        ? `${Math.floor(sections.reduce((total, section) => total + (section.duration_seconds || 0), 0) / 60)} min`
-                        : `${Math.floor(guide.duration / 60)} min`
+                        ? `${Math.floor(sections.reduce((total: number, section: any) => total + (section.duration_seconds || 0), 0) / 60)} ${t('min', selectedLanguage)}`
+                        : `${Math.floor(guide.duration / 60)} ${t('min', selectedLanguage)}`
                       }
                     </div>
                    </div>
