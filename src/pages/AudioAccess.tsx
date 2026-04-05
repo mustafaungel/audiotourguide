@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Star, MapPin, Clock, ChevronLeft, Lock, Wifi, WifiOff, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { supabase } from "@/integrations/supabase/client";
 import { withRetry, isNetworkError, getRegionalErrorMessage } from "@/utils/networkUtils";
 import { t } from "@/lib/translations";
