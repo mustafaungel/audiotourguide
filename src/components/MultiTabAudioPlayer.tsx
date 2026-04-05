@@ -343,19 +343,31 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     );
   }
 
+  // Dynamic height lock: measure active content and lock wrapper min-height during transitions
+  const contentWrapperRef = useRef<HTMLDivElement>(null);
+  const [lockedHeight, setLockedHeight] = useState<number | undefined>(undefined);
+
+  const handleTabChange = useCallback((value: string) => {
+    // Lock current height before switching
+    if (contentWrapperRef.current) {
+      setLockedHeight(contentWrapperRef.current.offsetHeight);
+    }
+    const scrollY = window.scrollY;
+    setActiveTab(value);
+    onActiveTabChange?.(value);
+    // Double-rAF: wait for React render + DOM paint, then unlock height
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: scrollY, behavior: 'instant' as ScrollBehavior });
+        // Unlock height after paint so new content can size naturally
+        setTimeout(() => setLockedHeight(undefined), 100);
+      });
+    });
+  }, [onActiveTabChange]);
+
   return (
     <div className="w-full max-w-4xl mx-auto">
-      <Tabs value={activeTab} onValueChange={(value) => {
-        const scrollY = window.scrollY;
-        setActiveTab(value);
-        onActiveTabChange?.(value);
-        // Double-rAF: wait for React render + DOM paint
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            window.scrollTo({ top: scrollY, behavior: 'instant' as ScrollBehavior });
-          });
-        });
-      }} className="w-full">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         {/* iOS-style horizontal scroll pill tabs */}
         <TabsList className="flex flex-wrap w-full mb-4 h-auto p-1 gap-2 bg-transparent">
           <TabsTrigger
