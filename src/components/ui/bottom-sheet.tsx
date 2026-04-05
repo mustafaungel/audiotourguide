@@ -65,7 +65,7 @@ export function BottomSheet({
 
   // Lightweight scroll lock — no position:fixed, no scroll jump
   useEffect(() => {
-    if (rendered && visible) {
+    if (rendered) {
       scrollYRef.current = window.scrollY;
       document.documentElement.style.overflow = 'hidden';
       document.body.style.overflow = 'hidden';
@@ -74,7 +74,7 @@ export function BottomSheet({
         document.body.style.overflow = '';
       };
     }
-  }, [rendered, visible]);
+  }, [rendered]);
 
   const handleTransitionEnd = useCallback(() => {
     if (!visible) {
