@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AdminReviewManagement } from '@/components/AdminReviewManagement';
 import AdminLanguageManagement from '@/components/AdminLanguageManagement';
 import { Navigation } from '@/components/Navigation';
@@ -12,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
-import { FileText, Plus, ImageIcon, Copy, QrCode, Edit2, Mail, Palette, BarChart3, Languages } from 'lucide-react';
+import { FileText, Plus, ImageIcon, Copy, QrCode, Edit2, Mail, Palette, BarChart3, Languages, Eye } from 'lucide-react';
 import { ButtonLoader } from '@/components/AudioGuideLoader';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -36,6 +37,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 const AdminPanel = () => {
   const { user, userProfile } = useAuth();
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
 
   // Listen for tab change events from GuideManagement
@@ -380,7 +382,7 @@ const AdminPanel = () => {
         <AdminMobileNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="hidden md:grid grid-cols-9 w-full max-w-6xl gap-1">
+          <TabsList className="hidden md:grid grid-cols-10 w-full max-w-6xl gap-1">
             <TabsTrigger value="dashboard" className="flex items-center gap-2 text-sm">
               <FileText className="h-4 w-4" />
               <span>Dashboard</span>
@@ -416,6 +418,10 @@ const AdminPanel = () => {
             <TabsTrigger value="language-management" className="flex items-center gap-2 text-sm">
               <Languages className="h-4 w-4" />
               <span>Languages</span>
+            </TabsTrigger>
+            <TabsTrigger value="preview" className="flex items-center gap-2 text-sm" onClick={() => navigate('/admin/preview')}>
+              <Eye className="h-4 w-4" />
+              <span>Preview</span>
             </TabsTrigger>
           </TabsList>
 
