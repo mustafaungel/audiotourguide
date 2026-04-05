@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useSiteBranding } from '@/hooks/useSiteBranding';
 
 const PreloadBrandingAssets: React.FC = () => {
