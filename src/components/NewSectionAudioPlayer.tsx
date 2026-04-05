@@ -295,8 +295,8 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
             });
           } else if (error.name === 'NotSupportedError') {
             toast({
-              title: 'Format Error',
-              description: 'Audio format not supported',
+              title: t('formatError', lang),
+              description: t('formatNotSupported', lang),
               variant: 'destructive',
             });
           } else {
