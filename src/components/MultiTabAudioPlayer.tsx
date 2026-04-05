@@ -338,6 +338,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
         guideTitle={mainGuide.title}
         sections={mainSections}
         mainAudioUrl={mainGuide.audio_url}
+        lang={languageCode}
       />
     );
   }
