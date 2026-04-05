@@ -50,8 +50,10 @@ const BrandingContext = createContext<BrandingContextType>({
 });
 
 export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [branding, setBranding] = useState<SiteBranding>(defaultBranding);
-  const [loading, setLoading] = useState(true);
+  const cachedBranding = getCachedBranding();
+  const hasCachedData = cachedBranding.logoUrl !== null || cachedBranding.companyName !== 'Audio Guides';
+  const [branding, setBranding] = useState<SiteBranding>(cachedBranding);
+  const [loading, setLoading] = useState(!hasCachedData);
   const [error, setError] = useState<string | null>(null);
 
   const loadBranding = useCallback(async () => {
