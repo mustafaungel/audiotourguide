@@ -539,8 +539,8 @@ export default function AudioAccess() {
                   <div className="mb-4 p-4 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
                     <div className="flex items-center gap-2 mb-3">
                       <WifiOff className="w-5 h-5 text-blue-600" />
-                      <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
-                        Connection Issue Detected
+                       <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                        {t('connectionIssue', selectedLanguage)}
                       </p>
                     </div>
                     <p className="text-xs text-blue-600 dark:text-blue-400 mb-3">
