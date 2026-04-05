@@ -652,7 +652,7 @@ export default function AudioAccess() {
     <div className="min-h-screen bg-background">
       {/* iOS-style minimal navbar */}
       <div className="sticky top-0 z-50 backdrop-blur-xl bg-background/80 border-b border-border/50">
-        <div className="grid grid-cols-[48px_1fr_48px] items-center px-2 h-12">
+        <div className="grid grid-cols-[48px_1fr_48px] items-center px-2 min-h-12 h-auto py-1">
           <button
             onClick={() => navigate(-1)}
             className="flex items-center justify-center w-10 h-10 text-primary active:opacity-60 transition-opacity"
@@ -660,7 +660,7 @@ export default function AudioAccess() {
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <span className="text-sm font-semibold text-foreground truncate text-center px-1">
+          <span className="text-sm font-semibold text-foreground text-center px-1 line-clamp-2 break-words">
             {guide.title}
           </span>
           <div className="flex items-center justify-center">
@@ -673,7 +673,7 @@ export default function AudioAccess() {
       <div className="relative overflow-hidden">
         {/* Blurred background from guide image */}
         <div
-          className="absolute inset-0 scale-110 blur-3xl opacity-30 will-change-transform"
+          className="absolute inset-0 scale-110 blur-2xl opacity-30 will-change-transform"
           style={{
             backgroundImage: `url(${guideImageUrl})`,
             backgroundSize: 'cover',
