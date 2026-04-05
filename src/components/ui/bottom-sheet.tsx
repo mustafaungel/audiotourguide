@@ -36,6 +36,14 @@ export function BottomSheet({
   const [velocity, setVelocity] = useState(0);
   const [lastMoveTime, setLastMoveTime] = useState(0);
   const [currentSnap, setCurrentSnap] = useState<'mini' | 'half' | 'full'>(defaultSnap);
+  const [mounted, setMounted] = useState(false);
+
+  React.useEffect(() => {
+    if (open) {
+      setMounted(true);
+      setCurrentSnap(defaultSnap);
+    }
+  }, [open, defaultSnap]);
 
   React.useEffect(() => {
     if (open) {
@@ -54,6 +62,12 @@ export function BottomSheet({
     }
   }, [open]);
 
+  const handleTransitionEnd = () => {
+    if (!open) {
+      setMounted(false);
+    }
+  };
+
   const handleTouchStart = (e: React.TouchEvent) => {
     setStartY(e.touches[0].clientY);
     setIsDragging(true);
@@ -66,7 +80,6 @@ export function BottomSheet({
     const newY = e.touches[0].clientY;
     const deltaY = newY - startY;
     
-    // Calculate velocity
     const now = Date.now();
     const deltaTime = now - lastMoveTime;
     if (deltaTime > 0) {
@@ -76,9 +89,8 @@ export function BottomSheet({
     
     setLastMoveTime(now);
     
-    // Rubber band effect at boundaries
     const rubberBand = (delta: number) => {
-      if (delta < 0) return delta * 0.3; // Resistance when pulling up
+      if (delta < 0) return delta * 0.3;
       return delta;
     };
     
@@ -88,11 +100,9 @@ export function BottomSheet({
   const handleTouchEnd = () => {
     setIsDragging(false);
     
-    // Velocity-based snap decision
     const velocityThreshold = 0.5;
     if (Math.abs(velocity) > velocityThreshold) {
       if (velocity > 0) {
-        // Swipe down
         if (currentSnap === 'full') {
           setCurrentSnap('half');
         } else if (currentSnap === 'half') {
@@ -101,7 +111,6 @@ export function BottomSheet({
           onOpenChange(false);
         }
       } else {
-        // Swipe up
         if (currentSnap === 'mini') {
           setCurrentSnap('half');
         } else if (currentSnap === 'half') {
@@ -109,7 +118,6 @@ export function BottomSheet({
         }
       }
     } else {
-      // Position-based snap
       if (currentY > 150) {
         if (currentSnap === 'full') {
           setCurrentSnap('half');
@@ -127,24 +135,26 @@ export function BottomSheet({
       }
     }
     
-    // Reset position
     setCurrentY(0);
     setStartY(0);
     setVelocity(0);
   };
 
-  if (!open) return null;
+  if (!mounted && !open) return null;
 
   return (
     <>
-      {/* Backdrop with blur */}
+      {/* Backdrop */}
       <div
-        className="fixed inset-0 z-40 animate-in fade-in-0"
+        className="fixed inset-0 z-40"
         style={{
           background: 'rgba(0, 0, 0, 0.4)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
           touchAction: 'none',
+          opacity: open ? 1 : 0,
+          pointerEvents: open ? 'auto' : 'none',
+          transition: 'opacity 0.3s ease',
         }}
         onClick={() => onOpenChange(false)}
       />
@@ -152,17 +162,22 @@ export function BottomSheet({
       {/* Bottom Sheet */}
       <div
         className={cn(
-          "fixed bottom-0 left-0 right-0 bg-background/95 rounded-t-[20px] shadow-2xl border-t border-border/20 z-50 animate-in slide-in-from-bottom-2 flex flex-col",
+          "fixed bottom-0 left-0 right-0 bg-background/95 rounded-t-[20px] shadow-2xl border-t border-border/20 z-50 flex flex-col",
           className
         )}
         style={{
           height: `${snapToHeight(currentSnap)}vh`,
-          transform: isDragging ? `translateY(${Math.max(0, currentY)}px)` : 'translateY(0)',
-          transition: isDragging ? 'none' : 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), height 0.4s cubic-bezier(0.25, 1, 0.5, 1)',
+          transform: open
+            ? (isDragging ? `translateY(${Math.max(0, currentY)}px)` : 'translateY(0)')
+            : 'translateY(100%)',
+          transition: isDragging
+            ? 'none'
+            : 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), height 0.4s cubic-bezier(0.25, 1, 0.5, 1)',
           backdropFilter: 'blur(40px) saturate(180%)',
           WebkitBackdropFilter: 'blur(40px) saturate(180%)',
           willChange: 'transform',
         }}
+        onTransitionEnd={handleTransitionEnd}
       >
         {/* Drag Handle */}
         <div

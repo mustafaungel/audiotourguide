@@ -55,7 +55,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
   const [languageByGuide, setLanguageByGuide] = useState<Record<string, string>>({
     [mainGuide.id]: languageCode
   });
-  const [selectedLinkedGuide, setSelectedLinkedGuide] = useState<LinkedGuide | null>(null);
+  const [selectedGuideId, setSelectedGuideId] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
 
   useEffect(() => {
@@ -66,7 +66,6 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     setLanguageByGuide(prev => ({ ...prev, [mainGuide.id]: languageCode }));
   }, [languageCode, mainGuide.id]);
 
-  // Preload sections for all linked guides
   useEffect(() => {
     if (linkedGuides.length > 0 && accessCode) {
       linkedGuides.forEach(guide => {
@@ -75,19 +74,18 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     }
   }, [linkedGuides, accessCode]);
 
-  // Listen for external events
   useEffect(() => {
     const handleOpenLinkedGuide = (event: CustomEvent) => {
       const { guideId } = (event as any).detail || {};
       if (guideId === 'main') {
-        setSheetOpen(false);
-        setSelectedLinkedGuide(null);
+        setSelectedGuideId(mainGuide.id);
+        setSheetOpen(true);
         return;
       }
       const guide = linkedGuides.find(g => g.guide_id === guideId);
       if (guide) {
         ensureGuideSections(guide.guide_id);
-        setSelectedLinkedGuide(guide);
+        setSelectedGuideId(guide.guide_id);
         setSheetOpen(true);
       }
       window.dispatchEvent(new CustomEvent('linkedGuideHandled'));
@@ -107,11 +105,10 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
       window.removeEventListener('openLinkedGuide', handleOpenLinkedGuide as EventListener);
       window.removeEventListener('changeGuideLanguage', handleLanguageChange as EventListener);
     };
-  }, [linkedGuides, accessCode]);
+  }, [linkedGuides, accessCode, mainGuide.id]);
 
   const ensureGuideSections = async (guideId: string, overrideLanguage?: string) => {
     const effectiveLang = overrideLanguage || languageByGuide[guideId] || languageCode;
-
     if (!overrideLanguage && sectionsByGuide[guideId]?.length > 0) return;
     if (!accessCode) return;
 
@@ -179,19 +176,39 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     }
   };
 
-  const handleLinkedGuideClick = (guide: LinkedGuide) => {
-    ensureGuideSections(guide.guide_id);
-    setSelectedLinkedGuide(guide);
+  const handlePillClick = (guideId: string) => {
+    if (guideId !== mainGuide.id) {
+      ensureGuideSections(guideId);
+    }
+    setSelectedGuideId(guideId);
     setSheetOpen(true);
-    onActiveTabChange?.(guide.guide_id);
+    onActiveTabChange?.(guideId === mainGuide.id ? 'main' : guideId);
   };
 
   const handleSheetClose = (open: boolean) => {
     setSheetOpen(open);
     if (!open) {
-      setSelectedLinkedGuide(null);
+      setSelectedGuideId(null);
       onActiveTabChange?.('main');
     }
+  };
+
+  const getSheetTitle = () => {
+    if (!selectedGuideId) return undefined;
+    if (selectedGuideId === mainGuide.id) return mainGuide.title;
+    const linked = linkedGuides.find(g => g.guide_id === selectedGuideId);
+    return linked?.custom_title || linked?.title;
+  };
+
+  const getSheetSections = () => {
+    if (!selectedGuideId) return [];
+    if (selectedGuideId === mainGuide.id) return mainSections;
+    return sectionsByGuide[selectedGuideId] || [];
+  };
+
+  const getSheetAudioUrl = () => {
+    if (selectedGuideId === mainGuide.id) return mainGuide.audio_url || '';
+    return '';
   };
 
   if (loading) {
@@ -208,19 +225,21 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     );
   }
 
+  const isMainSelected = selectedGuideId === mainGuide.id && sheetOpen;
+
   return (
     <div className="w-full max-w-4xl mx-auto">
       {/* Pill buttons */}
       <div className="grid w-full mb-4 gap-2 grid-cols-1">
-        {/* Main guide pill - always active look */}
+        {/* Main guide pill */}
         <button
           className={cn(
             "flex items-center justify-between gap-2 min-h-[48px] px-4 py-2.5 text-sm font-medium rounded-xl border border-transparent transition-all active:scale-[0.97]",
-            !sheetOpen
+            isMainSelected
               ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/30"
               : "bg-muted/50 hover:bg-muted"
           )}
-          onClick={() => { setSheetOpen(false); setSelectedLinkedGuide(null); }}
+          onClick={() => handlePillClick(mainGuide.id)}
         >
           <span className="flex items-center gap-2 min-w-0">
             <Music className="w-4 h-4 shrink-0" />
@@ -235,12 +254,12 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
 
         {/* Linked guide pills */}
         {linkedGuides.map((guide) => {
-          const isSelected = selectedLinkedGuide?.guide_id === guide.guide_id && sheetOpen;
+          const isSelected = selectedGuideId === guide.guide_id && sheetOpen;
           const sectionCount = sectionsByGuide[guide.guide_id]?.length || 0;
           return (
             <button
               key={guide.guide_id}
-              onClick={() => handleLinkedGuideClick(guide)}
+              onClick={() => handlePillClick(guide.guide_id)}
               className={cn(
                 "flex items-center justify-between gap-2 min-h-[48px] px-4 py-2.5 text-sm font-medium rounded-xl border border-transparent transition-all active:scale-[0.97]",
                 isSelected
@@ -262,28 +281,21 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
         })}
       </div>
 
-      {/* Main guide always inline */}
-      <NewSectionAudioPlayer
-        guideId={mainGuide.id} guideTitle={mainGuide.title}
-        sections={mainSections} mainAudioUrl={mainGuide.audio_url}
-        lang={languageByGuide[mainGuide.id] || languageCode}
-      />
-
-      {/* Bottom sheet for linked guides */}
+      {/* Bottom sheet for all guides */}
       <BottomSheet
         open={sheetOpen}
         onOpenChange={handleSheetClose}
-        title={selectedLinkedGuide?.custom_title || selectedLinkedGuide?.title}
+        title={getSheetTitle()}
         defaultSnap="half"
         snapPoints={['half', 'full']}
       >
-        {sheetOpen && selectedLinkedGuide && (
+        {selectedGuideId && (
           <NewSectionAudioPlayer
-            guideId={selectedLinkedGuide.guide_id}
-            guideTitle={selectedLinkedGuide.custom_title || selectedLinkedGuide.title}
-            sections={sectionsByGuide[selectedLinkedGuide.guide_id] || []}
-            mainAudioUrl=""
-            lang={languageByGuide[selectedLinkedGuide.guide_id] || languageCode}
+            guideId={selectedGuideId}
+            guideTitle={getSheetTitle() || ''}
+            sections={getSheetSections()}
+            mainAudioUrl={getSheetAudioUrl()}
+            lang={languageByGuide[selectedGuideId] || languageCode}
           />
         )}
       </BottomSheet>
