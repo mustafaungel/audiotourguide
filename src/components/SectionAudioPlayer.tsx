@@ -359,7 +359,7 @@ export const SectionAudioPlayer: React.FC<SectionAudioPlayerProps> = ({
               className="h-18 w-18 min-h-[72px] touch-manipulation rounded-full bg-gradient-primary hover:bg-gradient-primary/90 shadow-lg"
             >
               {loading ? (
-                <div className="h-7 w-7 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                <span className="flex items-center gap-[2px]">{[0,1,2,3].map(i=><span key={i} className="w-[3px] rounded-full bg-current audio-wave-bar" style={{animationDelay:`${i*0.12}s`}}/>)}</span>
               ) : isPlaying ? (
                 <Pause className="h-7 w-7" />
               ) : (

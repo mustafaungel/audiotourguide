@@ -341,7 +341,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
 
   return (
     <div className="w-full max-w-4xl mx-auto">
-      <Tabs value={activeTab} onValueChange={(value) => { setActiveTab(value); onActiveTabChange?.(value); }} className="w-full">
+      <Tabs value={activeTab} onValueChange={(value) => { const scrollY = window.scrollY; setActiveTab(value); onActiveTabChange?.(value); requestAnimationFrame(() => window.scrollTo(0, scrollY)); }} className="w-full">
         {/* iOS-style horizontal scroll pill tabs */}
         <TabsList className="flex w-full mb-4 h-auto p-1 gap-2 bg-transparent overflow-x-auto scrollbar-hide snap-x snap-mandatory">
           <TabsTrigger
