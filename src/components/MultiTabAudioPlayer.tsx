@@ -211,7 +211,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
   return (
     <div className="w-full max-w-4xl mx-auto">
       {/* Pill buttons */}
-      <div className={`grid w-full mb-4 gap-2 ${linkedGuides.length === 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+      <div className="grid w-full mb-4 gap-2 grid-cols-1">
         {/* Main guide pill - always active look */}
         <button
           className="flex items-center justify-between gap-2 min-h-[48px] px-4 py-2.5 text-sm font-medium rounded-xl bg-primary text-primary-foreground shadow-md ring-2 ring-primary/30 transition-all active:scale-[0.97]"
