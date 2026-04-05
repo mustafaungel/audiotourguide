@@ -346,33 +346,33 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
   return (
     <div className="w-full max-w-4xl mx-auto">
       <Tabs value={activeTab} onValueChange={(value) => { setActiveTab(value); onActiveTabChange?.(value); }} className="w-full">
-        {/* Mobile-optimized TabsList */}
-        <TabsList className="grid w-full mb-4 h-auto p-1 grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          <TabsTrigger 
-            value="main" 
-            className="flex items-center gap-2 min-h-[44px] px-3 py-2 text-sm font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+        {/* iOS-style horizontal scroll pill tabs */}
+        <TabsList className="flex w-full mb-4 h-auto p-1 gap-2 bg-transparent overflow-x-auto scrollbar-hide snap-x snap-mandatory">
+          <TabsTrigger
+            value="main"
+            className="flex items-center gap-1.5 min-h-[40px] px-4 py-2 text-sm font-medium whitespace-nowrap rounded-full snap-center shrink-0 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md bg-muted/50 transition-all duration-200"
           >
-            <Music className="w-4 h-4 shrink-0" />
-            <span className="truncate">{mainGuide.title}</span>
+            <Music className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate max-w-[140px]">{mainGuide.title}</span>
             {mainSections.length > 0 && (
-              <Badge variant="secondary" className="ml-1 shrink-0 text-xs">
+              <Badge variant="secondary" className="ml-0.5 shrink-0 text-[10px] px-1.5 py-0 h-4 rounded-full">
                 {mainSections.length}
               </Badge>
             )}
           </TabsTrigger>
-          
+
           {linkedGuides.map((linkedGuide) => (
-            <TabsTrigger 
-              key={linkedGuide.guide_id} 
+            <TabsTrigger
+              key={linkedGuide.guide_id}
               value={linkedGuide.guide_id}
-              className="flex items-center gap-2 min-h-[44px] px-3 py-2 text-sm font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              className="flex items-center gap-1.5 min-h-[40px] px-4 py-2 text-sm font-medium whitespace-nowrap rounded-full snap-center shrink-0 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md bg-muted/50 transition-all duration-200"
             >
-              <Music className="w-4 h-4 shrink-0" />
-              <span className="truncate">{linkedGuide.custom_title || linkedGuide.title}</span>
+              <Music className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate max-w-[140px]">{linkedGuide.custom_title || linkedGuide.title}</span>
               {(() => {
                 const sectionCount = sectionsByGuide[linkedGuide.guide_id]?.length || 0;
                 return sectionCount > 0 ? (
-                  <Badge variant="secondary" className="ml-1 shrink-0 text-xs">
+                  <Badge variant="secondary" className="ml-0.5 shrink-0 text-[10px] px-1.5 py-0 h-4 rounded-full">
                     {sectionCount}
                   </Badge>
                 ) : null;
@@ -380,28 +380,28 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
             </TabsTrigger>
           ))}
 
-          {/* Temporary trigger for pending guide to keep Tabs stable */}
+          {/* Pending guide pill */}
           {pendingGuideId && !linkedGuides.some(g => g.guide_id === pendingGuideId) && (
-            <TabsTrigger 
+            <TabsTrigger
               value={pendingGuideId}
               disabled
-              className="flex items-center gap-2 min-h-[44px] px-3 py-2 text-sm font-medium opacity-70"
+              className="flex items-center gap-1.5 min-h-[40px] px-4 py-2 text-sm font-medium whitespace-nowrap rounded-full snap-center shrink-0 opacity-50 bg-muted/30"
             >
-              <Music className="w-4 h-4 shrink-0" />
-              <span className="truncate">{t('loading', languageCode)}</span>
+              <Music className="w-3.5 h-3.5 shrink-0 animate-pulse" />
+              <span>{t('loading', languageCode)}</span>
             </TabsTrigger>
           )}
         </TabsList>
 
         <TabsContent value="main" className="mt-0">
-            <NewSectionAudioPlayer
-              key={`${mainGuide.id}-${languageByGuide[mainGuide.id] || languageCode}`}
-              guideId={mainGuide.id}
-              guideTitle={mainGuide.title}
-              sections={mainSections}
-              mainAudioUrl={mainGuide.audio_url}
-              lang={languageByGuide[mainGuide.id] || languageCode}
-            />
+          <NewSectionAudioPlayer
+            key={`${mainGuide.id}-${languageByGuide[mainGuide.id] || languageCode}`}
+            guideId={mainGuide.id}
+            guideTitle={mainGuide.title}
+            sections={mainSections}
+            mainAudioUrl={mainGuide.audio_url}
+            lang={languageByGuide[mainGuide.id] || languageCode}
+          />
         </TabsContent>
 
         {linkedGuides.map((linkedGuide) => (
@@ -416,13 +416,13 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
             />
           </TabsContent>
         ))}
-        
-        {/* Show loading state for pending guide */}
+
+        {/* Loading state for pending guide */}
         {pendingGuideId && !linkedGuides.some(g => g.guide_id === pendingGuideId) && (
           <TabsContent value={pendingGuideId} className="mt-0">
             <div className="flex items-center justify-center p-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              <span className="ml-3">{t('loadingGuide', languageCode)}</span>
+              <span className="ml-3 text-muted-foreground">{t('loadingGuide', languageCode)}</span>
             </div>
           </TabsContent>
         )}

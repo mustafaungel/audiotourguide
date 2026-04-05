@@ -624,95 +624,160 @@ export default function AudioAccess() {
     );
   }
 
+  const [showFullDescription, setShowFullDescription] = useState(false);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+
+  const guideImageUrl = (guide.image_urls?.[0] || guide.image_url)?.startsWith('data:image')
+    ? (guide.image_urls?.[0] || guide.image_url)
+    : (guide.image_urls?.[0] || guide.image_url) || '/hero-audio-guide.jpg';
+
+  const totalDuration = sections && sections.length > 0
+    ? Math.floor(sections.reduce((total: number, section: any) => total + (section.duration_seconds || 0), 0) / 60)
+    : Math.floor(guide.duration / 60);
+
   return (
     <div className="min-h-screen bg-background">
-      <Navigation />
-      
-      <div className="container mx-auto px-4 py-6">
-        <div className="max-w-4xl mx-auto">
+      {/* iOS-style minimal navbar */}
+      <div className="sticky top-0 z-50 backdrop-blur-xl bg-background/80 border-b border-border/50">
+        <div className="flex items-center justify-between px-4 h-12">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-1 text-primary text-sm font-medium active:opacity-60 transition-opacity"
+          >
+            <ChevronLeft className="w-5 h-5" />
+            <span>{t('back', selectedLanguage)}</span>
+          </button>
+          <span className="text-sm font-semibold text-foreground truncate max-w-[200px]">
+            {guide.title}
+          </span>
+          <div className="w-12" /> {/* Spacer for centering */}
+        </div>
+      </div>
 
-          {/* Guide Header */}
-          <Card className="mb-6">
-            <CardContent className="p-6">
-              <div className="flex flex-col md:flex-row gap-6">
-                {/* Guide Image */}
-                <div className="w-full md:w-48 h-48 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
-                  <img 
-                    src={
-                      (guide.image_urls?.[0] || guide.image_url)?.startsWith('data:image') 
-                        ? (guide.image_urls?.[0] || guide.image_url)
-                        : (guide.image_urls?.[0] || guide.image_url) || '/hero-audio-guide.jpg'
-                    } 
-                    alt={guide.title}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.src = '/hero-audio-guide.jpg';
-                    }}
-                  />
-                </div>
+      {/* Hero Section with blurred background */}
+      <div className="relative overflow-hidden">
+        {/* Blurred background from guide image */}
+        <div
+          className="absolute inset-0 scale-110 blur-3xl opacity-30 will-change-transform"
+          style={{
+            backgroundImage: `url(${guideImageUrl})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/60 to-background" />
 
-                {/* Guide Info */}
-                <div className="flex-1 space-y-4">
-                  <div>
-                    <Badge className="mb-2">{guide.category}</Badge>
-                    <h1 className="text-2xl md:text-3xl font-bold">{guide.title}</h1>
-                    <p className="text-muted-foreground mt-2">{guide.description}</p>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <MapPin className="w-4 h-4" />
-                      {guide.location}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      {sections && sections.length > 0 
-                        ? `${Math.floor(sections.reduce((total: number, section: any) => total + (section.duration_seconds || 0), 0) / 60)} ${t('min', selectedLanguage)}`
-                        : `${Math.floor(guide.duration / 60)} ${t('min', selectedLanguage)}`
-                      }
-                    </div>
-                   </div>
-
-                </div>
-              </div>
-              
-              {/* Language Selector */}
-              <GuideLanguageSelector 
-                guideId={guide.id}
-                selectedLanguage={
-                  (activeGuideId === 'main' || activeGuideId === guide.id)
-                    ? selectedLanguage
-                    : (linkedLanguageByGuide[activeGuideId] || selectedLanguage)
-                }
-                onLanguageChange={handleLanguageChange}
-                activeGuideId={activeGuideId === 'main' ? guide.id : activeGuideId}
+        <div className="relative px-4 pt-6 pb-5">
+          {/* Guide Image — centered, large, rounded */}
+          <div className="flex justify-center mb-5 animate-scale-in">
+            <div className="relative">
+              <img
+                src={guideImageUrl}
+                alt={guide.title}
+                className="w-44 h-44 rounded-2xl object-cover shadow-xl ring-1 ring-white/10"
+                onError={(e) => { e.currentTarget.src = '/hero-audio-guide.jpg'; }}
               />
-            </CardContent>
-          </Card>
+              <Badge className="absolute top-2 left-2 text-[10px] px-2 py-0.5 rounded-lg backdrop-blur-md bg-background/70 text-foreground border-0 shadow-sm">
+                {guide.category}
+              </Badge>
+            </div>
+          </div>
 
-          {/* Multi-tab Audio Interface */}
-          <div className="mb-6 min-h-[400px]">
-            <MultiTabAudioPlayer
-              key={`${guide.id}-${accessCode || ''}`}
-              mainGuide={{
-                id: guide.id,
-                title: guide.title,
-                description: guide.description,
-                audio_url: guide.audio_url,
-                image_url: guide.image_url
-              }}
-              mainSections={sections}
-              accessCode={accessCode || undefined}
-              languageCode={selectedLanguage}
-              onActiveTabChange={setActiveGuideId}
+          {/* Title & metadata — centered */}
+          <div className="text-center space-y-2 animate-fade-in">
+            <h1 className="text-xl font-bold text-foreground leading-tight">
+              {guide.title}
+            </h1>
+            <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground">
+              <span className="inline-flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5" />
+                {guide.location}
+              </span>
+              <span className="text-border">•</span>
+              <span className="inline-flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5" />
+                {totalDuration} {t('min', selectedLanguage)}
+              </span>
+            </div>
+
+            {/* Expandable description */}
+            {guide.description && (
+              <div className="pt-1">
+                <p className={`text-sm text-muted-foreground leading-relaxed ${!showFullDescription ? 'line-clamp-2' : ''}`}>
+                  {guide.description}
+                </p>
+                {guide.description.length > 100 && (
+                  <button
+                    onClick={() => setShowFullDescription(!showFullDescription)}
+                    className="text-xs text-primary font-medium mt-1 active:opacity-60 transition-opacity"
+                  >
+                    {showFullDescription ? t('showLess', selectedLanguage) : t('showMore', selectedLanguage)}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Language Selector — compact, under hero */}
+          <div className="mt-4">
+            <GuideLanguageSelector
+              guideId={guide.id}
+              selectedLanguage={
+                (activeGuideId === 'main' || activeGuideId === guide.id)
+                  ? selectedLanguage
+                  : (linkedLanguageByGuide[activeGuideId] || selectedLanguage)
+              }
+              onLanguageChange={handleLanguageChange}
+              activeGuideId={activeGuideId === 'main' ? guide.id : activeGuideId}
             />
           </div>
+        </div>
+      </div>
 
-          {/* Guest Review Form */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-4">{t('leaveReview', selectedLanguage)}</h3>
-            <GuestReviewForm guideId={guide.id} lang={selectedLanguage} />
-          </div>
+      {/* Content area */}
+      <div className="px-4 pb-6">
+        {/* Multi-tab Audio Interface */}
+        <div className="mb-5 min-h-[300px] animate-fade-in" style={{ animationDelay: '150ms' }}>
+          <MultiTabAudioPlayer
+            key={`${guide.id}-${accessCode || ''}`}
+            mainGuide={{
+              id: guide.id,
+              title: guide.title,
+              description: guide.description,
+              audio_url: guide.audio_url,
+              image_url: guide.image_url,
+            }}
+            mainSections={sections}
+            accessCode={accessCode || undefined}
+            languageCode={selectedLanguage}
+            onActiveTabChange={setActiveGuideId}
+          />
+        </div>
+
+        {/* Collapsible Guest Review Section */}
+        <div className="animate-fade-in" style={{ animationDelay: '250ms' }}>
+          {!showReviewForm ? (
+            <button
+              onClick={() => setShowReviewForm(true)}
+              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-muted/50 text-sm font-medium text-foreground active:scale-[0.98] transition-all duration-200"
+            >
+              <Star className="w-4 h-4 text-yellow-500" />
+              {t('leaveReview', selectedLanguage)}
+            </button>
+          ) : (
+            <div className="transition-all duration-300 ease-out">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-semibold text-foreground">{t('leaveReview', selectedLanguage)}</span>
+                <button
+                  onClick={() => setShowReviewForm(false)}
+                  className="text-xs text-muted-foreground active:opacity-60"
+                >
+                  {t('close', selectedLanguage)}
+                </button>
+              </div>
+              <GuestReviewForm guideId={guide.id} lang={selectedLanguage} />
+            </div>
+          )}
         </div>
       </div>
     </div>
