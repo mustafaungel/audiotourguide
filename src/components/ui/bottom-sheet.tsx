@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState } from "react";
+import { useRef, useCallback, useState } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +13,14 @@ interface BottomSheetProps {
   className?: string;
 }
 
+const snapToOffset = (snap: 'mini' | 'half' | 'full') => {
+  switch (snap) {
+    case 'mini': return 'calc(95vh - 88px)';
+    case 'half': return '35vh';
+    case 'full': return '0px';
+  }
+};
+
 export function BottomSheet({
   open,
   onOpenChange,
@@ -22,19 +30,16 @@ export function BottomSheet({
   defaultSnap = 'half',
   className,
 }: BottomSheetProps) {
-  const snapToHeight = (snap: 'mini' | 'half' | 'full') => {
-    switch (snap) {
-      case 'mini': return 88;
-      case 'half': return 60;
-      case 'full': return 95;
-    }
-  };
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef({
+    startY: 0,
+    currentY: 0,
+    velocity: 0,
+    lastTime: 0,
+    isDragging: false,
+    rafId: 0,
+  });
 
-  const [startY, setStartY] = useState(0);
-  const [currentY, setCurrentY] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const [velocity, setVelocity] = useState(0);
-  const [lastMoveTime, setLastMoveTime] = useState(0);
   const [currentSnap, setCurrentSnap] = useState<'mini' | 'half' | 'full'>(defaultSnap);
   const [mounted, setMounted] = useState(false);
 
@@ -62,85 +67,89 @@ export function BottomSheet({
     }
   }, [open]);
 
-  const handleTransitionEnd = () => {
+  const handleTransitionEnd = useCallback(() => {
     if (!open) {
       setMounted(false);
     }
-  };
+  }, [open]);
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setStartY(e.touches[0].clientY);
-    setIsDragging(true);
-    setLastMoveTime(Date.now());
-    setVelocity(0);
-  };
+  const applyDragTransform = useCallback((deltaY: number) => {
+    if (!sheetRef.current) return;
+    const rubberBand = deltaY < 0 ? deltaY * 0.3 : deltaY;
+    const base = snapToOffset(currentSnap);
+    sheetRef.current.style.transition = 'none';
+    sheetRef.current.style.transform = `translateY(calc(${base} + ${rubberBand}px))`;
+  }, [currentSnap]);
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging) return;
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    const d = dragRef.current;
+    d.startY = e.touches[0].clientY;
+    d.currentY = 0;
+    d.isDragging = true;
+    d.lastTime = Date.now();
+    d.velocity = 0;
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    const d = dragRef.current;
+    if (!d.isDragging) return;
+
     const newY = e.touches[0].clientY;
-    const deltaY = newY - startY;
-    
+    const deltaY = newY - d.startY;
     const now = Date.now();
-    const deltaTime = now - lastMoveTime;
-    if (deltaTime > 0) {
-      const newVelocity = (deltaY - currentY) / deltaTime;
-      setVelocity(newVelocity);
+    const dt = now - d.lastTime;
+    if (dt > 0) {
+      d.velocity = (deltaY - d.currentY) / dt;
     }
-    
-    setLastMoveTime(now);
-    
-    const rubberBand = (delta: number) => {
-      if (delta < 0) return delta * 0.3;
-      return delta;
-    };
-    
-    setCurrentY(rubberBand(deltaY));
-  };
+    d.currentY = deltaY;
+    d.lastTime = now;
 
-  const handleTouchEnd = () => {
-    setIsDragging(false);
-    
+    cancelAnimationFrame(d.rafId);
+    d.rafId = requestAnimationFrame(() => {
+      applyDragTransform(deltaY);
+    });
+  }, [applyDragTransform]);
+
+  const handleTouchEnd = useCallback(() => {
+    const d = dragRef.current;
+    d.isDragging = false;
+    cancelAnimationFrame(d.rafId);
+
+    if (!sheetRef.current) return;
+
+    // Re-enable transitions
+    sheetRef.current.style.transition = '';
+    sheetRef.current.style.transform = '';
+
     const velocityThreshold = 0.5;
-    if (Math.abs(velocity) > velocityThreshold) {
-      if (velocity > 0) {
-        if (currentSnap === 'full') {
-          setCurrentSnap('half');
-        } else if (currentSnap === 'half') {
-          setCurrentSnap('mini');
-        } else {
-          onOpenChange(false);
-        }
+    if (Math.abs(d.velocity) > velocityThreshold) {
+      if (d.velocity > 0) {
+        if (currentSnap === 'full') setCurrentSnap('half');
+        else if (currentSnap === 'half') setCurrentSnap('mini');
+        else onOpenChange(false);
       } else {
-        if (currentSnap === 'mini') {
-          setCurrentSnap('half');
-        } else if (currentSnap === 'half') {
-          setCurrentSnap('full');
-        }
+        if (currentSnap === 'mini') setCurrentSnap('half');
+        else if (currentSnap === 'half') setCurrentSnap('full');
       }
     } else {
-      if (currentY > 150) {
-        if (currentSnap === 'full') {
-          setCurrentSnap('half');
-        } else if (currentSnap === 'half') {
-          setCurrentSnap('mini');
-        } else {
-          onOpenChange(false);
-        }
-      } else if (currentY < -150) {
-        if (currentSnap === 'mini') {
-          setCurrentSnap('half');
-        } else if (currentSnap === 'half') {
-          setCurrentSnap('full');
-        }
+      if (d.currentY > 150) {
+        if (currentSnap === 'full') setCurrentSnap('half');
+        else if (currentSnap === 'half') setCurrentSnap('mini');
+        else onOpenChange(false);
+      } else if (d.currentY < -150) {
+        if (currentSnap === 'mini') setCurrentSnap('half');
+        else if (currentSnap === 'half') setCurrentSnap('full');
       }
     }
-    
-    setCurrentY(0);
-    setStartY(0);
-    setVelocity(0);
-  };
+
+    d.currentY = 0;
+    d.startY = 0;
+    d.velocity = 0;
+  }, [currentSnap, onOpenChange]);
 
   if (!mounted && !open) return null;
+
+  const translateY = open ? snapToOffset(currentSnap) : '100%';
 
   return (
     <>
@@ -148,33 +157,27 @@ export function BottomSheet({
       <div
         className="fixed inset-0 z-40"
         style={{
-          background: 'rgba(0, 0, 0, 0.4)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
+          background: 'rgba(0, 0, 0, 0.5)',
           touchAction: 'none',
           opacity: open ? 1 : 0,
           pointerEvents: open ? 'auto' : 'none',
-          transition: 'opacity 0.3s ease',
+          transition: 'opacity 0.35s ease',
+          willChange: 'opacity',
         }}
         onClick={() => onOpenChange(false)}
       />
 
       {/* Bottom Sheet */}
       <div
+        ref={sheetRef}
         className={cn(
-          "fixed bottom-0 left-0 right-0 bg-background/95 rounded-t-[20px] shadow-2xl border-t border-border/20 z-50 flex flex-col",
+          "fixed bottom-0 left-0 right-0 bg-background rounded-t-[20px] shadow-2xl border-t border-border/20 z-50 flex flex-col",
           className
         )}
         style={{
-          height: `${snapToHeight(currentSnap)}vh`,
-          transform: open
-            ? (isDragging ? `translateY(${Math.max(0, currentY)}px)` : 'translateY(0)')
-            : 'translateY(100%)',
-          transition: isDragging
-            ? 'none'
-            : 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), height 0.4s cubic-bezier(0.25, 1, 0.5, 1)',
-          backdropFilter: 'blur(40px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+          height: '95vh',
+          transform: `translateY(${translateY})`,
+          transition: 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)',
           willChange: 'transform',
         }}
         onTransitionEnd={handleTransitionEnd}
