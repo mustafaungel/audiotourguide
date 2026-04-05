@@ -81,9 +81,8 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
   };
 
   const displayLanguages = availableLanguages.length > 0 ? availableLanguages : lastLanguagesRef.current;
-  const filteredLanguages = collapsed
-    ? displayLanguages.filter(l => l.language_code === selectedLanguage)
-    : displayLanguages;
+
+
 
   if (loading && displayLanguages.length === 0) {
     // First load: stable placeholder
