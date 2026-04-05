@@ -112,17 +112,17 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
         <span className="text-sm text-muted-foreground font-medium">{t('language', selectedLanguage)}</span>
       </div>
       <div className={cn(
-        "grid gap-2",
-        displayLanguages.length === 2 ? "grid-cols-2" : displayLanguages.length >= 3 ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-1"
+        "grid gap-2 transition-all duration-200 overflow-hidden",
+        filteredLanguages.length === 2 ? "grid-cols-2" : filteredLanguages.length >= 3 ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-1"
       )}>
-        {displayLanguages.map((language) => {
+        {filteredLanguages.map((language) => {
           const isSelected = language.language_code === selectedLanguage;
           return (
             <button
               key={language.language_code}
               onClick={() => handleLanguageSelect(language.language_code)}
               className={cn(
-                "inline-flex items-center justify-center gap-2 px-3 min-h-[44px] rounded-xl text-sm font-medium transition-all",
+                "inline-flex items-center justify-center gap-2 px-3 min-h-[44px] rounded-xl text-sm font-medium transition-all duration-200",
                 "border active:scale-[0.97]",
                 isSelected
                   ? "bg-primary/10 border-primary text-primary shadow-sm ring-2 ring-primary/20"
