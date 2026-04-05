@@ -228,7 +228,19 @@ export function BottomSheet({
         {/* Content */}
         <div
           className="overflow-y-scroll px-4 pb-safe"
-          style={{ overscrollBehavior: 'contain', touchAction: 'pan-y', WebkitOverflowScrolling: 'touch', maxHeight: title ? 'calc(95vh - 80px)' : 'calc(95vh - 28px)' }}
+          onTouchStart={(e) => e.stopPropagation()}
+          onTouchMove={(e) => e.stopPropagation()}
+          style={{
+            overscrollBehavior: 'contain',
+            touchAction: 'pan-y',
+            WebkitOverflowScrolling: 'touch',
+            maxHeight: (() => {
+              const offset = title ? 80 : 28;
+              if (currentSnap === 'full') return `calc(95vh - ${offset}px)`;
+              if (currentSnap === 'half') return `calc(65vh - ${offset}px)`;
+              return '60px';
+            })(),
+          }}
         >
           {children}
         </div>
