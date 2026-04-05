@@ -112,7 +112,7 @@ export function GuideCard({
   };
 
   return (
-    <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer select-none bg-gradient-card border-border/50 shadow-card hover:shadow-glow hover:scale-[1.02] active:scale-[0.98]" onClick={handleView}>
+    <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer select-none bg-gradient-card border-border/50 shadow-card hover:shadow-glow hover:scale-[1.02] active:scale-[0.98] h-full flex flex-col" onClick={handleView}>
       <CardHeader className="p-0 relative">
         <div className="aspect-video overflow-hidden bg-muted">
           <OptimizedImage
@@ -165,8 +165,8 @@ export function GuideCard({
         </div>
       </CardHeader>
 
-      <CardContent className="p-4 sm:p-6">
-        <div className="space-y-3 sm:space-y-4">
+      <CardContent className="p-4 sm:p-6 flex-1 flex flex-col">
+        <div className="space-y-3 sm:space-y-4 flex-1 flex flex-col">
           <div>
             <h3 className="font-semibold text-base sm:text-lg leading-tight line-clamp-2">{title}</h3>
           </div>
@@ -190,7 +190,7 @@ export function GuideCard({
             )}
           </div>
 
-          <div className="flex justify-center pt-2">
+          <div className="flex justify-center pt-2 mt-auto">
             <div className="text-center">
               <div className="text-lg sm:text-xl font-bold">${(price / 100).toFixed(2)}</div>
             </div>
