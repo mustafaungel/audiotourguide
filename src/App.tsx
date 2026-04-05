@@ -24,6 +24,7 @@ const PaymentCancelled = React.lazy(() => import("./pages/PaymentCancelled"));
 const guideDetailImport = () => import("./pages/GuideDetail");
 const GuideDetail = React.lazy(guideDetailImport);
 const AudioAccess = React.lazy(() => import("./pages/AudioAccess"));
+const AdminPreview = React.lazy(() => import("./pages/AdminPreview"));
 const Countries = React.lazy(() => import("./pages/Countries"));
 const CountryDetail = React.lazy(() => import("./pages/CountryDetail"));
 const FeaturedGuides = React.lazy(() => import("./pages/FeaturedGuides"));
