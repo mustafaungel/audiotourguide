@@ -732,7 +732,7 @@ export default function AudioAccess() {
           </div>
 
           {/* Language Selector — compact, under hero */}
-          <div className="mt-4">
+          <div className="mt-4 min-h-[48px]">
             <GuideLanguageSelector
               guideId={guide.id}
               selectedLanguage={
