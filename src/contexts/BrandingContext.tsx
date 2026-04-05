@@ -88,6 +88,7 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }, { ...defaultBranding } as SiteBranding);
 
       setBranding(brandingData);
+      setCachedBranding(brandingData);
     } catch (err: any) {
       console.error('Error loading site branding:', err);
       setError(err.message);
