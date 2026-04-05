@@ -153,8 +153,8 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
       } else if (currentSectionIndex >= sections.length - 1) {
         // All chapters completed
         toast({
-          title: 'Guide completed!',
-          description: 'You have finished listening to all chapters.',
+          title: t('guideCompleted', lang),
+          description: t('allChaptersFinished', lang),
         });
       }
     });
