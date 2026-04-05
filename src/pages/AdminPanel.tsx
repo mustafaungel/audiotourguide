@@ -382,7 +382,7 @@ const AdminPanel = () => {
         <AdminMobileNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="hidden md:grid grid-cols-9 w-full max-w-6xl gap-1">
+          <TabsList className="hidden md:grid grid-cols-10 w-full max-w-6xl gap-1">
             <TabsTrigger value="dashboard" className="flex items-center gap-2 text-sm">
               <FileText className="h-4 w-4" />
               <span>Dashboard</span>
