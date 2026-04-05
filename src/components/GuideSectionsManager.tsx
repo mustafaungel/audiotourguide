@@ -169,13 +169,7 @@ export const GuideSectionsManager = ({ guideId }: GuideSectionsManagerProps) => 
   };
 
   if (loading) {
-    return (
-      <Card>
-        <CardContent className="flex items-center justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin" />
-        </CardContent>
-      </Card>
-    );
+    return <Card><CardContent className="py-4"><AudioGuideLoader variant="inline" /></CardContent></Card>;
   }
 
   return (
