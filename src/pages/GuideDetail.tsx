@@ -588,7 +588,7 @@ const GuideDetail = () => {
             <div className="lg:col-span-2 space-y-6">
               {/* Hero Image Skeleton */}
               <div className="relative aspect-video md:aspect-[16/10] rounded-3xl overflow-hidden bg-muted">
-                <AudioGuideLoader variant="inline" message="Loading guide visuals..." />
+                <AudioGuideLoader variant="page" message="Loading guide visuals..." />
               </div>
               {/* Guide Info Skeleton */}
               <Card>
