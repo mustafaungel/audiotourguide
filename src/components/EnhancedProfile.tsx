@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LanguagePreferences } from '@/components/LanguagePreferences';
+import { AudioGuideLoader } from '@/components/AudioGuideLoader';
 import { 
   User, 
   Mail, 

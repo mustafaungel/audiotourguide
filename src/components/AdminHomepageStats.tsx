@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, Plus, Edit, Trash2, Save, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X } from 'lucide-react';
+import { AudioGuideLoader } from '@/components/AudioGuideLoader';
 import { toast } from 'sonner';
 
 interface HomepageStat {

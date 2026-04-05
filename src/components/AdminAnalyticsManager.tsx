@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import { Eye, Share2, ShoppingBag, TrendingUp, TrendingDown, RefreshCw, Download, Calendar, Award } from 'lucide-react';
+import { AudioGuideLoader } from '@/components/AudioGuideLoader';
 
 interface GuideAnalytics {
   id: string;

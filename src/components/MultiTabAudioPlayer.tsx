@@ -416,10 +416,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
         {/* Loading state for pending guide */}
         {pendingGuideId && !linkedGuides.some(g => g.guide_id === pendingGuideId) && (
           <TabsContent value={pendingGuideId} className="mt-0">
-            <div className="flex items-center justify-center p-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              <span className="ml-3 text-muted-foreground">{t('loadingGuide', languageCode)}</span>
-            </div>
+            <AudioGuideLoader variant="inline" message={t('loadingGuide', languageCode)} />
           </TabsContent>
         )}
       </Tabs>

@@ -6,6 +6,7 @@ import { ReviewForm } from './ReviewForm';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { AudioGuideLoader } from './AudioGuideLoader';
 
 interface ReviewsSectionProps {
   guideId: string;

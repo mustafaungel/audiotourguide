@@ -76,11 +76,7 @@ export default function StatsSection() {
     return value.toLocaleString();
   };
   if (loading) {
-    return <div className="container mx-auto px-4 py-16">
-        <div className="flex justify-center">
-          <Loader2 className="h-8 w-8 animate-spin" />
-        </div>
-      </div>;
+    return <div className="container mx-auto px-4 py-16"><AudioGuideLoader variant="inline" /></div>;
   }
   return;
 }
