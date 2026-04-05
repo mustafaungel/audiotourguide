@@ -583,7 +583,43 @@ const GuideDetail = () => {
             <ChevronLeft className="w-4 h-4 mr-2" />
             Back to Guides
           </Button>
-          <AudioGuideLoader variant="page" message="Preparing your audio experience..." />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Main Content Skeleton */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Hero Image Skeleton */}
+              <div className="relative aspect-video md:aspect-[16/10] rounded-3xl overflow-hidden bg-muted">
+                <AudioGuideLoader variant="page" message="Loading guide visuals..." />
+              </div>
+              {/* Guide Info Skeleton */}
+              <Card>
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-4">
+                      <div className="h-4 w-32 bg-muted rounded animate-pulse" />
+                      <div className="h-4 w-20 bg-muted rounded animate-pulse" />
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="h-4 bg-muted rounded w-full animate-pulse" />
+                    <div className="h-4 bg-muted rounded w-5/6 animate-pulse" />
+                    <div className="h-4 bg-muted rounded w-4/6 animate-pulse" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            {/* Sidebar Skeleton */}
+            <div className="space-y-6">
+              <Card>
+                <CardContent className="p-6 space-y-4">
+                  <div className="h-8 w-24 bg-muted rounded animate-pulse" />
+                  <div className="h-4 w-full bg-muted rounded animate-pulse" />
+                  <div className="h-12 w-full bg-muted rounded-lg animate-pulse" />
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
       </div>
     );

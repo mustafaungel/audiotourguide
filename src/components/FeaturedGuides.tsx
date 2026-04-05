@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { MapPin, Clock, Star, Users } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useViralTracking } from '@/hooks/useViralTracking';
 import { OptimizedImage } from '@/components/OptimizedImage';
@@ -27,6 +28,7 @@ export const FeaturedGuides = () => {
   const [guides, setGuides] = useState<AudioGuide[]>([]);
   const [loading, setLoading] = useState(true);
   const { trackEngagement } = useViralTracking();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchGuides();
@@ -55,8 +57,24 @@ export const FeaturedGuides = () => {
     }
   };
 
-  const handleGuideClick = async (guideId: string) => {
-    await trackEngagement('view', guideId);
+  const handleGuideClick = (guide: AudioGuide) => {
+    // Fire-and-forget tracking
+    trackEngagement('view', guide.id);
+    navigate(`/guide/${guide.id}`, {
+      state: {
+        guidePreview: {
+          id: guide.id,
+          title: guide.title,
+          description: guide.description,
+          location: guide.location,
+          price: guide.price_usd,
+          duration: guide.duration,
+          category: guide.category,
+          difficulty: guide.difficulty,
+          imageUrl: guide.image_url,
+        }
+      }
+    });
   };
 
   const formatPrice = (price: number) => {
@@ -146,7 +164,7 @@ export const FeaturedGuides = () => {
           <CarouselContent className="-ml-2">
             {guides.map((guide) => (
               <CarouselItem key={guide.id} className="pl-2 basis-[85%] sm:basis-[75%] md:basis-1/2 lg:basis-1/3">{/* Mobile-first carousel items */}
-                <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden mobile-card">
+                <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden mobile-card cursor-pointer" onClick={() => handleGuideClick(guide)}>
                   <div className="relative aspect-mobile overflow-hidden">
                     <OptimizedImage
                       src={guide.image_url}
@@ -213,7 +231,7 @@ export const FeaturedGuides = () => {
                       
                       <Button 
                         className="w-full mt-4 touch-target"
-                        onClick={() => handleGuideClick(guide.id)}
+                        onClick={(e) => { e.stopPropagation(); handleGuideClick(guide); }}
                       >
                         Explore Guide
                       </Button>
