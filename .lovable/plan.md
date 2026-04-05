@@ -1,62 +1,52 @@
 
+Durumu anladım: videodaki temel bozukluk sadece “tab değişince küçük bir jump” değil; mobilde AudioAccess içinde guide/tab/language tıklamalarında içerik bloğunun yeniden ölçülüp sayfanın yukarı-aşağı oynaması.
 
-## Plan: AudioAccess Tab Kayma Sorununu Kökten Çöz
+Koddaki ana nedenler:
+1. `AudioAccess.tsx` içinde `MultiTabAudioPlayer` hâlâ `key={`${guide.id}-${accessCode || ''}`}` ile render ediliyor. Bu, parent tarafta gereksiz re-mount riskini açık tutuyor.
+2. `MultiTabAudioPlayer.tsx` içinde `forceMount + hidden + min-h-[400px]` var ama bu sabit yükseklik gerçek içerik yüksekliğini garanti etmiyor; chapter sayısı fazla/az olduğunda mobilde yine görsel kayma oluşabilir.
+3. Tab/language değişimlerinde veri temizlenip yeniden yükleniyor (`setSectionsByGuide(...[])`, `setSections(...)`), bu da içerik yüksekliğini anlık değiştiriyor.
+4. `GuideLanguageSelector` aktif guide değişince kendi dil listesini yeniden çekiyor; bu sırada üst blokların yüksekliği değişebiliyor.
 
-### Sorunun Kök Nedeni
-Tab değişiminde 3 şey aynı anda oluyor:
-1. Eski `TabsContent` gizleniyor (yükseklik → 0)
-2. Yeni `TabsContent` gösteriliyor (yükseklik → yeni değer)
-3. `NewSectionAudioPlayer` `key` prop'u değiştiği için tamamen re-mount oluyor
+Uygulama planı:
 
-Bu üçlü kombinasyon 1-2 frame'lik layout shift yaratıyor ve kullanıcı "kayma" görüyor.
+1. `src/pages/AudioAccess.tsx`
+- `MultiTabAudioPlayer` üzerindeki gereksiz `key` prop’unu kaldır.
+- Hero + language selector + player alanını tek bir stabil içerik kolonuna çevir.
+- Player container’a sabit değil, korumalı bir outer wrapper ver: geçiş sırasında alan küçülmesin.
+- Gerekirse guide başlık/açıklama alanı için de minimum yükseklik tanımla; dil değişiminde üst alan zıplamasın.
 
----
+2. `src/components/MultiTabAudioPlayer.tsx`
+- Mevcut `min-h-[400px]` yaklaşımını dinamik yükseklik korumasına yükselt.
+- Aktif tab content yüksekliğini `ref` ile ölçüp wrapper’a `style={{ minHeight }}` uygula.
+- Tab değişiminden hemen önce mevcut content yüksekliğini kilitle; yeni içerik render olduktan sonra kontrollü güncelle.
+- `hidden` yerine layout’u çökertmeyen bir görünürlük stratejisi kullanmayı değerlendir: aktif olmayan content’leri absolute/inert tarzında saklayıp wrapper yüksekliğini aktif içerikten yönet.
+- `onValueChange` içindeki scroll restore kalsın ama yalnız başına çözüm gibi davranmasın; esas çözüm layout stabilizasyonu olsun.
 
-### Çözüm: 3 Katmanlı Düzeltme
+3. Dil değişimi akışını stabilize et
+- Ana guide için `AudioAccess.tsx` içinde, linked guide için `MultiTabAudioPlayer.tsx` içinde “önce eski içerik dursun, yeni veri gelince swap et” modeli kullan.
+- Yani kullanıcı dil değiştirince mevcut chapter listesi hemen boşaltılmasın.
+- Yeni dil verisi gelene kadar audio-temalı inline loading overlay gösterilsin; içerik alanı boşalıp küçülmesin.
 
-#### Değişiklik 1: `MultiTabAudioPlayer.tsx` — Content Container'a Sabit Min-Height
-- `TabsContent` wrapper'ına `min-h-[400px]` ekle — tab içeriği değişirken yükseklik asla 0'a düşmez
-- Daha da iyisi: aktif tab'ın yüksekliğini `ref` ile ölç ve container'a `style={{ minHeight }}` olarak uygula
-- Bu tek başına kaymanın %80'ini çözer
+4. `src/components/GuideLanguageSelector.tsx`
+- Dil chip alanının yüksekliğini daha öngörülebilir yap.
+- Loading sırasında `null` dönmek yerine küçük sabit yükseklikli placeholder/inline loader kullan.
+- Böylece dil listesinin kaybolup tekrar gelmesinden kaynaklanan üst blok zıplaması engellenir.
 
-#### Değişiklik 2: `MultiTabAudioPlayer.tsx` — Scroll Restore'u Güçlendir
-- `requestAnimationFrame` yerine çift-frame approach: `rAF` içinde bir `rAF` daha — DOM'un gerçekten güncellenmesini bekle
-- Ek olarak `window.scrollTo` yerine `{ behavior: 'instant' }` kullan — smooth scroll yapmasın
+5. AudioAccess mobil özel iyileştirme
+- Sticky top bar, hero, language picker ve player arasında spacing değerlerini sabitle.
+- `animate-fade-in`, `animate-scale-in` gibi giriş animasyonlarının tab/language geçişlerinde istemeden yeniden tetiklenmediğini kontrol et; gerekiyorsa sadece ilk sayfa yüklemesinde çalışacak şekilde sınırlandır.
+- Özellikle mobilde blur hero alanı ile content başlangıcı arasında reflow oluşturan class’lar sadeleştirilsin.
 
-```typescript
-onValueChange={(value) => {
-  const scrollY = window.scrollY;
-  setActiveTab(value);
-  onActiveTabChange?.(value);
-  // Double-rAF: wait for React render + DOM paint
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      window.scrollTo({ top: scrollY, behavior: 'instant' });
-    });
-  });
-}}
-```
+6. Güvenli kapsam
+- `NewSectionAudioPlayer.tsx`, audio playback mantığı, source çözümü ve chapter play/pause akışı korunacak.
+- Değişiklik sadece render stabilitesi, loading swap stratejisi ve container ölçüm mantığında olacak.
 
-#### Değişiklik 3: `MultiTabAudioPlayer.tsx` — Radix TabsContent forceMount
-- `TabsContent` bileşenlerine `forceMount` prop ekle ve CSS ile gizle/göster
-- Bu sayede tab değişiminde DOM'dan kaldırma/ekleme olmaz, sadece `visibility` değişir
-- Layout reflow sıfırlanır
+Beklenen sonuç:
+- Guide başlığına tıklayınca mobilde içerik “çekilip bırakılıyor” gibi görünmeyecek.
+- Dil değişiminde chapter listesi boşalıp sayfa sıçramayacak.
+- AudioAccess sayfası genel olarak iOS-vari, daha sabit ve daha “native” hissedecek.
 
-```typescript
-<TabsContent value="main" forceMount className={activeTab !== 'main' ? 'hidden' : 'mt-0'}>
-```
-
-Bu approach ile:
-- Tüm tab'lar DOM'da kalır, sadece `hidden` class ile gizlenir
-- Yükseklik değişimi olmaz çünkü content zaten render edilmiş
-- `NewSectionAudioPlayer` re-mount olmaz — audio playback bile korunur
-
----
-
-### Etkilenen Dosya
-- `src/components/MultiTabAudioPlayer.tsx` — 3 düzeltme (min-height + double-rAF + forceMount)
-
-### Dokunulmayacak
-- `NewSectionAudioPlayer.tsx`, `ChapterList.tsx` — ses logic'i
-- `AudioAccess.tsx` — sayfa layout'u
-
+Etkilenecek dosyalar:
+- `src/pages/AudioAccess.tsx`
+- `src/components/MultiTabAudioPlayer.tsx`
+- `src/components/GuideLanguageSelector.tsx`
