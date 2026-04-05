@@ -159,7 +159,7 @@ const FeaturedGuides = () => {
               {filteredGuides.map((guide) => (
                 <Card 
                   key={guide.id}
-                  className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02] cursor-pointer group"
+                  className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] cursor-pointer select-none group"
                   onClick={() => navigate(`/guide/${guide.slug || guide.id}`, {
                     state: {
                       guidePreview: {

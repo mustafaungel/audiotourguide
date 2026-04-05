@@ -111,7 +111,7 @@ export function GuideCard({
   };
 
   return (
-    <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer bg-gradient-card border-border/50 shadow-card hover:shadow-glow hover:scale-[1.02]" onClick={handleView}>
+    <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer select-none bg-gradient-card border-border/50 shadow-card hover:shadow-glow hover:scale-[1.02] active:scale-[0.98]" onClick={handleView}>
       <CardHeader className="p-0 relative">
         <div className="aspect-video overflow-hidden bg-muted">
           <OptimizedImage
@@ -157,18 +157,10 @@ export function GuideCard({
         </div>
 
         {/* Play Button Overlay */}
-        <div className="absolute inset-0 bg-background/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-          <Button 
-            variant="hero" 
-            size="lg" 
-            className="rounded-full h-16 w-16"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleView();
-            }}
-          >
-            <Play className="h-6 w-6 ml-1" />
-          </Button>
+        <div className="absolute inset-0 bg-background/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center pointer-events-none">
+          <div className="rounded-full h-16 w-16 bg-primary flex items-center justify-center shadow-lg">
+            <Play className="h-6 w-6 ml-1 text-primary-foreground" />
+          </div>
         </div>
       </CardHeader>
 
