@@ -682,7 +682,7 @@ export default function AudioAccess() {
 
         <div className="relative px-4 pt-6 pb-5">
           {/* Guide Image — centered, large, rounded */}
-          <div className="flex justify-center mb-5 animate-scale-in">
+          <div className="flex justify-center mb-5">
             <div className="relative">
               <img
                 src={guideImageUrl}
