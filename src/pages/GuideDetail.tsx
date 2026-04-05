@@ -210,6 +210,8 @@ const GuideDetail = () => {
     }
     
     try {
+      // First, get the guide data by slug
+      const { data: guideData, error: guideError } = await supabase
         .from('audio_guides')
         .select('*')
         .eq('slug', slug)
