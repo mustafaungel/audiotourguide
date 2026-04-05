@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Loader2, Plus, Trash2, Play, Pause, Upload, ChevronUp, ChevronDown } from 'lucide-react';
-import { AudioGuideLoader } from './AudioGuideLoader';
+import { AudioGuideLoader, ButtonLoader } from './AudioGuideLoader';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
