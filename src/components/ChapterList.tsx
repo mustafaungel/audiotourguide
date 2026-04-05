@@ -203,38 +203,35 @@ export const ChapterList: React.FC<ChapterListProps> = ({
                   : "bg-card/30 border border-transparent"
               )}
             >
-              <div className="flex items-start gap-4">
+              <div className="flex items-center gap-3">
                 {/* Chapter Number Badge */}
-                <div className="flex-shrink-0 mt-0.5">
+                <div className="flex-shrink-0">
                   <div className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold",
+                    "w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold",
                     isCurrent 
                       ? "bg-primary text-primary-foreground" 
                       : "bg-muted text-muted-foreground"
                   )}>
-                    {index + 1}
+                    {isCurrent && isPlaying ? (
+                      <Pause className="w-4 h-4" fill="currentColor" />
+                    ) : isCurrent ? (
+                      <Play className="w-4 h-4" />
+                    ) : (
+                      index + 1
+                    )}
                   </div>
-                </div>
-
-                {/* Play/Pause Icon */}
-                <div className="flex-shrink-0 mt-1.5">
-                  {isCurrent && isPlaying ? (
-                    <Pause className="w-5 h-5 text-primary" fill="currentColor" />
-                  ) : (
-                    <Play className="w-5 h-5 text-muted-foreground" />
-                  )}
                 </div>
 
                 {/* Chapter Info */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2 mb-1">
+                  <div className="flex items-center justify-between gap-2">
                     <h4 className={cn(
-                      "font-medium text-base truncate",
+                      "font-medium text-sm truncate",
                       isCurrent ? "text-primary font-semibold" : "text-foreground"
                     )}>
                       {section.title}
                     </h4>
-                    <span className="text-sm text-muted-foreground whitespace-nowrap font-medium">
+                    <span className="text-xs text-muted-foreground whitespace-nowrap font-medium tabular-nums shrink-0">
                       {formatTime(section.duration_seconds || 0)}
                     </span>
                   </div>

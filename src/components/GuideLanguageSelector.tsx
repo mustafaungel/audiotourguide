@@ -91,7 +91,10 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
         <Globe className="h-4 w-4 text-muted-foreground" />
         <span className="text-sm text-muted-foreground font-medium">{t('language', selectedLanguage)}</span>
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div className={cn(
+        "grid gap-2",
+        availableLanguages.length === 2 ? "grid-cols-2" : availableLanguages.length >= 3 ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-1"
+      )}>
         {availableLanguages.map((language) => {
           const isSelected = language.language_code === selectedLanguage;
           return (
@@ -99,10 +102,10 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
               key={language.language_code}
               onClick={() => handleLanguageSelect(language.language_code)}
               className={cn(
-                "inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all",
-                "border",
+                "inline-flex items-center justify-center gap-2 px-3 min-h-[44px] rounded-xl text-sm font-medium transition-all",
+                "border active:scale-[0.97]",
                 isSelected
-                  ? "bg-primary/10 border-primary text-primary shadow-sm"
+                  ? "bg-primary/10 border-primary text-primary shadow-sm ring-2 ring-primary/20"
                   : "bg-card border-border text-foreground hover:bg-muted"
               )}
             >
@@ -111,7 +114,7 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
               </span>
               <span>{language.native_name}</span>
               {isSelected && (
-                <Check className="h-4 w-4 text-primary" />
+                <Check className="h-4 w-4 text-primary shrink-0" />
               )}
             </button>
           );

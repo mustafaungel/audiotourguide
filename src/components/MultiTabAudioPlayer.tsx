@@ -365,16 +365,20 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
   return (
     <div className="w-full max-w-4xl mx-auto">
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        {/* iOS-style horizontal scroll pill tabs */}
-        <TabsList className="flex flex-wrap w-full mb-4 h-auto p-1 gap-2 bg-transparent">
+        {/* Adaptive grid tab pills — full-width, equal sizing */}
+        <TabsList className={`grid w-full mb-4 h-auto p-0 gap-2 bg-transparent ${
+          linkedGuides.length === 1 ? 'grid-cols-2' : 'grid-cols-1'
+        }`}>
           <TabsTrigger
             value="main"
-            className="flex items-center gap-1.5 min-h-[40px] px-4 py-2 text-sm font-medium rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md bg-muted/50 transition-all duration-200"
+            className="flex items-center justify-between gap-2 min-h-[48px] px-4 py-2.5 text-sm font-medium rounded-xl border border-transparent bg-muted/50 transition-all duration-200 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md data-[state=active]:ring-2 data-[state=active]:ring-primary/30 data-[state=active]:scale-[1.01] active:scale-[0.97]"
           >
-            <Music className="w-3.5 h-3.5 shrink-0" />
-            <span className="truncate max-w-[180px]">{mainGuide.title}</span>
+            <span className="flex items-center gap-2 min-w-0">
+              <Music className="w-4 h-4 shrink-0" />
+              <span className="truncate">{mainGuide.title}</span>
+            </span>
             {mainSections.length > 0 && (
-              <Badge variant="secondary" className="ml-0.5 shrink-0 text-[10px] px-1.5 py-0 h-4 rounded-full">
+              <Badge variant="secondary" className="shrink-0 text-[10px] px-1.5 py-0 h-5 rounded-full tabular-nums">
                 {mainSections.length}
               </Badge>
             )}
@@ -384,14 +388,16 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
             <TabsTrigger
               key={linkedGuide.guide_id}
               value={linkedGuide.guide_id}
-              className="flex items-center gap-1.5 min-h-[40px] px-4 py-2 text-sm font-medium rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md bg-muted/50 transition-all duration-200"
+              className="flex items-center justify-between gap-2 min-h-[48px] px-4 py-2.5 text-sm font-medium rounded-xl border border-transparent bg-muted/50 transition-all duration-200 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md data-[state=active]:ring-2 data-[state=active]:ring-primary/30 data-[state=active]:scale-[1.01] active:scale-[0.97]"
             >
-              <Music className="w-3.5 h-3.5 shrink-0" />
-              <span className="truncate max-w-[180px]">{linkedGuide.custom_title || linkedGuide.title}</span>
+              <span className="flex items-center gap-2 min-w-0">
+                <Music className="w-4 h-4 shrink-0" />
+                <span className="truncate">{linkedGuide.custom_title || linkedGuide.title}</span>
+              </span>
               {(() => {
                 const sectionCount = sectionsByGuide[linkedGuide.guide_id]?.length || 0;
                 return sectionCount > 0 ? (
-                  <Badge variant="secondary" className="ml-0.5 shrink-0 text-[10px] px-1.5 py-0 h-4 rounded-full">
+                  <Badge variant="secondary" className="shrink-0 text-[10px] px-1.5 py-0 h-5 rounded-full tabular-nums">
                     {sectionCount}
                   </Badge>
                 ) : null;
@@ -404,9 +410,9 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
             <TabsTrigger
               value={pendingGuideId}
               disabled
-              className="flex items-center gap-1.5 min-h-[40px] px-4 py-2 text-sm font-medium rounded-full opacity-50 bg-muted/30"
+              className="flex items-center gap-2 min-h-[48px] px-4 py-2.5 text-sm font-medium rounded-xl opacity-50 bg-muted/30"
             >
-              <Music className="w-3.5 h-3.5 shrink-0 animate-pulse" />
+              <Music className="w-4 h-4 shrink-0 animate-pulse" />
               <span>{t('loading', languageCode)}</span>
             </TabsTrigger>
           )}

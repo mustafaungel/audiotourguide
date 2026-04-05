@@ -652,18 +652,20 @@ export default function AudioAccess() {
     <div className="min-h-screen bg-background">
       {/* iOS-style minimal navbar */}
       <div className="sticky top-0 z-50 backdrop-blur-xl bg-background/80 border-b border-border/50">
-        <div className="flex items-center justify-between px-4 h-12">
+        <div className="grid grid-cols-[48px_1fr_48px] items-center px-2 h-12">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-1 text-primary text-sm font-medium active:opacity-60 transition-opacity"
+            className="flex items-center justify-center w-10 h-10 text-primary active:opacity-60 transition-opacity"
+            aria-label={t('back', selectedLanguage)}
           >
             <ChevronLeft className="w-5 h-5" />
-            <span>{t('back', selectedLanguage)}</span>
           </button>
-          <span className="text-sm font-semibold text-foreground truncate max-w-[200px]">
+          <span className="text-sm font-semibold text-foreground truncate text-center px-1">
             {guide.title}
           </span>
-          <ThemeToggle />
+          <div className="flex items-center justify-center">
+            <ThemeToggle />
+          </div>
         </div>
       </div>
 
@@ -680,9 +682,9 @@ export default function AudioAccess() {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/60 to-background" />
 
-        <div className="relative px-4 pt-6 pb-5">
-          {/* Guide Image — centered, large, rounded */}
-          <div className="flex justify-center mb-5">
+        <div className="relative px-4 pt-6 pb-5 space-y-4">
+          {/* Guide Image — centered */}
+          <div className="flex justify-center">
             <div className="relative">
               <img
                 src={guideImageUrl}
@@ -696,20 +698,20 @@ export default function AudioAccess() {
             </div>
           </div>
 
-          {/* Title & metadata — centered */}
-          <div className="text-center space-y-2">
+          {/* Title & metadata — centered, constrained width */}
+          <div className="text-center space-y-2 max-w-sm mx-auto">
             <h1 className="text-xl font-bold text-foreground leading-tight">
               {guide.title}
             </h1>
             <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground">
-              <span className="inline-flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5" />
-                {guide.location}
+              <span className="inline-flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 shrink-0" />
+                <span>{guide.location}</span>
               </span>
               <span className="text-border">•</span>
-              <span className="inline-flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5" />
-                {totalDuration} {t('min', selectedLanguage)}
+              <span className="inline-flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 shrink-0" />
+                <span>{totalDuration} {t('min', selectedLanguage)}</span>
               </span>
             </div>
 
@@ -722,7 +724,7 @@ export default function AudioAccess() {
                 {guide.description.length > 100 && (
                   <button
                     onClick={() => setShowFullDescription(!showFullDescription)}
-                    className="text-xs text-primary font-medium mt-1 active:opacity-60 transition-opacity"
+                    className="text-xs text-primary font-medium mt-1 active:opacity-60 transition-opacity min-h-[44px] inline-flex items-center"
                   >
                     {showFullDescription ? t('showLess', selectedLanguage) : t('showMore', selectedLanguage)}
                   </button>
@@ -731,8 +733,8 @@ export default function AudioAccess() {
             )}
           </div>
 
-          {/* Language Selector — compact, under hero */}
-          <div className="mt-4 min-h-[48px]">
+          {/* Language Selector — stable height */}
+          <div className="min-h-[48px]">
             <GuideLanguageSelector
               guideId={guide.id}
               selectedLanguage={
@@ -747,10 +749,10 @@ export default function AudioAccess() {
         </div>
       </div>
 
-      {/* Content area */}
-      <div className="px-4 pb-6">
+      {/* Content area — consistent padding */}
+      <div className="px-4 pb-6 space-y-4">
         {/* Multi-tab Audio Interface */}
-        <div className="mb-5">
+        <div>
           <MultiTabAudioPlayer
             mainGuide={{
               id: guide.id,
@@ -771,7 +773,7 @@ export default function AudioAccess() {
           {!showReviewForm ? (
             <button
               onClick={() => setShowReviewForm(true)}
-              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-muted/50 text-sm font-medium text-foreground active:scale-[0.98] transition-all duration-200"
+              className="w-full flex items-center justify-center gap-2 min-h-[48px] py-3.5 rounded-2xl bg-muted/50 text-sm font-medium text-foreground active:scale-[0.98] transition-all duration-200"
             >
               <Star className="w-4 h-4 text-yellow-500" />
               {t('leaveReview', selectedLanguage)}
