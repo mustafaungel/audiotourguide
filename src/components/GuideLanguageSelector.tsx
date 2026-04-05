@@ -24,6 +24,7 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
   const [availableLanguages, setAvailableLanguages] = useState<GuideLanguage[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetching, setFetching] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   // Keep last known languages to prevent layout jump during refetch
   const lastLanguagesRef = useRef<GuideLanguage[]>([]);
 
@@ -64,6 +65,10 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
 
   const handleLanguageSelect = (languageCode: string) => {
     haptics.selection();
+    if (languageCode === selectedLanguage && collapsed) {
+      setCollapsed(false);
+      return;
+    }
     const isInMultiTab = !!activeGuideId;
     if (isInMultiTab) {
       window.dispatchEvent(new CustomEvent('changeGuideLanguage', {
@@ -72,10 +77,13 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
     } else {
       onLanguageChange(languageCode);
     }
+    setCollapsed(true);
   };
 
-  // Use displayed languages: current if available, otherwise last known
   const displayLanguages = availableLanguages.length > 0 ? availableLanguages : lastLanguagesRef.current;
+  const filteredLanguages = collapsed
+    ? displayLanguages.filter(l => l.language_code === selectedLanguage)
+    : displayLanguages;
 
   if (loading && displayLanguages.length === 0) {
     // First load: stable placeholder
@@ -104,17 +112,17 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
         <span className="text-sm text-muted-foreground font-medium">{t('language', selectedLanguage)}</span>
       </div>
       <div className={cn(
-        "grid gap-2",
-        displayLanguages.length === 2 ? "grid-cols-2" : displayLanguages.length >= 3 ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-1"
+        "grid gap-2 transition-all duration-200 overflow-hidden",
+        filteredLanguages.length === 2 ? "grid-cols-2" : filteredLanguages.length >= 3 ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-1"
       )}>
-        {displayLanguages.map((language) => {
+        {filteredLanguages.map((language) => {
           const isSelected = language.language_code === selectedLanguage;
           return (
             <button
               key={language.language_code}
               onClick={() => handleLanguageSelect(language.language_code)}
               className={cn(
-                "inline-flex items-center justify-center gap-2 px-3 min-h-[44px] rounded-xl text-sm font-medium transition-all",
+                "inline-flex items-center justify-center gap-2 px-3 min-h-[44px] rounded-xl text-sm font-medium transition-all duration-200",
                 "border active:scale-[0.97]",
                 isSelected
                   ? "bg-primary/10 border-primary text-primary shadow-sm ring-2 ring-primary/20"
