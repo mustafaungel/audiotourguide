@@ -682,9 +682,9 @@ export default function AudioAccess() {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/60 to-background" />
 
-        <div className="relative px-4 pt-6 pb-5">
-          {/* Guide Image — centered, large, rounded */}
-          <div className="flex justify-center mb-5">
+        <div className="relative px-4 pt-6 pb-5 space-y-4">
+          {/* Guide Image — centered */}
+          <div className="flex justify-center">
             <div className="relative">
               <img
                 src={guideImageUrl}
@@ -698,20 +698,20 @@ export default function AudioAccess() {
             </div>
           </div>
 
-          {/* Title & metadata — centered */}
-          <div className="text-center space-y-2">
+          {/* Title & metadata — centered, constrained width */}
+          <div className="text-center space-y-2 max-w-sm mx-auto">
             <h1 className="text-xl font-bold text-foreground leading-tight">
               {guide.title}
             </h1>
             <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground">
-              <span className="inline-flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5" />
-                {guide.location}
+              <span className="inline-flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 shrink-0" />
+                <span>{guide.location}</span>
               </span>
               <span className="text-border">•</span>
-              <span className="inline-flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5" />
-                {totalDuration} {t('min', selectedLanguage)}
+              <span className="inline-flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 shrink-0" />
+                <span>{totalDuration} {t('min', selectedLanguage)}</span>
               </span>
             </div>
 
@@ -724,7 +724,7 @@ export default function AudioAccess() {
                 {guide.description.length > 100 && (
                   <button
                     onClick={() => setShowFullDescription(!showFullDescription)}
-                    className="text-xs text-primary font-medium mt-1 active:opacity-60 transition-opacity"
+                    className="text-xs text-primary font-medium mt-1 active:opacity-60 transition-opacity min-h-[44px] inline-flex items-center"
                   >
                     {showFullDescription ? t('showLess', selectedLanguage) : t('showMore', selectedLanguage)}
                   </button>
@@ -733,8 +733,8 @@ export default function AudioAccess() {
             )}
           </div>
 
-          {/* Language Selector — compact, under hero */}
-          <div className="mt-4 min-h-[48px]">
+          {/* Language Selector — stable height */}
+          <div className="min-h-[48px]">
             <GuideLanguageSelector
               guideId={guide.id}
               selectedLanguage={
