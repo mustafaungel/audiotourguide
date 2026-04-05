@@ -381,7 +381,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
             <TabsTrigger
               value={pendingGuideId}
               disabled
-              className="flex items-center gap-1.5 min-h-[40px] px-4 py-2 text-sm font-medium whitespace-nowrap rounded-full snap-center shrink-0 opacity-50 bg-muted/30"
+              className="flex items-center gap-1.5 min-h-[40px] px-4 py-2 text-sm font-medium rounded-full opacity-50 bg-muted/30"
             >
               <Music className="w-3.5 h-3.5 shrink-0 animate-pulse" />
               <span>{t('loading', languageCode)}</span>

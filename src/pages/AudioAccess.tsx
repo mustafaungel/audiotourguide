@@ -644,7 +644,7 @@ export default function AudioAccess() {
           <span className="text-sm font-semibold text-foreground truncate max-w-[200px]">
             {guide.title}
           </span>
-          <div className="w-12" /> {/* Spacer for centering */}
+          <ThemeToggle />
         </div>
       </div>
 
