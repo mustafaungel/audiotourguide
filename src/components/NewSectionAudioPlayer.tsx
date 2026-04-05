@@ -28,7 +28,8 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   guideId,
   guideTitle,
   sections,
-  mainAudioUrl
+  mainAudioUrl,
+  lang = 'en'
 }) => {
   const [currentSectionIndex, setCurrentSectionIndex] = useState(-1); // -1 means no player shown
   const [isPlaying, setIsPlaying] = useState(false);
