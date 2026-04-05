@@ -279,7 +279,6 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
             sections={sectionsByGuide[selectedLinkedGuide.guide_id] || []}
             mainAudioUrl=""
             lang={languageByGuide[selectedLinkedGuide.guide_id] || languageCode}
-            inSheet
           />
         )}
       </BottomSheet>
