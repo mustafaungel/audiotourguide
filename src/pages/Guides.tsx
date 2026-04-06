@@ -43,15 +43,13 @@ const Guides = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setGuides(data || []);
     } catch (error) {
       console.error('Error fetching guides:', error);
       toast({
-          title: "Error",
-          description: "Failed to load guides",
-          variant: "destructive"
-        });
-      }
+        title: "Error",
+        description: "Failed to load guides",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }

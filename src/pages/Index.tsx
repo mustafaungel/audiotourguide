@@ -54,11 +54,10 @@ const Index = () => {
     } catch (error) {
       console.error('Error fetching guides:', error);
       toast({
-          title: "Error",
-          description: "Failed to load guides",
-          variant: "destructive"
-        });
-      }
+        title: "Error",
+        description: "Failed to load guides",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
