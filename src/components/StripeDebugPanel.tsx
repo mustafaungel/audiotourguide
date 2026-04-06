@@ -135,7 +135,7 @@ export const StripeDebugPanel: React.FC = () => {
         </div>
         
         {debugInfo && (
-          <div className="text-xs bg-white/60 p-2 rounded border">
+          <div className="text-xs bg-card/60 p-2 rounded border">
             <div className="space-y-1">
               {debugInfo.publishableKey && (
                 <div>Key: {debugInfo.keyPrefix}... ({debugInfo.publishableKey})</div>
