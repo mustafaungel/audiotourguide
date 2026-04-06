@@ -343,34 +343,14 @@ const AdminPanel = () => {
         <AdminMobileNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="hidden md:grid grid-cols-7 w-full max-w-5xl gap-1">
+          <TabsList className="hidden md:grid grid-cols-2 w-full max-w-md gap-1">
             <TabsTrigger value="dashboard" className="flex items-center gap-2 text-sm">
-              <FileText className="h-4 w-4" />
+              <BarChart3 className="h-4 w-4" />
               <span>Dashboard</span>
             </TabsTrigger>
             <TabsTrigger value="content-management" className="flex items-center gap-2 text-sm">
               <FileText className="h-4 w-4" />
               <span>Content</span>
-            </TabsTrigger>
-            <TabsTrigger value="contact-management" className="flex items-center gap-2 text-sm">
-              <Mail className="h-4 w-4" />
-              <span>Contact</span>
-            </TabsTrigger>
-            <TabsTrigger value="email-test" className="flex items-center gap-2 text-sm">
-              <Mail className="h-4 w-4" />
-              <span>Email</span>
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2 text-sm">
-              <BarChart3 className="h-4 w-4" />
-              <span>Analytics</span>
-            </TabsTrigger>
-            <TabsTrigger value="review-management" className="flex items-center gap-2 text-sm">
-              <Star className="h-4 w-4" />
-              <span>Reviews</span>
-            </TabsTrigger>
-            <TabsTrigger value="preview" className="flex items-center gap-2 text-sm">
-              <Eye className="h-4 w-4" />
-              <span>Preview</span>
             </TabsTrigger>
           </TabsList>
 
