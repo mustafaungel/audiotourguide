@@ -33,6 +33,7 @@ interface GuideItem {
   location: string;
   is_published: boolean;
   is_approved: boolean;
+  is_standalone: boolean;
   price_usd: number;
   display_order: number;
   languages: string[];
