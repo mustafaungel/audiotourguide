@@ -453,11 +453,11 @@ export const PaymentFlowTestPanel: React.FC = () => {
         <Separator />
 
         {/* Full Test Suite */}
-        <Button
+          <Button
           size="sm"
           onClick={runFullTestSuite}
           disabled={testing}
-          className="w-full text-xs bg-purple-600 hover:bg-purple-700"
+          className="w-full text-xs bg-primary hover:bg-primary/90 text-primary-foreground"
         >
           <TestTube className="w-3 h-3 mr-1" />
           {testing ? 'Running Tests...' : 'Run Full Test Suite'}
