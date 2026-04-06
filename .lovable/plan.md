@@ -1,58 +1,88 @@
 
 
-## Plan: Audio Access Sayfasında Kasma ve Geç İçerik Yükleme Düzeltmesi
+## Plan: Dark/Light Mod Renk Uyumsuzlukları — Tam Sistem Analizi ve Düzeltme
 
-### Problem
+### Problem Özeti
 
-1. **Kasma/jank**: `NewSectionAudioPlayer` bileşeni key prop'unda dil kodu içeriyor (`${guideId}-${languageCode}`). Dil değiştiğinde tüm bileşen yıkılıp sıfırdan oluşturuluyor (remount) — bu audio element'i, state'i, resolved URL'leri hep sıfırlıyor ve mobilde belirgin kasma yaratıyor.
+Ekran görüntüsünde admin panelindeki Collapsible butonlar (QR Code Management, Contact Management vb.) hover durumunda neredeyse ayırt edilemiyor. Ayrıca sistemde birçok yerde hardcoded renkler (`bg-white`, `bg-gray-*`, `bg-blue-100`, `bg-green-50`, `text-gray-600` vb.) dark mode'da kırılıyor.
 
-2. **İçerik geç geliyor**: Dil seçildiğinde `selectedLanguage` hemen güncelleniyor → key değişiyor → bileşen remount oluyor → ama yeni sections henüz fetch edilmedi → bileşen boş/eski sections ile açılıyor, sonra sections gelince tekrar güncelleniyor.
+### Tespit Edilen Sorunlar
 
-3. **Waterfall yükleme**: İlk açılışta `verifyAccess → detectLanguages → fetchSections → loadLinkedGuides` sıralı 4 adım var.
+#### 1. Admin Panel — Collapsible buton hover görünmezliği
+**`AdminDashboard.tsx` satır 149**: `hover:bg-muted/50` çok düşük kontrast → hem light hem dark'ta imleç üzerindeyken fark edilmiyor.
+
+#### 2. GuideCard — Hardcoded `bg-white` dark mode'da kırılıyor
+**`GuideCard.tsx` satır 139, 150**: Bookmark/Share butonları `bg-white/80 hover:bg-white` → dark mode'da parlak beyaz kare olarak görünüyor.
+**`GuideCard.tsx` satır 96-112**: Kategori/difficulty badge'leri (`bg-blue-100 text-blue-800`, `bg-green-100 text-green-800` vb.) → dark mode'da okunaksız.
+
+#### 3. Admin bileşenleri — Hardcoded renkler
+- **`AdminEmailTesting.tsx`**: `bg-green-50 border-green-200 text-green-800` / `bg-red-50 border-red-200 text-red-800` → dark mode karşılığı yok
+- **`AdminEmailResend.tsx`**: `bg-green-50` / `bg-red-50`, `text-gray-600` → dark mode karşılığı yok
+- **`AdminQRCodeRegenerator.tsx`**: `bg-blue-600 text-white` → sistem dışı hardcoded
+- **`GuideCreationForm.tsx`**: `text-gray-500` → dark mode'da okunaksız
+
+#### 4. AudioAccess sayfası
+- **`AudioAccess.tsx` satır 615-621**: `bg-gray-50 dark:bg-gray-900`, `text-gray-700 dark:text-gray-300` → dark variant var ama tailwind semantic renk sistemi kullanılmıyor
+
+#### 5. GuideDetail sayfası
+- **satır 927**: `bg-white` QR code container → dark mode'da parlak kare
+- **satır 949**: `bg-white dark:bg-gray-800` → kısmen düzeltilmiş ama gray-800 sistem dışı
+
+#### 6. AdminPanel
+- **satır 503**: `bg-white` input → dark mode'da kırılıyor
+
+#### 7. PaymentFlowTestPanel & StripeDebugPanel
+- `bg-white/60` → dark mode'da görünmez veya çirkin
 
 ### Çözüm
 
-#### 1. NewSectionAudioPlayer key'inden dil kodunu kaldır
-Bileşen zaten `lastValidSectionsRef` ile eski sections'ı gösteriyor ve sections prop değişince güncelleniyor. Key'de dil olmasına gerek yok — sadece `guideId` yeterli.
+Her dosyada hardcoded renkleri Tailwind CSS değişken tabanlı semantic renklerle değiştir:
 
-**`MultiTabAudioPlayer.tsx`** — 2 yerde key değişikliği:
-- Satır 232: `key={mainGuide.id}` (dil kodu kaldır)
-- Satır 297: `key={selectedGuideId}` (dil kodu kaldır)
+| Hardcoded | Semantic Karşılık |
+|-----------|-------------------|
+| `bg-white` | `bg-card` veya `bg-background` |
+| `bg-white/80` | `bg-card/80` |
+| `bg-white/60` | `bg-card/60` |
+| `bg-gray-50` | `bg-muted/50` |
+| `bg-gray-900` | `bg-muted` |
+| `text-gray-600` | `text-muted-foreground` |
+| `text-gray-500` | `text-muted-foreground` |
+| `bg-green-50 text-green-800` | `bg-success/10 text-success dark:bg-success/20 dark:text-success` |
+| `bg-red-50 text-red-800` | `bg-destructive/10 text-destructive dark:bg-destructive/20` |
+| `bg-blue-100 text-blue-800` | `bg-accent/10 text-accent dark:bg-accent/20 dark:text-accent` |
 
-#### 2. Sections hazır olana kadar selectedLanguage'i güncelleme
-**`AudioAccess.tsx`** — `handleLanguageChange` fonksiyonunda (satır 361-389):
-- Önce fetch yap, sonra hem `setSections` hem `setSelectedLanguage` birlikte güncelle
-- Bu sayede key değişmeden önce yeni sections hazır olur
+#### Admin Collapsible hover düzeltmesi
+`AdminDashboard.tsx` satır 149: `hover:bg-muted/50` → `hover:bg-muted` (daha belirgin hover state)
 
+#### GuideCard badge'leri dark mode uyumlu
+Kategori ve difficulty fonksiyonlarına `dark:` varyantları ekle:
 ```
-const handleLanguageChange = async (languageCode: string) => {
-  if (guideId) {
-    const { data } = await supabase.rpc('get_sections_with_access', {
-      p_guide_id: guideId, p_access_code: accessCode || '', p_language_code: languageCode
-    });
-    if (data && data.length > 0) {
-      setSections(data);
-    }
-  }
-  setSelectedLanguage(languageCode);  // State update at the end
-};
+cultural: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+historical: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+...
 ```
-
-#### 3. detectAvailableLanguages ve fetchSections'ı paralelize et
-**`AudioAccess.tsx`** — `verifyAccessAndLoadGuide` içinde (satır 185):
-- `detectAvailableLanguages` zaten sections fetch ediyor, ama sıralı waterfall
-- Linked guides yüklemesi `MultiTabAudioPlayer` içinde zaten bağımsız çalışıyor, sorun yok
-- Ana iyileştirme: `setGuide` ve `detectAvailableLanguages` arasında gereksiz bekleme yok, bu zaten doğru
 
 ### Dosyalar
 
 | Dosya | Değişiklik |
 |-------|-----------|
-| `src/components/MultiTabAudioPlayer.tsx` | NewSectionAudioPlayer key'inden dil kodunu kaldır (2 yer) |
-| `src/pages/AudioAccess.tsx` | `handleLanguageChange`'de önce fetch sonra state güncelle |
+| `src/components/AdminDashboard.tsx` | Collapsible hover: `hover:bg-muted` |
+| `src/components/GuideCard.tsx` | `bg-white/80` → `bg-card/80`, badge dark variants |
+| `src/components/AdminEmailTesting.tsx` | Success/error renklerine dark variants ekle |
+| `src/components/AdminEmailResend.tsx` | `bg-green-50` → semantic + dark variant |
+| `src/components/AdminQRCodeRegenerator.tsx` | `bg-blue-600 text-white` → `bg-primary text-primary-foreground` |
+| `src/components/GuideCreationForm.tsx` | `text-gray-500` → `text-muted-foreground` |
+| `src/pages/AudioAccess.tsx` | `bg-gray-50` → `bg-muted/50`, `text-gray-*` → semantic |
+| `src/pages/GuideDetail.tsx` | `bg-white` → `bg-card`, gray-800 → semantic |
+| `src/pages/AdminPanel.tsx` | `bg-white` input → `bg-card` |
+| `src/components/PaymentFlowTestPanel.tsx` | `bg-white/60` → `bg-card/60` |
+| `src/components/StripeDebugPanel.tsx` | `bg-white/60` → `bg-card/60` |
+| `src/components/StripeTestHelper.tsx` | `bg-white/60` → `bg-card/60` |
+| `src/components/EmailSystemTest.tsx` | Success/error dark variants |
+| `src/components/RegionalAccessError.tsx` | Zaten dark variant var, kontrol amaçlı |
 
 ### Etki
-- Dil değişiminde bileşen remount olmaz → kasma kalkar
-- Sections hazır olana kadar eski içerik görünür → geç yükleme hissi ortadan kalkar
-- Audio playback state korunur (kullanıcı çalarken dil değiştirirse audio kesilmez)
+- Tüm bileşenler dark/light modda tutarlı görünecek
+- Admin panelinde hover state'ler belirgin olacak
+- Hardcoded beyaz/gri renkler kaldırılacak → tema değişikliklerinde otomatik uyum
 
