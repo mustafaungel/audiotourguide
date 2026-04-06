@@ -379,27 +379,22 @@ export default function AudioAccess() {
         if (!error && sectionsData && sectionsData.length > 0) {
           setSections(sectionsData);
         } else if (!error && (!sectionsData || sectionsData.length === 0)) {
-          // No sections for this language, keep old for now
           console.warn('No sections for language:', languageCode);
           setSections(oldSections);
         }
       } catch (err) {
         console.error('Error fetching sections:', err);
-        // Keep old sections on error
       }
     }
   };
 
-  // Handle language changes for linked guides
+  // Handle language changes for linked guides only — main guide is handled by handleLanguageChange directly
   useEffect(() => {
     const handleGuideLangChange = (e: CustomEvent) => {
       const { guideId: targetGuideId, languageCode: newLang } = (e as any).detail || {};
       
-      if (targetGuideId === guide?.id) {
-        // Main guide language change
-        handleLanguageChange(newLang);
-      } else if (targetGuideId) {
-        // Linked guide language change (just for UI)
+      // Skip main guide — page already handles it via handleLanguageChange
+      if (targetGuideId && targetGuideId !== guide?.id) {
         setLinkedLanguageByGuide(prev => ({ ...prev, [targetGuideId]: newLang }));
       }
     };

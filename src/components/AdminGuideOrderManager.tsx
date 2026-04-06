@@ -291,6 +291,31 @@ export const AdminGuideOrderManager = ({ onCreateNew, onEdit }: { onCreateNew?: 
   useEffect(() => {
     fetchGuides();
     fetchCollections();
+
+    // Listen for guide updates from edit form (localStorage events)
+    const onStorage = (e: StorageEvent) => {
+      if (e.key?.startsWith('guide_updated_')) {
+        fetchGuides();
+        fetchCollections();
+      }
+    };
+    window.addEventListener('storage', onStorage);
+
+    // Supabase realtime subscription for instant updates
+    const channel = supabase
+      .channel('admin-guide-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'audio_guides' }, () => {
+        fetchGuides();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'guide_collections' }, () => {
+        fetchCollections();
+      })
+      .subscribe();
+
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchGuides = async () => {
