@@ -30,6 +30,7 @@ import { AdminContactManagement } from '@/components/AdminContactManagement';
 import { EnhancedEmailTesting } from '@/components/EnhancedEmailTesting';
 import { AdminAnalyticsManager } from '@/components/AdminAnalyticsManager';
 import { EnhancedLogoUploader } from '@/components/EnhancedLogoUploader';
+import { AdminGuideOrderManager } from '@/components/AdminGuideOrderManager';
 
 import { ImageUploader } from '@/components/ImageUploader';
 import { useIsMobile } from '@/hooks/use-mobile';
