@@ -76,7 +76,8 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
     setCollapsed(true);
     requestAnimationFrame(() => {
       const isInMultiTab = !!activeGuideId;
-      if (isInMultiTab) {
+      const isLinkedGuide = isInMultiTab && activeGuideId !== guideId;
+      if (isLinkedGuide) {
         window.dispatchEvent(new CustomEvent('changeGuideLanguage', {
           detail: { guideId: activeGuideId, languageCode }
         }));
