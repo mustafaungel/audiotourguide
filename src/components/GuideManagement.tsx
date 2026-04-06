@@ -23,6 +23,7 @@ interface Guide {
   qr_code_url?: string;
   share_url?: string;
   slug?: string;
+  master_access_code?: string;
   profiles?: {
     full_name: string;
     email: string;
