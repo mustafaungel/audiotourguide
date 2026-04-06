@@ -286,7 +286,7 @@ const SortableGuideRow = ({
   );
 };
 
-export const AdminGuideOrderManager = () => {
+export const AdminGuideOrderManager = ({ onCreateNew }: { onCreateNew?: () => void }) => {
   const [guides, setGuides] = useState<GuideItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
