@@ -10,11 +10,6 @@ interface AdminMobileNavigationProps {
 const adminTabs = [
   { value: 'dashboard', label: 'Dashboard', icon: BarChart3 },
   { value: 'content-management', label: 'Content Management', icon: FileText },
-  { value: 'contact-management', label: 'Contact Management', icon: Mail },
-  { value: 'email-test', label: 'Email System', icon: Mail },
-  { value: 'analytics', label: 'Analytics', icon: BarChart3 },
-  { value: 'review-management', label: 'Review Management', icon: Star },
-  { value: 'preview', label: 'Preview', icon: Eye },
 ];
 
 export function AdminMobileNavigation({ activeTab, onTabChange }: AdminMobileNavigationProps) {

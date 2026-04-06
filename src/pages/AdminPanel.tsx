@@ -368,28 +368,6 @@ const AdminPanel = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="contact-management">
-            <AdminContactManagement />
-          </TabsContent>
-
-          <TabsContent value="email-test">
-            <EnhancedEmailTesting />
-          </TabsContent>
-
-          <TabsContent value="review-management">
-            <div className="space-y-6">
-              <h2 className="text-xl sm:text-2xl font-bold">Review Management</h2>
-              <AdminReviewManagement />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="analytics">
-            <AdminAnalyticsManager />
-          </TabsContent>
-
-          <TabsContent value="preview">
-            <AdminPreviewTab />
-          </TabsContent>
 
         </Tabs>
       </div>
