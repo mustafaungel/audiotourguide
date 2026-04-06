@@ -41,14 +41,24 @@ const AdminPanel = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
 
-  // Listen for tab change events from GuideManagement
+  // Listen for tab change events
   useEffect(() => {
     const handleTabChange = (event: CustomEvent) => {
       setActiveTab(event.detail);
     };
 
+    const handleEditGuide = (event: CustomEvent) => {
+      const { guideId } = event.detail;
+      sessionStorage.setItem('editingGuide', JSON.stringify({ id: guideId }));
+      setActiveTab('edit-guide');
+    };
+
     window.addEventListener('admin-tab-change', handleTabChange as EventListener);
-    return () => window.removeEventListener('admin-tab-change', handleTabChange as EventListener);
+    window.addEventListener('admin-edit-guide', handleEditGuide as EventListener);
+    return () => {
+      window.removeEventListener('admin-tab-change', handleTabChange as EventListener);
+      window.removeEventListener('admin-edit-guide', handleEditGuide as EventListener);
+    };
   }, []);
 
   // Form data state

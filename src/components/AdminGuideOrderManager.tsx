@@ -73,7 +73,7 @@ const SortableGuideRow = ({
   };
 
   const handlePreview = () => {
-    window.open(`/guides/${guide.slug}`, '_blank');
+    window.open(`/guide/${guide.slug}`, '_blank');
   };
 
   return (
@@ -216,6 +216,16 @@ export const AdminGuideOrderManager = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+
+      // If all display_order values are 0, assign initial ordering
+      if (data && data.length > 1 && data.every(g => g.display_order === 0)) {
+        const updates = data.map((g, i) =>
+          supabase.from('audio_guides').update({ display_order: i }).eq('id', g.id)
+        );
+        await Promise.all(updates);
+        data.forEach((g, i) => { g.display_order = i; });
+      }
+
       setGuides(data || []);
     } catch (error) {
       console.error('Error fetching guides:', error);
