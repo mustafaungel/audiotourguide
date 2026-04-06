@@ -31,6 +31,7 @@ import { EnhancedEmailTesting } from '@/components/EnhancedEmailTesting';
 import { AdminAnalyticsManager } from '@/components/AdminAnalyticsManager';
 import { EnhancedLogoUploader } from '@/components/EnhancedLogoUploader';
 import { AdminGuideOrderManager } from '@/components/AdminGuideOrderManager';
+import AdminPreviewTab from '@/components/AdminPreviewTab';
 
 import { ImageUploader } from '@/components/ImageUploader';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -426,7 +427,7 @@ const AdminPanel = () => {
               <Edit2 className="h-4 w-4" />
               <span>Edit</span>
             </TabsTrigger>
-            <TabsTrigger value="preview" className="flex items-center gap-2 text-sm" onClick={() => navigate('/admin/preview')}>
+            <TabsTrigger value="preview" className="flex items-center gap-2 text-sm">
               <Eye className="h-4 w-4" />
               <span>Preview</span>
             </TabsTrigger>
@@ -736,6 +737,9 @@ const AdminPanel = () => {
             <AdminGuideEditForm onBack={() => setActiveTab('content-management')} />
           </TabsContent>
 
+          <TabsContent value="preview">
+            <AdminPreviewTab />
+          </TabsContent>
 
         </Tabs>
       </div>
