@@ -147,10 +147,9 @@ export const GuideManagement = () => {
   };
 
   const previewGuide = (guide: Guide) => {
-    // Always use current origin for preview/test (not share_url which points to production)
     const baseUrl = window.location.origin;
-    if ((guide as any).master_access_code) {
-      const url = buildAccessUrl(guide.id, (guide as any).master_access_code, 'preview');
+    if (guide.master_access_code) {
+      const url = buildAccessUrl(guide.id, guide.master_access_code, 'preview');
       window.open(url, '_blank');
     } else {
       const previewUrl = guide.slug ? `${baseUrl}/guide/${guide.slug}` : `${baseUrl}/guide/${guide.id}`;
