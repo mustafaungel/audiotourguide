@@ -924,7 +924,7 @@ const GuideDetail = () => {
                       <div className="space-y-4">
                         {guide.qr_code_url && (
                           <div className="flex justify-center">
-                            <div className="inline-block p-6 bg-white rounded-xl border-2 border-border shadow-sm">
+                            <div className="inline-block p-6 bg-card rounded-xl border-2 border-border shadow-sm">
                               <img 
                                 src={guide.qr_code_url} 
                                 alt="QR Code for guide access"
