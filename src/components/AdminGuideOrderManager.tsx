@@ -23,6 +23,8 @@ import { Badge } from '@/components/ui/badge';
 import { GripVertical, Save, Loader2, Pencil, ExternalLink, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { getLanguageFlag, getLanguageName } from '@/lib/language-utils';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface GuideItem {
   id: string;
