@@ -23,6 +23,8 @@ import { Badge } from '@/components/ui/badge';
 import { GripVertical, Save, Loader2, Pencil, ExternalLink, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { getLanguageFlag, getLanguageName } from '@/lib/language-utils';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface GuideItem {
   id: string;
@@ -104,21 +106,18 @@ const SortableGuideRow = ({
         {guide.location}
       </span>
 
-      {/* Language badges */}
+      {/* Language flags */}
       <div className="hidden md:flex items-center gap-0.5 shrink-0">
-        {guide.languages.slice(0, 4).map((lang) => (
-          <span
-            key={lang}
-            className="text-[10px] font-medium uppercase bg-muted text-muted-foreground px-1 py-0.5 rounded"
-          >
-            {lang}
-          </span>
+        {guide.languages.map((lang) => (
+          <Tooltip key={lang}>
+            <TooltipTrigger asChild>
+              <span className="text-sm cursor-default">{getLanguageFlag(lang)}</span>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-xs">
+              {getLanguageName(lang)}
+            </TooltipContent>
+          </Tooltip>
         ))}
-        {guide.languages.length > 4 && (
-          <span className="text-[10px] text-muted-foreground">
-            +{guide.languages.length - 4}
-          </span>
-        )}
       </div>
 
       <Badge
@@ -134,38 +133,57 @@ const SortableGuideRow = ({
 
       {/* Action buttons */}
       <div className="flex items-center gap-0.5 shrink-0">
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          className="h-7 w-7"
-          onClick={handleEdit}
-          title="Edit guide"
-        >
-          <Pencil className="h-3.5 w-3.5" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          className="h-7 w-7"
-          onClick={handlePreview}
-          title="Preview guide"
-        >
-          <ExternalLink className="h-3.5 w-3.5" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          className="h-7 w-7"
-          onClick={() => onTogglePublish(guide.id, guide.is_published)}
-          disabled={togglingId === guide.id}
-          title={guide.is_published ? 'Unpublish' : 'Publish'}
-        >
-          {guide.is_published ? (
-            <EyeOff className="h-3.5 w-3.5" />
-          ) : (
-            <Eye className="h-3.5 w-3.5" />
-          )}
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="h-7 w-7 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950"
+              onClick={handleEdit}
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs">Düzenle</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="h-7 w-7"
+              onClick={handlePreview}
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs">Önizle</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className={cn(
+                "h-7 w-7",
+                guide.is_published
+                  ? "text-orange-500 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950"
+                  : "text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950"
+              )}
+              onClick={() => onTogglePublish(guide.id, guide.is_published)}
+              disabled={togglingId === guide.id}
+            >
+              {guide.is_published ? (
+                <EyeOff className="h-3.5 w-3.5" />
+              ) : (
+                <Eye className="h-3.5 w-3.5" />
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs">
+            {guide.is_published ? 'Gizle' : 'Yayınla'}
+          </TooltipContent>
+        </Tooltip>
       </div>
     </div>
   );
@@ -279,48 +297,50 @@ export const AdminGuideOrderManager = () => {
   }
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Guide Sıralaması</h3>
-        <Button
-          onClick={handleSave}
-          disabled={!hasChanges || saving}
-          size="sm"
+    <TooltipProvider delayDuration={300}>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">Guide Sıralaması</h3>
+          <Button
+            onClick={handleSave}
+            disabled={!hasChanges || saving}
+            size="sm"
+          >
+            {saving ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-1" />
+            ) : (
+              <Save className="h-4 w-4 mr-1" />
+            )}
+            Kaydet
+          </Button>
+        </div>
+
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
         >
-          {saving ? (
-            <Loader2 className="h-4 w-4 animate-spin mr-1" />
-          ) : (
-            <Save className="h-4 w-4 mr-1" />
-          )}
-          Kaydet
-        </Button>
+          <SortableContext items={guides.map((g) => g.id)} strategy={verticalListSortingStrategy}>
+            <div className="space-y-1">
+              {guides.map((guide, index) => (
+                <SortableGuideRow
+                  key={guide.id}
+                  guide={guide}
+                  index={index}
+                  onTogglePublish={handleTogglePublish}
+                  togglingId={togglingId}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
+
+        {guides.length === 0 && (
+          <p className="text-center text-sm text-muted-foreground py-8">
+            Henüz guide eklenmemiş
+          </p>
+        )}
       </div>
-
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-      >
-        <SortableContext items={guides.map((g) => g.id)} strategy={verticalListSortingStrategy}>
-          <div className="space-y-1">
-            {guides.map((guide, index) => (
-              <SortableGuideRow
-                key={guide.id}
-                guide={guide}
-                index={index}
-                onTogglePublish={handleTogglePublish}
-                togglingId={togglingId}
-              />
-            ))}
-          </div>
-        </SortableContext>
-      </DndContext>
-
-      {guides.length === 0 && (
-        <p className="text-center text-sm text-muted-foreground py-8">
-          Henüz guide eklenmemiş
-        </p>
-      )}
-    </div>
+    </TooltipProvider>
   );
 };

@@ -20,7 +20,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import QRCode from 'qrcode';
 import { AdminDashboard } from '@/components/AdminDashboard';
-import { GuideManagement } from '@/components/GuideManagement';
+
 
 import { AdminMobileNavigation } from '@/components/AdminMobileNavigation';
 import { CountrySelector } from '@/components/CountrySelector';
@@ -435,8 +435,6 @@ const AdminPanel = () => {
             <div className="space-y-6">
               <h2 className="text-xl sm:text-2xl font-bold">Content Management</h2>
               <AdminGuideOrderManager />
-              <Separator />
-              <GuideManagement />
             </div>
           </TabsContent>
 
