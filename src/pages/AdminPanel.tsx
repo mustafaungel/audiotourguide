@@ -737,6 +737,9 @@ const AdminPanel = () => {
             <AdminGuideEditForm onBack={() => setActiveTab('content-management')} />
           </TabsContent>
 
+          <TabsContent value="preview">
+            <AdminPreviewTab />
+          </TabsContent>
 
         </Tabs>
       </div>

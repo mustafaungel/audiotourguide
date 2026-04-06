@@ -89,7 +89,7 @@ const App = () => {
                       <Route path="/featured-guides" element={<FeaturedGuides />} />
                       <Route path="/guide/:slug" element={<GuideDetail />} />
                       <Route path="/access/:guideId" element={<AudioAccess />} />
-                      <Route path="/admin/preview" element={<AdminPreview />} />
+                      
                       <Route path="/payment-success" element={<PaymentSuccess />} />
                       <Route path="/payment-cancelled" element={<PaymentCancelled />} />
                       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
