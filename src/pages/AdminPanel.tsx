@@ -341,17 +341,20 @@ const AdminPanel = () => {
 
         <AdminMobileNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
+        {/* iOS-style segmented control — desktop */}
+        <div className="hidden md:flex justify-center mb-6">
+          <SegmentedControl
+            items={[
+              { value: 'dashboard', label: 'Dashboard', icon: BarChart3 },
+              { value: 'content-management', label: 'Content', icon: FileText },
+            ]}
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full max-w-sm"
+          />
+        </div>
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="hidden md:grid grid-cols-2 w-full max-w-md gap-1">
-            <TabsTrigger value="dashboard" className="flex items-center gap-2 text-sm">
-              <BarChart3 className="h-4 w-4" />
-              <span>Dashboard</span>
-            </TabsTrigger>
-            <TabsTrigger value="content-management" className="flex items-center gap-2 text-sm">
-              <FileText className="h-4 w-4" />
-              <span>Content</span>
-            </TabsTrigger>
-          </TabsList>
 
           <TabsContent value="dashboard">
             <AdminDashboard />

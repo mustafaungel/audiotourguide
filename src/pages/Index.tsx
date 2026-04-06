@@ -111,7 +111,7 @@ const Index = () => {
       }, 2000);
     }
   };
-  const filteredGuides = guides.filter(guide => guide.title.toLowerCase().includes(searchTerm.toLowerCase()) || guide.category.toLowerCase().includes(searchTerm.toLowerCase()) || guide.location.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredGuides = useMemo(() => guides.filter(guide => guide.title.toLowerCase().includes(searchTerm.toLowerCase()) || guide.category.toLowerCase().includes(searchTerm.toLowerCase()) || guide.location.toLowerCase().includes(searchTerm.toLowerCase())), [guides, searchTerm]);
   const handlePlayGuide = (guide: any) => {
     setSelectedGuide(guide);
     supabase.functions.invoke('track-viral-engagement', {

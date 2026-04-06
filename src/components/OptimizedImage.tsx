@@ -48,6 +48,7 @@ export function OptimizedImage({
       height={height}
       className={`bg-muted ${className || ''}`}
       loading={loading}
+      decoding="async"
       onError={handleError}
     />
   );

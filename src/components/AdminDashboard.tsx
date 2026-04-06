@@ -1,22 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { BookOpen, DollarSign, TrendingUp, ChevronDown, QrCode, Mail, BarChart3, Star, Eye } from 'lucide-react';
-import { AdminQRCodeDropdown } from './AdminQRCodeDropdown';
-import { AdminContactManagement } from './AdminContactManagement';
-import { EnhancedEmailTesting } from './EnhancedEmailTesting';
-import { AdminAnalyticsManager } from './AdminAnalyticsManager';
-import { AdminReviewManagement } from './AdminReviewManagement';
-import AdminPreviewTab from './AdminPreviewTab';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 
+// Lazy imports
+const AdminQRCodeDropdown = React.lazy(() => import('./AdminQRCodeDropdown').then(m => ({ default: (m as any).AdminQRCodeDropdown || m.default })));
+const AdminContactManagement = React.lazy(() => import('./AdminContactManagement').then(m => ({ default: (m as any).AdminContactManagement || m.default })));
+const EnhancedEmailTesting = React.lazy(() => import('./EnhancedEmailTesting').then(m => ({ default: (m as any).EnhancedEmailTesting || m.default })));
+const AdminAnalyticsManager = React.lazy(() => import('./AdminAnalyticsManager').then(m => ({ default: (m as any).AdminAnalyticsManager || m.default })));
+const AdminReviewManagement = React.lazy(() => import('./AdminReviewManagement').then(m => ({ default: (m as any).AdminReviewManagement || m.default })));
+const AdminPreviewTab = React.lazy(() => import('./AdminPreviewTab'));
 
 interface DashboardStats {
   totalGuides: number;
   totalRevenue: number;
   monthlyRevenue: number;
 }
+
+const collapsibleSections = [
+  { key: 'qr', icon: QrCode, label: 'QR Code Management' },
+  { key: 'contact', icon: Mail, label: 'Contact Management' },
+  { key: 'email', icon: Mail, label: 'Email System' },
+  { key: 'analytics', icon: BarChart3, label: 'Analytics' },
+  { key: 'reviews', icon: Star, label: 'Review Management' },
+  { key: 'preview', icon: Eye, label: 'Preview' },
+];
 
 export const AdminDashboard = () => {
   const [stats, setStats] = useState<DashboardStats>({
@@ -25,16 +35,37 @@ export const AdminDashboard = () => {
     monthlyRevenue: 0
   });
   const [loading, setLoading] = useState(true);
+  const [mountedSections, setMountedSections] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchDashboardStats();
   }, []);
 
+  const handleOpenChange = useCallback((key: string, open: boolean) => {
+    if (open && !mountedSections.has(key)) {
+      setMountedSections(prev => new Set(prev).add(key));
+    }
+  }, [mountedSections]);
+
+  const renderSectionComponent = (key: string) => {
+    if (!mountedSections.has(key)) return null;
+    const fallback = <div className="py-4 text-center text-sm text-muted-foreground">Loading...</div>;
+    switch (key) {
+      case 'qr': return <React.Suspense fallback={fallback}><AdminQRCodeDropdown /></React.Suspense>;
+      case 'contact': return <React.Suspense fallback={fallback}><AdminContactManagement /></React.Suspense>;
+      case 'email': return <React.Suspense fallback={fallback}><EnhancedEmailTesting /></React.Suspense>;
+      case 'analytics': return <React.Suspense fallback={fallback}><AdminAnalyticsManager /></React.Suspense>;
+      case 'reviews': return <React.Suspense fallback={fallback}><AdminReviewManagement /></React.Suspense>;
+      case 'preview': return <React.Suspense fallback={fallback}><AdminPreviewTab /></React.Suspense>;
+      default: return null;
+    }
+  };
+
   const fetchDashboardStats = async () => {
     try {
       const { data: guides } = await supabase
         .from('audio_guides')
-        .select('*');
+        .select('id');
 
       const { data: purchases } = await supabase
         .from('user_purchases')
@@ -64,15 +95,6 @@ export const AdminDashboard = () => {
   if (loading) {
     return <div className="p-8 text-center">Loading dashboard...</div>;
   }
-
-  const collapsibleSections = [
-    { key: 'qr', icon: QrCode, label: 'QR Code Management', component: <AdminQRCodeDropdown /> },
-    { key: 'contact', icon: Mail, label: 'Contact Management', component: <AdminContactManagement /> },
-    { key: 'email', icon: Mail, label: 'Email System', component: <EnhancedEmailTesting /> },
-    { key: 'analytics', icon: BarChart3, label: 'Analytics', component: <AdminAnalyticsManager /> },
-    { key: 'reviews', icon: Star, label: 'Review Management', component: <AdminReviewManagement /> },
-    { key: 'preview', icon: Eye, label: 'Preview', component: <AdminPreviewTab /> },
-  ];
 
   return (
     <div className="space-y-6">
@@ -116,11 +138,11 @@ export const AdminDashboard = () => {
         </Card>
       </div>
 
-      {/* Collapsible Management Sections */}
+      {/* Collapsible Management Sections — lazy mounted */}
       <div className="space-y-3">
         {collapsibleSections.map((section) => (
           <Card key={section.key}>
-            <Collapsible>
+            <Collapsible onOpenChange={(open) => handleOpenChange(section.key, open)}>
               <CollapsibleTrigger asChild>
                 <Button 
                   variant="ghost" 
@@ -134,7 +156,7 @@ export const AdminDashboard = () => {
                 </Button>
               </CollapsibleTrigger>
               <CollapsibleContent className="px-4 pb-4">
-                {section.component}
+                {renderSectionComponent(section.key)}
               </CollapsibleContent>
             </Collapsible>
           </Card>
