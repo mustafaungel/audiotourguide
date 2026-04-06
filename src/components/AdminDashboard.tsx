@@ -6,12 +6,12 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Button } from '@/components/ui/button';
 
 // Lazy imports
-const AdminQRCodeDropdown = React.lazy(() => import('./AdminQRCodeDropdown').then(m => ({ default: (m as any).AdminQRCodeDropdown || m.default })));
-const AdminContactManagement = React.lazy(() => import('./AdminContactManagement').then(m => ({ default: (m as any).AdminContactManagement || m.default })));
-const EnhancedEmailTesting = React.lazy(() => import('./EnhancedEmailTesting').then(m => ({ default: (m as any).EnhancedEmailTesting || m.default })));
-const AdminAnalyticsManager = React.lazy(() => import('./AdminAnalyticsManager').then(m => ({ default: (m as any).AdminAnalyticsManager || m.default })));
-const AdminReviewManagement = React.lazy(() => import('./AdminReviewManagement').then(m => ({ default: (m as any).AdminReviewManagement || m.default })));
-const AdminPreviewTab = React.lazy(() => import('./AdminPreviewTab'));
+const LazyAdminQRCodeDropdown = React.lazy(() => import('./AdminQRCodeDropdown').then(m => ({ default: m.AdminQRCodeDropdown })));
+const LazyAdminContactManagement = React.lazy(() => import('./AdminContactManagement').then(m => ({ default: m.AdminContactManagement })));
+const LazyEnhancedEmailTesting = React.lazy(() => import('./EnhancedEmailTesting').then(m => ({ default: m.EnhancedEmailTesting })));
+const LazyAdminAnalyticsManager = React.lazy(() => import('./AdminAnalyticsManager').then(m => ({ default: m.AdminAnalyticsManager })));
+const LazyAdminReviewManagement = React.lazy(() => import('./AdminReviewManagement').then(m => ({ default: m.AdminReviewManagement })));
+const LazyAdminPreviewTab = React.lazy(() => import('./AdminPreviewTab'));
 
 interface DashboardStats {
   totalGuides: number;
