@@ -1,69 +1,56 @@
 
 
-## Plan: Dialog-Based Create/Edit + Fix Turkish Labels
+## Plan: Fix Edit Dialog Collapsibles + Consolidate Dashboard Tabs
 
-### Problem
-1. Turkish labels remain in admin system UI (e.g., "Guide Sıralaması", "Yeni Guide", "Kaydet", "Düzenle", "Önizle", "Gizle/Yayınla", tooltip texts, toast messages)
-2. Create form takes over the entire Content tab — should open as a Dialog/popup instead
-3. Edit button navigates away to a separate tab — should also open as a Dialog/popup
+### Issue 1: Edit Dialog — All Collapsibles Open
+When opening the edit popup, all Collapsible sections (Basic Info, Description, URL & Slug, Images, Linked Guides, QR Code) have `defaultOpen` or no `defaultOpen` attribute — they all render expanded, making the dialog cluttered. Additionally, the two-column grid layout (`lg:grid-cols-2`) doesn't work well inside a dialog.
 
-### Changes
+**Fix in `src/components/AdminGuideEditForm.tsx`:**
+- Set only "Basic Info" as `defaultOpen={true}`, ensure all others have `defaultOpen={false}` (explicit)
+- When rendered inside a dialog (detected via `propGuideId` being set), use a single-column layout instead of `lg:grid-cols-2`
+- Hide the guide selector card and back button when `propGuideId` is provided (already done, just verify)
 
-**`src/components/AdminGuideOrderManager.tsx`:**
-1. Fix all Turkish labels to English:
-   - "Guide Sıralaması" → "Guide Order"
-   - "Yeni Guide" → "+ New Guide"
-   - "Kaydet" → "Save"
-   - "Henüz guide eklenmemiş" → "No guides yet"
-   - "Düzenle" tooltip → "Edit"
-   - "Önizle (Audio Access)" → "Preview (Audio Access)"
-   - "Gizle" / "Yayınla" → "Hide" / "Publish"
-   - "Bağlı:" → "Linked:"
-   - "Bağlı guide yok" → "No linked guides"
-   - "Erişim:" → "Access:"
-   - "Erişim linki kopyalandı" → "Access link copied"
-   - "Detay:" → "Detail:"
-   - "Bu guide için erişim kodu yok" → "No access code for this guide"
-   - "Durum güncellenemedi" → "Failed to update status"
-   - All toast messages → English
-2. Change `handleEdit` to call an `onEdit(guideId)` prop instead of dispatching `admin-edit-guide` event
+### Issue 2: Dashboard — Consolidate Tabs as Collapsible Dropdowns
+Move Contact, Email, Analytics, Reviews, and Preview into collapsible sections within the Dashboard tab. This reduces the tab bar from 7 items to 2 (Dashboard + Content).
 
-**`src/pages/AdminPanel.tsx`:**
-1. Fix Turkish label "← Guide Listesine Dön" → "← Back to List"
-2. Remove `showCreateForm` state toggle — replace with Dialog-based approach
-3. Add state: `createDialogOpen` (boolean) and `editDialogGuideId` (string | null)
-4. Wrap Create form in a `<Dialog>` that opens when "+ New Guide" is clicked
-5. Wrap Edit form (`AdminGuideEditForm`) in a `<Dialog>` that opens when Edit is clicked on any guide
-6. Remove the separate `edit-guide` TabsTrigger and TabsContent — edit now happens in dialog
-7. Remove the `admin-edit-guide` event listener — replaced by direct prop callback
-8. Pass `onEdit` callback to `AdminGuideOrderManager` that sets `editDialogGuideId`
+**Changes in `src/pages/AdminPanel.tsx`:**
+1. Remove `TabsTrigger` entries for: contact-management, email-test, analytics, review-management, preview
+2. Remove their corresponding `TabsContent` blocks
+3. Update `TabsList` from `grid-cols-7` to `grid-cols-2`
 
-**`src/components/AdminGuideEditForm.tsx`:**
-1. Add optional `guideId` prop so the parent can pass which guide to edit directly (instead of relying on sessionStorage)
-2. Add optional `onClose` prop for dialog dismiss
+**Changes in `src/components/AdminDashboard.tsx`:**
+1. Import and render the 5 components (AdminContactManagement, EnhancedEmailTesting, AdminAnalyticsManager, AdminReviewManagement, AdminPreviewTab) as Collapsible sections, similar to the existing QR Code dropdown pattern
+2. Each section gets a Card with a Collapsible trigger showing icon + label
 
-**`src/components/AdminMobileNavigation.tsx`:**
-1. Remove `edit-guide` from the mobile nav tabs array (no longer a separate tab)
+**Changes in `src/components/AdminMobileNavigation.tsx`:**
+1. Remove the 5 tab entries (contact-management, email-test, analytics, review-management, preview) — only keep dashboard and content-management
 
 ### Result
 
+Tab bar:
 ```text
-Tab bar: Dashboard | Content | Contact | Email | Analytics | Reviews | Preview
+Dashboard | Content
+```
 
-Content tab:
-  [+ New Guide]  [Save]
-  [guide list...]
-  
-  Click "+ New Guide" → Full-screen dialog with create form
-  Click Edit on guide → Full-screen dialog with edit form
+Dashboard page:
+```text
+Dashboard Overview
+[Stats cards: Total Guides, Revenue, Monthly Revenue]
+
+▸ QR Code Management
+▸ Contact Management
+▸ Email System
+▸ Analytics
+▸ Review Management
+▸ Preview
 ```
 
 ### Files affected
 
 | File | Change |
 |------|--------|
-| `src/components/AdminGuideOrderManager.tsx` | All Turkish→English, add `onEdit` prop |
-| `src/pages/AdminPanel.tsx` | Dialog for create/edit, remove Edit tab, fix Turkish |
-| `src/components/AdminGuideEditForm.tsx` | Accept `guideId` prop, add `onClose` prop |
-| `src/components/AdminMobileNavigation.tsx` | Remove edit-guide from tabs |
+| `src/components/AdminGuideEditForm.tsx` | Collapse all sections by default except Basic Info; single-column in dialog mode |
+| `src/components/AdminDashboard.tsx` | Add 5 collapsible sections for Contact, Email, Analytics, Reviews, Preview |
+| `src/pages/AdminPanel.tsx` | Remove 5 tabs, keep only Dashboard + Content, update grid |
+| `src/components/AdminMobileNavigation.tsx` | Remove 5 entries, keep dashboard + content-management |
 
