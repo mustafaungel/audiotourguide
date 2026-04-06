@@ -1,56 +1,58 @@
 
 
-## Plan: Admin Guide Sıralama Sistemi (Drag & Drop)
+## Plan: Admin Content Yönetimi İyileştirmesi
 
-### Genel Bakış
-Admin panelinin Content Management sekmesinde audio guide'ları sürükle-bırak ile sıralayabilme ve kompakt liste görünümü.
+### Sorunlar
 
-### Veritabanı Değişikliği
-`audio_guides` tablosuna `display_order` (integer, default 0) sütunu eklenecek. Ana sayfadaki FeaturedGuides ve Guides sayfası bu sütuna göre sıralayacak.
+**1. Sıralama kaydedilince ana sayfa güncellenmiyor**
+`Guides.tsx` sayfası `localStorage` cache kullanıyor (satır 16-24, 58). Sıralama değiştiğinde eski cache hâlâ gösteriliyor. Ayrıca FeaturedGuides de sayfa yenilenmeden eski veriyi tutuyor.
 
-**Migration:**
-```sql
-ALTER TABLE audio_guides ADD COLUMN display_order integer NOT NULL DEFAULT 0;
+**2. AdminGuideOrderManager çok basit — düzenleme, dil bilgisi ve action butonları eksik**
+Şu an sadece başlık + konum + durum badge gösteriyor. Diller, section sayısı, hızlı action butonları (edit, preview, publish/hide toggle) yok.
+
+### Çözüm
+
+#### A. Cache invalidation — `Guides.tsx`
+
+Sıralama kaydedildiğinde localStorage cache temizlenecek. `AdminGuideOrderManager.handleSave` sonunda:
+```tsx
+localStorage.removeItem('guides_list_cache');
 ```
 
-### Yeni Bileşen: `AdminGuideOrderManager.tsx`
+#### B. AdminGuideOrderManager → Zenginleştirilmiş kompakt liste
 
-Kompakt, sürükle-bırak destekli liste:
-- Her guide tek satırda: **sıra numarası + drag handle (⠿) + başlık + konum + durum badge + fiyat**
-- Dropdown yok — tüm bilgi tek satırda
-- `@dnd-kit/core` ve `@dnd-kit/sortable` ile native drag-and-drop
-- Sıralama değiştiğinde "Kaydet" butonu aktif olur, toplu güncelleme yapar
-- Mobilde de touch-friendly drag handle
+Her satıra eklenmesi gerekenler:
+- **Dil badge'leri**: `guide_sections` tablosundan her guide'ın mevcut dil kodlarını çek, küçük badge'ler olarak göster (EN, ES, ZH...)
+- **Section sayısı**: Her dilde kaç section var
+- **Hızlı action butonları** (satır sonunda, dropdown değil — inline icon butonlar):
+  - **Edit** (kalem ikonu) → `admin-tab-change` event ile edit sekmesine yönlendir
+  - **Preview** (göz ikonu) → guide'ı yeni sekmede aç
+  - **Publish/Hide toggle** (göz/gizle ikonu) → `is_published` durumunu toggle et
+- **Durum göstergesi iyileştirmesi**: Pending (onay bekleyen) durumu da badge olarak gösterilecek
+
+Sorgu genişletilecek — `languages` sütunu zaten `audio_guides`'da var, ek sorguya gerek yok:
+```tsx
+.select('id, title, location, is_published, is_approved, price_usd, display_order, languages, slug, master_access_code')
+```
+
+#### C. Kompakt satır tasarımı (dropdown yok)
 
 ```text
-┌──────────────────────────────────────────────────────┐
-│  Guide Sıralaması                        [Kaydet]    │
-├──────────────────────────────────────────────────────┤
-│  ⠿  1. Istanbul Historical Tour    Istanbul  ● Live  │
-│  ⠿  2. Mix Tour                    Mixed     ● Live  │
-│  ⠿  3. Hagia Sophia Guide          Istanbul  ● Live  │
-│  ⠿  4. Rome Walking Tour           Rome      ○ Hidden│
-└──────────────────────────────────────────────────────┘
+⠿  1. Cappadocia Discover  Istanbul  EN ES IT JA  ● Live  $4.99  [✏️] [👁] [🔒]
 ```
 
-### Mevcut Dosya Değişiklikleri
+Tüm butonlar küçük icon-only butonlar, tek satırda sığacak şekilde. Mobilde dil badge'leri gizlenebilir.
+
+### Etkilenen Dosyalar
 
 | Dosya | Değişiklik |
 |-------|-----------|
-| `supabase/migrations/new` | `display_order` sütunu ekleme |
-| `src/components/AdminGuideOrderManager.tsx` | Yeni — drag-drop sıralama bileşeni |
-| `src/pages/AdminPanel.tsx` | Content Management sekmesine OrderManager ekleme |
-| `src/components/FeaturedGuides.tsx` | `.order('display_order')` ekleme |
-| `src/pages/Guides.tsx` | `.order('display_order')` ekleme |
+| `src/components/AdminGuideOrderManager.tsx` | Sorgu genişlet, dil badge'leri ekle, action butonları ekle, cache temizleme |
+| `src/pages/Guides.tsx` | Değişiklik yok (cache AdminGuideOrderManager'dan temizlenecek) |
 
-### Paket Bağımlılığı
-- `@dnd-kit/core` + `@dnd-kit/sortable` + `@dnd-kit/utilities` — React drag-and-drop kütüphanesi
-
-### Kaydetme Mantığı
-Sıralama değiştiğinde her guide'ın `display_order` değeri güncellenir. Toplu update tek seferde yapılır:
-```tsx
-for (const [index, guide] of reorderedGuides.entries()) {
-  await supabase.from('audio_guides').update({ display_order: index }).eq('id', guide.id);
-}
-```
+### Teknik Detaylar
+- `languages` array'i zaten `audio_guides` tablosunda var — ek DB sorgusu gerekmez
+- Action butonları `window.dispatchEvent(new CustomEvent('admin-tab-change'))` ile edit sekmesine yönlendirir
+- Publish/hide toggle inline olarak `supabase.update` yapıp listeyi günceller
+- `localStorage.removeItem('guides_list_cache')` ile Guides sayfasının eski veriyi göstermesi önlenir
 
