@@ -44,11 +44,9 @@ const Guides = () => {
 
       if (error) throw error;
       setGuides(data || []);
-      try { localStorage.setItem(GUIDES_CACHE_KEY, JSON.stringify(data || [])); } catch {}
     } catch (error) {
       console.error('Error fetching guides:', error);
-      if (cachedGuides.length === 0) {
-        toast({
+      toast({
           title: "Error",
           description: "Failed to load guides",
           variant: "destructive"
