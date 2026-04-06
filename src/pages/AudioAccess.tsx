@@ -361,13 +361,9 @@ export default function AudioAccess() {
   const handleLanguageChange = async (languageCode: string) => {
     console.log(`[AUDIO-ACCESS] Main guide language changed to: ${languageCode}`);
     
-    // Only update main guide sections
-    // MultiTabAudioPlayer manages linked guide sections
-    setSelectedLanguage(languageCode);
-    
     if (guideId) {
-      // Stale-while-revalidate: keep old sections visible until new ones arrive
-      const oldSections = sections;
+      // Fetch new sections FIRST, then update language state
+      // This prevents remount jank — data is ready before UI updates
       try {
         const { data: sectionsData, error } = await supabase
           .rpc('get_sections_with_access', {
@@ -380,12 +376,14 @@ export default function AudioAccess() {
           setSections(sectionsData);
         } else if (!error && (!sectionsData || sectionsData.length === 0)) {
           console.warn('No sections for language:', languageCode);
-          setSections(oldSections);
         }
       } catch (err) {
         console.error('Error fetching sections:', err);
       }
     }
+    
+    // Update language state AFTER sections are ready
+    setSelectedLanguage(languageCode);
   };
 
   // Handle language changes for linked guides only — main guide is handled by handleLanguageChange directly
