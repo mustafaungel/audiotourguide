@@ -69,6 +69,7 @@ export type Database = {
           description: string
           destination_id: string | null
           difficulty: string
+          display_order: number
           duration: number
           id: string
           image_url: string | null
@@ -105,6 +106,7 @@ export type Database = {
           description: string
           destination_id?: string | null
           difficulty: string
+          display_order?: number
           duration: number
           id?: string
           image_url?: string | null
@@ -141,6 +143,7 @@ export type Database = {
           description?: string
           destination_id?: string | null
           difficulty?: string
+          display_order?: number
           duration?: number
           id?: string
           image_url?: string | null
