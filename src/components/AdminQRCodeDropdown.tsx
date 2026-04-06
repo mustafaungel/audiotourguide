@@ -4,6 +4,7 @@ import { Badge } from "./ui/badge";
 import { Copy, ExternalLink, QrCode, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { buildAccessUrl } from "@/lib/url-utils";
 
 interface Guide {
   id: string;
