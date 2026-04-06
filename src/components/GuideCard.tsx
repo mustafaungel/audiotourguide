@@ -147,7 +147,7 @@ export function GuideCard({
           <Button
             size="sm"
             variant="secondary"
-            className="bg-white/80 backdrop-blur-sm hover:bg-white min-h-[44px] min-w-[44px] p-2 touch-manipulation"
+            className="bg-card/80 backdrop-blur-sm hover:bg-card min-h-[44px] min-w-[44px] p-2 touch-manipulation"
             onClick={(e) => {
               e.stopPropagation();
               handleShare();

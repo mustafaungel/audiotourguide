@@ -406,7 +406,7 @@ export const GuideCreationForm: React.FC<GuideCreationFormProps> = ({
             />
             <div className="flex justify-between items-center mt-1">
               {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
-              <span className="text-sm text-gray-500 ml-auto">
+              <span className="text-sm text-muted-foreground ml-auto">
                 {formData.description.length}/1000 characters
               </span>
             </div>

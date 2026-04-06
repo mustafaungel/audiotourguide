@@ -612,11 +612,11 @@ export default function AudioAccess() {
                 
                 {/* Regional troubleshooting info */}
                 {isNetworkIssue && (
-                  <div className="mt-4 p-3 rounded-lg bg-gray-50 dark:bg-gray-900 border">
-                     <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <div className="mt-4 p-3 rounded-lg bg-muted/50 border">
+                     <p className="text-xs font-medium text-foreground mb-2">
                       {t('troubleshootingTips', selectedLanguage)}
                     </p>
-                    <ul className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                    <ul className="text-xs text-muted-foreground space-y-1">
                       <li>• {t('trySwitchingNetwork', selectedLanguage)}</li>
                       <li>• {t('checkOtherWebsites', selectedLanguage)}</li>
                       <li>• {t('tryDisablingVpn', selectedLanguage)}</li>

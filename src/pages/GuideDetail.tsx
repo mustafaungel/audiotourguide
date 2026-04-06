@@ -946,7 +946,7 @@ const GuideDetail = () => {
                                 <label className="text-sm font-medium text-green-700 dark:text-green-300">Your Access Code</label>
                               </div>
                               <div className="flex gap-2">
-                                <div className="flex-1 p-3 bg-white dark:bg-gray-800 rounded-md border border-green-200 dark:border-green-700 text-lg font-mono text-center">
+                                <div className="flex-1 p-3 bg-card rounded-md border border-green-200 dark:border-green-700 text-lg font-mono text-center">
                                   {searchParams.get('access_code') || 'Loading...'}
                                 </div>
                                 <Button

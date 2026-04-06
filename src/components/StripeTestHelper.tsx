@@ -25,7 +25,7 @@ export const StripeTestHelper: React.FC = () => {
             </div>
           </div>
         </div>
-        <p className="text-xs text-orange-600">
+        <p className="text-xs text-orange-600 dark:text-orange-400">
           No real charges will be made in test mode.
         </p>
       </CardContent>

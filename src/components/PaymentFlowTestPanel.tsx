@@ -483,7 +483,7 @@ export const PaymentFlowTestPanel: React.FC = () => {
                 {testResults.map((result, index) => (
                   <div
                     key={index}
-                    className="flex items-start gap-2 text-xs bg-white/60 p-2 rounded border"
+                    className="flex items-start gap-2 text-xs bg-card/60 p-2 rounded border"
                   >
                     {getStatusIcon(result.status)}
                     <div className="flex-1 min-w-0">

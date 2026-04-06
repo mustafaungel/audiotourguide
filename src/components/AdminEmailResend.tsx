@@ -80,21 +80,21 @@ export const AdminEmailResend = () => {
               <div 
                 key={index}
                 className={`p-3 rounded border ${
-                  result.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+                  result.success ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800' : 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800'
                 }`}
               >
                 <div className="font-medium">{result.title}</div>
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-muted-foreground">
                   Guide ID: {result.guide_id}
                 </div>
                 {result.success ? (
-                  <div className="text-sm text-green-600">
+                  <div className="text-sm text-green-600 dark:text-green-400">
                     ✅ Email sent successfully
                     <br />
                     Access Code: {result.access_code}
                   </div>
                 ) : (
-                  <div className="text-sm text-red-600">
+                  <div className="text-sm text-red-600 dark:text-red-400">
                     ❌ Failed: {result.error}
                   </div>
                 )}

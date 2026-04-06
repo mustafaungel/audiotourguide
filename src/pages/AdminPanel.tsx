@@ -508,7 +508,7 @@ const AdminPanel = () => {
                               <p className="text-xs text-green-600 dark:text-green-400">{isHidden ? 'Share this link for instant access to the hidden guide' : 'This link bypasses payment and provides instant access'}</p>
                             </div>
                             <div className="space-y-2">
-                              <Label className="text-green-700 font-medium">Guide Details</Label>
+                              <Label className="text-green-700 dark:text-green-300 font-medium">Guide Details</Label>
                               <div className="text-sm space-y-1">
                                 <p><strong>Title:</strong> {createdGuide.title}</p>
                                 <p><strong>Location:</strong> {createdGuide.location}</p>

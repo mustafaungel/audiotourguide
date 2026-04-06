@@ -152,7 +152,7 @@ export const StripeDebugPanel: React.FC = () => {
           </div>
         )}
         
-        <p className="text-xs text-blue-600">
+        <p className="text-xs text-blue-600 dark:text-blue-400">
           Use this panel to test Stripe configuration and identify issues.
         </p>
       </CardContent>

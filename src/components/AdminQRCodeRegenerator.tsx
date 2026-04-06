@@ -216,7 +216,7 @@ export function AdminQRCodeRegenerator() {
                       });
                     }}
                     title="Copy access URL (full access)"
-                    className="border-blue-200 text-blue-700 hover:bg-blue-50"
+                    className="border-primary/30 text-primary hover:bg-primary/10"
                   >
                     <Copy className="h-4 w-4" />
                   </Button>

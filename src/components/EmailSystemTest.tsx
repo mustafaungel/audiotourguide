@@ -68,29 +68,29 @@ export const EmailSystemTest = () => {
         </Button>
 
         {result && (
-          <Alert className={result.success ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}>
+          <Alert className={result.success ? "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20" : "border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20"}>
             <div className="flex items-center gap-2">
               {result.success ? (
-                <CheckCircle className="h-4 w-4 text-green-600" />
+                <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
               ) : (
-                <XCircle className="h-4 w-4 text-red-600" />
+                <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
               )}
               <AlertDescription>
                 {result.success ? (
                   <div>
-                    <p className="font-medium text-green-800">Email system is configured correctly!</p>
-                    <p className="text-sm text-green-700 mt-1">
+                    <p className="font-medium text-green-800 dark:text-green-300">Email system is configured correctly!</p>
+                    <p className="text-sm text-green-700 dark:text-green-400 mt-1">
                       RESEND_API_KEY is properly set and the email system is ready to send purchase confirmations.
                     </p>
                   </div>
                 ) : (
                   <div>
-                    <p className="font-medium text-red-800">Email system configuration issue</p>
-                    <p className="text-sm text-red-700 mt-1">
+                    <p className="font-medium text-red-800 dark:text-red-300">Email system configuration issue</p>
+                    <p className="text-sm text-red-700 dark:text-red-400 mt-1">
                       {result.error || 'Unknown error occurred'}
                     </p>
                     {!result.configured && (
-                      <p className="text-sm text-red-700 mt-2">
+                      <p className="text-sm text-red-700 dark:text-red-400 mt-2">
                         Please add the RESEND_API_KEY secret in Supabase Edge Functions settings.
                       </p>
                     )}
