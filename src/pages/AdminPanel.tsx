@@ -505,7 +505,7 @@ const AdminPanel = () => {
                                   <Copy className="h-4 w-4" />
                                 </Button>
                               </div>
-                              <p className="text-xs text-green-600">{isHidden ? 'Share this link for instant access to the hidden guide' : 'This link bypasses payment and provides instant access'}</p>
+                              <p className="text-xs text-green-600 dark:text-green-400">{isHidden ? 'Share this link for instant access to the hidden guide' : 'This link bypasses payment and provides instant access'}</p>
                             </div>
                             <div className="space-y-2">
                               <Label className="text-green-700 font-medium">Guide Details</Label>
