@@ -7,9 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Star, FileText, Plus, ImageIcon, Copy, QrCode, Mail, BarChart3, Eye } from 'lucide-react';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
+import { Plus, Copy, QrCode, BarChart3, FileText } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SegmentedControl, SegmentItem } from '@/components/ui/segmented-control';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
@@ -340,17 +341,20 @@ const AdminPanel = () => {
 
         <AdminMobileNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
+        {/* iOS-style segmented control — desktop */}
+        <div className="hidden md:flex justify-center mb-6">
+          <SegmentedControl
+            items={[
+              { value: 'dashboard', label: 'Dashboard', icon: BarChart3 },
+              { value: 'content-management', label: 'Content', icon: FileText },
+            ]}
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full max-w-sm"
+          />
+        </div>
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="hidden md:grid grid-cols-2 w-full max-w-md gap-1">
-            <TabsTrigger value="dashboard" className="flex items-center gap-2 text-sm">
-              <BarChart3 className="h-4 w-4" />
-              <span>Dashboard</span>
-            </TabsTrigger>
-            <TabsTrigger value="content-management" className="flex items-center gap-2 text-sm">
-              <FileText className="h-4 w-4" />
-              <span>Content</span>
-            </TabsTrigger>
-          </TabsList>
 
           <TabsContent value="dashboard">
             <AdminDashboard />
