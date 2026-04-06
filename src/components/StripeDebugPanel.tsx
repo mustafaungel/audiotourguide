@@ -101,9 +101,9 @@ export const StripeDebugPanel: React.FC = () => {
   };
 
   return (
-    <Card className="w-full max-w-md mb-4 border-blue-200 bg-blue-50/50">
+    <Card className="w-full max-w-md mb-4 border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20">
       <CardHeader className="pb-3">
-        <CardTitle className="text-sm flex items-center gap-2 text-blue-700">
+        <CardTitle className="text-sm flex items-center gap-2 text-blue-700 dark:text-blue-300">
           <Bug className="w-4 h-4" />
           Stripe Debug Panel
           <Badge variant="secondary" className="text-xs">DEBUG</Badge>
@@ -135,7 +135,7 @@ export const StripeDebugPanel: React.FC = () => {
         </div>
         
         {debugInfo && (
-          <div className="text-xs bg-white/60 p-2 rounded border">
+          <div className="text-xs bg-card/60 p-2 rounded border">
             <div className="space-y-1">
               {debugInfo.publishableKey && (
                 <div>Key: {debugInfo.keyPrefix}... ({debugInfo.publishableKey})</div>
@@ -152,7 +152,7 @@ export const StripeDebugPanel: React.FC = () => {
           </div>
         )}
         
-        <p className="text-xs text-blue-600">
+        <p className="text-xs text-blue-600 dark:text-blue-400">
           Use this panel to test Stripe configuration and identify issues.
         </p>
       </CardContent>

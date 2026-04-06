@@ -216,7 +216,7 @@ export function AdminQRCodeRegenerator() {
                       });
                     }}
                     title="Copy access URL (full access)"
-                    className="border-blue-200 text-blue-700 hover:bg-blue-50"
+                    className="border-primary/30 text-primary hover:bg-primary/10"
                   >
                     <Copy className="h-4 w-4" />
                   </Button>
@@ -228,7 +228,7 @@ export function AdminQRCodeRegenerator() {
                   onClick={() => regenerateQRCode(guide.id)}
                   disabled={regenerating === guide.id}
                   title="Generate/regenerate QR code with master access"
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                 {regenerating === guide.id ? (
                     <ButtonLoader />

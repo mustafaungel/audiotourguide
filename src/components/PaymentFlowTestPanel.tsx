@@ -367,9 +367,9 @@ export const PaymentFlowTestPanel: React.FC = () => {
   };
 
   return (
-    <Card className="w-full border-purple-200 bg-purple-50/50">
+    <Card className="w-full border-purple-200 dark:border-purple-800 bg-purple-50/50 dark:bg-purple-950/20">
       <CardHeader className="pb-3">
-        <CardTitle className="text-sm flex items-center gap-2 text-purple-700">
+        <CardTitle className="text-sm flex items-center gap-2 text-purple-700 dark:text-purple-300">
           <TestTube className="w-4 h-4" />
           Payment & Audio Testing Panel
           <Badge variant="secondary" className="text-xs">PRE-PUBLISH</Badge>
@@ -453,11 +453,11 @@ export const PaymentFlowTestPanel: React.FC = () => {
         <Separator />
 
         {/* Full Test Suite */}
-        <Button
+          <Button
           size="sm"
           onClick={runFullTestSuite}
           disabled={testing}
-          className="w-full text-xs bg-purple-600 hover:bg-purple-700"
+          className="w-full text-xs bg-primary hover:bg-primary/90 text-primary-foreground"
         >
           <TestTube className="w-3 h-3 mr-1" />
           {testing ? 'Running Tests...' : 'Run Full Test Suite'}
@@ -469,7 +469,7 @@ export const PaymentFlowTestPanel: React.FC = () => {
             <Separator />
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <h4 className="text-xs font-medium text-purple-700">Test Results</h4>
+                <h4 className="text-xs font-medium text-purple-700 dark:text-purple-300">Test Results</h4>
                 <Button
                   size="sm"
                   variant="ghost"
@@ -483,7 +483,7 @@ export const PaymentFlowTestPanel: React.FC = () => {
                 {testResults.map((result, index) => (
                   <div
                     key={index}
-                    className="flex items-start gap-2 text-xs bg-white/60 p-2 rounded border"
+                    className="flex items-start gap-2 text-xs bg-card/60 p-2 rounded border"
                   >
                     {getStatusIcon(result.status)}
                     <div className="flex-1 min-w-0">

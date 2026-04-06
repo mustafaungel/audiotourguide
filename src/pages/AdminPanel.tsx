@@ -490,25 +490,25 @@ const AdminPanel = () => {
                       <CardContent className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div className="space-y-2">
-                            <Label className="text-green-700 font-medium">QR Code</Label>
+                            <Label className="text-green-700 dark:text-green-300 font-medium">QR Code</Label>
                             <div className="flex justify-center">
                               <img src={qrCodeUrl} alt="QR Code for guide" className="border rounded-lg shadow-sm" />
                             </div>
-                            <p className="text-sm text-green-600 text-center">Scan to access your guide</p>
+                            <p className="text-sm text-green-600 dark:text-green-400 text-center">Scan to access your guide</p>
                           </div>
                           <div className="space-y-4">
                             <div className="space-y-2">
-                              <Label className="text-green-700 font-medium">{isHidden ? 'Direct Access Link' : 'Access Link (Bypass Payment)'}</Label>
+                              <Label className="text-green-700 dark:text-green-300 font-medium">{isHidden ? 'Direct Access Link' : 'Access Link (Bypass Payment)'}</Label>
                               <div className="flex gap-2">
-                                <Input value={shareUrl} readOnly className="bg-white text-sm" />
+                                <Input value={shareUrl} readOnly className="bg-card text-sm" />
                                 <Button variant="outline" size="sm" onClick={() => copyToClipboard(shareUrl, 'Access link')} className="shrink-0">
                                   <Copy className="h-4 w-4" />
                                 </Button>
                               </div>
-                              <p className="text-xs text-green-600">{isHidden ? 'Share this link for instant access to the hidden guide' : 'This link bypasses payment and provides instant access'}</p>
+                              <p className="text-xs text-green-600 dark:text-green-400">{isHidden ? 'Share this link for instant access to the hidden guide' : 'This link bypasses payment and provides instant access'}</p>
                             </div>
                             <div className="space-y-2">
-                              <Label className="text-green-700 font-medium">Guide Details</Label>
+                              <Label className="text-green-700 dark:text-green-300 font-medium">Guide Details</Label>
                               <div className="text-sm space-y-1">
                                 <p><strong>Title:</strong> {createdGuide.title}</p>
                                 <p><strong>Location:</strong> {createdGuide.location}</p>
