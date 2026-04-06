@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AdminReviewManagement } from '@/components/AdminReviewManagement';
+
 
 import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
