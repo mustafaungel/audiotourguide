@@ -18,6 +18,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { supabase } from '@/integrations/supabase/client';
+import { buildAccessUrl, getBaseUrl } from '@/lib/url-utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { GripVertical, Save, Loader2, Pencil, ExternalLink, Eye, EyeOff, Link2, ChevronDown, Copy, Globe } from 'lucide-react';
