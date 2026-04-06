@@ -577,7 +577,7 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
               </CollapsibleContent>
             </Collapsible>
 
-            {/* Section 4: Görseller (default closed) */}
+            {/* Section 4: Images (default closed) */}
             <Collapsible>
               <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border px-4 py-2 font-medium text-sm hover:bg-muted transition-colors [&[data-state=open]>svg]:rotate-180">
                 Images
