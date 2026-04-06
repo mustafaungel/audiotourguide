@@ -106,21 +106,18 @@ const SortableGuideRow = ({
         {guide.location}
       </span>
 
-      {/* Language badges */}
+      {/* Language flags */}
       <div className="hidden md:flex items-center gap-0.5 shrink-0">
-        {guide.languages.slice(0, 4).map((lang) => (
-          <span
-            key={lang}
-            className="text-[10px] font-medium uppercase bg-muted text-muted-foreground px-1 py-0.5 rounded"
-          >
-            {lang}
-          </span>
+        {guide.languages.map((lang) => (
+          <Tooltip key={lang}>
+            <TooltipTrigger asChild>
+              <span className="text-sm cursor-default">{getLanguageFlag(lang)}</span>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-xs">
+              {getLanguageName(lang)}
+            </TooltipContent>
+          </Tooltip>
         ))}
-        {guide.languages.length > 4 && (
-          <span className="text-[10px] text-muted-foreground">
-            +{guide.languages.length - 4}
-          </span>
-        )}
       </div>
 
       <Badge
