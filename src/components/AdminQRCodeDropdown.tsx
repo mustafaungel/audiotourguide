@@ -63,12 +63,13 @@ export function AdminQRCodeDropdown() {
   };
 
   const openGuidePreview = (guide: Guide) => {
-    const baseUrl = window.location.origin;
-    const url = guide.share_url || 
-                (guide.master_access_code 
-                  ? `${baseUrl}/audio-access?code=${guide.master_access_code}`
-                  : `${baseUrl}/guides/${guide.slug || guide.id}`);
-    window.open(url, '_blank');
+    if (guide.master_access_code) {
+      const url = buildAccessUrl(guide.id, guide.master_access_code, 'preview');
+      window.open(url, '_blank');
+    } else {
+      const baseUrl = window.location.origin;
+      window.open(`${baseUrl}/guide/${guide.slug || guide.id}`, '_blank');
+    }
   };
 
   const copyToClipboard = async (text: string) => {
