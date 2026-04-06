@@ -356,7 +356,20 @@ export const GuideCollectionManager: React.FC<GuideCollectionManagerProps> = ({
             <p className="text-sm">Use the form above to add new guides</p>
           </div>
         )}
-      </CardContent>
+    </div>
+  );
+
+  if (embedded) return content;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Plus className="w-5 h-5" />
+          Linked Audio Guides
+        </CardTitle>
+      </CardHeader>
+      <CardContent>{content}</CardContent>
     </Card>
   );
 };
