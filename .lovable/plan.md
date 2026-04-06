@@ -1,23 +1,49 @@
 
 
-## Plan: Show All Guides in Admin Content Management
+## Plan: Fix Language Selection Not Updating on Audio Access Page
 
-### Problem
-`AdminGuideOrderManager.tsx` line 326 filters with `.eq('is_standalone', true)`, hiding 4 guides that have `is_standalone = false` (linked/child guides). Admin needs to see and manage all guides.
+### Root Cause
 
-### Solution
-Remove the `is_standalone` filter and add a visual indicator to distinguish standalone vs linked guides.
+In `GuideLanguageSelector.tsx` line 78, `isInMultiTab` is `true` whenever `activeGuideId` is set. When true, it **always** dispatches a `changeGuideLanguage` custom event instead of calling `onLanguageChange()`.
 
-### Changes in `src/components/AdminGuideOrderManager.tsx`
+Meanwhile in `AudioAccess.tsx` line 397, the event listener **intentionally skips** the main guide:
+```
+if (targetGuideId && targetGuideId !== guide?.id) { ... }
+```
 
-1. **Remove filter** — Delete `.eq('is_standalone', true)` from `fetchGuides()` (line 326)
-2. **Add `is_standalone` to select** — Include it in the selected columns so we can display a badge
-3. **Add visual indicator** — Show a small "Linked" badge next to guides where `is_standalone === false`, so admin can distinguish them from standalone guides
-4. **Sorting** — Keep existing sort by `display_order` then `created_at`; linked guides will appear in their natural order
+So when the user taps a language for the **main guide** in multi-tab mode:
+1. Selector dispatches `changeGuideLanguage` with `guideId = mainGuideId`
+2. AudioAccess event listener sees it's the main guide → ignores it
+3. `onLanguageChange` (handleLanguageChange) is never called
+4. `selectedLanguage` stays `'en'` → UI appears stuck on English
+
+### Fix
+
+In `GuideLanguageSelector.tsx`, check if the active guide IS the guide itself (i.e., `activeGuideId === guideId`). If so, call `onLanguageChange()` directly instead of dispatching the event. Only dispatch the event for **linked** (different) guides.
+
+### Change
+
+**`src/components/GuideLanguageSelector.tsx`** — lines 77-84:
+
+```tsx
+requestAnimationFrame(() => {
+  const isInMultiTab = !!activeGuideId;
+  const isLinkedGuide = isInMultiTab && activeGuideId !== guideId;
+  if (isLinkedGuide) {
+    window.dispatchEvent(new CustomEvent('changeGuideLanguage', {
+      detail: { guideId: activeGuideId, languageCode }
+    }));
+  } else {
+    onLanguageChange(languageCode);
+  }
+});
+```
+
+This ensures main guide language changes go through `onLanguageChange` → `handleLanguageChange` → `setSelectedLanguage` + fetch sections, while linked guide changes continue using the event system.
 
 ### Files affected
 
 | File | Change |
 |------|--------|
-| `src/components/AdminGuideOrderManager.tsx` | Remove `is_standalone` filter, add to select, show badge |
+| `src/components/GuideLanguageSelector.tsx` | Fix dispatch condition to call `onLanguageChange` for main guide |
 
