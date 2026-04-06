@@ -41,6 +41,7 @@ const AdminPanel = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
   // Listen for tab change events
   useEffect(() => {
