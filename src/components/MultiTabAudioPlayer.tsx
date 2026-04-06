@@ -222,7 +222,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     return '';
   }, [selectedGuideId, mainGuide]);
 
-  if (loading) {
+  if (loading && mainSections.length === 0) {
     return <AudioGuideLoader variant="inline" message={t('loading', languageCode)} />;
   }
 
