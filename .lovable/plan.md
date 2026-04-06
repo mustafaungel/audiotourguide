@@ -1,35 +1,58 @@
 
 
-## Plan: Dil Değişikliğinde Ses Dosyasının Güncellenmemesi
+## Plan: Linked Guide'ların Dil Değişikliğini Takip Etmemesi
 
-### Kök Sorun
+### Sorun
 
-`MultiTabAudioPlayer` içindeki `NewSectionAudioPlayer` bileşeninde **React key** dile bağlı değil. Dil değiştiğinde:
+`MultiTabAudioPlayer.tsx` satır 65-67'de, `languageCode` prop'u değiştiğinde sadece **main guide** için `languageByGuide` güncelleniyor:
 
-1. `sections` prop'u yeni dildeki bölümlerle güncelleniyor ✓
-2. `lang` prop'u güncelleniyor ✓
-3. **AMA** `NewSectionAudioPlayer` aynı component instance'ı kullanmaya devam ediyor
-4. `audioRef.current` eski dildeki ses dosyasını çalmaya devam ediyor
-5. `resolvedUrlsRef` güncellense de, zaten çalan `audioRef.current.src` değişmiyor
+```tsx
+useEffect(() => {
+  setLanguageByGuide(prev => ({ ...prev, [mainGuide.id]: languageCode }));
+}, [languageCode, mainGuide.id]);
+```
 
-Karşılaştırma: `EnhancedAudioPlayer` bunu doğru yapıyor — `key={guide.id}-${selectedLanguage}-${sections.map(s => s.id).join('-')}` kullanarak dil değiştiğinde component'ı tamamen yeniden oluşturuyor.
+Linked guide'lar bu güncellemeye dahil edilmiyor. Kullanıcı Çince seçtiğinde:
+- Main guide → `languageByGuide[mainGuide.id]` = `'zh'` ✓
+- Goreme Open Air Museum → `languageByGuide[guideId]` = `undefined` → fallback `languageCode` prop'u kullanılıyor
+
+**AMA** `ensureGuideSections` fonksiyonunda (satır 112):
+```tsx
+if (!overrideLanguage && sectionsByGuide[guideId]?.length > 0) return;
+```
+Linked guide daha önce İngilizce ile yüklenmiş ve cache'lenmiş — bu kontrol yüzünden yeni dilde tekrar yükleme yapılmıyor.
+
+DB'de tüm linked guide'ların Çince bölümleri mevcut (Goreme: 10, Pasabag: 7, Kaymakli: 14).
 
 ### Çözüm — `src/components/MultiTabAudioPlayer.tsx`
 
-`NewSectionAudioPlayer`'a dil ve section ID'lerini içeren `key` prop'u ekle. Bu sayede dil değiştiğinde React component'ı unmount edip yeniden mount eder, eski ses durur ve yeni dildeki bölümler yüklenir.
+**1. `languageCode` prop'u değiştiğinde tüm guide'ların dilini güncelle**
 
-**3 yerde değişiklik:**
+Satır 65-67'deki useEffect'i genişlet:
 
-1. **Satır 220-225** — Linked guide yokken render edilen player:
 ```tsx
-<NewSectionAudioPlayer
-  key={`${mainGuide.id}-${languageByGuide[mainGuide.id] || languageCode}-${mainSections.map(s=>s.id).join(',')}`}
-  guideId={mainGuide.id}
-  ...
-/>
+useEffect(() => {
+  setLanguageByGuide(prev => {
+    const updated: Record<string, string> = { [mainGuide.id]: languageCode };
+    linkedGuides.forEach(g => { updated[g.guide_id] = languageCode; });
+    return { ...prev, ...updated };
+  });
+  // Linked guide section'larını yeni dilde yeniden yükle
+  linkedGuides.forEach(g => {
+    ensureGuideSections(g.guide_id, languageCode);
+  });
+}, [languageCode, mainGuide.id]);
 ```
 
-2. **Satır 293-299** — BottomSheet içindeki player:
-```tsx
-<NewSectionAudioPlayer
-  key={`${selectedGuideId}-${languageByGuide[selectedGuideId] || languageCode}-${getSheetSections().map(s=>s.id).
+Bu sayede:
+- Tüm guide'ların dili aynı anda güncellenir
+- Cache bypass edilir (`overrideLanguage` parametresi ile)
+- BottomSheet açıldığında doğru dildeki bölümler zaten yüklenmiş olur
+
+### Yayınlamadan Test Etme Hakkında
+
+Lovable'da frontend değişiklikleri ancak "Publish > Update" butonuna tıklayınca canlıya çıkar. Preview URL'si (`id-preview--*.lovable.app`) ile test edebilirsiniz ama bu URL'ye erişim için Lovable hesabı gerekiyor. Herkese açık geçici link oluşturmak için **Share > Share preview** kullanılabilir (7 gün geçerli). Backend değişiklikleri (edge functions, migration'lar) ise otomatik olarak hemen deploy edilir.
+
+### Etkilenen Dosya
+- `src/components/MultiTabAudioPlayer.tsx` — 1 useEffect değişikliği (~8 satır)
+
