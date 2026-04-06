@@ -455,20 +455,29 @@ export const AdminGuideOrderManager = ({ onCreateNew }: { onCreateNew?: () => vo
   return (
     <TooltipProvider delayDuration={300}>
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <h3 className="text-lg font-semibold">Guide Sıralaması</h3>
-          <Button
-            onClick={handleSave}
-            disabled={!hasChanges || saving}
-            size="sm"
-          >
-            {saving ? (
-              <Loader2 className="h-4 w-4 animate-spin mr-1" />
-            ) : (
-              <Save className="h-4 w-4 mr-1" />
+          <div className="flex items-center gap-2">
+            {onCreateNew && (
+              <Button onClick={onCreateNew} size="sm" variant="default">
+                <Plus className="h-4 w-4 mr-1" />
+                Yeni Guide
+              </Button>
             )}
-            Kaydet
-          </Button>
+            <Button
+              onClick={handleSave}
+              disabled={!hasChanges || saving}
+              size="sm"
+              variant="outline"
+            >
+              {saving ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-1" />
+              ) : (
+                <Save className="h-4 w-4 mr-1" />
+              )}
+              Kaydet
+            </Button>
+          </div>
         </div>
 
         <DndContext
