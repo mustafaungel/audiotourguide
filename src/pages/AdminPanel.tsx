@@ -490,7 +490,7 @@ const AdminPanel = () => {
                       <CardContent className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div className="space-y-2">
-                            <Label className="text-green-700 font-medium">QR Code</Label>
+                            <Label className="text-green-700 dark:text-green-300 font-medium">QR Code</Label>
                             <div className="flex justify-center">
                               <img src={qrCodeUrl} alt="QR Code for guide" className="border rounded-lg shadow-sm" />
                             </div>
