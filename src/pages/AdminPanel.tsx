@@ -395,7 +395,7 @@ const AdminPanel = () => {
         <AdminMobileNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="hidden md:grid grid-cols-10 w-full max-w-6xl gap-1">
+          <TabsList className="hidden md:grid grid-cols-9 w-full max-w-6xl gap-1">
             <TabsTrigger value="dashboard" className="flex items-center gap-2 text-sm">
               <FileText className="h-4 w-4" />
               <span>Dashboard</span>
@@ -419,10 +419,6 @@ const AdminPanel = () => {
             <TabsTrigger value="review-management" className="flex items-center gap-2 text-sm">
               <Star className="h-4 w-4" />
               <span>Reviews</span>
-            </TabsTrigger>
-            <TabsTrigger value="create-guide" className="flex items-center gap-2 text-sm">
-              <Plus className="h-4 w-4" />
-              <span>Create</span>
             </TabsTrigger>
             <TabsTrigger value="edit-guide" className="flex items-center gap-2 text-sm" data-tab="edit-guide">
               <Edit2 className="h-4 w-4" />
