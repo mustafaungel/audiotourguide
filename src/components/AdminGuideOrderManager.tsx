@@ -20,7 +20,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { GripVertical, Save, Loader2, Pencil, ExternalLink, Eye, EyeOff } from 'lucide-react';
+import { GripVertical, Save, Loader2, Pencil, ExternalLink, Eye, EyeOff, Link2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { getLanguageFlag, getLanguageName } from '@/lib/language-utils';
@@ -36,6 +36,16 @@ interface GuideItem {
   display_order: number;
   languages: string[];
   slug: string;
+  master_access_code: string | null;
+}
+
+interface LinkedGuideInfo {
+  guide_id: string;
+  custom_title?: string;
+}
+
+interface CollectionMap {
+  [mainGuideId: string]: LinkedGuideInfo[];
 }
 
 const SortableGuideRow = ({
@@ -43,11 +53,15 @@ const SortableGuideRow = ({
   index,
   onTogglePublish,
   togglingId,
+  linkedGuides,
+  guideTitles,
 }: {
   guide: GuideItem;
   index: number;
   onTogglePublish: (id: string, current: boolean) => void;
   togglingId: string | null;
+  linkedGuides: LinkedGuideInfo[];
+  guideTitles: Record<string, string>;
 }) => {
   const {
     attributes,
@@ -73,7 +87,11 @@ const SortableGuideRow = ({
   };
 
   const handlePreview = () => {
-    window.open(`/guide/${guide.slug}`, '_blank');
+    if (guide.master_access_code) {
+      window.open(`/access/${guide.id}?access_code=${guide.master_access_code}`, '_blank');
+    } else {
+      toast.error('Bu guide için erişim kodu yok');
+    }
   };
 
   return (
@@ -120,6 +138,26 @@ const SortableGuideRow = ({
         ))}
       </div>
 
+      {/* Linked guides badge */}
+      {linkedGuides.length > 0 && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge variant="outline" className="shrink-0 text-[10px] px-1.5 py-0 gap-0.5 cursor-default">
+              <Link2 className="h-3 w-3" />
+              {linkedGuides.length}
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs max-w-[200px]">
+            <p className="font-medium mb-1">Bağlı guide'lar:</p>
+            {linkedGuides.map((lg, i) => (
+              <p key={i} className="text-muted-foreground">
+                • {lg.custom_title || guideTitles[lg.guide_id] || lg.guide_id.slice(0, 8)}
+              </p>
+            ))}
+          </TooltipContent>
+        </Tooltip>
+      )}
+
       <Badge
         variant={isLive ? 'default' : isPending ? 'outline' : 'secondary'}
         className="shrink-0 text-[10px] px-1.5 py-0"
@@ -157,7 +195,7 @@ const SortableGuideRow = ({
               <ExternalLink className="h-3.5 w-3.5" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="top" className="text-xs">Önizle</TooltipContent>
+          <TooltipContent side="top" className="text-xs">Önizle (Audio Access)</TooltipContent>
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
@@ -195,6 +233,8 @@ export const AdminGuideOrderManager = () => {
   const [saving, setSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [collections, setCollections] = useState<CollectionMap>({});
+  const [guideTitles, setGuideTitles] = useState<Record<string, string>>({});
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -204,13 +244,14 @@ export const AdminGuideOrderManager = () => {
 
   useEffect(() => {
     fetchGuides();
+    fetchCollections();
   }, []);
 
   const fetchGuides = async () => {
     try {
       const { data, error } = await supabase
         .from('audio_guides')
-        .select('id, title, location, is_published, is_approved, price_usd, display_order, languages, slug')
+        .select('id, title, location, is_published, is_approved, price_usd, display_order, languages, slug, master_access_code')
         .eq('is_standalone', true)
         .order('display_order', { ascending: true })
         .order('created_at', { ascending: false });
@@ -227,11 +268,37 @@ export const AdminGuideOrderManager = () => {
       }
 
       setGuides(data || []);
+
+      // Build title lookup for linked guides
+      const titleMap: Record<string, string> = {};
+      (data || []).forEach(g => { titleMap[g.id] = g.title; });
+      setGuideTitles(titleMap);
     } catch (error) {
       console.error('Error fetching guides:', error);
       toast.error('Guide listesi yüklenemedi');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCollections = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('guide_collections')
+        .select('main_guide_id, linked_guides');
+
+      if (error) throw error;
+
+      const map: CollectionMap = {};
+      (data || []).forEach(col => {
+        const linked = Array.isArray(col.linked_guides) ? col.linked_guides as LinkedGuideInfo[] : [];
+        if (linked.length > 0) {
+          map[col.main_guide_id] = linked;
+        }
+      });
+      setCollections(map);
+    } catch (error) {
+      console.error('Error fetching collections:', error);
     }
   };
 
@@ -260,7 +327,6 @@ export const AdminGuideOrderManager = () => {
       const failed = results.filter((r) => r.error);
       if (failed.length > 0) throw failed[0].error;
 
-      // Invalidate frontend cache so Guides page picks up new order
       localStorage.removeItem('guides_list_cache');
 
       setHasChanges(false);
@@ -339,6 +405,8 @@ export const AdminGuideOrderManager = () => {
                   index={index}
                   onTogglePublish={handleTogglePublish}
                   togglingId={togglingId}
+                  linkedGuides={collections[guide.id] || []}
+                  guideTitles={guideTitles}
                 />
               ))}
             </div>
