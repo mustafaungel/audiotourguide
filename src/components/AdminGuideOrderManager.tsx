@@ -291,7 +291,7 @@ export const AdminGuideOrderManager = () => {
 
       const map: CollectionMap = {};
       (data || []).forEach(col => {
-        const linked = Array.isArray(col.linked_guides) ? col.linked_guides as LinkedGuideInfo[] : [];
+        const linked = Array.isArray(col.linked_guides) ? (col.linked_guides as unknown as LinkedGuideInfo[]) : [];
         if (linked.length > 0) {
           map[col.main_guide_id] = linked;
         }
