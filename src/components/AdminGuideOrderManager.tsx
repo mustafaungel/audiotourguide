@@ -73,7 +73,7 @@ const SortableGuideRow = ({
   };
 
   const handlePreview = () => {
-    window.open(`/guides/${guide.slug}`, '_blank');
+    window.open(`/guide/${guide.slug}`, '_blank');
   };
 
   return (
