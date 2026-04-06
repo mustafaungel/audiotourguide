@@ -401,7 +401,7 @@ export const AdminGuideEditForm = ({ onBack, guideId: propGuideId, onClose }: Ad
         </Card>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className={`grid gap-6 ${propGuideId ? '' : 'lg:grid-cols-2'}`}>
         <Card>
           <CardHeader>
             <CardTitle>Guide Information</CardTitle>
