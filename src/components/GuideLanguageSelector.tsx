@@ -126,7 +126,7 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
 
         return (
           <div
-            className="grid grid-cols-2 gap-2 overflow-hidden transition-[max-height] duration-300 ease-in-out"
+            className="grid grid-cols-2 gap-2 overflow-hidden"
             style={{ maxHeight: `${maxH}px` }}
           >
             {displayLanguages.map((language) => {
