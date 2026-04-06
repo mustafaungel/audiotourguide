@@ -30,6 +30,7 @@ import { AdminContactManagement } from '@/components/AdminContactManagement';
 import { EnhancedEmailTesting } from '@/components/EnhancedEmailTesting';
 import { AdminAnalyticsManager } from '@/components/AdminAnalyticsManager';
 import { EnhancedLogoUploader } from '@/components/EnhancedLogoUploader';
+import { AdminGuideOrderManager } from '@/components/AdminGuideOrderManager';
 
 import { ImageUploader } from '@/components/ImageUploader';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -433,6 +434,8 @@ const AdminPanel = () => {
           <TabsContent value="content-management">
             <div className="space-y-6">
               <h2 className="text-xl sm:text-2xl font-bold">Content Management</h2>
+              <AdminGuideOrderManager />
+              <Separator />
               <GuideManagement />
             </div>
           </TabsContent>

@@ -1,0 +1,1 @@
+ALTER TABLE public.audio_guides ADD COLUMN display_order integer NOT NULL DEFAULT 0;
