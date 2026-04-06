@@ -26,56 +26,39 @@ const Index = () => {
   const navigate = useNavigate();
   const [selectedGuide, setSelectedGuide] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [guides, setGuides] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [userPurchases, setUserPurchases] = useState<string[]>([]);
   const [processingPayment, setProcessingPayment] = useState<string | null>(null);
-  const {
-    user
-  } = useAuth();
-  const {
-    toast
-  } = useToast();
-  useEffect(() => {
-    fetchGuides();
-    if (user) {
-      fetchUserPurchases();
-    }
-  }, [user]);
-  const fetchGuides = async () => {
-    try {
-      const {
-        data,
-        error
-      } = await supabase.from('audio_guides').select('*').eq('is_published', true).eq('is_approved', true).eq('is_standalone', true).order('display_order', {
-        ascending: true
-      });
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  const { data: guides = [], isLoading: loading } = useQuery({
+    queryKey: ['homepage-guides'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('audio_guides')
+        .select('id, title, slug, description, duration, location, rating, category, price_usd, difficulty, image_urls, image_url, total_purchases, display_order, is_featured')
+        .eq('is_published', true)
+        .eq('is_approved', true)
+        .eq('is_standalone', true)
+        .order('display_order', { ascending: true });
       if (error) throw error;
-      setGuides(data || []);
-    } catch (error) {
-      console.error('Error fetching guides:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load guides",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-  const fetchUserPurchases = async () => {
-    if (!user) return;
-    try {
-      const {
-        data,
-        error
-      } = await supabase.from('user_purchases').select('guide_id').eq('user_id', user.id);
+      return data || [];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: userPurchases = [] } = useQuery({
+    queryKey: ['user-purchases', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('user_purchases')
+        .select('guide_id')
+        .eq('user_id', user!.id);
       if (error) throw error;
-      setUserPurchases(data?.map(p => p.guide_id) || []);
-    } catch (error) {
-      console.error('Error fetching purchases:', error);
-    }
-  };
+      return data?.map(p => p.guide_id) || [];
+    },
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+  });
   const handlePurchaseGuide = async (guideId: string) => {
     if (!user) {
       toast({
