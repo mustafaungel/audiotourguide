@@ -101,9 +101,9 @@ export const StripeDebugPanel: React.FC = () => {
   };
 
   return (
-    <Card className="w-full max-w-md mb-4 border-blue-200 bg-blue-50/50">
+    <Card className="w-full max-w-md mb-4 border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20">
       <CardHeader className="pb-3">
-        <CardTitle className="text-sm flex items-center gap-2 text-blue-700">
+        <CardTitle className="text-sm flex items-center gap-2 text-blue-700 dark:text-blue-300">
           <Bug className="w-4 h-4" />
           Stripe Debug Panel
           <Badge variant="secondary" className="text-xs">DEBUG</Badge>
