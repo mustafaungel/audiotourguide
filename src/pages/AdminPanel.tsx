@@ -26,9 +26,8 @@ import { AdminMobileNavigation } from '@/components/AdminMobileNavigation';
 import { CountrySelector } from '@/components/CountrySelector';
 import { AudioGuideSectionManager } from '@/components/AudioGuideSectionManager';
 import { AdminGuideEditForm } from '@/components/AdminGuideEditForm';
-import { AdminContactManagement } from '@/components/AdminContactManagement';
-import { EnhancedEmailTesting } from '@/components/EnhancedEmailTesting';
-import { AdminAnalyticsManager } from '@/components/AdminAnalyticsManager';
+
+import { AdminGuideOrderManager } from '@/components/AdminGuideOrderManager';
 import { AdminGuideOrderManager } from '@/components/AdminGuideOrderManager';
 import AdminPreviewTab from '@/components/AdminPreviewTab';
 
