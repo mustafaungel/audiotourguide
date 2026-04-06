@@ -18,6 +18,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { supabase } from '@/integrations/supabase/client';
+import { buildAccessUrl, getBaseUrl } from '@/lib/url-utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { GripVertical, Save, Loader2, Pencil, ExternalLink, Eye, EyeOff, Link2, ChevronDown, Copy, Globe } from 'lucide-react';
@@ -96,9 +97,9 @@ const SortableGuideRow = ({
   };
 
   const accessLink = guide.master_access_code
-    ? `${window.location.origin}/access/${guide.id}?access_code=${guide.master_access_code}`
+    ? buildAccessUrl(guide.id, guide.master_access_code, 'public')
     : null;
-  const detailLink = `${window.location.origin}/guide/${guide.slug}`;
+  const detailLink = `${getBaseUrl()}/guide/${guide.slug}`;
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
