@@ -297,48 +297,50 @@ export const AdminGuideOrderManager = () => {
   }
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Guide Sıralaması</h3>
-        <Button
-          onClick={handleSave}
-          disabled={!hasChanges || saving}
-          size="sm"
+    <TooltipProvider delayDuration={300}>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">Guide Sıralaması</h3>
+          <Button
+            onClick={handleSave}
+            disabled={!hasChanges || saving}
+            size="sm"
+          >
+            {saving ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-1" />
+            ) : (
+              <Save className="h-4 w-4 mr-1" />
+            )}
+            Kaydet
+          </Button>
+        </div>
+
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
         >
-          {saving ? (
-            <Loader2 className="h-4 w-4 animate-spin mr-1" />
-          ) : (
-            <Save className="h-4 w-4 mr-1" />
-          )}
-          Kaydet
-        </Button>
+          <SortableContext items={guides.map((g) => g.id)} strategy={verticalListSortingStrategy}>
+            <div className="space-y-1">
+              {guides.map((guide, index) => (
+                <SortableGuideRow
+                  key={guide.id}
+                  guide={guide}
+                  index={index}
+                  onTogglePublish={handleTogglePublish}
+                  togglingId={togglingId}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
+
+        {guides.length === 0 && (
+          <p className="text-center text-sm text-muted-foreground py-8">
+            Henüz guide eklenmemiş
+          </p>
+        )}
       </div>
-
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-      >
-        <SortableContext items={guides.map((g) => g.id)} strategy={verticalListSortingStrategy}>
-          <div className="space-y-1">
-            {guides.map((guide, index) => (
-              <SortableGuideRow
-                key={guide.id}
-                guide={guide}
-                index={index}
-                onTogglePublish={handleTogglePublish}
-                togglingId={togglingId}
-              />
-            ))}
-          </div>
-        </SortableContext>
-      </DndContext>
-
-      {guides.length === 0 && (
-        <p className="text-center text-sm text-muted-foreground py-8">
-          Henüz guide eklenmemiş
-        </p>
-      )}
-    </div>
+    </TooltipProvider>
   );
 };
