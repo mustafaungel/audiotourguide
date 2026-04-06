@@ -115,14 +115,12 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
         )}
       </div>
       {(() => {
-        const selectedIndex = displayLanguages.findIndex(l => l.language_code === selectedLanguage);
         const rowHeight = 52;
         const gap = 8;
         const totalRows = Math.ceil(displayLanguages.length / 2);
         const maxH = collapsed
           ? rowHeight
           : totalRows * rowHeight + (totalRows - 1) * gap;
-        const selectedCol = collapsed ? (Math.max(selectedIndex, 0) % 2) + 1 : undefined;
 
         return (
           <div
@@ -136,14 +134,14 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
                 <button
                   key={language.language_code}
                   onClick={() => handleLanguageSelect(language.language_code)}
-                  style={isSelected && collapsed ? { gridColumn: selectedCol } : undefined}
                   className={cn(
                     "inline-flex items-center justify-center gap-2 px-3 rounded-xl text-sm font-medium",
                     "border active:scale-[0.97]",
-                    "transition-all duration-300 ease-in-out",
+                    "transition-[opacity,transform] duration-200 ease-out",
                     isSelected
                       ? "bg-primary/15 border-primary text-primary shadow-md ring-2 ring-primary/30 min-h-[44px] opacity-100 scale-100"
                       : "bg-card border-border text-foreground hover:bg-muted min-h-[44px] opacity-100 scale-100",
+                    isSelected && collapsed && "col-span-2",
                     isHidden && "opacity-0 scale-90 max-h-0 min-h-0 py-0 my-0 border-0 overflow-hidden pointer-events-none"
                   )}
                 >
