@@ -750,7 +750,7 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
             </p>
           </div>
           
-          <Accordion type="multiple" defaultValue={languages} className="space-y-2">
+          <Accordion type="multiple" defaultValue={[]} className="space-y-2">
             {languages.map((language) => {
               const languageSections = groupedSections[language].sort(
                 (a, b) => a.order_index - b.order_index

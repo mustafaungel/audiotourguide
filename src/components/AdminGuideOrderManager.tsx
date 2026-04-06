@@ -135,7 +135,7 @@ const SortableGuideRow = ({
           <ChevronDown className={cn("h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform duration-200", expanded && "rotate-180")} />
         </button>
 
-        <span className="text-xs text-muted-foreground truncate hidden sm:block max-w-[100px]">
+        <span className="text-xs text-muted-foreground truncate hidden sm:block max-w-[180px]">
           {guide.location}
         </span>
 
