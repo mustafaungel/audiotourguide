@@ -469,7 +469,7 @@ export const PaymentFlowTestPanel: React.FC = () => {
             <Separator />
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <h4 className="text-xs font-medium text-purple-700">Test Results</h4>
+                <h4 className="text-xs font-medium text-purple-700 dark:text-purple-300">Test Results</h4>
                 <Button
                   size="sm"
                   variant="ghost"
