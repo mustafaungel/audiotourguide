@@ -676,6 +676,48 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
                     )}
                   </div>
                 )}
+              </CollapsibleContent>
+            </Collapsible>
+
+            <Button
+              onClick={updateGuide}
+              disabled={loading}
+              className="w-full"
+              size="lg"
+            >
+              {loading ? (
+                <ButtonLoader text="Updating Guide..." />
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  Update Guide
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Guide Sections</CardTitle>
+            <CardDescription>Manage audio sections and content</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {sectionsLoading ? (
+              <AudioGuideLoader variant="inline" message="Loading sections..." />
+            ) : (
+              <AudioGuideSectionManager
+                sections={sections}
+                onSectionsChange={handleSectionsChange}
+                guideId={guide.id}
+                guideTitle={formData.title}
+                location={formData.location}
+                category={formData.category}
+              />
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
