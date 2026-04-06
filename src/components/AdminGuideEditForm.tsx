@@ -390,7 +390,7 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
             <CardDescription>Update basic guide details</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {/* Section 1: Temel Bilgiler (default open) */}
+            {/* Section 1: Basic Info (default open) */}
             <Collapsible defaultOpen>
               <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border px-4 py-2 font-medium text-sm hover:bg-muted transition-colors [&[data-state=open]>svg]:rotate-180">
                 Basic Info
