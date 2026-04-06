@@ -133,38 +133,57 @@ const SortableGuideRow = ({
 
       {/* Action buttons */}
       <div className="flex items-center gap-0.5 shrink-0">
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          className="h-7 w-7"
-          onClick={handleEdit}
-          title="Edit guide"
-        >
-          <Pencil className="h-3.5 w-3.5" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          className="h-7 w-7"
-          onClick={handlePreview}
-          title="Preview guide"
-        >
-          <ExternalLink className="h-3.5 w-3.5" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          className="h-7 w-7"
-          onClick={() => onTogglePublish(guide.id, guide.is_published)}
-          disabled={togglingId === guide.id}
-          title={guide.is_published ? 'Unpublish' : 'Publish'}
-        >
-          {guide.is_published ? (
-            <EyeOff className="h-3.5 w-3.5" />
-          ) : (
-            <Eye className="h-3.5 w-3.5" />
-          )}
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="h-7 w-7 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950"
+              onClick={handleEdit}
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs">Düzenle</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="h-7 w-7"
+              onClick={handlePreview}
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs">Önizle</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className={cn(
+                "h-7 w-7",
+                guide.is_published
+                  ? "text-orange-500 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950"
+                  : "text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950"
+              )}
+              onClick={() => onTogglePublish(guide.id, guide.is_published)}
+              disabled={togglingId === guide.id}
+            >
+              {guide.is_published ? (
+                <EyeOff className="h-3.5 w-3.5" />
+              ) : (
+                <Eye className="h-3.5 w-3.5" />
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs">
+            {guide.is_published ? 'Gizle' : 'Yayınla'}
+          </TooltipContent>
+        </Tooltip>
       </div>
     </div>
   );

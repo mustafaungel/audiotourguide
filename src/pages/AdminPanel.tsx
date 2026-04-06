@@ -435,8 +435,6 @@ const AdminPanel = () => {
             <div className="space-y-6">
               <h2 className="text-xl sm:text-2xl font-bold">Content Management</h2>
               <AdminGuideOrderManager />
-              <Separator />
-              <GuideManagement />
             </div>
           </TabsContent>
 
