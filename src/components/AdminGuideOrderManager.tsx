@@ -21,7 +21,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { buildAccessUrl, getBaseUrl } from '@/lib/url-utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { GripVertical, Save, Loader2, Pencil, ExternalLink, Eye, EyeOff, Link2, ChevronDown, Copy, Globe, Plus } from 'lucide-react';
+import { GripVertical, Save, Loader2, Pencil, ExternalLink, Eye, EyeOff, Link2, ChevronDown, Copy, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { getLanguageFlag, getLanguageName } from '@/lib/language-utils';
@@ -53,6 +53,7 @@ const SortableGuideRow = ({
   guide,
   index,
   onTogglePublish,
+  onEdit,
   togglingId,
   linkedGuides,
   guideTitles,
@@ -60,6 +61,7 @@ const SortableGuideRow = ({
   guide: GuideItem;
   index: number;
   onTogglePublish: (id: string, current: boolean) => void;
+  onEdit: (id: string) => void;
   togglingId: string | null;
   linkedGuides: LinkedGuideInfo[];
   guideTitles: Record<string, string>;
@@ -82,17 +84,11 @@ const SortableGuideRow = ({
   const isLive = guide.is_published && guide.is_approved;
   const isPending = guide.is_published && !guide.is_approved;
 
-  const handleEdit = () => {
-    window.dispatchEvent(
-      new CustomEvent('admin-edit-guide', { detail: { guideId: guide.id } })
-    );
-  };
-
   const handlePreview = () => {
     if (guide.master_access_code) {
       window.open(`/access/${guide.id}?access_code=${guide.master_access_code}`, '_blank');
     } else {
-      toast.error('Bu guide için erişim kodu yok');
+      toast.error('No access code for this guide');
     }
   };
 
@@ -103,7 +99,7 @@ const SortableGuideRow = ({
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
-    toast.success(`${label} kopyalandı`);
+    toast.success(`${label} copied`);
   };
 
   return (
@@ -129,7 +125,6 @@ const SortableGuideRow = ({
           {index + 1}
         </span>
 
-        {/* Clickable area to expand */}
         <button
           className="flex items-center gap-2 flex-1 min-w-0 text-left"
           onClick={() => setExpanded(!expanded)}
@@ -144,7 +139,6 @@ const SortableGuideRow = ({
           {guide.location}
         </span>
 
-        {/* Language flags */}
         <div className="hidden md:flex items-center gap-0.5 shrink-0">
           {guide.languages.map((lang) => (
             <Tooltip key={lang}>
@@ -158,7 +152,6 @@ const SortableGuideRow = ({
           ))}
         </div>
 
-        {/* Linked guides badge */}
         {linkedGuides.length > 0 && (
           <Badge variant="outline" className="shrink-0 text-[10px] px-1.5 py-0 gap-0.5 cursor-default">
             <Link2 className="h-3 w-3" />
@@ -177,7 +170,6 @@ const SortableGuideRow = ({
           ${(guide.price_usd / 100).toFixed(2)}
         </span>
 
-        {/* Action buttons */}
         <div className="flex items-center gap-0.5 shrink-0">
           <Tooltip>
             <TooltipTrigger asChild>
@@ -185,12 +177,12 @@ const SortableGuideRow = ({
                 variant="ghost"
                 size="icon-sm"
                 className="h-7 w-7 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950"
-                onClick={handleEdit}
+                onClick={() => onEdit(guide.id)}
               >
                 <Pencil className="h-3.5 w-3.5" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="top" className="text-xs">Düzenle</TooltipContent>
+            <TooltipContent side="top" className="text-xs">Edit</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -203,7 +195,7 @@ const SortableGuideRow = ({
                 <ExternalLink className="h-3.5 w-3.5" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="top" className="text-xs">Önizle (Audio Access)</TooltipContent>
+            <TooltipContent side="top" className="text-xs">Preview (Audio Access)</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -227,16 +219,14 @@ const SortableGuideRow = ({
               </Button>
             </TooltipTrigger>
             <TooltipContent side="top" className="text-xs">
-              {guide.is_published ? 'Gizle' : 'Yayınla'}
+              {guide.is_published ? 'Hide' : 'Publish'}
             </TooltipContent>
           </Tooltip>
         </div>
       </div>
 
-      {/* Expanded detail panel */}
       {expanded && (
         <div className="px-3 pb-3 pt-1 border-t border-border/50 space-y-2 text-xs">
-          {/* Languages */}
           <div className="flex items-start gap-2">
             <span className="text-muted-foreground shrink-0">📋 Languages:</span>
             <div className="flex flex-wrap gap-1.5">
@@ -249,34 +239,31 @@ const SortableGuideRow = ({
             </div>
           </div>
 
-          {/* Linked guides */}
           <div className="flex items-start gap-2">
-            <span className="text-muted-foreground shrink-0">🔗 Bağlı:</span>
+            <span className="text-muted-foreground shrink-0">🔗 Linked:</span>
             <div className="flex flex-wrap gap-1.5">
               {linkedGuides.length > 0 ? linkedGuides.map((lg, i) => (
                 <span key={i} className="inline-flex items-center gap-1 bg-muted/50 rounded px-1.5 py-0.5">
                   {lg.custom_title || guideTitles[lg.guide_id] || lg.guide_id.slice(0, 8)}
                 </span>
-              )) : <span className="text-muted-foreground">Bağlı guide yok</span>}
+              )) : <span className="text-muted-foreground">No linked guides</span>}
             </div>
           </div>
 
-          {/* Access link */}
           {accessLink && (
             <div className="flex items-center gap-2">
-              <span className="text-muted-foreground shrink-0">🔑 Erişim:</span>
+              <span className="text-muted-foreground shrink-0">🔑 Access:</span>
               <code className="text-[11px] bg-muted/50 rounded px-1.5 py-0.5 truncate flex-1 min-w-0">{accessLink}</code>
-              <Button variant="ghost" size="sm" className="h-6 px-2 shrink-0" onClick={() => copyToClipboard(accessLink, 'Erişim linki')}>
+              <Button variant="ghost" size="sm" className="h-6 px-2 shrink-0" onClick={() => copyToClipboard(accessLink, 'Access link')}>
                 <Copy className="h-3 w-3" />
               </Button>
             </div>
           )}
 
-          {/* Detail page link */}
           <div className="flex items-center gap-2">
-            <span className="text-muted-foreground shrink-0">🌐 Detay:</span>
+            <span className="text-muted-foreground shrink-0">🌐 Detail:</span>
             <code className="text-[11px] bg-muted/50 rounded px-1.5 py-0.5 truncate flex-1 min-w-0">{detailLink}</code>
-            <Button variant="ghost" size="sm" className="h-6 px-2 shrink-0" onClick={() => copyToClipboard(detailLink, 'Detay linki')}>
+            <Button variant="ghost" size="sm" className="h-6 px-2 shrink-0" onClick={() => copyToClipboard(detailLink, 'Detail link')}>
               <Copy className="h-3 w-3" />
             </Button>
           </div>
@@ -286,7 +273,7 @@ const SortableGuideRow = ({
   );
 };
 
-export const AdminGuideOrderManager = ({ onCreateNew }: { onCreateNew?: () => void }) => {
+export const AdminGuideOrderManager = ({ onCreateNew, onEdit }: { onCreateNew?: () => void; onEdit?: (guideId: string) => void }) => {
   const [guides, setGuides] = useState<GuideItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -317,7 +304,6 @@ export const AdminGuideOrderManager = ({ onCreateNew }: { onCreateNew?: () => vo
 
       if (error) throw error;
 
-      // If all display_order values are 0, assign initial ordering
       if (data && data.length > 1 && data.every(g => g.display_order === 0)) {
         const updates = data.map((g, i) =>
           supabase.from('audio_guides').update({ display_order: i }).eq('id', g.id)
@@ -326,7 +312,6 @@ export const AdminGuideOrderManager = ({ onCreateNew }: { onCreateNew?: () => vo
         data.forEach((g, i) => { g.display_order = i; });
       }
 
-      // Fetch real languages from guide_sections
       const guideIds = (data || []).map(g => g.id);
       if (guideIds.length > 0) {
         const { data: sectionLangs } = await supabase
@@ -350,13 +335,12 @@ export const AdminGuideOrderManager = ({ onCreateNew }: { onCreateNew?: () => vo
 
       setGuides(data || []);
 
-      // Build title lookup for linked guides
       const titleMap: Record<string, string> = {};
       (data || []).forEach(g => { titleMap[g.id] = g.title; });
       setGuideTitles(titleMap);
     } catch (error) {
       console.error('Error fetching guides:', error);
-      toast.error('Guide listesi yüklenemedi');
+      toast.error('Failed to load guide list');
     } finally {
       setLoading(false);
     }
@@ -408,12 +392,11 @@ export const AdminGuideOrderManager = ({ onCreateNew }: { onCreateNew?: () => vo
       const failed = results.filter((r) => r.error);
       if (failed.length > 0) throw failed[0].error;
 
-
       setHasChanges(false);
-      toast.success('Sıralama kaydedildi');
+      toast.success('Order saved');
     } catch (error) {
       console.error('Error saving order:', error);
-      toast.error('Sıralama kaydedilemedi');
+      toast.error('Failed to save order');
     } finally {
       setSaving(false);
     }
@@ -435,12 +418,18 @@ export const AdminGuideOrderManager = ({ onCreateNew }: { onCreateNew?: () => vo
         )
       );
       
-      toast.success(currentPublished ? 'Guide gizlendi' : 'Guide yayınlandı');
+      toast.success(currentPublished ? 'Guide hidden' : 'Guide published');
     } catch (error) {
       console.error('Error toggling publish:', error);
-      toast.error('Durum güncellenemedi');
+      toast.error('Failed to update status');
     } finally {
       setTogglingId(null);
+    }
+  };
+
+  const handleEdit = (guideId: string) => {
+    if (onEdit) {
+      onEdit(guideId);
     }
   };
 
@@ -456,12 +445,12 @@ export const AdminGuideOrderManager = ({ onCreateNew }: { onCreateNew?: () => vo
     <TooltipProvider delayDuration={300}>
       <div className="space-y-3">
         <div className="flex items-center justify-between gap-2">
-          <h3 className="text-lg font-semibold">Guide Sıralaması</h3>
+          <h3 className="text-lg font-semibold">Guide Order</h3>
           <div className="flex items-center gap-2">
             {onCreateNew && (
               <Button onClick={onCreateNew} size="sm" variant="default">
                 <Plus className="h-4 w-4 mr-1" />
-                Yeni Guide
+                New Guide
               </Button>
             )}
             <Button
@@ -475,7 +464,7 @@ export const AdminGuideOrderManager = ({ onCreateNew }: { onCreateNew?: () => vo
               ) : (
                 <Save className="h-4 w-4 mr-1" />
               )}
-              Kaydet
+              Save
             </Button>
           </div>
         </div>
@@ -493,6 +482,7 @@ export const AdminGuideOrderManager = ({ onCreateNew }: { onCreateNew?: () => vo
                   guide={guide}
                   index={index}
                   onTogglePublish={handleTogglePublish}
+                  onEdit={handleEdit}
                   togglingId={togglingId}
                   linkedGuides={collections[guide.id] || []}
                   guideTitles={guideTitles}
@@ -504,7 +494,7 @@ export const AdminGuideOrderManager = ({ onCreateNew }: { onCreateNew?: () => vo
 
         {guides.length === 0 && (
           <p className="text-center text-sm text-muted-foreground py-8">
-            Henüz guide eklenmemiş
+            No guides yet
           </p>
         )}
       </div>

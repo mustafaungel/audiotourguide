@@ -1,7 +1,6 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BarChart3, FileText, Edit2, Mail, Star, Eye } from 'lucide-react';
+import { BarChart3, FileText, Mail, Star, Eye } from 'lucide-react';
 
 interface AdminMobileNavigationProps {
   activeTab: string;
@@ -15,7 +14,6 @@ const adminTabs = [
   { value: 'email-test', label: 'Email System', icon: Mail },
   { value: 'analytics', label: 'Analytics', icon: BarChart3 },
   { value: 'review-management', label: 'Review Management', icon: Star },
-  { value: 'edit-guide', label: 'Edit Guide', icon: Edit2 },
   { value: 'preview', label: 'Preview', icon: Eye },
 ];
 
