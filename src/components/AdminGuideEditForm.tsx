@@ -401,7 +401,7 @@ export const AdminGuideEditForm = ({ onBack, guideId: propGuideId, onClose }: Ad
         </Card>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className={`grid gap-6 ${propGuideId ? '' : 'lg:grid-cols-2'}`}>
         <Card>
           <CardHeader>
             <CardTitle>Guide Information</CardTitle>
@@ -461,7 +461,7 @@ export const AdminGuideEditForm = ({ onBack, guideId: propGuideId, onClose }: Ad
             </Collapsible>
 
             {/* Section 2: Description & Featured */}
-            <Collapsible>
+            <Collapsible defaultOpen={false}>
               <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border px-4 py-2 font-medium text-sm hover:bg-muted transition-colors [&[data-state=open]>svg]:rotate-180">
                 Description & Featured
                 <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
@@ -482,7 +482,7 @@ export const AdminGuideEditForm = ({ onBack, guideId: propGuideId, onClose }: Ad
             </Collapsible>
 
             {/* Section 3: URL & Slug */}
-            <Collapsible>
+            <Collapsible defaultOpen={false}>
               <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border px-4 py-2 font-medium text-sm hover:bg-muted transition-colors [&[data-state=open]>svg]:rotate-180">
                 URL & Slug
                 <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
@@ -521,7 +521,7 @@ export const AdminGuideEditForm = ({ onBack, guideId: propGuideId, onClose }: Ad
             </Collapsible>
 
             {/* Section 4: Images */}
-            <Collapsible>
+            <Collapsible defaultOpen={false}>
               <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border px-4 py-2 font-medium text-sm hover:bg-muted transition-colors [&[data-state=open]>svg]:rotate-180">
                 Images
                 <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
@@ -532,7 +532,7 @@ export const AdminGuideEditForm = ({ onBack, guideId: propGuideId, onClose }: Ad
             </Collapsible>
 
             {/* Section 5: Linked Guides */}
-            <Collapsible>
+            <Collapsible defaultOpen={false}>
               <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border px-4 py-2 font-medium text-sm hover:bg-muted transition-colors [&[data-state=open]>svg]:rotate-180">
                 Linked Guides
                 <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
@@ -543,7 +543,7 @@ export const AdminGuideEditForm = ({ onBack, guideId: propGuideId, onClose }: Ad
             </Collapsible>
 
             {/* Section 6: QR Code & Sharing */}
-            <Collapsible>
+            <Collapsible defaultOpen={false}>
               <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border px-4 py-2 font-medium text-sm hover:bg-muted transition-colors [&[data-state=open]>svg]:rotate-180">
                 QR Code & Sharing
                 <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />

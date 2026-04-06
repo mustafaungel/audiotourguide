@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-import { BookOpen, DollarSign, TrendingUp, ChevronDown, QrCode } from 'lucide-react';
+import { BookOpen, DollarSign, TrendingUp, ChevronDown, QrCode, Mail, BarChart3, Star, Eye } from 'lucide-react';
 import { AdminQRCodeDropdown } from './AdminQRCodeDropdown';
+import { AdminContactManagement } from './AdminContactManagement';
+import { EnhancedEmailTesting } from './EnhancedEmailTesting';
+import { AdminAnalyticsManager } from './AdminAnalyticsManager';
+import { AdminReviewManagement } from './AdminReviewManagement';
+import AdminPreviewTab from './AdminPreviewTab';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 
@@ -27,12 +32,10 @@ export const AdminDashboard = () => {
 
   const fetchDashboardStats = async () => {
     try {
-      // Get guide stats
       const { data: guides } = await supabase
         .from('audio_guides')
         .select('*');
 
-      // Get revenue data
       const { data: purchases } = await supabase
         .from('user_purchases')
         .select('price_paid, purchase_date');
@@ -48,7 +51,7 @@ export const AdminDashboard = () => {
 
       setStats({
         totalGuides: guides?.length || 0,
-        totalRevenue: totalRevenue / 100, // Convert from cents
+        totalRevenue: totalRevenue / 100,
         monthlyRevenue: monthlyRevenue / 100
       });
     } catch (error) {
@@ -61,6 +64,15 @@ export const AdminDashboard = () => {
   if (loading) {
     return <div className="p-8 text-center">Loading dashboard...</div>;
   }
+
+  const collapsibleSections = [
+    { key: 'qr', icon: QrCode, label: 'QR Code Management', component: <AdminQRCodeDropdown /> },
+    { key: 'contact', icon: Mail, label: 'Contact Management', component: <AdminContactManagement /> },
+    { key: 'email', icon: Mail, label: 'Email System', component: <EnhancedEmailTesting /> },
+    { key: 'analytics', icon: BarChart3, label: 'Analytics', component: <AdminAnalyticsManager /> },
+    { key: 'reviews', icon: Star, label: 'Review Management', component: <AdminReviewManagement /> },
+    { key: 'preview', icon: Eye, label: 'Preview', component: <AdminPreviewTab /> },
+  ];
 
   return (
     <div className="space-y-6">
@@ -104,26 +116,30 @@ export const AdminDashboard = () => {
         </Card>
       </div>
 
-      {/* QR Code Management Dropdown */}
-      <Card>
-        <Collapsible>
-          <CollapsibleTrigger asChild>
-            <Button 
-              variant="ghost" 
-              className="w-full justify-between p-4 hover:bg-muted/50 h-auto"
-            >
-              <div className="flex items-center gap-2">
-                <QrCode className="h-5 w-5" />
-                <span className="font-semibold">QR Code Management</span>
-              </div>
-              <ChevronDown className="h-4 w-4 transition-transform duration-200" />
-            </Button>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="px-4 pb-4">
-            <AdminQRCodeDropdown />
-          </CollapsibleContent>
-        </Collapsible>
-      </Card>
+      {/* Collapsible Management Sections */}
+      <div className="space-y-3">
+        {collapsibleSections.map((section) => (
+          <Card key={section.key}>
+            <Collapsible>
+              <CollapsibleTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-between p-4 hover:bg-muted/50 h-auto"
+                >
+                  <div className="flex items-center gap-2">
+                    <section.icon className="h-5 w-5" />
+                    <span className="font-semibold">{section.label}</span>
+                  </div>
+                  <ChevronDown className="h-4 w-4 transition-transform duration-200" />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="px-4 pb-4">
+                {section.component}
+              </CollapsibleContent>
+            </Collapsible>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 };

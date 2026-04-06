@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AdminReviewManagement } from '@/components/AdminReviewManagement';
+
 
 import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
@@ -8,12 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Star } from 'lucide-react';
+import { Star, FileText, Plus, ImageIcon, Copy, QrCode, Mail, BarChart3, Eye } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
-import { FileText, Plus, ImageIcon, Copy, QrCode, Mail, BarChart3, Eye } from 'lucide-react';
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ButtonLoader } from '@/components/AudioGuideLoader';
 import { useAuth } from '@/contexts/AuthContext';
@@ -26,11 +26,9 @@ import { AdminMobileNavigation } from '@/components/AdminMobileNavigation';
 import { CountrySelector } from '@/components/CountrySelector';
 import { AudioGuideSectionManager } from '@/components/AudioGuideSectionManager';
 import { AdminGuideEditForm } from '@/components/AdminGuideEditForm';
-import { AdminContactManagement } from '@/components/AdminContactManagement';
-import { EnhancedEmailTesting } from '@/components/EnhancedEmailTesting';
-import { AdminAnalyticsManager } from '@/components/AdminAnalyticsManager';
+
 import { AdminGuideOrderManager } from '@/components/AdminGuideOrderManager';
-import AdminPreviewTab from '@/components/AdminPreviewTab';
+
 
 import { ImageUploader } from '@/components/ImageUploader';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -343,34 +341,14 @@ const AdminPanel = () => {
         <AdminMobileNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="hidden md:grid grid-cols-7 w-full max-w-5xl gap-1">
+          <TabsList className="hidden md:grid grid-cols-2 w-full max-w-md gap-1">
             <TabsTrigger value="dashboard" className="flex items-center gap-2 text-sm">
-              <FileText className="h-4 w-4" />
+              <BarChart3 className="h-4 w-4" />
               <span>Dashboard</span>
             </TabsTrigger>
             <TabsTrigger value="content-management" className="flex items-center gap-2 text-sm">
               <FileText className="h-4 w-4" />
               <span>Content</span>
-            </TabsTrigger>
-            <TabsTrigger value="contact-management" className="flex items-center gap-2 text-sm">
-              <Mail className="h-4 w-4" />
-              <span>Contact</span>
-            </TabsTrigger>
-            <TabsTrigger value="email-test" className="flex items-center gap-2 text-sm">
-              <Mail className="h-4 w-4" />
-              <span>Email</span>
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2 text-sm">
-              <BarChart3 className="h-4 w-4" />
-              <span>Analytics</span>
-            </TabsTrigger>
-            <TabsTrigger value="review-management" className="flex items-center gap-2 text-sm">
-              <Star className="h-4 w-4" />
-              <span>Reviews</span>
-            </TabsTrigger>
-            <TabsTrigger value="preview" className="flex items-center gap-2 text-sm">
-              <Eye className="h-4 w-4" />
-              <span>Preview</span>
             </TabsTrigger>
           </TabsList>
 
@@ -388,28 +366,6 @@ const AdminPanel = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="contact-management">
-            <AdminContactManagement />
-          </TabsContent>
-
-          <TabsContent value="email-test">
-            <EnhancedEmailTesting />
-          </TabsContent>
-
-          <TabsContent value="review-management">
-            <div className="space-y-6">
-              <h2 className="text-xl sm:text-2xl font-bold">Review Management</h2>
-              <AdminReviewManagement />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="analytics">
-            <AdminAnalyticsManager />
-          </TabsContent>
-
-          <TabsContent value="preview">
-            <AdminPreviewTab />
-          </TabsContent>
 
         </Tabs>
       </div>
