@@ -67,15 +67,17 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
       setCollapsed(false);
       return;
     }
-    const isInMultiTab = !!activeGuideId;
-    if (isInMultiTab) {
-      window.dispatchEvent(new CustomEvent('changeGuideLanguage', {
-        detail: { guideId: activeGuideId, languageCode }
-      }));
-    } else {
-      onLanguageChange(languageCode);
-    }
     setCollapsed(true);
+    requestAnimationFrame(() => {
+      const isInMultiTab = !!activeGuideId;
+      if (isInMultiTab) {
+        window.dispatchEvent(new CustomEvent('changeGuideLanguage', {
+          detail: { guideId: activeGuideId, languageCode }
+        }));
+      } else {
+        onLanguageChange(languageCode);
+      }
+    });
   };
 
   const displayLanguages = availableLanguages.length > 0 ? availableLanguages : lastLanguagesRef.current;
