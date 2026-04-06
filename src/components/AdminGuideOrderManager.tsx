@@ -353,7 +353,7 @@ export const AdminGuideOrderManager = () => {
           g.id === guideId ? { ...g, is_published: !currentPublished } : g
         )
       );
-      localStorage.removeItem('guides_list_cache');
+      
       toast.success(currentPublished ? 'Guide gizlendi' : 'Guide yayınlandı');
     } catch (error) {
       console.error('Error toggling publish:', error);
