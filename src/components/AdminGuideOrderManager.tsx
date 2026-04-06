@@ -153,6 +153,12 @@ const SortableGuideRow = ({
           ))}
         </div>
 
+        {!guide.is_standalone && (
+          <Badge variant="outline" className="shrink-0 text-[10px] px-1.5 py-0 gap-0.5 cursor-default text-violet-600 border-violet-300 dark:text-violet-400 dark:border-violet-700">
+            Linked
+          </Badge>
+        )}
+
         {linkedGuides.length > 0 && (
           <Badge variant="outline" className="shrink-0 text-[10px] px-1.5 py-0 gap-0.5 cursor-default">
             <Link2 className="h-3 w-3" />
