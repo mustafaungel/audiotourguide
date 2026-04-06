@@ -494,7 +494,7 @@ const AdminPanel = () => {
                             <div className="flex justify-center">
                               <img src={qrCodeUrl} alt="QR Code for guide" className="border rounded-lg shadow-sm" />
                             </div>
-                            <p className="text-sm text-green-600 text-center">Scan to access your guide</p>
+                            <p className="text-sm text-green-600 dark:text-green-400 text-center">Scan to access your guide</p>
                           </div>
                           <div className="space-y-4">
                             <div className="space-y-2">
