@@ -736,9 +736,6 @@ const AdminPanel = () => {
             <AdminGuideEditForm onBack={() => setActiveTab('content-management')} />
           </TabsContent>
 
-          <TabsContent value="language-management">
-            <AdminLanguageManagement />
-          </TabsContent>
 
         </Tabs>
       </div>
