@@ -15,10 +15,10 @@ export const StripeTestHelper: React.FC = () => {
       </CardHeader>
       <CardContent className="pt-0 space-y-3">
         <div className="flex items-start gap-2">
-          <AlertCircle className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
-          <div className="text-xs text-orange-700">
+          <AlertCircle className="w-4 h-4 text-orange-600 dark:text-orange-400 mt-0.5 flex-shrink-0" />
+          <div className="text-xs text-orange-700 dark:text-orange-300">
             <p className="font-medium mb-1">Use test card for testing:</p>
-            <div className="font-mono bg-white/60 p-2 rounded border">
+            <div className="font-mono bg-card/60 p-2 rounded border">
               <div>Card: 4242 4242 4242 4242</div>
               <div>Expiry: Any future date</div>
               <div>CVC: Any 3 digits</div>
