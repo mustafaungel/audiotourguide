@@ -6,7 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Save, ArrowLeft, QrCode, ExternalLink, Copy, Link2, Edit3 } from 'lucide-react';
+import { Save, ArrowLeft, QrCode, ExternalLink, Copy, Link2, Edit3, ChevronDown } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ButtonLoader, AudioGuideLoader } from '@/components/AudioGuideLoader';
 import { Badge } from '@/components/ui/badge';
 import { ImageUploader } from './ImageUploader';
@@ -388,182 +389,208 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
             <CardTitle>Guide Information</CardTitle>
             <CardDescription>Update basic guide details</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-title">Title *</Label>
-              <Input
-                id="edit-title"
-                value={formData.title}
-                onChange={(e) => handleInputChange('title', e.target.value)}
-                placeholder="Enter guide title"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="edit-description">Description *</Label>
-              <Textarea
-                id="edit-description"
-                value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
-                placeholder="Enter guide description"
-                rows={4}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="edit-location">Location *</Label>
-              <Input
-                id="edit-location"
-                value={formData.location}
-                onChange={(e) => handleInputChange('location', e.target.value)}
-                placeholder="e.g., Paris, France"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="edit-category">Category *</Label>
-              <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cultural">Cultural</SelectItem>
-                  <SelectItem value="historical">Historical</SelectItem>
-                  <SelectItem value="nature">Nature</SelectItem>
-                  <SelectItem value="adventure">Adventure</SelectItem>
-                  <SelectItem value="food">Food & Drink</SelectItem>
-                  <SelectItem value="art">Art & Museums</SelectItem>
-                  <SelectItem value="architecture">Architecture</SelectItem>
-                  <SelectItem value="religious">Religious Sites</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="edit-price">Price (USD) *</Label>
-              <Input
-                id="edit-price"
-                type="number"
-                step="0.01"
-                min="0.50"
-                value={formData.price_usd}
-                onChange={(e) => {
-                  const value = parseFloat(e.target.value) || 0;
-                  if (value > 0 && value < 0.50) {
-                    toast.error('Price must be at least $0.50 due to Stripe requirements');
-                  }
-                  handleInputChange('price_usd', value);
-                }}
-                placeholder="0.50"
-                className={formData.price_usd > 0 && formData.price_usd < 0.50 ? 'border-red-500' : ''}
-              />
-              <p className="text-xs text-muted-foreground">
-                Minimum price: $0.50 (Stripe requirement)
-              </p>
-              {formData.price_usd > 0 && formData.price_usd < 0.50 && (
-                <p className="text-xs text-red-500">
-                  Price below $0.50 will cause payment failures
-                </p>
-              )}
-            </div>
-
-            {/* Featured Toggle */}
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="featured"
-                  checked={formData.is_featured}
-                  onCheckedChange={(checked) => handleInputChange('is_featured', checked)}
-                />
-                <Label htmlFor="featured" className="font-medium">
-                  Featured Guide
-                </Label>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Featured guides appear prominently on the homepage and get more visibility.
-              </p>
-            </div>
-
-            {/* URL Slug Management */}
-            <div className="space-y-3">
-              <Label className="flex items-center gap-2">
-                <Link2 className="h-4 w-4" />
-                URL Slug
-              </Label>
-              
-              {!editingSlug ? (
+          <CardContent className="space-y-3">
+            {/* Section 1: Temel Bilgiler (default open) */}
+            <Collapsible defaultOpen>
+              <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border px-4 py-2 font-medium text-sm hover:bg-muted transition-colors [&[data-state=open]>svg]:rotate-180">
+                Temel Bilgiler
+                <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pt-3 space-y-4">
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
-                    <span className="text-sm text-muted-foreground">audiotourguide.app/guide/</span>
-                    <span className="text-sm font-mono text-foreground">
-                      {guide.slug || slugPreview || 'auto-generated'}
-                    </span>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleSlugEdit(true)}
-                    >
-                      <Edit3 className="w-4 h-4 mr-1" />
-                      Edit Slug
-                    </Button>
-                    {!guide.slug && (
-                      <span className="text-xs text-muted-foreground self-center">
-                        Auto-generated from title and location
-                      </span>
-                    )}
-                  </div>
+                  <Label htmlFor="edit-title">Title *</Label>
+                  <Input
+                    id="edit-title"
+                    value={formData.title}
+                    onChange={(e) => handleInputChange('title', e.target.value)}
+                    placeholder="Enter guide title"
+                  />
                 </div>
-              ) : (
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground whitespace-nowrap">
-                      audiotourguide.app/guide/
-                    </span>
-                    <Input
-                      value={customSlug}
-                      onChange={(e) => handleSlugChange(e.target.value)}
-                      placeholder="enter-custom-slug"
-                      className={`font-mono ${slugError ? 'border-red-500' : ''}`}
-                    />
-                  </div>
-                  {slugError && (
-                    <p className="text-red-500 text-sm">{slugError}</p>
+                  <Label htmlFor="edit-location">Location *</Label>
+                  <Input
+                    id="edit-location"
+                    value={formData.location}
+                    onChange={(e) => handleInputChange('location', e.target.value)}
+                    placeholder="e.g., Paris, France"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-category">Category *</Label>
+                  <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cultural">Cultural</SelectItem>
+                      <SelectItem value="historical">Historical</SelectItem>
+                      <SelectItem value="nature">Nature</SelectItem>
+                      <SelectItem value="adventure">Adventure</SelectItem>
+                      <SelectItem value="food">Food & Drink</SelectItem>
+                      <SelectItem value="art">Art & Museums</SelectItem>
+                      <SelectItem value="architecture">Architecture</SelectItem>
+                      <SelectItem value="religious">Religious Sites</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-price">Price (USD) *</Label>
+                  <Input
+                    id="edit-price"
+                    type="number"
+                    step="0.01"
+                    min="0.50"
+                    value={formData.price_usd}
+                    onChange={(e) => {
+                      const value = parseFloat(e.target.value) || 0;
+                      if (value > 0 && value < 0.50) {
+                        toast.error('Price must be at least $0.50 due to Stripe requirements');
+                      }
+                      handleInputChange('price_usd', value);
+                    }}
+                    placeholder="0.50"
+                    className={formData.price_usd > 0 && formData.price_usd < 0.50 ? 'border-destructive' : ''}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Minimum price: $0.50 (Stripe requirement)
+                  </p>
+                  {formData.price_usd > 0 && formData.price_usd < 0.50 && (
+                    <p className="text-xs text-destructive">
+                      Price below $0.50 will cause payment failures
+                    </p>
                   )}
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant="default"
-                      size="sm"
-                      onClick={saveSlug}
-                      disabled={!!slugError || !customSlug}
-                    >
-                      Save Slug
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleSlugEdit(false)}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
                 </div>
-              )}
-            </div>
+              </CollapsibleContent>
+            </Collapsible>
 
-            {/* Image Management */}
-            <div className="space-y-2">
-              <Label>Guide Images</Label>
-              <ImageUploader
-                onImagesUploaded={(urls) => handleInputChange('image_urls', urls)}
-                currentImages={formData.image_urls}
-                maxImages={5}
-              />
-            </div>
+            {/* Section 2: Açıklama & Öne Çıkarma (default closed) */}
+            <Collapsible>
+              <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border px-4 py-2 font-medium text-sm hover:bg-muted transition-colors [&[data-state=open]>svg]:rotate-180">
+                Açıklama & Öne Çıkarma
+                <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pt-3 space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-description">Description *</Label>
+                  <Textarea
+                    id="edit-description"
+                    value={formData.description}
+                    onChange={(e) => handleInputChange('description', e.target.value)}
+                    placeholder="Enter guide description"
+                    rows={4}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="featured"
+                      checked={formData.is_featured}
+                      onCheckedChange={(checked) => handleInputChange('is_featured', checked)}
+                    />
+                    <Label htmlFor="featured" className="font-medium">
+                      Featured Guide
+                    </Label>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Featured guides appear prominently on the homepage and get more visibility.
+                  </p>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+
+            {/* Section 3: URL & Slug (default closed) */}
+            <Collapsible>
+              <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border px-4 py-2 font-medium text-sm hover:bg-muted transition-colors [&[data-state=open]>svg]:rotate-180">
+                URL & Slug
+                <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pt-3">
+                <div className="space-y-3">
+                  <Label className="flex items-center gap-2">
+                    <Link2 className="h-4 w-4" />
+                    URL Slug
+                  </Label>
+                  
+                  {!editingSlug ? (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+                        <span className="text-sm text-muted-foreground">audiotourguide.app/guide/</span>
+                        <span className="text-sm font-mono text-foreground">
+                          {guide.slug || slugPreview || 'auto-generated'}
+                        </span>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleSlugEdit(true)}
+                        >
+                          <Edit3 className="w-4 h-4 mr-1" />
+                          Edit Slug
+                        </Button>
+                        {!guide.slug && (
+                          <span className="text-xs text-muted-foreground self-center">
+                            Auto-generated from title and location
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground whitespace-nowrap">
+                          audiotourguide.app/guide/
+                        </span>
+                        <Input
+                          value={customSlug}
+                          onChange={(e) => handleSlugChange(e.target.value)}
+                          placeholder="enter-custom-slug"
+                          className={`font-mono ${slugError ? 'border-destructive' : ''}`}
+                        />
+                      </div>
+                      {slugError && (
+                        <p className="text-destructive text-sm">{slugError}</p>
+                      )}
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="default"
+                          size="sm"
+                          onClick={saveSlug}
+                          disabled={!!slugError || !customSlug}
+                        >
+                          Save Slug
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleSlugEdit(false)}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+
+            {/* Section 4: Görseller (default closed) */}
+            <Collapsible>
+              <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border px-4 py-2 font-medium text-sm hover:bg-muted transition-colors [&[data-state=open]>svg]:rotate-180">
+                Görseller
+                <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pt-3">
+                <ImageUploader
+                  onImagesUploaded={(urls) => handleInputChange('image_urls', urls)}
+                  currentImages={formData.image_urls}
+                  maxImages={5}
+                />
+              </CollapsibleContent>
+            </Collapsible>
 
             <Button
               onClick={updateGuide}
@@ -612,81 +639,88 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
       </div>
 
       {/* QR Code and Share Management */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <QrCode className="w-5 h-5" />
-            QR Code & Sharing
-          </CardTitle>
-          <CardDescription>
-            Generate QR codes and manage sharing options for this guide
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-wrap gap-2">
-            <Button 
-              variant="outline" 
-              onClick={generateQRCode}
-              disabled={generatingQR}
-            >
-              {generatingQR ? (
-                <ButtonLoader />
-              ) : (
-                <QrCode className="w-4 h-4 mr-2" />
-              )}
-              {guide.qr_code_url ? 'Regenerate QR Code' : 'Generate QR Code'}
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={openGuidePreview}
-            >
-              <ExternalLink className="w-4 h-4 mr-2" />
-              Preview Guide
-            </Button>
-          </div>
-
-          {(guide.qr_code_url || guide.share_url) && (
-            <div className="grid gap-4 md:grid-cols-2">
-              {guide.qr_code_url && (
-                <div className="space-y-2">
-                  <Label>QR Code</Label>
-                  <div className="text-center p-4 bg-white rounded-lg border-2 border-border">
-                    <img 
-                      src={guide.qr_code_url} 
-                      alt="QR Code for guide"
-                      className="w-32 h-32 mx-auto"
-                    />
-                  </div>
-                  <p className="text-sm text-muted-foreground text-center">
-                    Users can scan this to access the guide
-                  </p>
-                </div>
-              )}
-              
-              {guide.share_url && (
-                <div className="space-y-2">
-                  <Label>Share Link</Label>
-                  <div className="flex gap-2">
-                    <div className="flex-1 p-2 bg-muted rounded-md text-sm font-mono truncate">
-                      {guide.share_url}
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => copyToClipboard(guide.share_url!, 'Share link')}
-                    >
-                      <Copy className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Direct link to the guide page
-                  </p>
-                </div>
-              )}
+      <Collapsible>
+        <Card>
+          <CollapsibleTrigger className="flex w-full items-center justify-between p-6 [&[data-state=open]>svg]:rotate-180">
+            <div className="text-left">
+              <div className="flex items-center gap-2 font-semibold leading-none tracking-tight">
+                <QrCode className="w-5 h-5" />
+                QR Code & Sharing
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                Generate QR codes and manage sharing options for this guide
+              </p>
             </div>
-          )}
-        </CardContent>
-      </Card>
+            <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="space-y-4 pt-0">
+              <div className="flex flex-wrap gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={generateQRCode}
+                  disabled={generatingQR}
+                >
+                  {generatingQR ? (
+                    <ButtonLoader />
+                  ) : (
+                    <QrCode className="w-4 h-4 mr-2" />
+                  )}
+                  {guide.qr_code_url ? 'Regenerate QR Code' : 'Generate QR Code'}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={openGuidePreview}
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Preview Guide
+                </Button>
+              </div>
+
+              {(guide.qr_code_url || guide.share_url) && (
+                <div className="grid gap-4 md:grid-cols-2">
+                  {guide.qr_code_url && (
+                    <div className="space-y-2">
+                      <Label>QR Code</Label>
+                      <div className="text-center p-4 bg-background rounded-lg border-2 border-border">
+                        <img 
+                          src={guide.qr_code_url} 
+                          alt="QR Code for guide"
+                          className="w-32 h-32 mx-auto"
+                        />
+                      </div>
+                      <p className="text-sm text-muted-foreground text-center">
+                        Users can scan this to access the guide
+                      </p>
+                    </div>
+                  )}
+                  
+                  {guide.share_url && (
+                    <div className="space-y-2">
+                      <Label>Share Link</Label>
+                      <div className="flex gap-2">
+                        <div className="flex-1 p-2 bg-muted rounded-md text-sm font-mono truncate">
+                          {guide.share_url}
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => copyToClipboard(guide.share_url!, 'Share link')}
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Direct link to the guide page
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
     </div>
   );
 };
