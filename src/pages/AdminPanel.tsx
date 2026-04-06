@@ -426,10 +426,6 @@ const AdminPanel = () => {
               <Edit2 className="h-4 w-4" />
               <span>Edit</span>
             </TabsTrigger>
-            <TabsTrigger value="language-management" className="flex items-center gap-2 text-sm">
-              <Languages className="h-4 w-4" />
-              <span>Languages</span>
-            </TabsTrigger>
             <TabsTrigger value="preview" className="flex items-center gap-2 text-sm" onClick={() => navigate('/admin/preview')}>
               <Eye className="h-4 w-4" />
               <span>Preview</span>
