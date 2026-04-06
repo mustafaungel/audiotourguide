@@ -67,15 +67,17 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
       setCollapsed(false);
       return;
     }
-    const isInMultiTab = !!activeGuideId;
-    if (isInMultiTab) {
-      window.dispatchEvent(new CustomEvent('changeGuideLanguage', {
-        detail: { guideId: activeGuideId, languageCode }
-      }));
-    } else {
-      onLanguageChange(languageCode);
-    }
     setCollapsed(true);
+    requestAnimationFrame(() => {
+      const isInMultiTab = !!activeGuideId;
+      if (isInMultiTab) {
+        window.dispatchEvent(new CustomEvent('changeGuideLanguage', {
+          detail: { guideId: activeGuideId, languageCode }
+        }));
+      } else {
+        onLanguageChange(languageCode);
+      }
+    });
   };
 
   const displayLanguages = availableLanguages.length > 0 ? availableLanguages : lastLanguagesRef.current;
@@ -124,7 +126,7 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
 
         return (
           <div
-            className="grid grid-cols-2 gap-2 overflow-hidden transition-[max-height] duration-300 ease-in-out"
+            className="grid grid-cols-2 gap-2 overflow-hidden"
             style={{ maxHeight: `${maxH}px` }}
           >
             {displayLanguages.map((language) => {
