@@ -5,9 +5,9 @@ import { CreditCard, AlertCircle } from 'lucide-react';
 
 export const StripeTestHelper: React.FC = () => {
   return (
-    <Card className="w-full max-w-md mb-4 border-orange-200 bg-orange-50/50">
+    <Card className="w-full max-w-md mb-4 border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-950/20">
       <CardHeader className="pb-3">
-        <CardTitle className="text-sm flex items-center gap-2 text-orange-700">
+        <CardTitle className="text-sm flex items-center gap-2 text-orange-700 dark:text-orange-300">
           <CreditCard className="w-4 h-4" />
           Test Mode Active
           <Badge variant="secondary" className="text-xs">DEMO</Badge>
