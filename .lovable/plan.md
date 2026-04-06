@@ -1,56 +1,53 @@
 
 
-## Plan: Fix Edit Dialog Collapsibles + Consolidate Dashboard Tabs
+## Plan: iOS-Style Admin Panel + Performance Optimization
 
-### Issue 1: Edit Dialog — All Collapsibles Open
-When opening the edit popup, all Collapsible sections (Basic Info, Description, URL & Slug, Images, Linked Guides, QR Code) have `defaultOpen` or no `defaultOpen` attribute — they all render expanded, making the dialog cluttered. Additionally, the two-column grid layout (`lg:grid-cols-2`) doesn't work well inside a dialog.
+### Part 1: iOS-Style Segment Controls for Admin Panel
 
-**Fix in `src/components/AdminGuideEditForm.tsx`:**
-- Set only "Basic Info" as `defaultOpen={true}`, ensure all others have `defaultOpen={false}` (explicit)
-- When rendered inside a dialog (detected via `propGuideId` being set), use a single-column layout instead of `lg:grid-cols-2`
-- Hide the guide selector card and back button when `propGuideId` is provided (already done, just verify)
-
-### Issue 2: Dashboard — Consolidate Tabs as Collapsible Dropdowns
-Move Contact, Email, Analytics, Reviews, and Preview into collapsible sections within the Dashboard tab. This reduces the tab bar from 7 items to 2 (Dashboard + Content).
+Replace the current `TabsList` with an iOS-style segmented control — a rounded pill container with sliding indicator animation.
 
 **Changes in `src/pages/AdminPanel.tsx`:**
-1. Remove `TabsTrigger` entries for: contact-management, email-test, analytics, review-management, preview
-2. Remove their corresponding `TabsContent` blocks
-3. Update `TabsList` from `grid-cols-7` to `grid-cols-2`
-
-**Changes in `src/components/AdminDashboard.tsx`:**
-1. Import and render the 5 components (AdminContactManagement, EnhancedEmailTesting, AdminAnalyticsManager, AdminReviewManagement, AdminPreviewTab) as Collapsible sections, similar to the existing QR Code dropdown pattern
-2. Each section gets a Card with a Collapsible trigger showing icon + label
+- Replace `<TabsList>` with a custom segmented control component using two buttons (Dashboard / Content) inside a rounded-full container with `bg-muted` background
+- Add a sliding background indicator (`motion div` or CSS transition) that animates between the two segments
+- On mobile, keep the same segment control instead of the dropdown `<Select>` — it's only 2 items, fits naturally
 
 **Changes in `src/components/AdminMobileNavigation.tsx`:**
-1. Remove the 5 tab entries (contact-management, email-test, analytics, review-management, preview) — only keep dashboard and content-management
+- Simplify to render the same iOS-style segment control (shared component or inline) instead of `<Select>` dropdown — two segments fit perfectly on mobile
 
-### Result
+**New file `src/components/ui/segmented-control.tsx`:**
+- Reusable iOS-style segmented control with:
+  - Rounded-full container with `bg-muted` padding
+  - Active segment gets white/card background with subtle shadow and smooth `transition-all`
+  - Haptic feedback on segment change (using existing `haptics.selection()`)
+  - Icon + label support
+  - `min-h-touch` for proper iOS touch targets
 
-Tab bar:
-```text
-Dashboard | Content
-```
+### Part 2: Performance Optimization (All Pages)
 
-Dashboard page:
-```text
-Dashboard Overview
-[Stats cards: Total Guides, Revenue, Monthly Revenue]
+**A. Dashboard lazy-load collapsible content (`src/components/AdminDashboard.tsx`):**
+- Wrap each collapsible section's component in a lazy render — only mount the component when the section is first opened (use `useState` to track which sections have been opened)
+- This prevents 6 heavy components from mounting on dashboard load
 
-▸ QR Code Management
-▸ Contact Management
-▸ Email System
-▸ Analytics
-▸ Review Management
-▸ Preview
-```
+**B. Homepage query optimization (`src/pages/Index.tsx`):**
+- Change `select('*')` to `select('id, title, description, location, category, price_usd, image_urls, slug, is_featured, display_order, master_access_code')` — avoid fetching unnecessary columns (audio data, scripts, etc.)
+- Add `staleTime` and use React Query (`useQuery`) instead of raw `useState`+`useEffect` for automatic caching between navigations
+
+**C. Image optimization (`src/components/GuideCard.tsx` and `src/components/OptimizedImage.tsx`):**
+- Add `loading="lazy"` and `decoding="async"` to all guide card images
+- Add explicit `width`/`height` attributes to prevent layout shift
+
+**D. AdminDashboard stats query optimization (`src/components/AdminDashboard.tsx`):**
+- Change `select('*')` on audio_guides to `select('id')` — only need count
+- Change `select('price_paid, purchase_date')` — already optimized, keep as is
 
 ### Files affected
 
 | File | Change |
 |------|--------|
-| `src/components/AdminGuideEditForm.tsx` | Collapse all sections by default except Basic Info; single-column in dialog mode |
-| `src/components/AdminDashboard.tsx` | Add 5 collapsible sections for Contact, Email, Analytics, Reviews, Preview |
-| `src/pages/AdminPanel.tsx` | Remove 5 tabs, keep only Dashboard + Content, update grid |
-| `src/components/AdminMobileNavigation.tsx` | Remove 5 entries, keep dashboard + content-management |
+| `src/components/ui/segmented-control.tsx` | New — iOS-style segmented control component |
+| `src/pages/AdminPanel.tsx` | Replace TabsList with segmented control |
+| `src/components/AdminMobileNavigation.tsx` | Replace Select with segmented control |
+| `src/components/AdminDashboard.tsx` | Lazy-mount collapsibles, optimize stats query |
+| `src/pages/Index.tsx` | Optimize Supabase select columns, use React Query |
+| `src/components/GuideCard.tsx` | Add lazy loading/decoding to images |
 
