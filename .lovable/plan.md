@@ -1,88 +1,38 @@
 
-Amaç: Publish etmeden önce preview linkinde Audio Access akışını gerçekten test edebilmenizi sağlamak.
 
-Sorunun özeti:
-- Evet, yaşadığınız durum kodla tutarlı görünüyor.
-- Audio access’e giden bazı linkler preview origin’i yerine veritabanındaki `share_url` alanını kullanıyor.
-- Bu `share_url` ise edge function’larda özellikle canlı domain ile üretiliyor:
-  - `supabase/functions/create-guide/index.ts` → `shareUrl = ${baseUrl}/access/...`
-  - `supabase/functions/generate-qr-code/index.ts` → preview/sandbox olsa bile `https://audiotourguide.app` kullanıyor
-- Bu yüzden admin panelden veya kayıtlı paylaşım linklerinden açtığınızda, fark etmeden published site’a gidiyorsunuz.
-- Sonuç: preview’de test ettiğinizi sanarken aslında canlı sürümü görmüş oluyorsunuz.
+## Plan: Dil Seçici — Pozisyon ve Performans Düzeltmesi
 
-Kodda gördüğüm kritik tutarsızlıklar:
-1. Router gerçek route olarak bunu kullanıyor:
-   - `src/App.tsx` → `/access/:guideId`
-2. Ama bazı yerlerde hâlâ legacy link formatı var:
-   - `src/components/AdminQRCodeDropdown.tsx` → `/audio-access?code=...`
-3. Bazı preview butonları da direkt `guide.share_url` açıyor:
-   - `src/components/GuideManagement.tsx`
+### Sorunlar
 
-Bu yüzden neden publish etmeden test edemediğiniz net:
-- Preview UI açık olsa bile, “open/copy access link” aksiyonları sizi production domain’e taşıyor.
-- Publish ettikten sonra değişiklik görünmesinin sebebi de bu: artık açılan domain gerçekten güncel canlı sürüm oluyor.
+**1. Collapse pozisyon hatası (satır 125, 139)**
+Seçili dil sağ sütundaysa (örn. 中文, index=3 → gridColumn=2), collapse olduğunda sol sütun boş kalıyor, buton sağda tek başına asılı duruyor.
 
-Önerilen çözüm:
-1. Preview test ile paylaşım/canlı link mantığını ayırın
-- `share_url` ve QR linkleri canlı domain için kalabilir.
-- Ama admin içindeki “Preview/Open/Test access” butonları `window.location.origin` tabanlı local/preview URL üretmeli.
-- Yani test butonu veritabanındaki `share_url`’u açmamalı.
+**2. Kasma / jank (satır 140-148)**
+Her buton üzerinde `transition-all duration-300` var — opacity, scale, max-height, padding, margin, border hepsi birden animate ediliyor. Çok dilli rehberlerde (8+ dil) bu ciddi frame drop'a neden oluyor.
 
-2. Tek bir access URL helper oluşturun
-- Örn. `buildAccessUrl({ guideId, accessCode, baseUrl })`
-- İki mod:
-  - preview/test → `window.location.origin`
-  - public/share → production base URL
-- Böylece aynı projede biri test, biri canlı olmak üzere iki net kullanım olur.
+### Çözüm
 
-3. Legacy route kalıntılarını temizleyin
-- `/audio-access?code=...` yerine her yerde:
-  - `/access/:guideId?access_code=...`
-- Bu özellikle `AdminQRCodeDropdown.tsx` içinde düzeltilmeli.
+#### A. Collapse pozisyonu — `GuideLanguageSelector.tsx`
 
-4. Admin panelde iki ayrı aksiyon netleştirin
-- “Test in Preview”:
-  - her zaman `window.location.origin` ile açsın
-- “Copy Public Access Link”:
-  - veritabanındaki `share_url` veya production base URL kullansın
-- Böylece yanlış ortam açılması engellenir.
+Collapse modunda `gridColumn` zorlamasını kaldır, bunun yerine seçili butonu `col-span-2` (tam genişlik) yap. Böylece hangi sütunda olursa olsun ortalanmış, tutarlı görünür.
 
-5. GuideManagement preview davranışını düzeltin
-- Şu an `guide.share_url` varsa onu açıyor; bu test için yanlış.
-- Preview/Test açılışları production linki değil current origin’i kullanmalı.
-
-Önerilen uygulanacak dosyalar:
-- `src/components/GuideManagement.tsx`
-- `src/components/AdminQRCodeDropdown.tsx`
-- Gerekirse `src/lib/url-utils.ts`
-- İsteğe bağlı: access link üretimi yapan ortak helper dosyası
-
-Teknik yaklaşım:
-```text
-Test/Preview butonu:
-current origin + /access/:guideId?access_code=...
-
-Public share / QR:
-production base URL + /access/:guideId?access_code=...
+Satır 125'teki `selectedCol` hesabı kaldırılacak. Satır 139'daki `style` kaldırılacak. Yerine:
+```tsx
+className={cn(
+  // ... mevcut sınıflar
+  isSelected && collapsed && "col-span-2"
+)}
 ```
 
-Beklenen sonuç:
-- Publish etmeden önce preview linkinde Audio Access sayfalarını gerçekten test edebilirsiniz.
-- Mobilde Share Preview linkiyle de aynı preview sürüm test edilir.
-- Public QR/share linkleri ise canlı domain’e bağlı kalır.
+#### B. Performans — transition daraltma
 
-Ek not:
-- Siz “preview lovable linkinden test edeyim” dediğiniz kullanım için mevcut yapı uygun değil; çünkü mevcut admin aksiyonlarının bir kısmı test linki değil, canlı paylaşım linki açıyor.
-- Bu bir deploy problemi değil, link üretimi/origin seçimi problemi.
+`transition-all` yerine sadece `opacity` ve `transform` animate edilecek:
+```tsx
+"transition-[opacity,transform] duration-200 ease-out"
+```
 
-Doğrulama planı:
-1. Admin’den guide için “Test in Preview” aç
-2. URL’nin preview domain’de kaldığını kontrol et
-3. Audio Access’te dil değiştir
-4. Linked guide’ları mobilde açıp sesi doğrula
-5. Ayrı olarak “Copy Public Link” ile canlı domain üretildiğini doğrula
+Gizlenen butonlar için `max-h-0 min-h-0 py-0 my-0 border-0` gibi yardımcı class'lar `transition` kapsamından çıkarılacak — bunlar anında uygulanacak, sadece opacity/scale yumuşak geçiş yapacak.
 
-Benim önerim:
-- Public link mantığını koruyalım
-- Ama admin/test akışlarına ayrı “Preview/Test Access” URL üretimi ekleyelim
-- Böylece publish etmeden güvenli şekilde test edebilirsiniz
+### Etkilenen Dosya
+- `src/components/GuideLanguageSelector.tsx` — ~5 satır değişiklik
+
