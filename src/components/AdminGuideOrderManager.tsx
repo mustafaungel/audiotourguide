@@ -238,7 +238,7 @@ const SortableGuideRow = ({
         <div className="px-3 pb-3 pt-1 border-t border-border/50 space-y-2 text-xs">
           {/* Languages */}
           <div className="flex items-start gap-2">
-            <span className="text-muted-foreground shrink-0">📋 Diller:</span>
+            <span className="text-muted-foreground shrink-0">📋 Languages:</span>
             <div className="flex flex-wrap gap-1.5">
               {guide.languages.map((lang) => (
                 <span key={lang} className="inline-flex items-center gap-1 bg-muted/50 rounded px-1.5 py-0.5">
@@ -324,6 +324,28 @@ export const AdminGuideOrderManager = () => {
         );
         await Promise.all(updates);
         data.forEach((g, i) => { g.display_order = i; });
+      }
+
+      // Fetch real languages from guide_sections
+      const guideIds = (data || []).map(g => g.id);
+      if (guideIds.length > 0) {
+        const { data: sectionLangs } = await supabase
+          .from('guide_sections')
+          .select('guide_id, language_code')
+          .in('guide_id', guideIds);
+
+        if (sectionLangs && sectionLangs.length > 0) {
+          const langMap: Record<string, Set<string>> = {};
+          sectionLangs.forEach(s => {
+            if (!langMap[s.guide_id]) langMap[s.guide_id] = new Set();
+            langMap[s.guide_id].add(s.language_code);
+          });
+          data?.forEach(g => {
+            if (langMap[g.id]) {
+              g.languages = Array.from(langMap[g.id]);
+            }
+          });
+        }
       }
 
       setGuides(data || []);
