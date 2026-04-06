@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
-import { FileText, Plus, ImageIcon, Copy, QrCode, Mail, BarChart3, Eye } from 'lucide-react';
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ButtonLoader } from '@/components/AudioGuideLoader';
 import { useAuth } from '@/contexts/AuthContext';
