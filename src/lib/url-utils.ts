@@ -7,13 +7,29 @@
  */
 export function getBaseUrl(): string {
   if (typeof window !== 'undefined') {
-    // Always use production URL for external sharing and links
     return 'https://audiotourguide.app';
   }
-  
-  // This should only be used in browser environments
-  // Edge functions should use the SITE_URL environment variable
   throw new Error('getBaseUrl() should only be called in browser environments');
+}
+
+/**
+ * Gets the current origin (preview or production) for testing purposes
+ */
+export function getCurrentOrigin(): string {
+  return typeof window !== 'undefined' ? window.location.origin : getBaseUrl();
+}
+
+/**
+ * Builds an access URL for a guide
+ * @param mode 'preview' uses current origin, 'public' uses production domain
+ */
+export function buildAccessUrl(
+  guideId: string,
+  accessCode: string,
+  mode: 'preview' | 'public' = 'preview'
+): string {
+  const base = mode === 'preview' ? getCurrentOrigin() : getBaseUrl();
+  return `${base}/access/${guideId}?access_code=${accessCode}`;
 }
 
 /**

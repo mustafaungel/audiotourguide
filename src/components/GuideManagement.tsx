@@ -146,11 +146,12 @@ export const GuideManagement = () => {
   };
 
   const previewGuide = (guide: Guide) => {
-    // Use share_url if available for direct access, otherwise use public route
-    if (guide.share_url) {
-      window.open(guide.share_url, '_blank');
+    // Always use current origin for preview/test (not share_url which points to production)
+    const baseUrl = window.location.origin;
+    if ((guide as any).master_access_code) {
+      const url = buildAccessUrl(guide.id, (guide as any).master_access_code, 'preview');
+      window.open(url, '_blank');
     } else {
-      const baseUrl = window.location.origin;
       const previewUrl = guide.slug ? `${baseUrl}/guide/${guide.slug}` : `${baseUrl}/guide/${guide.id}`;
       window.open(previewUrl, '_blank');
     }

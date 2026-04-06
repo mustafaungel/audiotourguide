@@ -133,16 +133,15 @@ export function AdminQRCodeDropdown() {
               >
                 <ExternalLink className="h-3 w-3" />
               </Button>
-              {(guide.share_url || guide.master_access_code) && (
+              {guide.master_access_code && (
                 <Button 
                   size="sm" 
                   variant="ghost" 
                   onClick={() => {
-                    const url = guide.share_url || 
-                      `${window.location.origin}/audio-access?code=${guide.master_access_code}`;
+                    const url = buildAccessUrl(guide.id, guide.master_access_code!, 'public');
                     copyToClipboard(url);
                   }}
-                  title="Copy access URL"
+                  title="Copy public access URL"
                 >
                   <Copy className="h-3 w-3" />
                 </Button>
