@@ -6,7 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Save, ArrowLeft, QrCode, ExternalLink, Copy, Link2, Edit3 } from 'lucide-react';
+import { Save, ArrowLeft, QrCode, ExternalLink, Copy, Link2, Edit3, ChevronDown } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ButtonLoader, AudioGuideLoader } from '@/components/AudioGuideLoader';
 import { Badge } from '@/components/ui/badge';
 import { ImageUploader } from './ImageUploader';
