@@ -1,33 +1,56 @@
 
 
-## Plan: Content Management İyileştirmesi
+## Plan: Admin Content Management — 3 Kritik Düzeltme
 
-### Değişiklikler
+### Sorun 1: Düzenleme butonu çalışmıyor
+`AdminGuideOrderManager` `admin-edit-guide` event'i dispatch ediyor ama **hiçbir yerde dinlenmiyor**. `AdminPanel.tsx` sadece `admin-tab-change` event'ini dinliyor. `AdminGuideEditForm` ise guide seçimini `sessionStorage('editingGuide')` üzerinden okuyor.
 
-**1. `GuideManagement` bileşenini kaldır** — `AdminGuideOrderManager` zaten aynı işlevi (edit, preview, publish/hide, durum badge) daha kompakt sunuyor. `GuideManagement` gereksiz tekrar.
-
-- `src/pages/AdminPanel.tsx`: `GuideManagement` import ve kullanımını kaldır, `<Separator />` sil
-- `src/components/GuideManagement.tsx`: Silinebilir (artık kullanılmıyor)
-
-**2. Dil badge'lerini emoji bayraklarla göster** — `AdminGuideOrderManager.tsx`'de `getLanguageFlag()` fonksiyonunu (`src/lib/language-utils.ts`) kullanarak dil kodları yerine bayrak emojileri göster. Tüm diller gösterilecek (4 limit kaldırılacak).
-
+**Düzeltme** — `AdminPanel.tsx`'e `admin-edit-guide` event listener ekle:
 ```tsx
-import { getLanguageFlag } from '@/lib/language-utils';
-
-// Mevcut: <span>EN</span>
-// Yeni:   <span title="English">🇺🇸</span>
+useEffect(() => {
+  const handleEditGuide = (event: CustomEvent) => {
+    const { guideId } = event.detail;
+    sessionStorage.setItem('editingGuide', JSON.stringify({ id: guideId }));
+    setActiveTab('edit-guide');
+  };
+  window.addEventListener('admin-edit-guide', handleEditGuide as EventListener);
+  return () => window.removeEventListener('admin-edit-guide', handleEditGuide as EventListener);
+}, []);
 ```
 
-**3. Action butonlarına tooltip/label ekle** — Küçük icon butonların ne yaptığı daha net olsun:
-- Kalem → `title="Düzenle"`
-- Göz → `title="Önizle"`  
-- Göz kapalı → `title="Gizle/Yayınla"`
-- Buton renkleri: Edit → mavi tint, Publish toggle → yeşil/turuncu tint
+### Sorun 2: Önizleme linki yanlış URL açıyor
+`AdminGuideOrderManager` → `handlePreview` → `/guides/${guide.slug}` açıyor ama React Router'daki route `/guide/:slug` (tekil). Yanlış URL 404 veriyor.
+
+**Düzeltme** — `AdminGuideOrderManager.tsx` satır 76:
+```tsx
+// Eski:
+window.open(`/guides/${guide.slug}`, '_blank');
+// Yeni:
+window.open(`/guide/${guide.slug}`, '_blank');
+```
+
+### Sorun 3: Sıralama ana sayfaya yansımıyor
+Veritabanında tüm guide'ların `display_order` değeri `0`. Admin sıralama değiştirip kaydettiğinde DB güncelleniyor ve cache temizleniyor, ancak kullanıcı zaten admin sayfasında — ana sayfaya gittiğinde FeaturedGuides zaten taze veri çekiyor. Sorun muhtemelen `display_order` migration'ının henüz uygulanmamış olmasıydı. Şu an DB'de sütun mevcut ve sorgular doğru. Mevcut tüm guide'ların `display_order`'ını `created_at` sırasına göre güncelleyen bir init script ekleyelim — böylece ilk kaydetmeden önce de anlamlı bir sıralama olur.
+
+**Düzeltme** — `AdminGuideOrderManager.tsx` → `fetchGuides` sonunda, eğer tüm `display_order` değerleri 0 ise otomatik olarak index'e göre güncelle:
+```tsx
+// Tüm display_order = 0 ise, ilk sıralama ata
+if (data && data.length > 1 && data.every(g => g.display_order === 0)) {
+  const updates = data.map((g, i) =>
+    supabase.from('audio_guides').update({ display_order: i }).eq('id', g.id)
+  );
+  await Promise.all(updates);
+}
+```
 
 ### Etkilenen Dosyalar
 
 | Dosya | Değişiklik |
 |-------|-----------|
-| `src/components/AdminGuideOrderManager.tsx` | Emoji bayraklar, tooltip'ler, renk iyileştirmesi |
-| `src/pages/AdminPanel.tsx` | `GuideManagement` kaldır |
+| `src/pages/AdminPanel.tsx` | `admin-edit-guide` event listener ekle |
+| `src/components/AdminGuideOrderManager.tsx` | Preview URL düzelt (`/guide/`), ilk sıralama ataması |
+
+### Dokunulmayacak
+- AudioAccess linkleri (`/access/:guideId`) — hiçbir değişiklik yapılmayacak
+- Mevcut guide detay rotası (`/guide/:slug`) — olduğu gibi kalacak
 
