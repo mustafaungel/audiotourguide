@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { CheckCircle, XCircle, Eye, Clock, Trash2, Edit, Copy, QrCode, EyeOff, MoreVertical, ChevronDown } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { buildAccessUrl } from '@/lib/url-utils';
 
 interface Guide {
   id: string;
@@ -22,6 +23,7 @@ interface Guide {
   qr_code_url?: string;
   share_url?: string;
   slug?: string;
+  master_access_code?: string;
   profiles?: {
     full_name: string;
     email: string;
@@ -145,11 +147,11 @@ export const GuideManagement = () => {
   };
 
   const previewGuide = (guide: Guide) => {
-    // Use share_url if available for direct access, otherwise use public route
-    if (guide.share_url) {
-      window.open(guide.share_url, '_blank');
+    const baseUrl = window.location.origin;
+    if (guide.master_access_code) {
+      const url = buildAccessUrl(guide.id, guide.master_access_code, 'preview');
+      window.open(url, '_blank');
     } else {
-      const baseUrl = window.location.origin;
       const previewUrl = guide.slug ? `${baseUrl}/guide/${guide.slug}` : `${baseUrl}/guide/${guide.id}`;
       window.open(previewUrl, '_blank');
     }

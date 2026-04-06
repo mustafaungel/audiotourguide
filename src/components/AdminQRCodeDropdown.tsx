@@ -4,6 +4,7 @@ import { Badge } from "./ui/badge";
 import { Copy, ExternalLink, QrCode, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { buildAccessUrl } from "@/lib/url-utils";
 
 interface Guide {
   id: string;
@@ -62,12 +63,13 @@ export function AdminQRCodeDropdown() {
   };
 
   const openGuidePreview = (guide: Guide) => {
-    const baseUrl = window.location.origin;
-    const url = guide.share_url || 
-                (guide.master_access_code 
-                  ? `${baseUrl}/audio-access?code=${guide.master_access_code}`
-                  : `${baseUrl}/guides/${guide.slug || guide.id}`);
-    window.open(url, '_blank');
+    if (guide.master_access_code) {
+      const url = buildAccessUrl(guide.id, guide.master_access_code, 'preview');
+      window.open(url, '_blank');
+    } else {
+      const baseUrl = window.location.origin;
+      window.open(`${baseUrl}/guide/${guide.slug || guide.id}`, '_blank');
+    }
   };
 
   const copyToClipboard = async (text: string) => {
@@ -131,16 +133,15 @@ export function AdminQRCodeDropdown() {
               >
                 <ExternalLink className="h-3 w-3" />
               </Button>
-              {(guide.share_url || guide.master_access_code) && (
+              {guide.master_access_code && (
                 <Button 
                   size="sm" 
                   variant="ghost" 
                   onClick={() => {
-                    const url = guide.share_url || 
-                      `${window.location.origin}/audio-access?code=${guide.master_access_code}`;
+                    const url = buildAccessUrl(guide.id, guide.master_access_code!, 'public');
                     copyToClipboard(url);
                   }}
-                  title="Copy access URL"
+                  title="Copy public access URL"
                 >
                   <Copy className="h-3 w-3" />
                 </Button>
