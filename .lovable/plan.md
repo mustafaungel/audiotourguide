@@ -1,49 +1,24 @@
 
 
-## Plan: Fix Language Selection Not Updating on Audio Access Page
+## Plan: Pill Butonlarını İyileştir — Badge Kaldır, Daha Tıklanabilir Yap, Yüklemeyi Hızlandır
 
-### Root Cause
+### Değişiklikler (`src/components/MultiTabAudioPlayer.tsx`)
 
-In `GuideLanguageSelector.tsx` line 78, `isInMultiTab` is `true` whenever `activeGuideId` is set. When true, it **always** dispatches a `changeGuideLanguage` custom event instead of calling `onLanguageChange()`.
+1. **Section count badge'lerini kaldır** — Main guide pill (satır 261-265) ve linked guide pill (satır 287-291) içindeki `Badge` bileşenlerini sil. Kullanıcı tıklayınca içeriği zaten görüyor.
 
-Meanwhile in `AudioAccess.tsx` line 397, the event listener **intentionally skips** the main guide:
-```
-if (targetGuideId && targetGuideId !== guide?.id) { ... }
-```
+2. **Pill butonlarını daha tıklanabilir yap**:
+   - Sağ tarafa bir `ChevronRight` ikonu ekle (tıklanabilir olduğunu görsel olarak belirt)
+   - Pasif pill'lere hafif border ekle (`border-border/50`) ve hover'da daha belirgin gölge (`hover:shadow-sm`)
+   - Font boyutunu `text-sm` → `text-base` yap, başlıklar daha okunur olsun
 
-So when the user taps a language for the **main guide** in multi-tab mode:
-1. Selector dispatches `changeGuideLanguage` with `guideId = mainGuideId`
-2. AudioAccess event listener sees it's the main guide → ignores it
-3. `onLanguageChange` (handleLanguageChange) is never called
-4. `selectedLanguage` stays `'en'` → UI appears stuck on English
+3. **Yükleme hızını artır** — `loading` state'i `true` olarak başlıyor (satır 56) ve `loadLinkedGuides` tamamlanana kadar spinner gösteriyor. Eğer `mainSections` zaten varsa, linked guide'lar arka planda yüklenirken ana içeriği hemen göster:
+   - `loading` başlangıç değerini `false` yap
+   - `loadLinkedGuides` tamamlanınca linked pill'leri ekle (progressive rendering)
+   - `AudioGuideLoader` spinner'ını sadece `mainSections` boşken göster
 
-### Fix
+### Dosyalar
 
-In `GuideLanguageSelector.tsx`, check if the active guide IS the guide itself (i.e., `activeGuideId === guideId`). If so, call `onLanguageChange()` directly instead of dispatching the event. Only dispatch the event for **linked** (different) guides.
-
-### Change
-
-**`src/components/GuideLanguageSelector.tsx`** — lines 77-84:
-
-```tsx
-requestAnimationFrame(() => {
-  const isInMultiTab = !!activeGuideId;
-  const isLinkedGuide = isInMultiTab && activeGuideId !== guideId;
-  if (isLinkedGuide) {
-    window.dispatchEvent(new CustomEvent('changeGuideLanguage', {
-      detail: { guideId: activeGuideId, languageCode }
-    }));
-  } else {
-    onLanguageChange(languageCode);
-  }
-});
-```
-
-This ensures main guide language changes go through `onLanguageChange` → `handleLanguageChange` → `setSelectedLanguage` + fetch sections, while linked guide changes continue using the event system.
-
-### Files affected
-
-| File | Change |
-|------|--------|
-| `src/components/GuideLanguageSelector.tsx` | Fix dispatch condition to call `onLanguageChange` for main guide |
+| Dosya | Değişiklik |
+|-------|-----------|
+| `src/components/MultiTabAudioPlayer.tsx` | Badge kaldır, ChevronRight ekle, pill stilini güncelle, loading stratejisini değiştir |
 
