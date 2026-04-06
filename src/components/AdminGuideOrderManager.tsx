@@ -20,7 +20,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { GripVertical, Save, Loader2 } from 'lucide-react';
+import { GripVertical, Save, Loader2, Pencil, ExternalLink, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -32,9 +32,21 @@ interface GuideItem {
   is_approved: boolean;
   price_usd: number;
   display_order: number;
+  languages: string[];
+  slug: string;
 }
 
-const SortableGuideRow = ({ guide, index }: { guide: GuideItem; index: number }) => {
+const SortableGuideRow = ({
+  guide,
+  index,
+  onTogglePublish,
+  togglingId,
+}: {
+  guide: GuideItem;
+  index: number;
+  onTogglePublish: (id: string, current: boolean) => void;
+  togglingId: string | null;
+}) => {
   const {
     attributes,
     listeners,
@@ -50,26 +62,37 @@ const SortableGuideRow = ({ guide, index }: { guide: GuideItem; index: number })
   };
 
   const isLive = guide.is_published && guide.is_approved;
+  const isPending = guide.is_published && !guide.is_approved;
+
+  const handleEdit = () => {
+    window.dispatchEvent(
+      new CustomEvent('admin-edit-guide', { detail: { guideId: guide.id } })
+    );
+  };
+
+  const handlePreview = () => {
+    window.open(`/guides/${guide.slug}`, '_blank');
+  };
 
   return (
     <div
       ref={setNodeRef}
       style={style}
       className={cn(
-        'flex items-center gap-3 px-3 py-2.5 rounded-lg border bg-card',
+        'flex items-center gap-2 px-3 py-2 rounded-lg border bg-card',
         isDragging && 'opacity-50 shadow-lg z-50'
       )}
     >
       <button
         {...attributes}
         {...listeners}
-        className="touch-target flex items-center justify-center text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing shrink-0"
+        className="flex items-center justify-center text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing shrink-0"
         aria-label="Drag to reorder"
       >
-        <GripVertical className="h-5 w-5" />
+        <GripVertical className="h-4 w-4" />
       </button>
 
-      <span className="text-sm font-medium text-muted-foreground w-6 text-center shrink-0">
+      <span className="text-xs font-medium text-muted-foreground w-5 text-center shrink-0">
         {index + 1}
       </span>
 
@@ -77,20 +100,73 @@ const SortableGuideRow = ({ guide, index }: { guide: GuideItem; index: number })
         {guide.title}
       </span>
 
-      <span className="text-xs text-muted-foreground truncate hidden sm:block max-w-[120px]">
+      <span className="text-xs text-muted-foreground truncate hidden sm:block max-w-[100px]">
         {guide.location}
       </span>
 
+      {/* Language badges */}
+      <div className="hidden md:flex items-center gap-0.5 shrink-0">
+        {guide.languages.slice(0, 4).map((lang) => (
+          <span
+            key={lang}
+            className="text-[10px] font-medium uppercase bg-muted text-muted-foreground px-1 py-0.5 rounded"
+          >
+            {lang}
+          </span>
+        ))}
+        {guide.languages.length > 4 && (
+          <span className="text-[10px] text-muted-foreground">
+            +{guide.languages.length - 4}
+          </span>
+        )}
+      </div>
+
       <Badge
-        variant={isLive ? 'default' : 'secondary'}
-        className="shrink-0 text-xs"
+        variant={isLive ? 'default' : isPending ? 'outline' : 'secondary'}
+        className="shrink-0 text-[10px] px-1.5 py-0"
       >
-        {isLive ? 'Live' : 'Hidden'}
+        {isLive ? 'Live' : isPending ? 'Pending' : 'Hidden'}
       </Badge>
 
-      <span className="text-xs text-muted-foreground shrink-0 w-14 text-right">
+      <span className="text-xs text-muted-foreground shrink-0 w-12 text-right">
         ${(guide.price_usd / 100).toFixed(2)}
       </span>
+
+      {/* Action buttons */}
+      <div className="flex items-center gap-0.5 shrink-0">
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="h-7 w-7"
+          onClick={handleEdit}
+          title="Edit guide"
+        >
+          <Pencil className="h-3.5 w-3.5" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="h-7 w-7"
+          onClick={handlePreview}
+          title="Preview guide"
+        >
+          <ExternalLink className="h-3.5 w-3.5" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="h-7 w-7"
+          onClick={() => onTogglePublish(guide.id, guide.is_published)}
+          disabled={togglingId === guide.id}
+          title={guide.is_published ? 'Unpublish' : 'Publish'}
+        >
+          {guide.is_published ? (
+            <EyeOff className="h-3.5 w-3.5" />
+          ) : (
+            <Eye className="h-3.5 w-3.5" />
+          )}
+        </Button>
+      </div>
     </div>
   );
 };
@@ -100,6 +176,7 @@ export const AdminGuideOrderManager = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -115,7 +192,7 @@ export const AdminGuideOrderManager = () => {
     try {
       const { data, error } = await supabase
         .from('audio_guides')
-        .select('id, title, location, is_published, is_approved, price_usd, display_order')
+        .select('id, title, location, is_published, is_approved, price_usd, display_order, languages, slug')
         .eq('is_standalone', true)
         .order('display_order', { ascending: true })
         .order('created_at', { ascending: false });
@@ -155,6 +232,9 @@ export const AdminGuideOrderManager = () => {
       const failed = results.filter((r) => r.error);
       if (failed.length > 0) throw failed[0].error;
 
+      // Invalidate frontend cache so Guides page picks up new order
+      localStorage.removeItem('guides_list_cache');
+
       setHasChanges(false);
       toast.success('Sıralama kaydedildi');
     } catch (error) {
@@ -162,6 +242,31 @@ export const AdminGuideOrderManager = () => {
       toast.error('Sıralama kaydedilemedi');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleTogglePublish = async (guideId: string, currentPublished: boolean) => {
+    setTogglingId(guideId);
+    try {
+      const { error } = await supabase
+        .from('audio_guides')
+        .update({ is_published: !currentPublished })
+        .eq('id', guideId);
+
+      if (error) throw error;
+
+      setGuides((prev) =>
+        prev.map((g) =>
+          g.id === guideId ? { ...g, is_published: !currentPublished } : g
+        )
+      );
+      localStorage.removeItem('guides_list_cache');
+      toast.success(currentPublished ? 'Guide gizlendi' : 'Guide yayınlandı');
+    } catch (error) {
+      console.error('Error toggling publish:', error);
+      toast.error('Durum güncellenemedi');
+    } finally {
+      setTogglingId(null);
     }
   };
 
@@ -197,9 +302,15 @@ export const AdminGuideOrderManager = () => {
         onDragEnd={handleDragEnd}
       >
         <SortableContext items={guides.map((g) => g.id)} strategy={verticalListSortingStrategy}>
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             {guides.map((guide, index) => (
-              <SortableGuideRow key={guide.id} guide={guide} index={index} />
+              <SortableGuideRow
+                key={guide.id}
+                guide={guide}
+                index={index}
+                onTogglePublish={handleTogglePublish}
+                togglingId={togglingId}
+              />
             ))}
           </div>
         </SortableContext>
