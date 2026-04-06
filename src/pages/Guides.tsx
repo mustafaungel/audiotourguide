@@ -50,6 +50,7 @@ const Guides = () => {
         .eq('is_published', true)
         .eq('is_approved', true)
         .eq('is_standalone', true)
+        .order('display_order', { ascending: true })
         .order('created_at', { ascending: false });
 
       if (error) throw error;
