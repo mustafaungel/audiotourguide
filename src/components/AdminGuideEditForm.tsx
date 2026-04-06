@@ -641,20 +641,18 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
       {/* QR Code and Share Management */}
       <Collapsible>
         <Card>
-          <CardHeader className="cursor-pointer" asChild>
-            <CollapsibleTrigger className="flex w-full items-center justify-between p-6 [&[data-state=open]>svg]:rotate-180">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <QrCode className="w-5 h-5" />
-                  QR Code & Sharing
-                </CardTitle>
-                <CardDescription className="mt-1">
-                  Generate QR codes and manage sharing options for this guide
-                </CardDescription>
+          <CollapsibleTrigger className="flex w-full items-center justify-between p-6 [&[data-state=open]>svg]:rotate-180">
+            <div className="text-left">
+              <div className="flex items-center gap-2 font-semibold leading-none tracking-tight">
+                <QrCode className="w-5 h-5" />
+                QR Code & Sharing
               </div>
-              <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
-            </CollapsibleTrigger>
-          </CardHeader>
+              <p className="text-sm text-muted-foreground mt-1">
+                Generate QR codes and manage sharing options for this guide
+              </p>
+            </div>
+            <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+          </CollapsibleTrigger>
           <CollapsibleContent>
             <CardContent className="space-y-4 pt-0">
               <div className="flex flex-wrap gap-2">
