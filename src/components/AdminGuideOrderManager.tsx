@@ -33,6 +33,7 @@ interface GuideItem {
   location: string;
   is_published: boolean;
   is_approved: boolean;
+  is_standalone: boolean;
   price_usd: number;
   display_order: number;
   languages: string[];
@@ -151,6 +152,12 @@ const SortableGuideRow = ({
             </Tooltip>
           ))}
         </div>
+
+        {!guide.is_standalone && (
+          <Badge variant="outline" className="shrink-0 text-[10px] px-1.5 py-0 gap-0.5 cursor-default text-violet-600 border-violet-300 dark:text-violet-400 dark:border-violet-700">
+            Linked
+          </Badge>
+        )}
 
         {linkedGuides.length > 0 && (
           <Badge variant="outline" className="shrink-0 text-[10px] px-1.5 py-0 gap-0.5 cursor-default">
@@ -322,8 +329,7 @@ export const AdminGuideOrderManager = ({ onCreateNew, onEdit }: { onCreateNew?: 
     try {
       const { data, error } = await supabase
         .from('audio_guides')
-        .select('id, title, location, is_published, is_approved, price_usd, display_order, languages, slug, master_access_code')
-        .eq('is_standalone', true)
+        .select('id, title, location, is_published, is_approved, is_standalone, price_usd, display_order, languages, slug, master_access_code')
         .order('display_order', { ascending: true })
         .order('created_at', { ascending: false });
 
