@@ -52,7 +52,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
   onActiveTabChange
 }) => {
   const [linkedGuides, setLinkedGuides] = useState<LinkedGuide[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [sectionsByGuide, setSectionsByGuide] = useState<Record<string, Section[]>>({});
   const [languageByGuide, setLanguageByGuide] = useState<Record<string, string>>({
     [mainGuide.id]: languageCode
