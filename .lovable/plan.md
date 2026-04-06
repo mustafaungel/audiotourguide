@@ -1,41 +1,46 @@
 
 
-## Plan: Edit Form'u Kompakt Hale Getirme
+## Plan: English Labels + Move Linked Guides & QR into Guide Information
 
-### Mevcut Durum
-Edit formu 692 satırlık tek bir dikey akış — Guide Information kartı içinde 7+ alan (title, description, location, category, price, featured, slug, images) art arda sıralanıyor ve aşağıya çok uzuyor. QR Code & Sharing kartı da en altta ayrı yer kaplıyor.
+### Changes — `src/components/AdminGuideEditForm.tsx`
 
-### Yaklaşım: Accordion (Collapsible) Bölümler
+**1. Rename Turkish section labels to English:**
+- `Temel Bilgiler` → `Basic Info`
+- `Açıklama & Öne Çıkarma` → `Description & Featured`
+- `Görseller` → `Images`
 
-Mevcut `lg:grid-cols-2` layout'u koruyarak, sol sütundaki Guide Information kartını **4 collapsible bölüme** ayıracağız. İlk bölüm (Temel Bilgiler) varsayılan açık, diğerleri kapalı başlayacak.
+**2. Move Linked Audio Guides inside Guide Information card as collapsible section 5:**
+- Remove standalone `<GuideCollectionManager>` from the grid (line 634-638)
+- Add a new collapsible section after Images, rendering `<GuideCollectionManager>` inline (without its own Card wrapper)
+- Label: `Linked Guides`
+- Default closed
+
+**3. Move QR Code & Sharing inside Guide Information card as collapsible section 6:**
+- Remove standalone `<Collapsible><Card>` block at bottom (lines 641-723)
+- Add a new collapsible section after Linked Guides with existing QR content
+- Label: `QR Code & Sharing`
+- Default closed
+
+**4. GuideCollectionManager needs a "headless" mode:**
+- Currently wraps itself in `<Card><CardHeader>...`. We need to skip that when embedded.
+- Add optional `embedded?: boolean` prop — when true, render only `<div>` with inner content (no Card/CardHeader)
+
+### Result structure inside Guide Information card:
 
 ```
-┌─ Guide Information ────────────────┐  ┌─ Guide Sections ──────┐
-│ ▼ Temel Bilgiler (açık)            │  │ AudioGuideSectionMgr  │
-│   Title, Location, Category, Price │  │                       │
-│ ▶ Açıklama & Öne Çıkarma (kapalı) │  │                       │
-│ ▶ URL & Slug (kapalı)             │  └───────────────────────┘
-│ ▶ Görseller (kapalı)              │  ┌─ Collections ─────────┐
-│                                    │  │ GuideCollectionMgr    │
-│ [💾 Update Guide]                  │  └───────────────────────┘
-└────────────────────────────────────┘
-┌─ QR Code & Sharing ───── (collapsible, kapalı) ──────────────┐
-└──────────────────────────────────────────────────────────────-┘
+▼ Basic Info (open)
+▶ Description & Featured
+▶ URL & Slug
+▶ Images
+▶ Linked Guides
+▶ QR Code & Sharing
+[Update Guide]
 ```
 
-### Değişiklikler — `src/components/AdminGuideEditForm.tsx`
+### Files affected
 
-1. **Import** `Collapsible, CollapsibleContent, CollapsibleTrigger` from `@/components/ui/collapsible`
-2. **Bölüm 1 — Temel Bilgiler** (varsayılan açık): Title, Location, Category, Price
-3. **Bölüm 2 — Açıklama & Öne Çıkarma** (kapalı): Description textarea, Featured toggle
-4. **Bölüm 3 — URL & Slug** (kapalı): Slug yönetimi
-5. **Bölüm 4 — Görseller** (kapalı): ImageUploader
-6. **QR Code kartını** da collapsible yap (kapalı başlasın)
-7. Hiçbir işlev değişmeyecek — sadece görsel düzen kompaktlaşacak
-
-### Etkilenen Dosya
-
-| Dosya | Değişiklik |
-|-------|-----------|
-| `src/components/AdminGuideEditForm.tsx` | Form alanlarını collapsible bölümlere ayır |
+| File | Change |
+|------|--------|
+| `src/components/AdminGuideEditForm.tsx` | English labels, move Linked Guides + QR into Guide Info card |
+| `src/components/GuideCollectionManager.tsx` | Add `embedded` prop to skip Card wrapper |
 
