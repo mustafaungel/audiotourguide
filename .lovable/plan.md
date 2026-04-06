@@ -1,56 +1,62 @@
 
 
-## Plan: Admin Content Management — 3 Kritik Düzeltme
+## Plan: Content Management İyileştirmeleri + Performans
 
-### Sorun 1: Düzenleme butonu çalışmıyor
-`AdminGuideOrderManager` `admin-edit-guide` event'i dispatch ediyor ama **hiçbir yerde dinlenmiyor**. `AdminPanel.tsx` sadece `admin-tab-change` event'ini dinliyor. `AdminGuideEditForm` ise guide seçimini `sessionStorage('editingGuide')` üzerinden okuyor.
+### A. Preview butonu → Audio Access sayfasına yönlendirme
 
-**Düzeltme** — `AdminPanel.tsx`'e `admin-edit-guide` event listener ekle:
+Şu an `handlePreview` → `/guide/${slug}` açıyor (son kullanıcı detay sayfası). Bunun yerine `master_access_code` ile audio access sayfasını açmalı.
+
+**Değişiklik** — `AdminGuideOrderManager.tsx`:
+- `GuideItem` interface'ine `master_access_code` ekle
+- Sorguya `master_access_code` ekle
+- `handlePreview`:
+  ```tsx
+  // Eski: window.open(`/guide/${guide.slug}`, '_blank');
+  // Yeni:
+  if (guide.master_access_code) {
+    window.open(`/access/${guide.id}?access_code=${guide.master_access_code}`, '_blank');
+  } else {
+    toast.error('Bu guide için erişim kodu yok');
+  }
+  ```
+
+### B. Bağlı guide'ları ve dil detaylarını göster
+
+Her guide satırında, o guide'a bağlı olan guide'ları küçük badge olarak gösterelim. `guide_collections` tablosundan `linked_guides` verisini çekeceğiz.
+
+**Değişiklik** — `AdminGuideOrderManager.tsx`:
+- Bileşen yüklendiğinde `guide_collections` tablosundan tüm koleksiyonları çek
+- Her satırda bağlı guide varsa küçük `🔗 2 linked` badge'i göster (tıklanınca tooltip'te bağlı guide isimleri)
+- Bağlı guide yoksa hiçbir şey gösterme
+
+### C. Index.tsx sıralama düzeltmesi
+
+Ana sayfa `display_order` yerine `created_at` ile sıralıyor — bu yüzden sıralama admin'de değiştirildiğinde ana sayfada yansımıyor.
+
+**Değişiklik** — `src/pages/Index.tsx` satır 60:
 ```tsx
-useEffect(() => {
-  const handleEditGuide = (event: CustomEvent) => {
-    const { guideId } = event.detail;
-    sessionStorage.setItem('editingGuide', JSON.stringify({ id: guideId }));
-    setActiveTab('edit-guide');
-  };
-  window.addEventListener('admin-edit-guide', handleEditGuide as EventListener);
-  return () => window.removeEventListener('admin-edit-guide', handleEditGuide as EventListener);
-}, []);
+// Eski: .order('created_at', { ascending: false })
+// Yeni: .order('display_order', { ascending: true })
 ```
 
-### Sorun 2: Önizleme linki yanlış URL açıyor
-`AdminGuideOrderManager` → `handlePreview` → `/guides/${guide.slug}` açıyor ama React Router'daki route `/guide/:slug` (tekil). Yanlış URL 404 veriyor.
+### D. Performans İyileştirmeleri
 
-**Düzeltme** — `AdminGuideOrderManager.tsx` satır 76:
-```tsx
-// Eski:
-window.open(`/guides/${guide.slug}`, '_blank');
-// Yeni:
-window.open(`/guide/${guide.slug}`, '_blank');
-```
+Admin paneli yavaş çünkü:
+1. **Index.tsx** — 6 büyük resim `import` ile eager load ediliyor (`cappadociaImage`, `istanbulImage`, vb.) ama lazy load olmalı
+2. **AdminPanel.tsx** — 753 satırlık monolitik bileşen, tüm tab içerikleri her zaman render ediliyor (Tabs yapısı gereği mount oluyor)
 
-### Sorun 3: Sıralama ana sayfaya yansımıyor
-Veritabanında tüm guide'ların `display_order` değeri `0`. Admin sıralama değiştirip kaydettiğinde DB güncelleniyor ve cache temizleniyor, ancak kullanıcı zaten admin sayfasında — ana sayfaya gittiğinde FeaturedGuides zaten taze veri çekiyor. Sorun muhtemelen `display_order` migration'ının henüz uygulanmamış olmasıydı. Şu an DB'de sütun mevcut ve sorgular doğru. Mevcut tüm guide'ların `display_order`'ını `created_at` sırasına göre güncelleyen bir init script ekleyelim — böylece ilk kaydetmeden önce de anlamlı bir sıralama olur.
-
-**Düzeltme** — `AdminGuideOrderManager.tsx` → `fetchGuides` sonunda, eğer tüm `display_order` değerleri 0 ise otomatik olarak index'e göre güncelle:
-```tsx
-// Tüm display_order = 0 ise, ilk sıralama ata
-if (data && data.length > 1 && data.every(g => g.display_order === 0)) {
-  const updates = data.map((g, i) =>
-    supabase.from('audio_guides').update({ display_order: i }).eq('id', g.id)
-  );
-  await Promise.all(updates);
-}
-```
+**Değişiklikler**:
+- `Index.tsx`: Statik resimleri `import` yerine doğrudan path string olarak kullan (bundle'dan çıkar)
+- `AdminPanel.tsx`: Create Guide tab'ındaki ağır form state'lerini ayrı bileşene taşıma — bu plan kapsamında **yapmayacağız**, çünkü refactoring riski yüksek. Bunun yerine QueryClient `staleTime` ayarı zaten 5 dk olduğundan Supabase çağrıları cache'leniyor.
 
 ### Etkilenen Dosyalar
 
 | Dosya | Değişiklik |
 |-------|-----------|
-| `src/pages/AdminPanel.tsx` | `admin-edit-guide` event listener ekle |
-| `src/components/AdminGuideOrderManager.tsx` | Preview URL düzelt (`/guide/`), ilk sıralama ataması |
+| `src/components/AdminGuideOrderManager.tsx` | Preview → access URL, bağlı guide badge, `master_access_code` sorguya ekle, `guide_collections` fetch |
+| `src/pages/Index.tsx` | `.order('display_order', { ascending: true })` |
 
 ### Dokunulmayacak
-- AudioAccess linkleri (`/access/:guideId`) — hiçbir değişiklik yapılmayacak
-- Mevcut guide detay rotası (`/guide/:slug`) — olduğu gibi kalacak
+- AudioAccess linkleri (`/access/:guideId`) — mevcut
+- AdminPreview sayfası — ayrı sayfa, mevcut haliyle kalacak
 
