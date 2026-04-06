@@ -93,22 +93,22 @@ export function GuideCard({
 
   const getCategoryColor = (cat: string) => {
     const colors = {
-      cultural: "bg-blue-100 text-blue-800 hover:bg-blue-200",
-      historical: "bg-amber-100 text-amber-800 hover:bg-amber-200",
-      adventure: "bg-green-100 text-green-800 hover:bg-green-200",
-      scenic: "bg-purple-100 text-purple-800 hover:bg-purple-200",
-      food: "bg-orange-100 text-orange-800 hover:bg-orange-200"
+      cultural: "bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50",
+      historical: "bg-amber-100 text-amber-800 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:hover:bg-amber-900/50",
+      adventure: "bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50",
+      scenic: "bg-purple-100 text-purple-800 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/50",
+      food: "bg-orange-100 text-orange-800 hover:bg-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:hover:bg-orange-900/50"
     };
-    return colors[cat as keyof typeof colors] || "bg-gray-100 text-gray-800";
+    return colors[cat as keyof typeof colors] || "bg-muted text-muted-foreground";
   };
 
   const getDifficultyColor = (diff: string) => {
     const colors = {
-      easy: "bg-green-100 text-green-800",
-      moderate: "bg-yellow-100 text-yellow-800", 
-      challenging: "bg-red-100 text-red-800"
+      easy: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+      moderate: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300", 
+      challenging: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
     };
-    return colors[diff as keyof typeof colors] || "bg-gray-100 text-gray-800";
+    return colors[diff as keyof typeof colors] || "bg-muted text-muted-foreground";
   };
 
   return (
