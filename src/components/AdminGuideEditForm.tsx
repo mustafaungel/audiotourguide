@@ -393,7 +393,7 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
             {/* Section 1: Temel Bilgiler (default open) */}
             <Collapsible defaultOpen>
               <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border px-4 py-2 font-medium text-sm hover:bg-muted transition-colors [&[data-state=open]>svg]:rotate-180">
-                Temel Bilgiler
+                Basic Info
                 <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
               </CollapsibleTrigger>
               <CollapsibleContent className="pt-3 space-y-4">
