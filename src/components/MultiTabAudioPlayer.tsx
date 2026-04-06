@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { NewSectionAudioPlayer } from './NewSectionAudioPlayer';
 import { supabase } from '@/integrations/supabase/client';
-import { Badge } from './ui/badge';
-import { Music } from 'lucide-react';
+import { Music, ChevronRight } from 'lucide-react';
 import { t } from '@/lib/translations';
 import { AudioGuideLoader } from './AudioGuideLoader';
 import { BottomSheet } from './ui/bottom-sheet';
