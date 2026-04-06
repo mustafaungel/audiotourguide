@@ -346,22 +346,15 @@ const GuideDetail = () => {
 
   const handleLanguageChange = async (languageCode: string) => {
     console.log('🔄 Language change requested:', languageCode);
-    setGuideSections([]);
+    // Keep stale sections visible — don't clear before fetch
     setSelectedLanguage(languageCode);
     // Save language preference
     if (slug) {
       localStorage.setItem(`guide_lang_${slug}`, languageCode);
     }
-    // Dispatch event for MultiTabAudioPlayer
-    const event = new CustomEvent('changeGuideLanguage', {
-      detail: { 
-        guideId: realGuideData?.id, 
-        languageCode 
-      }
-    });
-    window.dispatchEvent(event);
     
     // Don't reset playingGuide to preserve player state
+    // Fetch new sections — page owns main guide language data
     if (realGuideData?.id) {
       await fetchGuideSections(realGuideData.id, languageCode);
     }

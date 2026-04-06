@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { NewSectionAudioPlayer } from './NewSectionAudioPlayer';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from './ui/badge';
@@ -41,6 +41,9 @@ interface MultiTabAudioPlayerProps {
   onActiveTabChange?: (tabId: string) => void;
 }
 
+// In-memory cache: guideId+lang -> sections
+const sectionCache = new Map<string, Section[]>();
+
 export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
   mainGuide,
   mainSections = [],
@@ -57,98 +60,64 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
   });
   const [selectedGuideId, setSelectedGuideId] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const fetchingRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     loadLinkedGuides();
   }, [mainGuide.id, accessCode]);
 
+  // Sync main guide language from parent — do NOT eagerly fetch linked guides
   useEffect(() => {
-    setLanguageByGuide(prev => {
-      const updated: Record<string, string> = { [mainGuide.id]: languageCode };
-      linkedGuides.forEach(g => { updated[g.guide_id] = languageCode; });
-      return { ...prev, ...updated };
-    });
-    // Reload linked guide sections in the new language
-    linkedGuides.forEach(g => {
-      ensureGuideSections(g.guide_id, languageCode);
-    });
+    setLanguageByGuide(prev => ({ ...prev, [mainGuide.id]: languageCode }));
   }, [languageCode, mainGuide.id]);
 
-  useEffect(() => {
-    if (linkedGuides.length > 0 && accessCode) {
-      linkedGuides.forEach(guide => {
-        ensureGuideSections(guide.guide_id);
-      });
-    }
-  }, [linkedGuides, accessCode]);
-
-  useEffect(() => {
-    const handleOpenLinkedGuide = (event: CustomEvent) => {
-      const { guideId } = (event as any).detail || {};
-      if (guideId === 'main') {
-        setSelectedGuideId(mainGuide.id);
-        setSheetOpen(true);
-        return;
-      }
-      const guide = linkedGuides.find(g => g.guide_id === guideId);
-      if (guide) {
-        ensureGuideSections(guide.guide_id);
-        setSelectedGuideId(guide.guide_id);
-        setSheetOpen(true);
-      }
-      window.dispatchEvent(new CustomEvent('linkedGuideHandled'));
-    };
-
-    const handleLanguageChange = async (e: CustomEvent) => {
-      const { languageCode: newLang, guideId: targetId } = (e as any).detail || {};
-      if (targetId && newLang) {
-        setLanguageByGuide(prev => ({ ...prev, [targetId]: newLang }));
-        await ensureGuideSections(targetId, newLang);
-      }
-    };
-
-    window.addEventListener('openLinkedGuide', handleOpenLinkedGuide as EventListener);
-    window.addEventListener('changeGuideLanguage', handleLanguageChange as EventListener);
-    return () => {
-      window.removeEventListener('openLinkedGuide', handleOpenLinkedGuide as EventListener);
-      window.removeEventListener('changeGuideLanguage', handleLanguageChange as EventListener);
-    };
-  }, [linkedGuides, accessCode, mainGuide.id]);
-
-  const ensureGuideSections = async (guideId: string, overrideLanguage?: string) => {
+  const ensureGuideSections = useCallback(async (guideId: string, overrideLanguage?: string) => {
     const effectiveLang = overrideLanguage || languageByGuide[guideId] || languageCode;
-    if (!overrideLanguage && sectionsByGuide[guideId]?.length > 0) return;
+    const cacheKey = `${guideId}_${effectiveLang}`;
+
+    // Return cached data instantly
+    if (sectionCache.has(cacheKey)) {
+      setSectionsByGuide(prev => ({ ...prev, [guideId]: sectionCache.get(cacheKey)! }));
+      return;
+    }
+
+    // Prevent duplicate in-flight requests
+    if (fetchingRef.current.has(cacheKey)) return;
     if (!accessCode) return;
+
+    fetchingRef.current.add(cacheKey);
 
     try {
       let sectionsData: any[] = [];
-      let fetchSuccess = false;
 
       if (guideId === mainGuide.id) {
         const { data, error } = await supabase.rpc('get_sections_with_access', {
           p_guide_id: guideId, p_access_code: accessCode.trim(), p_language_code: effectiveLang
         });
-        if (!error && data?.length > 0) { sectionsData = data; fetchSuccess = true; }
+        if (!error && data?.length > 0) sectionsData = data;
       } else {
         const { data, error } = await supabase.rpc('get_linked_guide_sections_with_access', {
           p_main_guide_id: mainGuide.id, p_access_code: accessCode.trim(),
           p_target_guide_id: guideId, p_language_code: effectiveLang
         });
-        if (!error && data?.length > 0) { sectionsData = data; fetchSuccess = true; }
+        if (!error && data?.length > 0) sectionsData = data;
       }
 
-      if (!fetchSuccess) {
+      // Only fallback on empty result, not as normal path
+      if (sectionsData.length === 0) {
         const { data, error } = await supabase.from('guide_sections')
           .select('*').eq('guide_id', guideId).eq('language_code', effectiveLang).order('order_index');
-        if (!error && data?.length > 0) { sectionsData = data; }
+        if (!error && data?.length > 0) sectionsData = data;
       }
 
+      sectionCache.set(cacheKey, sectionsData);
       setSectionsByGuide(prev => ({ ...prev, [guideId]: sectionsData }));
     } catch (error) {
       console.error('MultiTabAudioPlayer: Error loading sections:', error);
-      setSectionsByGuide(prev => ({ ...prev, [guideId]: [] }));
+    } finally {
+      fetchingRef.current.delete(cacheKey);
     }
-  };
+  }, [accessCode, languageByGuide, languageCode, mainGuide.id]);
 
   const loadLinkedGuides = async () => {
     if (!mainGuide?.id || !accessCode?.trim()) { setLoading(false); return; }
@@ -184,40 +153,75 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     }
   };
 
-  const handlePillClick = (guideId: string) => {
+  // Listen for openLinkedGuide events
+  useEffect(() => {
+    const handleOpenLinkedGuide = (event: CustomEvent) => {
+      const { guideId } = (event as any).detail || {};
+      if (guideId === 'main') {
+        setSelectedGuideId(mainGuide.id);
+        setSheetOpen(true);
+        return;
+      }
+      const guide = linkedGuides.find(g => g.guide_id === guideId);
+      if (guide) {
+        ensureGuideSections(guide.guide_id);
+        setSelectedGuideId(guide.guide_id);
+        setSheetOpen(true);
+      }
+      window.dispatchEvent(new CustomEvent('linkedGuideHandled'));
+    };
+
+    // Only handle linked guide language changes — ignore main guide (page handles it)
+    const handleLanguageChange = async (e: CustomEvent) => {
+      const { languageCode: newLang, guideId: targetId } = (e as any).detail || {};
+      if (targetId && newLang && targetId !== mainGuide.id) {
+        setLanguageByGuide(prev => ({ ...prev, [targetId]: newLang }));
+        await ensureGuideSections(targetId, newLang);
+      }
+    };
+
+    window.addEventListener('openLinkedGuide', handleOpenLinkedGuide as EventListener);
+    window.addEventListener('changeGuideLanguage', handleLanguageChange as EventListener);
+    return () => {
+      window.removeEventListener('openLinkedGuide', handleOpenLinkedGuide as EventListener);
+      window.removeEventListener('changeGuideLanguage', handleLanguageChange as EventListener);
+    };
+  }, [linkedGuides, accessCode, mainGuide.id, ensureGuideSections]);
+
+  const handlePillClick = useCallback((guideId: string) => {
     if (guideId !== mainGuide.id) {
       ensureGuideSections(guideId);
     }
     setSelectedGuideId(guideId);
     setSheetOpen(true);
     onActiveTabChange?.(guideId === mainGuide.id ? 'main' : guideId);
-  };
+  }, [mainGuide.id, ensureGuideSections, onActiveTabChange]);
 
-  const handleSheetClose = (open: boolean) => {
+  const handleSheetClose = useCallback((open: boolean) => {
     setSheetOpen(open);
     if (!open) {
       setSelectedGuideId(null);
       onActiveTabChange?.('main');
     }
-  };
+  }, [onActiveTabChange]);
 
-  const getSheetTitle = () => {
+  const sheetTitle = useMemo(() => {
     if (!selectedGuideId) return undefined;
     if (selectedGuideId === mainGuide.id) return mainGuide.title;
     const linked = linkedGuides.find(g => g.guide_id === selectedGuideId);
     return linked?.custom_title || linked?.title;
-  };
+  }, [selectedGuideId, mainGuide, linkedGuides]);
 
-  const getSheetSections = () => {
+  const sheetSections = useMemo(() => {
     if (!selectedGuideId) return [];
     if (selectedGuideId === mainGuide.id) return mainSections;
     return sectionsByGuide[selectedGuideId] || [];
-  };
+  }, [selectedGuideId, mainGuide.id, mainSections, sectionsByGuide]);
 
-  const getSheetAudioUrl = () => {
+  const sheetAudioUrl = useMemo(() => {
     if (selectedGuideId === mainGuide.id) return mainGuide.audio_url || '';
     return '';
-  };
+  }, [selectedGuideId, mainGuide]);
 
   if (loading) {
     return <AudioGuideLoader variant="inline" message={t('loading', languageCode)} />;
@@ -294,7 +298,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
       <BottomSheet
         open={sheetOpen}
         onOpenChange={handleSheetClose}
-        title={getSheetTitle()}
+        title={sheetTitle}
         defaultSnap="half"
         snapPoints={['half', 'full']}
       >
@@ -302,9 +306,9 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
           <NewSectionAudioPlayer
             key={`${selectedGuideId}-${languageByGuide[selectedGuideId] || languageCode}`}
             guideId={selectedGuideId}
-            guideTitle={getSheetTitle() || ''}
-            sections={getSheetSections()}
-            mainAudioUrl={getSheetAudioUrl()}
+            guideTitle={sheetTitle || ''}
+            sections={sheetSections}
+            mainAudioUrl={sheetAudioUrl}
             lang={languageByGuide[selectedGuideId] || languageCode}
           />
         )}

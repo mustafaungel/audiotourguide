@@ -26,9 +26,15 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
   const [fetching, setFetching] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const lastLanguagesRef = useRef<GuideLanguage[]>([]);
+  const lastFetchedGuideRef = useRef<string>('');
 
   useEffect(() => {
-    fetchAvailableLanguages();
+    const targetId = activeGuideId || guideId;
+    // Only re-fetch when the actual target guide changes
+    if (targetId !== lastFetchedGuideRef.current) {
+      lastFetchedGuideRef.current = targetId;
+      fetchAvailableLanguages();
+    }
   }, [guideId, activeGuideId]);
 
   const fetchAvailableLanguages = async () => {
