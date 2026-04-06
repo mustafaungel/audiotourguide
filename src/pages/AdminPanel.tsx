@@ -500,7 +500,7 @@ const AdminPanel = () => {
                             <div className="space-y-2">
                               <Label className="text-green-700 font-medium">{isHidden ? 'Direct Access Link' : 'Access Link (Bypass Payment)'}</Label>
                               <div className="flex gap-2">
-                                <Input value={shareUrl} readOnly className="bg-white text-sm" />
+                                <Input value={shareUrl} readOnly className="bg-card text-sm" />
                                 <Button variant="outline" size="sm" onClick={() => copyToClipboard(shareUrl, 'Access link')} className="shrink-0">
                                   <Copy className="h-4 w-4" />
                                 </Button>
