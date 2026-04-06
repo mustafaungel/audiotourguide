@@ -521,7 +521,7 @@ export const AdminGuideEditForm = ({ onBack, guideId: propGuideId, onClose }: Ad
             </Collapsible>
 
             {/* Section 4: Images */}
-            <Collapsible>
+            <Collapsible defaultOpen={false}>
               <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border px-4 py-2 font-medium text-sm hover:bg-muted transition-colors [&[data-state=open]>svg]:rotate-180">
                 Images
                 <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
