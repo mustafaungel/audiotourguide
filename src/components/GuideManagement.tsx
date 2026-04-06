@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { CheckCircle, XCircle, Eye, Clock, Trash2, Edit, Copy, QrCode, EyeOff, MoreVertical, ChevronDown } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { buildAccessUrl } from '@/lib/url-utils';
 
 interface Guide {
   id: string;
