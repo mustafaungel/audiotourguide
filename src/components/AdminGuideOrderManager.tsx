@@ -97,9 +97,9 @@ const SortableGuideRow = ({
   };
 
   const accessLink = guide.master_access_code
-    ? `${window.location.origin}/access/${guide.id}?access_code=${guide.master_access_code}`
+    ? buildAccessUrl(guide.id, guide.master_access_code, 'public')
     : null;
-  const detailLink = `${window.location.origin}/guide/${guide.slug}`;
+  const detailLink = `${getBaseUrl()}/guide/${guide.slug}`;
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
