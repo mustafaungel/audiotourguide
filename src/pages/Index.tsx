@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { AudioGuideLoader } from '@/components/AudioGuideLoader';
 import { useNavigate } from 'react-router-dom';
 import { SEO } from '@/components/SEO';
@@ -15,6 +15,7 @@ import * as CarouselComponents from '@/components/ui/carousel';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useQuery } from '@tanstack/react-query';
 import cappadociaImage from '@/assets/cappadocia-goreme.jpg';
 import istanbulImage from '@/assets/istanbul-hagia-sophia.jpg';
 import machupichuImage from '@/assets/machu-picchu.jpg';
