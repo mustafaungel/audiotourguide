@@ -326,6 +326,28 @@ export const AdminGuideOrderManager = () => {
         data.forEach((g, i) => { g.display_order = i; });
       }
 
+      // Fetch real languages from guide_sections
+      const guideIds = (data || []).map(g => g.id);
+      if (guideIds.length > 0) {
+        const { data: sectionLangs } = await supabase
+          .from('guide_sections')
+          .select('guide_id, language_code')
+          .in('guide_id', guideIds);
+
+        if (sectionLangs && sectionLangs.length > 0) {
+          const langMap: Record<string, Set<string>> = {};
+          sectionLangs.forEach(s => {
+            if (!langMap[s.guide_id]) langMap[s.guide_id] = new Set();
+            langMap[s.guide_id].add(s.language_code);
+          });
+          data?.forEach(g => {
+            if (langMap[g.id]) {
+              g.languages = Array.from(langMap[g.id]);
+            }
+          });
+        }
+      }
+
       setGuides(data || []);
 
       // Build title lookup for linked guides
