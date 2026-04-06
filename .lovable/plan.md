@@ -1,30 +1,56 @@
 
 
-## Plan: Dil Seçici — Alt Satır Kayma Düzeltmesi
+## Plan: Admin Guide Sıralama Sistemi (Drag & Drop)
 
-### Sorun
+### Genel Bakış
+Admin panelinin Content Management sekmesinde audio guide'ları sürükle-bırak ile sıralayabilme ve kompakt liste görünümü.
 
-Collapse modunda gizlenen butonlar CSS grid'den kaldırılmıyor. `opacity-0 max-h-0 min-h-0` ile görsel olarak gizlenseler de, grid hücreleri ve `gap-2` (8px) hâlâ yer kaplıyor. 2. satırdaki bir dil seçildiğinde (한국어, 中文), seçili buton aşağı kayıyor ve `maxHeight: 52px` ile kırpılıyor.
+### Veritabanı Değişikliği
+`audio_guides` tablosuna `display_order` (integer, default 0) sütunu eklenecek. Ana sayfadaki FeaturedGuides ve Guides sayfası bu sütuna göre sıralayacak.
 
-### Çözüm — `GuideLanguageSelector.tsx`
-
-Collapse modunda seçili butonu CSS `order: -1` ile grid'in en başına taşı, gizlenen butonlara `hidden` (display:none) uygula. Böylece grid row hesaplaması tamamen düzelir.
-
-```tsx
-// Collapsed + hidden → display:none (grid'den tamamen çıkar)
-isHidden && "hidden"
-
-// Collapsed + selected → order first
-isSelected && collapsed && "col-span-2 order-first"
+**Migration:**
+```sql
+ALTER TABLE audio_guides ADD COLUMN display_order integer NOT NULL DEFAULT 0;
 ```
 
-`max-h-0 min-h-0 py-0 my-0 border-0 overflow-hidden` gibi workaround class'lar kaldırılır çünkü `hidden` zaten yeterli.
+### Yeni Bileşen: `AdminGuideOrderManager.tsx`
 
-`maxHeight` style hesaplaması da sadeleşir: collapsed durumda `rowHeight`, genişlemiş durumda hesaplanan yükseklik.
+Kompakt, sürükle-bırak destekli liste:
+- Her guide tek satırda: **sıra numarası + drag handle (⠿) + başlık + konum + durum badge + fiyat**
+- Dropdown yok — tüm bilgi tek satırda
+- `@dnd-kit/core` ve `@dnd-kit/sortable` ile native drag-and-drop
+- Sıralama değiştiğinde "Kaydet" butonu aktif olur, toplu güncelleme yapar
+- Mobilde de touch-friendly drag handle
 
-### Etkilenen Dosya
-- `src/components/GuideLanguageSelector.tsx` — ~3 satır değişiklik
+```text
+┌──────────────────────────────────────────────────────┐
+│  Guide Sıralaması                        [Kaydet]    │
+├──────────────────────────────────────────────────────┤
+│  ⠿  1. Istanbul Historical Tour    Istanbul  ● Live  │
+│  ⠿  2. Mix Tour                    Mixed     ● Live  │
+│  ⠿  3. Hagia Sophia Guide          Istanbul  ● Live  │
+│  ⠿  4. Rome Walking Tour           Rome      ○ Hidden│
+└──────────────────────────────────────────────────────┘
+```
 
-### Beklenen Sonuç
-- Hangi dil seçilirse seçilsin, collapse durumunda buton her zaman grid'in en üstünde, tam genişlikte ve kayma olmadan görünür
+### Mevcut Dosya Değişiklikleri
+
+| Dosya | Değişiklik |
+|-------|-----------|
+| `supabase/migrations/new` | `display_order` sütunu ekleme |
+| `src/components/AdminGuideOrderManager.tsx` | Yeni — drag-drop sıralama bileşeni |
+| `src/pages/AdminPanel.tsx` | Content Management sekmesine OrderManager ekleme |
+| `src/components/FeaturedGuides.tsx` | `.order('display_order')` ekleme |
+| `src/pages/Guides.tsx` | `.order('display_order')` ekleme |
+
+### Paket Bağımlılığı
+- `@dnd-kit/core` + `@dnd-kit/sortable` + `@dnd-kit/utilities` — React drag-and-drop kütüphanesi
+
+### Kaydetme Mantığı
+Sıralama değiştiğinde her guide'ın `display_order` değeri güncellenir. Toplu update tek seferde yapılır:
+```tsx
+for (const [index, guide] of reorderedGuides.entries()) {
+  await supabase.from('audio_guides').update({ display_order: index }).eq('id', guide.id);
+}
+```
 
