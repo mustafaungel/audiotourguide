@@ -63,7 +63,15 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
   }, [mainGuide.id, accessCode]);
 
   useEffect(() => {
-    setLanguageByGuide(prev => ({ ...prev, [mainGuide.id]: languageCode }));
+    setLanguageByGuide(prev => {
+      const updated: Record<string, string> = { [mainGuide.id]: languageCode };
+      linkedGuides.forEach(g => { updated[g.guide_id] = languageCode; });
+      return { ...prev, ...updated };
+    });
+    // Reload linked guide sections in the new language
+    linkedGuides.forEach(g => {
+      ensureGuideSections(g.guide_id, languageCode);
+    });
   }, [languageCode, mainGuide.id]);
 
   useEffect(() => {
