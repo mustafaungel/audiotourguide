@@ -20,7 +20,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { GripVertical, Save, Loader2, Pencil, ExternalLink, Eye, EyeOff, Link2 } from 'lucide-react';
+import { GripVertical, Save, Loader2, Pencil, ExternalLink, Eye, EyeOff, Link2, ChevronDown, Copy, Globe } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { getLanguageFlag, getLanguageName } from '@/lib/language-utils';
