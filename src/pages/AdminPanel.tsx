@@ -31,6 +31,7 @@ import { EnhancedEmailTesting } from '@/components/EnhancedEmailTesting';
 import { AdminAnalyticsManager } from '@/components/AdminAnalyticsManager';
 import { EnhancedLogoUploader } from '@/components/EnhancedLogoUploader';
 import { AdminGuideOrderManager } from '@/components/AdminGuideOrderManager';
+import AdminPreviewTab from '@/components/AdminPreviewTab';
 
 import { ImageUploader } from '@/components/ImageUploader';
 import { useIsMobile } from '@/hooks/use-mobile';
