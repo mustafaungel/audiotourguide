@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AdminReviewManagement } from '@/components/AdminReviewManagement';
-import AdminLanguageManagement from '@/components/AdminLanguageManagement';
+
 import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
-import { FileText, Plus, ImageIcon, Copy, QrCode, Edit2, Mail, Palette, BarChart3, Languages, Eye } from 'lucide-react';
+import { FileText, Plus, ImageIcon, Copy, QrCode, Edit2, Mail, Palette, BarChart3, Eye } from 'lucide-react';
 import { ButtonLoader } from '@/components/AudioGuideLoader';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -426,10 +426,6 @@ const AdminPanel = () => {
               <Edit2 className="h-4 w-4" />
               <span>Edit</span>
             </TabsTrigger>
-            <TabsTrigger value="language-management" className="flex items-center gap-2 text-sm">
-              <Languages className="h-4 w-4" />
-              <span>Languages</span>
-            </TabsTrigger>
             <TabsTrigger value="preview" className="flex items-center gap-2 text-sm" onClick={() => navigate('/admin/preview')}>
               <Eye className="h-4 w-4" />
               <span>Preview</span>
@@ -740,9 +736,6 @@ const AdminPanel = () => {
             <AdminGuideEditForm onBack={() => setActiveTab('content-management')} />
           </TabsContent>
 
-          <TabsContent value="language-management">
-            <AdminLanguageManagement />
-          </TabsContent>
 
         </Tabs>
       </div>
