@@ -1,30 +1,46 @@
 
-## Plan: Move Preview Into Admin Panel Tab
 
-### Problem
-The Preview tab in admin panel uses `navigate('/admin/preview')` which leaves the admin panel entirely, losing all tabs and navigation context. The user can't go back to other tabs.
+## Plan: Move Create Guide into Content Tab, Remove Create Tab
 
-### Solution
-Embed the preview functionality directly as a `TabsContent` within the admin panel, like all other tabs.
+### What changes
+
+**Goal:** Add a "+ Create New Guide" button to the Content Management area so admins can create guides directly from the Content tab. Remove the separate "Create" tab since it becomes redundant.
 
 ### Changes
 
 **`src/pages/AdminPanel.tsx`:**
-1. Remove the `onClick={() => navigate('/admin/preview')}` from the Preview `TabsTrigger` (line 429)
-2. Add a new `<TabsContent value="preview">` block that renders the preview UI inline (guide selector, mobile/desktop toggle, iframe, checklist)
-3. Import necessary components (`CheckCircle2`, `XCircle`, `Smartphone`, `Monitor`) from lucide-react
-4. Move the guide-fetching logic and preview state into this tab content (can use a lightweight inline component or extract to a new `AdminPreviewTab` component)
+1. Remove the `Create` `TabsTrigger` (lines 422-425)
+2. Remove the `<TabsContent value="create-guide">` block (lines 468-734)
+3. Move all the create-guide form content into a new state-toggled view inside the `content-management` TabsContent — when `showCreateForm` is true, show the create form; otherwise show the guide list
 
-**`src/pages/AdminPreview.tsx`:**
-- Keep the file but it becomes unused (or delete for cleanup). The `/admin/preview` route can remain as a fallback or be removed from `App.tsx`.
+**`src/components/AdminGuideOrderManager.tsx`:**
+1. Add an `onCreateNew` optional prop
+2. Render a "+ Create New Guide" button at the top of the content list that calls `onCreateNew`
 
-### Result
-Preview behaves like every other admin tab — clicking it shows preview content in the same panel, all other tabs remain accessible.
+### Result in Content tab
+
+```text
+Content Management
+[+ Create New Guide]        ← new button
+[drag-sortable guide list]
+
+--- when clicked ---
+
+Content Management
+[← Back to List]
+[Create Audio Guide form]   ← moved from Create tab
+```
+
+### Tab bar after change
+
+```text
+Dashboard | Content | Contact | Email | Analytics | Reviews | Preview
+```
 
 ### Files affected
 
 | File | Change |
 |------|--------|
-| `src/pages/AdminPanel.tsx` | Remove navigate onClick, add TabsContent with preview UI |
-| `src/pages/AdminPreview.tsx` | Delete (cleanup) |
-| `src/App.tsx` | Remove `/admin/preview` route (cleanup) |
+| `src/pages/AdminPanel.tsx` | Remove Create tab, integrate create form into content-management tab with toggle |
+| `src/components/AdminGuideOrderManager.tsx` | Add `onCreateNew` prop and create button |
+
