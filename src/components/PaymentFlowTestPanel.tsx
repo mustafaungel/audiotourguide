@@ -367,9 +367,9 @@ export const PaymentFlowTestPanel: React.FC = () => {
   };
 
   return (
-    <Card className="w-full border-purple-200 bg-purple-50/50">
+    <Card className="w-full border-purple-200 dark:border-purple-800 bg-purple-50/50 dark:bg-purple-950/20">
       <CardHeader className="pb-3">
-        <CardTitle className="text-sm flex items-center gap-2 text-purple-700">
+        <CardTitle className="text-sm flex items-center gap-2 text-purple-700 dark:text-purple-300">
           <TestTube className="w-4 h-4" />
           Payment & Audio Testing Panel
           <Badge variant="secondary" className="text-xs">PRE-PUBLISH</Badge>
