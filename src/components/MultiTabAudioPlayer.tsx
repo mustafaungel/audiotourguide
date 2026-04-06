@@ -229,7 +229,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
   if (linkedGuides.length === 0) {
     return (
       <NewSectionAudioPlayer
-        key={`${mainGuide.id}-${languageByGuide[mainGuide.id] || languageCode}`}
+        key={mainGuide.id}
         guideId={mainGuide.id} guideTitle={mainGuide.title}
         sections={mainSections} mainAudioUrl={mainGuide.audio_url}
         lang={languageByGuide[mainGuide.id] || languageCode}
@@ -294,7 +294,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
       >
         {selectedGuideId && (
           <NewSectionAudioPlayer
-            key={`${selectedGuideId}-${languageByGuide[selectedGuideId] || languageCode}`}
+            key={selectedGuideId}
             guideId={selectedGuideId}
             guideTitle={sheetTitle || ''}
             sections={sheetSections}
