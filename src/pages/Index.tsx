@@ -21,23 +21,12 @@ import machupichuImage from '@/assets/machu-picchu.jpg';
 import kyotoImage from '@/assets/kyoto-temple.jpg';
 import parisImage from '@/assets/paris-louvre.jpg';
 import santoriniImage from '@/assets/santorini-greece.jpg';
-const GUIDES_CACHE_KEY = 'guides_list_cache';
-
-const getCachedGuides = (): any[] => {
-  try {
-    const cached = localStorage.getItem(GUIDES_CACHE_KEY);
-    if (cached) return JSON.parse(cached);
-  } catch {}
-  return [];
-};
-
 const Index = () => {
   const navigate = useNavigate();
   const [selectedGuide, setSelectedGuide] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const cachedGuides = getCachedGuides();
-  const [guides, setGuides] = useState<any[]>(cachedGuides);
-  const [loading, setLoading] = useState(cachedGuides.length === 0);
+  const [guides, setGuides] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [userPurchases, setUserPurchases] = useState<string[]>([]);
   const [processingPayment, setProcessingPayment] = useState<string | null>(null);
   const {
