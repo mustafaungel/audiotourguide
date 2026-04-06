@@ -41,6 +41,7 @@ const AdminPanel = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
   // Listen for tab change events
   useEffect(() => {
@@ -394,7 +395,7 @@ const AdminPanel = () => {
         <AdminMobileNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="hidden md:grid grid-cols-10 w-full max-w-6xl gap-1">
+          <TabsList className="hidden md:grid grid-cols-9 w-full max-w-6xl gap-1">
             <TabsTrigger value="dashboard" className="flex items-center gap-2 text-sm">
               <FileText className="h-4 w-4" />
               <span>Dashboard</span>
@@ -419,10 +420,6 @@ const AdminPanel = () => {
               <Star className="h-4 w-4" />
               <span>Reviews</span>
             </TabsTrigger>
-            <TabsTrigger value="create-guide" className="flex items-center gap-2 text-sm">
-              <Plus className="h-4 w-4" />
-              <span>Create</span>
-            </TabsTrigger>
             <TabsTrigger value="edit-guide" className="flex items-center gap-2 text-sm" data-tab="edit-guide">
               <Edit2 className="h-4 w-4" />
               <span>Edit</span>
@@ -441,7 +438,277 @@ const AdminPanel = () => {
           <TabsContent value="content-management">
             <div className="space-y-6">
               <h2 className="text-xl sm:text-2xl font-bold">Content Management</h2>
-              <AdminGuideOrderManager />
+              {showCreateForm ? (
+                <div className="space-y-6">
+                  <Button variant="outline" size="sm" onClick={() => setShowCreateForm(false)}>
+                    ← Guide Listesine Dön
+                  </Button>
+
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold">Create Audio Guide</h3>
+                    <div className="flex items-center space-x-3">
+                      <Label htmlFor="publication-toggle" className="text-sm font-medium">
+                        {isHidden ? 'Hidden' : 'Published'}
+                      </Label>
+                      <Switch
+                        id="publication-toggle"
+                        checked={!isHidden}
+                        onCheckedChange={(checked) => setIsHidden(!checked)}
+                      />
+                      <span className="text-xs text-muted-foreground">
+                        {isHidden ? 'Will be created as hidden (accessible via link only)' : 'Will be published publicly'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Guide Information</CardTitle>
+                      <CardDescription>Create a new audio guide with sections</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="title">Guide Title</Label>
+                          <Input
+                            id="title"
+                            value={formData.title}
+                            onChange={(e) => handleInputChange('title', e.target.value)}
+                            placeholder="e.g., Goreme Open Air Museum"
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <Label htmlFor="description">Guide Description</Label>
+                            <span className="text-xs text-muted-foreground">
+                              {formData.description.length}/100
+                            </span>
+                          </div>
+                          <Textarea
+                            id="description"
+                            value={formData.description}
+                            onChange={(e) => handleInputChange('description', e.target.value)}
+                            placeholder="Brief description of the guide..."
+                            maxLength={100}
+                            className="mt-1 min-h-[60px]"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={generateDescription}
+                            disabled={descriptionLoading || !formData.title || !formData.city || !formData.country || !formData.category}
+                            className="w-full mt-2"
+                          >
+                            {descriptionLoading ? (
+                              <ButtonLoader text="Generating..." />
+                            ) : (
+                              'Generate AI Description'
+                            )}
+                          </Button>
+                        </div>
+                        <div>
+                          <Label htmlFor="category">Category</Label>
+                          <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
+                            <SelectTrigger className="mt-1">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Cultural Heritage">Cultural Heritage</SelectItem>
+                              <SelectItem value="Natural Wonder">Natural Wonder</SelectItem>
+                              <SelectItem value="Historical">Historical</SelectItem>
+                              <SelectItem value="Art & Culture">Art & Culture</SelectItem>
+                              <SelectItem value="Architecture">Architecture</SelectItem>
+                              <SelectItem value="Religious">Religious</SelectItem>
+                              <SelectItem value="Modern Attraction">Modern Attraction</SelectItem>
+                              <SelectItem value="Local Experience">Local Experience</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="country">Country</Label>
+                          <CountrySelector
+                            value={formData.country}
+                            onValueChange={(value) => handleInputChange('country', value)}
+                            placeholder="Select country"
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="city">City</Label>
+                          <Input
+                            id="city"
+                            value={formData.city}
+                            onChange={(e) => handleInputChange('city', e.target.value)}
+                            placeholder="e.g., Cappadocia"
+                            className="mt-1"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="price">Price (USD)</Label>
+                        <Input
+                          id="price"
+                          type="number"
+                          value={formData.price}
+                          onChange={(e) => handleInputChange('price', e.target.value)}
+                          placeholder="9.99"
+                          className="mt-1"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Set your guide price. Recommended: $3-15 for most guides
+                        </p>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            id="featured"
+                            checked={formData.is_featured}
+                            onCheckedChange={(checked) => handleInputChange('is_featured', checked)}
+                          />
+                          <Label htmlFor="featured" className="font-medium">
+                            Featured Guide
+                          </Label>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Featured guides appear prominently on the homepage and get more visibility.
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Guide Images</Label>
+                        <ImageUploader
+                          onImagesUploaded={setUploadedImages}
+                          currentImages={uploadedImages}
+                          maxImages={5}
+                        />
+                      </div>
+
+                      <AudioGuideSectionManager
+                        sections={sections}
+                        onSectionsChange={setSections}
+                        guideId={tempGuideId}
+                        guideTitle={formData.title}
+                        location={`${formData.city}, ${formData.country}`}
+                        category={formData.category}
+                      />
+
+                      {createdGuide && qrCodeUrl && shareUrl && (
+                        <>
+                          <Separator />
+                          <Card className="border-green-200 bg-green-50">
+                            <CardHeader>
+                              <CardTitle className="text-green-800 flex items-center gap-2">
+                                <QrCode className="h-5 w-5" />
+                                {isHidden ? 'Hidden Guide Created!' : 'Published Guide Created!'}
+                              </CardTitle>
+                              <CardDescription className="text-green-700">
+                                {isHidden 
+                                  ? 'Guide is hidden from main page - only accessible via this access link'
+                                  : 'Guide is discoverable on main page with payment required - access link provides direct access'
+                                }
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                  <Label className="text-green-700 font-medium">QR Code</Label>
+                                  <div className="flex justify-center">
+                                    <img 
+                                      src={qrCodeUrl} 
+                                      alt="QR Code for guide" 
+                                      className="border rounded-lg shadow-sm"
+                                    />
+                                  </div>
+                                  <p className="text-sm text-green-600 text-center">
+                                    Scan to access your guide
+                                  </p>
+                                </div>
+                                
+                                <div className="space-y-4">
+                                  <div className="space-y-2">
+                                    <Label className="text-green-700 font-medium">
+                                      {isHidden ? 'Direct Access Link' : 'Access Link (Bypass Payment)'}
+                                    </Label>
+                                    <div className="flex gap-2">
+                                      <Input 
+                                        value={shareUrl} 
+                                        readOnly 
+                                        className="bg-white text-sm"
+                                      />
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => copyToClipboard(shareUrl, 'Access link')}
+                                        className="shrink-0"
+                                      >
+                                        <Copy className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                    <p className="text-xs text-green-600">
+                                      {isHidden 
+                                        ? 'Share this link for instant access to the hidden guide'
+                                        : 'This link bypasses payment and provides instant access'
+                                      }
+                                    </p>
+                                  </div>
+                                  
+                                  <div className="space-y-2">
+                                    <Label className="text-green-700 font-medium">Guide Details</Label>
+                                    <div className="text-sm space-y-1">
+                                      <p><strong>Title:</strong> {createdGuide.title}</p>
+                                      <p><strong>Location:</strong> {createdGuide.location}</p>
+                                      <p><strong>Price:</strong> ${(createdGuide.price_usd / 100).toFixed(2)}</p>
+                                      <p><strong>Visibility:</strong> {isHidden ? 'Hidden (Link Only)' : 'Published (Main Page + Link)'}</p>
+                                      <p><strong>Status:</strong> Approved & Ready</p>
+                                    </div>
+                                  </div>
+                                  
+                                  <Button
+                                    variant="outline"
+                                    className="w-full"
+                                    onClick={() => {
+                                      setCreatedGuide(null);
+                                      setQrCodeUrl(null);
+                                      setShareUrl(null);
+                                    }}
+                                  >
+                                    Create Another Guide
+                                  </Button>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </>
+                      )}
+
+                      <Button
+                        onClick={createGuide}
+                        disabled={publishLoading}
+                        className="w-full"
+                        size="lg"
+                      >
+                        {publishLoading ? (
+                          <ButtonLoader text="Creating Guide..." />
+                        ) : (
+                          <>
+                            <Plus className="w-4 h-4 mr-2" />
+                            Create Guide (Admin)
+                          </>
+                        )}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              ) : (
+                <AdminGuideOrderManager onCreateNew={() => setShowCreateForm(true)} />
+              )}
             </div>
           </TabsContent>
 
@@ -465,273 +732,6 @@ const AdminPanel = () => {
           </TabsContent>
 
 
-          <TabsContent value="create-guide">
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl sm:text-2xl font-bold">Create Audio Guide</h2>
-                <div className="flex items-center space-x-3">
-                  <Label htmlFor="publication-toggle" className="text-sm font-medium">
-                    {isHidden ? 'Hidden' : 'Published'}
-                  </Label>
-                  <Switch
-                    id="publication-toggle"
-                    checked={!isHidden}
-                    onCheckedChange={(checked) => setIsHidden(!checked)}
-                  />
-                  <span className="text-xs text-muted-foreground">
-                    {isHidden ? 'Will be created as hidden (accessible via link only)' : 'Will be published publicly'}
-                  </span>
-                </div>
-              </div>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Guide Information</CardTitle>
-                  <CardDescription>Create a new audio guide with sections</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="title">Guide Title</Label>
-                      <Input
-                        id="title"
-                        value={formData.title}
-                        onChange={(e) => handleInputChange('title', e.target.value)}
-                        placeholder="e.g., Goreme Open Air Museum"
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <Label htmlFor="description">Guide Description</Label>
-                        <span className="text-xs text-muted-foreground">
-                          {formData.description.length}/100
-                        </span>
-                      </div>
-                      <Textarea
-                        id="description"
-                        value={formData.description}
-                        onChange={(e) => handleInputChange('description', e.target.value)}
-                        placeholder="Brief description of the guide..."
-                        maxLength={100}
-                        className="mt-1 min-h-[60px]"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={generateDescription}
-                        disabled={descriptionLoading || !formData.title || !formData.city || !formData.country || !formData.category}
-                        className="w-full mt-2"
-                      >
-                        {descriptionLoading ? (
-                          <ButtonLoader text="Generating..." />
-                        ) : (
-                          'Generate AI Description'
-                        )}
-                      </Button>
-                    </div>
-                    <div>
-                      <Label htmlFor="category">Category</Label>
-                      <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Cultural Heritage">Cultural Heritage</SelectItem>
-                          <SelectItem value="Natural Wonder">Natural Wonder</SelectItem>
-                          <SelectItem value="Historical">Historical</SelectItem>
-                          <SelectItem value="Art & Culture">Art & Culture</SelectItem>
-                          <SelectItem value="Architecture">Architecture</SelectItem>
-                          <SelectItem value="Religious">Religious</SelectItem>
-                          <SelectItem value="Modern Attraction">Modern Attraction</SelectItem>
-                          <SelectItem value="Local Experience">Local Experience</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="country">Country</Label>
-                      <CountrySelector
-                        value={formData.country}
-                        onValueChange={(value) => handleInputChange('country', value)}
-                        placeholder="Select country"
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="city">City</Label>
-                      <Input
-                        id="city"
-                        value={formData.city}
-                        onChange={(e) => handleInputChange('city', e.target.value)}
-                        placeholder="e.g., Cappadocia"
-                        className="mt-1"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="price">Price (USD)</Label>
-                    <Input
-                      id="price"
-                      type="number"
-                      value={formData.price}
-                      onChange={(e) => handleInputChange('price', e.target.value)}
-                      placeholder="9.99"
-                      className="mt-1"
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Set your guide price. Recommended: $3-15 for most guides
-                    </p>
-                  </div>
-
-                  {/* Featured Toggle */}
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="featured"
-                        checked={formData.is_featured}
-                        onCheckedChange={(checked) => handleInputChange('is_featured', checked)}
-                      />
-                      <Label htmlFor="featured" className="font-medium">
-                        Featured Guide
-                      </Label>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Featured guides appear prominently on the homepage and get more visibility.
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Guide Images</Label>
-                    <ImageUploader
-                      onImagesUploaded={setUploadedImages}
-                      currentImages={uploadedImages}
-                      maxImages={5}
-                    />
-                  </div>
-
-                  <AudioGuideSectionManager
-                    sections={sections}
-                    onSectionsChange={setSections}
-                    guideId={tempGuideId}
-                    guideTitle={formData.title}
-                    location={`${formData.city}, ${formData.country}`}
-                    category={formData.category}
-                  />
-
-                  {/* QR Code and Share Link Display */}
-                  {createdGuide && qrCodeUrl && shareUrl && (
-                    <>
-                      <Separator />
-                      <Card className="border-green-200 bg-green-50">
-                        <CardHeader>
-                          <CardTitle className="text-green-800 flex items-center gap-2">
-                            <QrCode className="h-5 w-5" />
-                            {isHidden ? 'Hidden Guide Created!' : 'Published Guide Created!'}
-                          </CardTitle>
-                          <CardDescription className="text-green-700">
-                            {isHidden 
-                              ? 'Guide is hidden from main page - only accessible via this access link'
-                              : 'Guide is discoverable on main page with payment required - access link provides direct access'
-                            }
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                              <Label className="text-green-700 font-medium">QR Code</Label>
-                              <div className="flex justify-center">
-                                <img 
-                                  src={qrCodeUrl} 
-                                  alt="QR Code for guide" 
-                                  className="border rounded-lg shadow-sm"
-                                />
-                              </div>
-                              <p className="text-sm text-green-600 text-center">
-                                Scan to access your guide
-                              </p>
-                            </div>
-                            
-                            <div className="space-y-4">
-                              <div className="space-y-2">
-                                <Label className="text-green-700 font-medium">
-                                  {isHidden ? 'Direct Access Link' : 'Access Link (Bypass Payment)'}
-                                </Label>
-                                <div className="flex gap-2">
-                                  <Input 
-                                    value={shareUrl} 
-                                    readOnly 
-                                    className="bg-white text-sm"
-                                  />
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => copyToClipboard(shareUrl, 'Access link')}
-                                    className="shrink-0"
-                                  >
-                                    <Copy className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                                <p className="text-xs text-green-600">
-                                  {isHidden 
-                                    ? 'Share this link for instant access to the hidden guide'
-                                    : 'This link bypasses payment and provides instant access'
-                                  }
-                                </p>
-                              </div>
-                              
-                              <div className="space-y-2">
-                                <Label className="text-green-700 font-medium">Guide Details</Label>
-                                <div className="text-sm space-y-1">
-                                  <p><strong>Title:</strong> {createdGuide.title}</p>
-                                  <p><strong>Location:</strong> {createdGuide.location}</p>
-                                  <p><strong>Price:</strong> ${(createdGuide.price_usd / 100).toFixed(2)}</p>
-                                  <p><strong>Visibility:</strong> {isHidden ? 'Hidden (Link Only)' : 'Published (Main Page + Link)'}</p>
-                                  <p><strong>Status:</strong> Approved & Ready</p>
-                                </div>
-                              </div>
-                              
-                              <Button
-                                variant="outline"
-                                className="w-full"
-                                onClick={() => {
-                                  setCreatedGuide(null);
-                                  setQrCodeUrl(null);
-                                  setShareUrl(null);
-                                }}
-                              >
-                                Create Another Guide
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </>
-                  )}
-
-                  <Button
-                    onClick={createGuide}
-                    disabled={publishLoading}
-                    className="w-full"
-                    size="lg"
-                  >
-                    {publishLoading ? (
-                      <ButtonLoader text="Creating Guide..." />
-                    ) : (
-                      <>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Create Guide (Admin)
-                      </>
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
 
           <TabsContent value="edit-guide">
             <AdminGuideEditForm onBack={() => setActiveTab('content-management')} />

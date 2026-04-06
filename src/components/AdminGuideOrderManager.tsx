@@ -21,7 +21,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { buildAccessUrl, getBaseUrl } from '@/lib/url-utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { GripVertical, Save, Loader2, Pencil, ExternalLink, Eye, EyeOff, Link2, ChevronDown, Copy, Globe } from 'lucide-react';
+import { GripVertical, Save, Loader2, Pencil, ExternalLink, Eye, EyeOff, Link2, ChevronDown, Copy, Globe, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { getLanguageFlag, getLanguageName } from '@/lib/language-utils';
@@ -286,7 +286,7 @@ const SortableGuideRow = ({
   );
 };
 
-export const AdminGuideOrderManager = () => {
+export const AdminGuideOrderManager = ({ onCreateNew }: { onCreateNew?: () => void }) => {
   const [guides, setGuides] = useState<GuideItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -455,20 +455,29 @@ export const AdminGuideOrderManager = () => {
   return (
     <TooltipProvider delayDuration={300}>
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <h3 className="text-lg font-semibold">Guide Sıralaması</h3>
-          <Button
-            onClick={handleSave}
-            disabled={!hasChanges || saving}
-            size="sm"
-          >
-            {saving ? (
-              <Loader2 className="h-4 w-4 animate-spin mr-1" />
-            ) : (
-              <Save className="h-4 w-4 mr-1" />
+          <div className="flex items-center gap-2">
+            {onCreateNew && (
+              <Button onClick={onCreateNew} size="sm" variant="default">
+                <Plus className="h-4 w-4 mr-1" />
+                Yeni Guide
+              </Button>
             )}
-            Kaydet
-          </Button>
+            <Button
+              onClick={handleSave}
+              disabled={!hasChanges || saving}
+              size="sm"
+              variant="outline"
+            >
+              {saving ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-1" />
+              ) : (
+                <Save className="h-4 w-4 mr-1" />
+              )}
+              Kaydet
+            </Button>
+          </div>
         </div>
 
         <DndContext
