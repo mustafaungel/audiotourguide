@@ -1,62 +1,50 @@
 
 
-## Plan: Content Management İyileştirmeleri + Performans
+## Plan: Ana Sayfa Sıralama Düzeltmesi + Content Management Genişletilebilir Satırlar
 
-### A. Preview butonu → Audio Access sayfasına yönlendirme
+### Sorun 1: Ana sayfa eski sıralamayı gösteriyor
 
-Şu an `handlePreview` → `/guide/${slug}` açıyor (son kullanıcı detay sayfası). Bunun yerine `master_access_code` ile audio access sayfasını açmalı.
+**Kök neden**: `Index.tsx` (satır 38-39) ve `Guides.tsx` (satır 30-31) sayfa yüklendiğinde `localStorage` cache'ini okuyup ilk state olarak kullanıyor. Admin sıralamayı kaydedince cache temizleniyor ama eğer kullanıcı SPA içinde navigasyon yapıyorsa bileşen yeniden mount olmuyor — eski state kalıyor.
 
-**Değişiklik** — `AdminGuideOrderManager.tsx`:
-- `GuideItem` interface'ine `master_access_code` ekle
-- Sorguya `master_access_code` ekle
-- `handlePreview`:
-  ```tsx
-  // Eski: window.open(`/guide/${guide.slug}`, '_blank');
-  // Yeni:
-  if (guide.master_access_code) {
-    window.open(`/access/${guide.id}?access_code=${guide.master_access_code}`, '_blank');
-  } else {
-    toast.error('Bu guide için erişim kodu yok');
-  }
-  ```
+**Düzeltme**: Her iki sayfada cache'i tamamen kaldır. `useState<any[]>([])` ile başla, her mount'ta taze veri çek. Cache mekanizması gereksiz karmaşıklık ekliyor ve sıralama sorununa yol açıyor.
 
-### B. Bağlı guide'ları ve dil detaylarını göster
+- `src/pages/Index.tsx`: `GUIDES_CACHE_KEY`, `getCachedGuides`, `cachedGuides` referanslarını ve `localStorage.setItem` satırını kaldır
+- `src/pages/Guides.tsx`: Aynı cache kaldırma işlemi
 
-Her guide satırında, o guide'a bağlı olan guide'ları küçük badge olarak gösterelim. `guide_collections` tablosundan `linked_guides` verisini çekeceğiz.
+### Sorun 2: Content Management'ta genişletilebilir satır detayları
 
-**Değişiklik** — `AdminGuideOrderManager.tsx`:
-- Bileşen yüklendiğinde `guide_collections` tablosundan tüm koleksiyonları çek
-- Her satırda bağlı guide varsa küçük `🔗 2 linked` badge'i göster (tıklanınca tooltip'te bağlı guide isimleri)
-- Bağlı guide yoksa hiçbir şey gösterme
+Şu an guide satırlarına tıklanınca hiçbir şey olmuyor — sadece drag handle ve action butonları var. Kullanıcı diller, bağlı guide'lar ve müşteri linklerini göremiyoro.
 
-### C. Index.tsx sıralama düzeltmesi
+**Düzeltme**: Her satıra tıklandığında aşağıya doğru açılan bir detay paneli ekle (accordion tarzı). İçeriği:
 
-Ana sayfa `display_order` yerine `created_at` ile sıralıyor — bu yüzden sıralama admin'de değiştirildiğinde ana sayfada yansımıyor.
-
-**Değişiklik** — `src/pages/Index.tsx` satır 60:
-```tsx
-// Eski: .order('created_at', { ascending: false })
-// Yeni: .order('display_order', { ascending: true })
+```
+┌─────────────────────────────────────────────────────┐
+│ ≡  1  Cappadocia Guide  Göreme  🇺🇸🇹🇷  Live  $4.99  │  ← mevcut satır
+├─────────────────────────────────────────────────────┤
+│  📋 Diller: 🇺🇸 English, 🇹🇷 Türkçe                  │
+│  🔗 Bağlı Guide'lar: Istanbul Guide, Pamukkale..   │
+│  🔑 Müşteri Erişim Linki:                          │
+│     /access/{id}?access_code={master_access_code}   │  [Kopyala]
+│  🌐 Detay Sayfası:                                  │
+│     /guide/{slug}                                   │  [Kopyala]
+└─────────────────────────────────────────────────────┘
 ```
 
-### D. Performans İyileştirmeleri
-
-Admin paneli yavaş çünkü:
-1. **Index.tsx** — 6 büyük resim `import` ile eager load ediliyor (`cappadociaImage`, `istanbulImage`, vb.) ama lazy load olmalı
-2. **AdminPanel.tsx** — 753 satırlık monolitik bileşen, tüm tab içerikleri her zaman render ediliyor (Tabs yapısı gereği mount oluyor)
-
-**Değişiklikler**:
-- `Index.tsx`: Statik resimleri `import` yerine doğrudan path string olarak kullan (bundle'dan çıkar)
-- `AdminPanel.tsx`: Create Guide tab'ındaki ağır form state'lerini ayrı bileşene taşıma — bu plan kapsamında **yapmayacağız**, çünkü refactoring riski yüksek. Bunun yerine QueryClient `staleTime` ayarı zaten 5 dk olduğundan Supabase çağrıları cache'leniyor.
+**Değişiklik** — `AdminGuideOrderManager.tsx`:
+- `SortableGuideRow`'a `expanded` state ekle
+- Satır gövdesine (drag handle ve action butonları hariç) tıklanınca toggle
+- Açılan panel: dil listesi (bayrak + isim), bağlı guide isimleri, müşteri linki (kopyalama butonu ile), detay sayfası linki
+- `guide_sections`'dan dil bilgisini çekmek yerine mevcut `guide.languages` array'ini kullan (zaten mevcut)
 
 ### Etkilenen Dosyalar
 
 | Dosya | Değişiklik |
 |-------|-----------|
-| `src/components/AdminGuideOrderManager.tsx` | Preview → access URL, bağlı guide badge, `master_access_code` sorguya ekle, `guide_collections` fetch |
-| `src/pages/Index.tsx` | `.order('display_order', { ascending: true })` |
+| `src/pages/Index.tsx` | Cache mekanizmasını kaldır |
+| `src/pages/Guides.tsx` | Cache mekanizmasını kaldır |
+| `src/components/AdminGuideOrderManager.tsx` | Genişletilebilir satır detayları ekle |
 
 ### Dokunulmayacak
-- AudioAccess linkleri (`/access/:guideId`) — mevcut
-- AdminPreview sayfası — ayrı sayfa, mevcut haliyle kalacak
+- `/access/:guideId` rotası ve AudioAccess bileşeni
+- `/guide/:slug` rotası ve GuideDetail bileşeni
 
