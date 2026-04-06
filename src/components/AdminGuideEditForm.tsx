@@ -639,81 +639,90 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
       </div>
 
       {/* QR Code and Share Management */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <QrCode className="w-5 h-5" />
-            QR Code & Sharing
-          </CardTitle>
-          <CardDescription>
-            Generate QR codes and manage sharing options for this guide
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-wrap gap-2">
-            <Button 
-              variant="outline" 
-              onClick={generateQRCode}
-              disabled={generatingQR}
-            >
-              {generatingQR ? (
-                <ButtonLoader />
-              ) : (
-                <QrCode className="w-4 h-4 mr-2" />
-              )}
-              {guide.qr_code_url ? 'Regenerate QR Code' : 'Generate QR Code'}
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={openGuidePreview}
-            >
-              <ExternalLink className="w-4 h-4 mr-2" />
-              Preview Guide
-            </Button>
-          </div>
+      <Collapsible>
+        <Card>
+          <CardHeader className="cursor-pointer" asChild>
+            <CollapsibleTrigger className="flex w-full items-center justify-between p-6 [&[data-state=open]>svg]:rotate-180">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <QrCode className="w-5 h-5" />
+                  QR Code & Sharing
+                </CardTitle>
+                <CardDescription className="mt-1">
+                  Generate QR codes and manage sharing options for this guide
+                </CardDescription>
+              </div>
+              <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+            </CollapsibleTrigger>
+          </CardHeader>
+          <CollapsibleContent>
+            <CardContent className="space-y-4 pt-0">
+              <div className="flex flex-wrap gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={generateQRCode}
+                  disabled={generatingQR}
+                >
+                  {generatingQR ? (
+                    <ButtonLoader />
+                  ) : (
+                    <QrCode className="w-4 h-4 mr-2" />
+                  )}
+                  {guide.qr_code_url ? 'Regenerate QR Code' : 'Generate QR Code'}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={openGuidePreview}
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Preview Guide
+                </Button>
+              </div>
 
-          {(guide.qr_code_url || guide.share_url) && (
-            <div className="grid gap-4 md:grid-cols-2">
-              {guide.qr_code_url && (
-                <div className="space-y-2">
-                  <Label>QR Code</Label>
-                  <div className="text-center p-4 bg-white rounded-lg border-2 border-border">
-                    <img 
-                      src={guide.qr_code_url} 
-                      alt="QR Code for guide"
-                      className="w-32 h-32 mx-auto"
-                    />
-                  </div>
-                  <p className="text-sm text-muted-foreground text-center">
-                    Users can scan this to access the guide
-                  </p>
-                </div>
-              )}
-              
-              {guide.share_url && (
-                <div className="space-y-2">
-                  <Label>Share Link</Label>
-                  <div className="flex gap-2">
-                    <div className="flex-1 p-2 bg-muted rounded-md text-sm font-mono truncate">
-                      {guide.share_url}
+              {(guide.qr_code_url || guide.share_url) && (
+                <div className="grid gap-4 md:grid-cols-2">
+                  {guide.qr_code_url && (
+                    <div className="space-y-2">
+                      <Label>QR Code</Label>
+                      <div className="text-center p-4 bg-background rounded-lg border-2 border-border">
+                        <img 
+                          src={guide.qr_code_url} 
+                          alt="QR Code for guide"
+                          className="w-32 h-32 mx-auto"
+                        />
+                      </div>
+                      <p className="text-sm text-muted-foreground text-center">
+                        Users can scan this to access the guide
+                      </p>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => copyToClipboard(guide.share_url!, 'Share link')}
-                    >
-                      <Copy className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Direct link to the guide page
-                  </p>
+                  )}
+                  
+                  {guide.share_url && (
+                    <div className="space-y-2">
+                      <Label>Share Link</Label>
+                      <div className="flex gap-2">
+                        <div className="flex-1 p-2 bg-muted rounded-md text-sm font-mono truncate">
+                          {guide.share_url}
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => copyToClipboard(guide.share_url!, 'Share link')}
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Direct link to the guide page
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
     </div>
   );
 };
