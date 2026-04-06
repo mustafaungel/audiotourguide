@@ -144,7 +144,7 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
                       ? "bg-primary/15 border-primary text-primary shadow-md ring-2 ring-primary/30 min-h-[44px] opacity-100 scale-100"
                       : "bg-card border-border text-foreground hover:bg-muted min-h-[44px] opacity-100 scale-100",
                     isSelected && collapsed && "col-span-2",
-                    isHidden && "opacity-0 scale-90 max-h-0 min-h-0 py-0 my-0 border-0 overflow-hidden pointer-events-none"
+                    isHidden && "hidden"
                   )}
                 >
                   <span className="text-lg" aria-hidden="true">
