@@ -248,18 +248,11 @@ export const GuideCollectionManager: React.FC<GuideCollectionManagerProps> = ({
     guide.location.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Plus className="w-5 h-5" />
-          Linked Audio Guides
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Add new linked guide */}
-        <div className="space-y-3 p-4 border rounded-lg bg-muted/50">
-          <Label>Add New Guide</Label>
+  const content = (
+    <div className="space-y-4">
+      {/* Add new linked guide */}
+      <div className="space-y-3 p-4 border rounded-lg bg-muted/50">
+        <Label>Add New Guide</Label>
           
           <div className="flex gap-2">
             <Search className="w-4 h-4 mt-3 text-muted-foreground" />
