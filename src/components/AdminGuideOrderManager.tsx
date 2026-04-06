@@ -238,7 +238,7 @@ const SortableGuideRow = ({
         <div className="px-3 pb-3 pt-1 border-t border-border/50 space-y-2 text-xs">
           {/* Languages */}
           <div className="flex items-start gap-2">
-            <span className="text-muted-foreground shrink-0">📋 Diller:</span>
+            <span className="text-muted-foreground shrink-0">📋 Languages:</span>
             <div className="flex flex-wrap gap-1.5">
               {guide.languages.map((lang) => (
                 <span key={lang} className="inline-flex items-center gap-1 bg-muted/50 rounded px-1.5 py-0.5">
