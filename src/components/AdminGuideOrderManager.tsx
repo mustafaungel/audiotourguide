@@ -63,6 +63,7 @@ const SortableGuideRow = ({
   linkedGuides: LinkedGuideInfo[];
   guideTitles: Record<string, string>;
 }) => {
+  const [expanded, setExpanded] = useState(false);
   const {
     attributes,
     listeners,
@@ -94,135 +95,192 @@ const SortableGuideRow = ({
     }
   };
 
+  const accessLink = guide.master_access_code
+    ? `${window.location.origin}/access/${guide.id}?access_code=${guide.master_access_code}`
+    : null;
+  const detailLink = `${window.location.origin}/guide/${guide.slug}`;
+
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success(`${label} kopyalandı`);
+  };
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       className={cn(
-        'flex items-center gap-2 px-3 py-2 rounded-lg border bg-card',
+        'rounded-lg border bg-card',
         isDragging && 'opacity-50 shadow-lg z-50'
       )}
     >
-      <button
-        {...attributes}
-        {...listeners}
-        className="flex items-center justify-center text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing shrink-0"
-        aria-label="Drag to reorder"
-      >
-        <GripVertical className="h-4 w-4" />
-      </button>
+      <div className="flex items-center gap-2 px-3 py-2">
+        <button
+          {...attributes}
+          {...listeners}
+          className="flex items-center justify-center text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing shrink-0"
+          aria-label="Drag to reorder"
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
 
-      <span className="text-xs font-medium text-muted-foreground w-5 text-center shrink-0">
-        {index + 1}
-      </span>
+        <span className="text-xs font-medium text-muted-foreground w-5 text-center shrink-0">
+          {index + 1}
+        </span>
 
-      <span className="text-sm font-medium truncate flex-1 min-w-0">
-        {guide.title}
-      </span>
+        {/* Clickable area to expand */}
+        <button
+          className="flex items-center gap-2 flex-1 min-w-0 text-left"
+          onClick={() => setExpanded(!expanded)}
+        >
+          <span className="text-sm font-medium truncate flex-1 min-w-0">
+            {guide.title}
+          </span>
+          <ChevronDown className={cn("h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform duration-200", expanded && "rotate-180")} />
+        </button>
 
-      <span className="text-xs text-muted-foreground truncate hidden sm:block max-w-[100px]">
-        {guide.location}
-      </span>
+        <span className="text-xs text-muted-foreground truncate hidden sm:block max-w-[100px]">
+          {guide.location}
+        </span>
 
-      {/* Language flags */}
-      <div className="hidden md:flex items-center gap-0.5 shrink-0">
-        {guide.languages.map((lang) => (
-          <Tooltip key={lang}>
+        {/* Language flags */}
+        <div className="hidden md:flex items-center gap-0.5 shrink-0">
+          {guide.languages.map((lang) => (
+            <Tooltip key={lang}>
+              <TooltipTrigger asChild>
+                <span className="text-sm cursor-default">{getLanguageFlag(lang)}</span>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="text-xs">
+                {getLanguageName(lang)}
+              </TooltipContent>
+            </Tooltip>
+          ))}
+        </div>
+
+        {/* Linked guides badge */}
+        {linkedGuides.length > 0 && (
+          <Badge variant="outline" className="shrink-0 text-[10px] px-1.5 py-0 gap-0.5 cursor-default">
+            <Link2 className="h-3 w-3" />
+            {linkedGuides.length}
+          </Badge>
+        )}
+
+        <Badge
+          variant={isLive ? 'default' : isPending ? 'outline' : 'secondary'}
+          className="shrink-0 text-[10px] px-1.5 py-0"
+        >
+          {isLive ? 'Live' : isPending ? 'Pending' : 'Hidden'}
+        </Badge>
+
+        <span className="text-xs text-muted-foreground shrink-0 w-12 text-right">
+          ${(guide.price_usd / 100).toFixed(2)}
+        </span>
+
+        {/* Action buttons */}
+        <div className="flex items-center gap-0.5 shrink-0">
+          <Tooltip>
             <TooltipTrigger asChild>
-              <span className="text-sm cursor-default">{getLanguageFlag(lang)}</span>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="h-7 w-7 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950"
+                onClick={handleEdit}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-xs">Düzenle</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="h-7 w-7"
+                onClick={handlePreview}
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-xs">Önizle (Audio Access)</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className={cn(
+                  "h-7 w-7",
+                  guide.is_published
+                    ? "text-orange-500 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950"
+                    : "text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950"
+                )}
+                onClick={() => onTogglePublish(guide.id, guide.is_published)}
+                disabled={togglingId === guide.id}
+              >
+                {guide.is_published ? (
+                  <EyeOff className="h-3.5 w-3.5" />
+                ) : (
+                  <Eye className="h-3.5 w-3.5" />
+                )}
+              </Button>
             </TooltipTrigger>
             <TooltipContent side="top" className="text-xs">
-              {getLanguageName(lang)}
+              {guide.is_published ? 'Gizle' : 'Yayınla'}
             </TooltipContent>
           </Tooltip>
-        ))}
+        </div>
       </div>
 
-      {/* Linked guides badge */}
-      {linkedGuides.length > 0 && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Badge variant="outline" className="shrink-0 text-[10px] px-1.5 py-0 gap-0.5 cursor-default">
-              <Link2 className="h-3 w-3" />
-              {linkedGuides.length}
-            </Badge>
-          </TooltipTrigger>
-          <TooltipContent side="top" className="text-xs max-w-[200px]">
-            <p className="font-medium mb-1">Bağlı guide'lar:</p>
-            {linkedGuides.map((lg, i) => (
-              <p key={i} className="text-muted-foreground">
-                • {lg.custom_title || guideTitles[lg.guide_id] || lg.guide_id.slice(0, 8)}
-              </p>
-            ))}
-          </TooltipContent>
-        </Tooltip>
+      {/* Expanded detail panel */}
+      {expanded && (
+        <div className="px-3 pb-3 pt-1 border-t border-border/50 space-y-2 text-xs">
+          {/* Languages */}
+          <div className="flex items-start gap-2">
+            <span className="text-muted-foreground shrink-0">📋 Diller:</span>
+            <div className="flex flex-wrap gap-1.5">
+              {guide.languages.map((lang) => (
+                <span key={lang} className="inline-flex items-center gap-1 bg-muted/50 rounded px-1.5 py-0.5">
+                  {getLanguageFlag(lang)} {getLanguageName(lang)}
+                </span>
+              ))}
+              {guide.languages.length === 0 && <span className="text-muted-foreground">—</span>}
+            </div>
+          </div>
+
+          {/* Linked guides */}
+          <div className="flex items-start gap-2">
+            <span className="text-muted-foreground shrink-0">🔗 Bağlı:</span>
+            <div className="flex flex-wrap gap-1.5">
+              {linkedGuides.length > 0 ? linkedGuides.map((lg, i) => (
+                <span key={i} className="inline-flex items-center gap-1 bg-muted/50 rounded px-1.5 py-0.5">
+                  {lg.custom_title || guideTitles[lg.guide_id] || lg.guide_id.slice(0, 8)}
+                </span>
+              )) : <span className="text-muted-foreground">Bağlı guide yok</span>}
+            </div>
+          </div>
+
+          {/* Access link */}
+          {accessLink && (
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground shrink-0">🔑 Erişim:</span>
+              <code className="text-[11px] bg-muted/50 rounded px-1.5 py-0.5 truncate flex-1 min-w-0">{accessLink}</code>
+              <Button variant="ghost" size="sm" className="h-6 px-2 shrink-0" onClick={() => copyToClipboard(accessLink, 'Erişim linki')}>
+                <Copy className="h-3 w-3" />
+              </Button>
+            </div>
+          )}
+
+          {/* Detail page link */}
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground shrink-0">🌐 Detay:</span>
+            <code className="text-[11px] bg-muted/50 rounded px-1.5 py-0.5 truncate flex-1 min-w-0">{detailLink}</code>
+            <Button variant="ghost" size="sm" className="h-6 px-2 shrink-0" onClick={() => copyToClipboard(detailLink, 'Detay linki')}>
+              <Copy className="h-3 w-3" />
+            </Button>
+          </div>
+        </div>
       )}
-
-      <Badge
-        variant={isLive ? 'default' : isPending ? 'outline' : 'secondary'}
-        className="shrink-0 text-[10px] px-1.5 py-0"
-      >
-        {isLive ? 'Live' : isPending ? 'Pending' : 'Hidden'}
-      </Badge>
-
-      <span className="text-xs text-muted-foreground shrink-0 w-12 text-right">
-        ${(guide.price_usd / 100).toFixed(2)}
-      </span>
-
-      {/* Action buttons */}
-      <div className="flex items-center gap-0.5 shrink-0">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className="h-7 w-7 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950"
-              onClick={handleEdit}
-            >
-              <Pencil className="h-3.5 w-3.5" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="top" className="text-xs">Düzenle</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className="h-7 w-7"
-              onClick={handlePreview}
-            >
-              <ExternalLink className="h-3.5 w-3.5" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="top" className="text-xs">Önizle (Audio Access)</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className={cn(
-                "h-7 w-7",
-                guide.is_published
-                  ? "text-orange-500 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950"
-                  : "text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950"
-              )}
-              onClick={() => onTogglePublish(guide.id, guide.is_published)}
-              disabled={togglingId === guide.id}
-            >
-              {guide.is_published ? (
-                <EyeOff className="h-3.5 w-3.5" />
-              ) : (
-                <Eye className="h-3.5 w-3.5" />
-              )}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="top" className="text-xs">
-            {guide.is_published ? 'Gizle' : 'Yayınla'}
-          </TooltipContent>
-        </Tooltip>
-      </div>
     </div>
   );
 };
