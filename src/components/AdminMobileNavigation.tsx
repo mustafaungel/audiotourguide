@@ -1,6 +1,6 @@
 import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BarChart3, FileText, Mail, Star, Eye } from 'lucide-react';
+import { BarChart3, FileText } from 'lucide-react';
 
 interface AdminMobileNavigationProps {
   activeTab: string;

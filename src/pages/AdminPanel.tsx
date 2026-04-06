@@ -29,7 +29,7 @@ import { AdminGuideEditForm } from '@/components/AdminGuideEditForm';
 
 import { AdminGuideOrderManager } from '@/components/AdminGuideOrderManager';
 import { AdminGuideOrderManager } from '@/components/AdminGuideOrderManager';
-import AdminPreviewTab from '@/components/AdminPreviewTab';
+
 
 import { ImageUploader } from '@/components/ImageUploader';
 import { useIsMobile } from '@/hooks/use-mobile';
