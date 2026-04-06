@@ -51,12 +51,12 @@ export const AdminDashboard = () => {
     if (!mountedSections.has(key)) return null;
     const fallback = <div className="py-4 text-center text-sm text-muted-foreground">Loading...</div>;
     switch (key) {
-      case 'qr': return <React.Suspense fallback={fallback}><AdminQRCodeDropdown /></React.Suspense>;
-      case 'contact': return <React.Suspense fallback={fallback}><AdminContactManagement /></React.Suspense>;
-      case 'email': return <React.Suspense fallback={fallback}><EnhancedEmailTesting /></React.Suspense>;
-      case 'analytics': return <React.Suspense fallback={fallback}><AdminAnalyticsManager /></React.Suspense>;
-      case 'reviews': return <React.Suspense fallback={fallback}><AdminReviewManagement /></React.Suspense>;
-      case 'preview': return <React.Suspense fallback={fallback}><AdminPreviewTab /></React.Suspense>;
+      case 'qr': return <React.Suspense fallback={fallback}><LazyAdminQRCodeDropdown /></React.Suspense>;
+      case 'contact': return <React.Suspense fallback={fallback}><LazyAdminContactManagement /></React.Suspense>;
+      case 'email': return <React.Suspense fallback={fallback}><LazyEnhancedEmailTesting /></React.Suspense>;
+      case 'analytics': return <React.Suspense fallback={fallback}><LazyAdminAnalyticsManager /></React.Suspense>;
+      case 'reviews': return <React.Suspense fallback={fallback}><LazyAdminReviewManagement /></React.Suspense>;
+      case 'preview': return <React.Suspense fallback={fallback}><LazyAdminPreviewTab /></React.Suspense>;
       default: return null;
     }
   };
