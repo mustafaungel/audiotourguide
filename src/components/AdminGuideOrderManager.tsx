@@ -327,7 +327,6 @@ export const AdminGuideOrderManager = () => {
       const failed = results.filter((r) => r.error);
       if (failed.length > 0) throw failed[0].error;
 
-      localStorage.removeItem('guides_list_cache');
 
       setHasChanges(false);
       toast.success('Sıralama kaydedildi');
