@@ -20,11 +20,13 @@ interface LinkedGuide {
 interface GuideCollectionManagerProps {
   guideId: string;
   onUpdate?: () => void;
+  embedded?: boolean;
 }
 
 export const GuideCollectionManager: React.FC<GuideCollectionManagerProps> = ({
   guideId,
-  onUpdate
+  onUpdate,
+  embedded = false
 }) => {
   const [linkedGuides, setLinkedGuides] = useState<LinkedGuide[]>([]);
   const [availableGuides, setAvailableGuides] = useState<any[]>([]);
