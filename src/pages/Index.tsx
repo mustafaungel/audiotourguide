@@ -57,8 +57,8 @@ const Index = () => {
       const {
         data,
         error
-      } = await supabase.from('audio_guides').select('*').eq('is_published', true).eq('is_approved', true).eq('is_standalone', true).order('created_at', {
-        ascending: false
+      } = await supabase.from('audio_guides').select('*').eq('is_published', true).eq('is_approved', true).eq('is_standalone', true).order('display_order', {
+        ascending: true
       });
       if (error) throw error;
       setGuides(data || []);
