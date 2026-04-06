@@ -246,10 +246,10 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
         {/* Main guide pill */}
         <button
           className={cn(
-            "flex items-center justify-between gap-2 min-h-[48px] px-4 py-2.5 text-sm font-medium rounded-xl border border-transparent transition-all active:scale-[0.97]",
+            "flex items-center justify-between gap-2 min-h-[48px] px-4 py-2.5 text-base font-medium rounded-xl transition-all active:scale-[0.97]",
             isMainSelected
               ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/30"
-              : "bg-muted/50 hover:bg-muted"
+              : "bg-muted/50 border border-border/50 hover:bg-muted hover:shadow-sm"
           )}
           onClick={() => handlePillClick(mainGuide.id)}
         >
@@ -257,11 +257,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
             <Music className="w-4 h-4 shrink-0" />
             <span className="line-clamp-2 break-words text-left">{mainGuide.title}</span>
           </span>
-          {mainSections.length > 0 && (
-            <Badge variant="secondary" className="shrink-0 text-[10px] px-1.5 py-0 h-5 rounded-full tabular-nums">
-              {mainSections.length}
-            </Badge>
-          )}
+          <ChevronRight className="w-4 h-4 shrink-0 opacity-50" />
         </button>
 
         {/* Linked guide pills */}
