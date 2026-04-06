@@ -592,135 +592,90 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
               </CollapsibleContent>
             </Collapsible>
 
-            <Button
-              onClick={updateGuide}
-              disabled={loading}
-              className="w-full"
-              size="lg"
-            >
-              {loading ? (
-                <ButtonLoader text="Updating Guide..." />
-              ) : (
-                <>
-                  <Save className="w-4 h-4 mr-2" />
-                  Update Guide
-                </>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
+            {/* Section 5: Linked Guides (default closed) */}
+            <Collapsible>
+              <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border px-4 py-2 font-medium text-sm hover:bg-muted transition-colors [&[data-state=open]>svg]:rotate-180">
+                Linked Guides
+                <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pt-3">
+                <GuideCollectionManager 
+                  guideId={guide.id} 
+                  onUpdate={() => console.log('Collection updated')}
+                  embedded
+                />
+              </CollapsibleContent>
+            </Collapsible>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Guide Sections</CardTitle>
-            <CardDescription>Manage audio sections and content</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {sectionsLoading ? (
-              <AudioGuideLoader variant="inline" message="Loading sections..." />
-            ) : (
-              <AudioGuideSectionManager
-                sections={sections}
-                onSectionsChange={handleSectionsChange}
-                guideId={guide.id}
-                guideTitle={formData.title}
-                location={formData.location}
-                category={formData.category}
-              />
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Guide Collections */}
-        <GuideCollectionManager 
-          guideId={guide.id} 
-          onUpdate={() => console.log('Collection updated')}
-        />
-      </div>
-
-      {/* QR Code and Share Management */}
-      <Collapsible>
-        <Card>
-          <CollapsibleTrigger className="flex w-full items-center justify-between p-6 [&[data-state=open]>svg]:rotate-180">
-            <div className="text-left">
-              <div className="flex items-center gap-2 font-semibold leading-none tracking-tight">
-                <QrCode className="w-5 h-5" />
+            {/* Section 6: QR Code & Sharing (default closed) */}
+            <Collapsible>
+              <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border px-4 py-2 font-medium text-sm hover:bg-muted transition-colors [&[data-state=open]>svg]:rotate-180">
                 QR Code & Sharing
-              </div>
-              <p className="text-sm text-muted-foreground mt-1">
-                Generate QR codes and manage sharing options for this guide
-              </p>
-            </div>
-            <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <CardContent className="space-y-4 pt-0">
-              <div className="flex flex-wrap gap-2">
-                <Button 
-                  variant="outline" 
-                  onClick={generateQRCode}
-                  disabled={generatingQR}
-                >
-                  {generatingQR ? (
-                    <ButtonLoader />
-                  ) : (
-                    <QrCode className="w-4 h-4 mr-2" />
-                  )}
-                  {guide.qr_code_url ? 'Regenerate QR Code' : 'Generate QR Code'}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={openGuidePreview}
-                >
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  Preview Guide
-                </Button>
-              </div>
-
-              {(guide.qr_code_url || guide.share_url) && (
-                <div className="grid gap-4 md:grid-cols-2">
-                  {guide.qr_code_url && (
-                    <div className="space-y-2">
-                      <Label>QR Code</Label>
-                      <div className="text-center p-4 bg-background rounded-lg border-2 border-border">
-                        <img 
-                          src={guide.qr_code_url} 
-                          alt="QR Code for guide"
-                          className="w-32 h-32 mx-auto"
-                        />
-                      </div>
-                      <p className="text-sm text-muted-foreground text-center">
-                        Users can scan this to access the guide
-                      </p>
-                    </div>
-                  )}
-                  
-                  {guide.share_url && (
-                    <div className="space-y-2">
-                      <Label>Share Link</Label>
-                      <div className="flex gap-2">
-                        <div className="flex-1 p-2 bg-muted rounded-md text-sm font-mono truncate">
-                          {guide.share_url}
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => copyToClipboard(guide.share_url!, 'Share link')}
-                        >
-                          <Copy className="w-4 h-4" />
-                        </Button>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Direct link to the guide page
-                      </p>
-                    </div>
-                  )}
+                <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pt-3 space-y-4">
+                <div className="flex flex-wrap gap-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={generateQRCode}
+                    disabled={generatingQR}
+                  >
+                    {generatingQR ? (
+                      <ButtonLoader />
+                    ) : (
+                      <QrCode className="w-4 h-4 mr-2" />
+                    )}
+                    {guide.qr_code_url ? 'Regenerate QR Code' : 'Generate QR Code'}
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={openGuidePreview}
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    Preview Guide
+                  </Button>
                 </div>
-              )}
-            </CardContent>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
+
+                {(guide.qr_code_url || guide.share_url) && (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {guide.qr_code_url && (
+                      <div className="space-y-2">
+                        <Label>QR Code</Label>
+                        <div className="text-center p-4 bg-background rounded-lg border-2 border-border">
+                          <img 
+                            src={guide.qr_code_url} 
+                            alt="QR Code for guide"
+                            className="w-32 h-32 mx-auto"
+                          />
+                        </div>
+                        <p className="text-sm text-muted-foreground text-center">
+                          Users can scan this to access the guide
+                        </p>
+                      </div>
+                    )}
+                    
+                    {guide.share_url && (
+                      <div className="space-y-2">
+                        <Label>Share Link</Label>
+                        <div className="flex gap-2">
+                          <div className="flex-1 p-2 bg-muted rounded-md text-sm font-mono truncate">
+                            {guide.share_url}
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => copyToClipboard(guide.share_url!, 'Share link')}
+                          >
+                            <Copy className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          Direct link to the guide page
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
     </div>
   );
 };
