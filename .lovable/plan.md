@@ -1,63 +1,30 @@
 
 
-## Plan: Dil Seçici Performans Düzeltmesi (AudioAccess + GuideDetail)
+## Plan: Dil Seçici — Alt Satır Kayma Düzeltmesi
 
 ### Sorun
-Videoda görülen kasma ve yavaşlık 3 kaynaktan geliyor — her ikisi de `GuideLanguageSelector` bileşenini kullanan AudioAccess ve GuideDetail sayfalarını etkiliyor:
 
-1. **`transition-[max-height]` hâlâ aktif** (satır 127) — her frame'de layout recalculation tetikliyor
-2. **Dil seçimi anında ağır Supabase RPC çağrısı başlatıyor** — UI thread bloklanıyor, animasyon takılıyor
-3. **`NewSectionAudioPlayer` key'i tüm section ID'lerini içeriyor** — her dil değişiminde komple unmount/remount
+Collapse modunda gizlenen butonlar CSS grid'den kaldırılmıyor. `opacity-0 max-h-0 min-h-0` ile görsel olarak gizlenseler de, grid hücreleri ve `gap-2` (8px) hâlâ yer kaplıyor. 2. satırdaki bir dil seçildiğinde (한국어, 中文), seçili buton aşağı kayıyor ve `maxHeight: 52px` ile kırpılıyor.
 
-### Çözüm
+### Çözüm — `GuideLanguageSelector.tsx`
 
-#### A. `GuideLanguageSelector.tsx` — max-height transition kaldır + rAF ile fetch ertele
-
-**Satır 127**: `transition-[max-height] duration-300 ease-in-out` kaldırılacak. Konteyner anında boyut değiştirir, butonlardaki opacity/transform geçişi yeterli görsel yumuşaklık sağlar.
-
-**Satır 64-78**: `handleLanguageSelect` içinde önce `setCollapsed(true)` çalışsın (animasyon başlasın), sonra `requestAnimationFrame` ile data fetch tetiklensin:
+Collapse modunda seçili butonu CSS `order: -1` ile grid'in en başına taşı, gizlenen butonlara `hidden` (display:none) uygula. Böylece grid row hesaplaması tamamen düzelir.
 
 ```tsx
-const handleLanguageSelect = (languageCode: string) => {
-  haptics.selection();
-  if (languageCode === selectedLanguage && collapsed) {
-    setCollapsed(false);
-    return;
-  }
-  setCollapsed(true);
-  requestAnimationFrame(() => {
-    const isInMultiTab = !!activeGuideId;
-    if (isInMultiTab) {
-      window.dispatchEvent(new CustomEvent('changeGuideLanguage', {
-        detail: { guideId: activeGuideId, languageCode }
-      }));
-    } else {
-      onLanguageChange(languageCode);
-    }
-  });
-};
+// Collapsed + hidden → display:none (grid'den tamamen çıkar)
+isHidden && "hidden"
+
+// Collapsed + selected → order first
+isSelected && collapsed && "col-span-2 order-first"
 ```
 
-#### B. `MultiTabAudioPlayer.tsx` — Key prop sadeleştirme
+`max-h-0 min-h-0 py-0 my-0 border-0 overflow-hidden` gibi workaround class'lar kaldırılır çünkü `hidden` zaten yeterli.
 
-**Satır 303** ve **satır 240**: Section ID join'i kaldırılacak. Sadece `guideId + language`:
+`maxHeight` style hesaplaması da sadeleşir: collapsed durumda `rowHeight`, genişlemiş durumda hesaplanan yükseklik.
 
-```tsx
-key={`${selectedGuideId}-${languageByGuide[selectedGuideId] || languageCode}`}
-```
-
-Bu hem BottomSheet içindeki hem de no-linked-guides durumundaki `NewSectionAudioPlayer`'ı etkiler.
-
-### Etkilenen Dosyalar
-
-| Dosya | Değişiklik |
-|-------|-----------|
-| `src/components/GuideLanguageSelector.tsx` | transition kaldır, rAF ekle (~5 satır) |
-| `src/components/MultiTabAudioPlayer.tsx` | key prop sadeleştir (2 satır) |
+### Etkilenen Dosya
+- `src/components/GuideLanguageSelector.tsx` — ~3 satır değişiklik
 
 ### Beklenen Sonuç
-- Dil seçiminde anında collapse animasyonu (kasma yok)
-- Data fetch UI'ı bloklamaz
-- Gereksiz player remount'ları önlenir
-- Hem AudioAccess hem GuideDetail sayfalarında geçerli (aynı bileşenleri kullanıyorlar)
+- Hangi dil seçilirse seçilsin, collapse durumunda buton her zaman grid'in en üstünde, tam genişlikte ve kayma olmadan görünür
 
