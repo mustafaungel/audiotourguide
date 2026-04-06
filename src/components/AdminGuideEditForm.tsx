@@ -466,7 +466,7 @@ export const AdminGuideEditForm = ({ onBack }: AdminGuideEditFormProps) => {
             {/* Section 2: Açıklama & Öne Çıkarma (default closed) */}
             <Collapsible>
               <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border px-4 py-2 font-medium text-sm hover:bg-muted transition-colors [&[data-state=open]>svg]:rotate-180">
-                Açıklama & Öne Çıkarma
+                Description & Featured
                 <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
               </CollapsibleTrigger>
               <CollapsibleContent className="pt-3 space-y-4">
