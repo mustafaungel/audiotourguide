@@ -28,7 +28,6 @@ import { AudioGuideSectionManager } from '@/components/AudioGuideSectionManager'
 import { AdminGuideEditForm } from '@/components/AdminGuideEditForm';
 
 import { AdminGuideOrderManager } from '@/components/AdminGuideOrderManager';
-import { AdminGuideOrderManager } from '@/components/AdminGuideOrderManager';
 
 
 import { ImageUploader } from '@/components/ImageUploader';
