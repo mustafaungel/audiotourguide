@@ -227,7 +227,7 @@ export function BottomSheet({
 
         {/* Content */}
         <div
-          className="overflow-y-scroll px-4 pb-safe"
+          className="overflow-y-scroll px-4 pb-safe flex-1 min-h-0"
           onTouchStart={(e) => e.stopPropagation()}
           onTouchMove={(e) => e.stopPropagation()}
           style={{
@@ -235,7 +235,7 @@ export function BottomSheet({
             touchAction: 'pan-y',
             WebkitOverflowScrolling: 'touch',
             maxHeight: (() => {
-              const offset = title ? 80 : 28;
+              const offset = title ? 144 : 92;
               if (currentSnap === 'full') return `calc(95vh - ${offset}px)`;
               if (currentSnap === 'half') return `calc(65vh - ${offset}px)`;
               return '60px';
@@ -244,6 +244,9 @@ export function BottomSheet({
         >
           {children}
         </div>
+
+        {/* Footer slot for portaled content (e.g. MiniPlayer) */}
+        <div id="bottom-sheet-footer" className="w-full shrink-0" />
       </div>
     </>
   );
