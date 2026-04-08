@@ -378,7 +378,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
               <span className="text-sm font-semibold text-foreground line-clamp-1">{sheetTitle}</span>
               {sheetMeta.chapters > 0 && (
                 <span className="text-[10px] font-medium text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-full ml-auto shrink-0">
-                  {sheetMeta.chapters} {t('chapters', languageCode)} · {sheetMeta.duration} {t('min', languageCode)}
+                  {sheetMeta.chapters} ch · {sheetMeta.duration} {t('min', languageCode)}
                 </span>
               )}
             </div>
