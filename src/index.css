@@ -573,4 +573,23 @@ All colors MUST be HSL.
     0% { opacity: 0; transform: translateY(4px); }
     100% { opacity: 1; transform: translateY(0); }
   }
+
+  /* Audio Guide Card Waveform */
+  .card-waveform .waveform-bar {
+    width: 3px;
+    height: 4px;
+    border-radius: 2px;
+    background: hsl(var(--audio-waveform) / 0.6);
+    transition: height 0.3s ease;
+  }
+
+  .group:hover .card-waveform .waveform-bar {
+    animation: card-wave 0.8s ease-in-out infinite alternate;
+    background: hsl(var(--audio-waveform) / 0.9);
+  }
+
+  @keyframes card-wave {
+    0% { height: 4px; }
+    100% { height: 16px; }
+  }
 }
