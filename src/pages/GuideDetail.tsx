@@ -948,7 +948,7 @@ const GuideDetail = () => {
                       <div className="space-y-4">
                         {guide.qr_code_url && (
                           <div className="flex justify-center">
-                            <div className="inline-block p-6 bg-card rounded-xl border-2 border-border shadow-sm">
+                            <div className="inline-block p-6 bg-card rounded-xl border-2 border-border shadow-sm ring-2 ring-primary/20">
                               <img 
                                 src={guide.qr_code_url} 
                                 alt="QR Code for guide access"
@@ -1010,12 +1010,19 @@ const GuideDetail = () => {
                       </div>
                     ) : (
                       <div className="space-y-6">
-                        <div className="inline-block p-12 bg-muted/30 rounded-xl border-2 border-dashed border-border">
+                        <div className="inline-block p-12 bg-muted/30 rounded-xl border-2 border-dashed border-border relative overflow-hidden">
                           <div className="relative">
                             <QrCode className="w-32 h-32 mx-auto text-muted-foreground/20" />
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <Lock className="w-12 h-12 text-muted-foreground/50" />
+                            <div className="absolute inset-0 flex items-center justify-center flex-col gap-2">
+                              <Lock className="w-10 h-10 text-muted-foreground/50" />
+                              <Headphones className="w-6 h-6 text-primary/30" />
                             </div>
+                          </div>
+                          {/* Decorative waveform */}
+                          <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-[2px] opacity-20">
+                            {[...Array(9)].map((_, i) => (
+                              <div key={i} className="w-[2px] rounded-full bg-primary" style={{ height: `${4 + Math.sin(i * 0.7) * 6}px` }} />
+                            ))}
                           </div>
                         </div>
                         
@@ -1085,7 +1092,7 @@ const GuideDetail = () => {
           {/* Sidebar - Hidden on mobile when player is active */}
           <div className="space-y-6">
             {/* Purchase Card - Compact on mobile */}
-            <Card className="min-h-[200px]">
+            <Card className="min-h-[200px] audio-card-glow border-border/30">
               <CardContent className="space-y-3 pt-4 md:pt-6 px-4 md:px-6">
                 {isPurchased ? (
                   <Button className="w-full" size="lg" disabled>
@@ -1114,7 +1121,8 @@ const GuideDetail = () => {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Link className="w-5 h-5" />
+                    <Headphones className="w-5 h-5 text-primary" />
+                    <Link className="w-4 h-4" />
                     Additional Guides in Collection
                   </CardTitle>
                   <CardDescription>
@@ -1123,7 +1131,7 @@ const GuideDetail = () => {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {linkedGuides.map((linkedGuide) => (
-                    <Card key={linkedGuide.guide_id} className="overflow-hidden hover:shadow-md transition-shadow">
+                    <Card key={linkedGuide.guide_id} className="overflow-hidden hover:shadow-md transition-shadow audio-card-glow border-border/30">
                       <div className="flex gap-3 p-3">
                         {linkedGuide.image_url && (
                           <img 
@@ -1161,7 +1169,11 @@ const GuideDetail = () => {
             {relatedGuides.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Related Guides</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Headphones className="w-4 h-4 text-primary" />
+                    Related Guides
+                  </CardTitle>
+                </CardHeader>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {relatedGuides.map((relatedGuide) => (
