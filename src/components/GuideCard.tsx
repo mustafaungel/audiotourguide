@@ -168,12 +168,12 @@ export function GuideCard({
       <CardContent className="p-4 sm:p-6 flex-1 flex flex-col">
         <div className="space-y-3 sm:space-y-4 flex-1 flex flex-col">
           <div>
-            <h3 className="font-semibold text-base sm:text-lg leading-tight line-clamp-2">{title}</h3>
+            <h3 className="font-semibold text-base sm:text-lg leading-tight line-clamp-2 min-h-[2.5rem]">{title}</h3>
           </div>
 
-          <p className="text-muted-foreground text-sm sm:text-base line-clamp-2 leading-relaxed">{description}</p>
+          <p className="text-muted-foreground text-sm sm:text-base line-clamp-2 leading-relaxed min-h-[2.5rem]">{description}</p>
 
-          <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground flex-wrap">
+          <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground flex-wrap min-h-[1.5rem]">
             <div className="flex items-center gap-1">
               <MapPin className="h-4 w-4" />
               <span className="truncate">{location}</span>
