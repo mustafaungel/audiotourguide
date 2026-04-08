@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ChapterList } from '@/components/ChapterList';
 import { MiniPlayer } from '@/components/MiniPlayer';
 import { ExpandedPlayer } from '@/components/ExpandedPlayer';
