@@ -56,6 +56,8 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
   lang = 'en',
 }) => {
   const [showSpeedSheet, setShowSpeedSheet] = useState(false);
+  const [shouldRender, setShouldRender] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
   const speedOptions = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
 
@@ -66,11 +68,27 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  if (!open) return null;
+  useEffect(() => {
+    if (open) {
+      setShouldRender(true);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setIsVisible(true));
+      });
+    } else {
+      setIsVisible(false);
+      const timer = setTimeout(() => setShouldRender(false), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [open]);
+
+  if (!shouldRender) return null;
 
   const content = (
     <>
-      <div className="fixed inset-0 z-[70] bg-background flex flex-col animate-in slide-in-from-bottom duration-300">
+      <div className={cn(
+        "fixed inset-0 z-[70] bg-background flex flex-col transition-all duration-300 ease-out",
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-full"
+      )}>
         {/* Blurred background */}
         {imageUrl && (
           <>
