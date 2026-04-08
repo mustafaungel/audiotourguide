@@ -1,31 +1,35 @@
 
 
-## Plan: BottomSheet İçindeki MiniPlayer Konumlandırma Düzeltmesi
+## Plan: MiniPlayer'a Hızlı Kontrol Tuşları + BottomSheet Portal Düzeltmesi
 
-### Problem
-BottomSheet içinde MiniPlayer `sticky bottom-0` olarak scroll content'in **içinde** render ediliyor. Scroll container'ın `maxHeight` ve `overflow-y-scroll` kısıtlaması nedeniyle MiniPlayer düzgün yapışmıyor — content'in altında kalıyor, kısmen kesiliyorsa ya da çok aşağıda görünüyor. Standalone guide'larda (`fixed bottom-0`) sorun yok çünkü viewport'a sabitleniyor.
+### Problem 1: MiniPlayer'da kontrol eksikliği
+Kullanıcı görseldeki MiniPlayer'da sadece play/pause ve expand var. İleri/geri atlama ve hız kontrolü eksik.
+
+### Problem 2: Bağlı guide'larda MiniPlayer açılmıyor
+`createPortal` ile `document.getElementById('bottom-sheet-footer')` kullanılıyor ama BottomSheet henüz DOM'da mount olmamışken veya timing sorunu nedeniyle `null` dönüyor. Bu durumda MiniPlayer hiç render edilmiyor.
 
 ### Çözüm
-MiniPlayer'ı BottomSheet'in scroll container'ından **çıkarıp**, sheet'in flex layout'unda scroll div'in altına sabitlemek. Bunun için:
 
-1. **BottomSheet'e footer slot ekle** — scroll content div'inden sonra, sheet flex column'ının altında render edilecek bir alan
-2. **Scroll content maxHeight'ı footer varken küçült** — MiniPlayer (~64px) için yer aç
-3. **NewSectionAudioPlayer** — MiniPlayer'ı `createPortal` ile BottomSheet footer alanına render et
-
-### Teknik Değişiklikler
-
-**`src/components/ui/bottom-sheet.tsx`:**
-- Sheet div'inin içine, scroll content div'inden sonra `<div id="bottom-sheet-footer" />` ekle
-- `maxHeight` hesaplamasında footer alanı için 64px daha çıkar (veya footer mevcutsa otomatik hesapla)
+**`src/components/MiniPlayer.tsx`:**
+- Yeni prop'lar ekle: `onSkipBack`, `onSkipForward`, `onSpeedChange`, `playbackSpeed`
+- Play butonunun soluna `-15s` butonu, sağına `+15s` butonu ekle
+- Expand butonunun yerine veya yanına hız göstergesi/butonu ekle (1x → 1.5x → 2x döngüsü)
+- Butonlar küçük ve kompakt: `w-8 h-8`, ikonlar `w-3.5 h-3.5`
+- Layout: `[image] [title/time] [⏪15] [▶️] [15⏩] [2x] [↑]`
 
 **`src/components/NewSectionAudioPlayer.tsx`:**
-- `insideSheet` true ise MiniPlayer'ı `createPortal(miniPlayer, document.getElementById('bottom-sheet-footer'))` ile render et
-- Böylece MiniPlayer scroll alanının dışında, sheet'in altında sabit kalır
+- MiniPlayer'a `onSkipBack`, `onSkipForward`, `onSpeedChange`, `playbackSpeed` prop'larını geçir
+- Portal timing sorununu düzelt: `useEffect` ile `bottom-sheet-footer` element'inin varlığını izle veya `insideSheet` modda MiniPlayer'ı fallback olarak inline render et (footer element bulunamazsa)
+- Portal hesaplamasını IIFE'den `useMemo`/state'e taşı — DOM element kontrolünü render cycle'a bağla
+
+**`src/components/ui/bottom-sheet.tsx`:**
+- Footer div'in `id="bottom-sheet-footer"` olarak mount olduğundan emin ol (mevcut — sorun yok)
+- Footer div'e minimum yükseklik verme — içi boşken yer kaplamasın, portal ile dolduğunda otomatik genişlesin
 
 ### Dosya Özeti
 
 | Dosya | Değişiklik |
 |-------|-----------|
-| `src/components/ui/bottom-sheet.tsx` | Footer container div ekle, maxHeight ayarla |
-| `src/components/NewSectionAudioPlayer.tsx` | insideSheet modda MiniPlayer'ı portal ile footer'a render et |
+| `src/components/MiniPlayer.tsx` | Skip ±15s butonları, hız döngüsü butonu ekle |
+| `src/components/NewSectionAudioPlayer.tsx` | Yeni prop'ları geçir, portal timing düzeltmesi |
 
