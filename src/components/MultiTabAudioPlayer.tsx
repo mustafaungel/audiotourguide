@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { NewSectionAudioPlayer } from './NewSectionAudioPlayer';
 import { supabase } from '@/integrations/supabase/client';
-import { Music, ChevronRight } from 'lucide-react';
+import { Music, ChevronDown, ChevronUp } from 'lucide-react';
 import { t } from '@/lib/translations';
 import { AudioGuideLoader } from './AudioGuideLoader';
-import { BottomSheet } from './ui/bottom-sheet';
 import { cn } from '@/lib/utils';
 
 interface Section {
@@ -61,7 +60,6 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     [mainGuide.id]: languageCode
   });
   const [selectedGuideId, setSelectedGuideId] = useState<string | null>(null);
-  const [sheetOpen, setSheetOpen] = useState(false);
   const fetchingRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
@@ -195,15 +193,13 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     const handleOpenLinkedGuide = (event: CustomEvent) => {
       const { guideId } = (event as any).detail || {};
       if (guideId === 'main') {
-        setSelectedGuideId(mainGuide.id);
-        setSheetOpen(true);
+        setSelectedGuideId(prev => prev === mainGuide.id ? null : mainGuide.id);
         return;
       }
       const guide = linkedGuides.find(g => g.guide_id === guideId);
       if (guide) {
         ensureGuideSections(guide.guide_id);
-        setSelectedGuideId(guide.guide_id);
-        setSheetOpen(true);
+        setSelectedGuideId(prev => prev === guide.guide_id ? null : guide.guide_id);
       }
       window.dispatchEvent(new CustomEvent('linkedGuideHandled'));
     };
@@ -229,36 +225,9 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     if (guideId !== mainGuide.id) {
       ensureGuideSections(guideId);
     }
-    setSelectedGuideId(guideId);
-    setSheetOpen(true);
+    setSelectedGuideId(prev => prev === guideId ? null : guideId);
     onActiveTabChange?.(guideId === mainGuide.id ? 'main' : guideId);
   }, [mainGuide.id, ensureGuideSections, onActiveTabChange]);
-
-  const handleSheetClose = useCallback((open: boolean) => {
-    setSheetOpen(open);
-    if (!open) {
-      setSelectedGuideId(null);
-      onActiveTabChange?.('main');
-    }
-  }, [onActiveTabChange]);
-
-  const sheetTitle = useMemo(() => {
-    if (!selectedGuideId) return undefined;
-    if (selectedGuideId === mainGuide.id) return mainGuide.title;
-    const linked = linkedGuides.find(g => g.guide_id === selectedGuideId);
-    return linked?.custom_title || linked?.title;
-  }, [selectedGuideId, mainGuide, linkedGuides]);
-
-  const sheetSections = useMemo(() => {
-    if (!selectedGuideId) return [];
-    if (selectedGuideId === mainGuide.id) return mainSections;
-    return sectionsByGuide[selectedGuideId] || [];
-  }, [selectedGuideId, mainGuide.id, mainSections, sectionsByGuide]);
-
-  const sheetAudioUrl = useMemo(() => {
-    if (selectedGuideId === mainGuide.id) return mainGuide.audio_url || '';
-    return '';
-  }, [selectedGuideId, mainGuide]);
 
   if (loading && mainSections.length === 0) {
     return <AudioGuideLoader variant="inline" message={t('loading', languageCode)} />;
@@ -276,78 +245,84 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     );
   }
 
-  const isMainSelected = selectedGuideId === mainGuide.id && sheetOpen;
+  const isMainExpanded = selectedGuideId === mainGuide.id;
+
+  const renderGuideContent = (guideId: string, title: string, audioUrl?: string, imageUrl?: string) => {
+    const sections = guideId === mainGuide.id ? mainSections : (sectionsByGuide[guideId] || []);
+    return (
+      <div className="mt-2 mb-2 animate-in fade-in slide-in-from-top-2 duration-300">
+        <NewSectionAudioPlayer
+          key={guideId}
+          guideId={guideId}
+          guideTitle={title}
+          sections={sections}
+          mainAudioUrl={audioUrl}
+          guideImageUrl={imageUrl}
+          lang={languageByGuide[guideId] || languageCode}
+        />
+      </div>
+    );
+  };
 
   return (
     <div className="w-full max-w-4xl mx-auto">
-      {/* Pill buttons */}
-      <div className="grid w-full mb-4 gap-2 grid-cols-1">
-        {/* Main guide pill */}
-        <button
-          className={cn(
-            "flex items-center justify-between gap-2 min-h-[48px] px-4 py-2.5 text-base font-medium rounded-xl transition-all active:scale-[0.97]",
-            isMainSelected
-              ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/30"
-              : "bg-muted/50 border border-border/50 hover:bg-muted hover:shadow-sm"
-          )}
-          onClick={() => handlePillClick(mainGuide.id)}
-        >
-          <span className="flex items-center gap-2 min-w-0">
-            <Music className="w-4 h-4 shrink-0" />
-            <span className="line-clamp-2 break-words text-left">{mainGuide.title}</span>
-          </span>
-          <ChevronRight className="w-4 h-4 shrink-0 opacity-50" />
-        </button>
+      <div className="flex flex-col w-full gap-2">
+        {/* Main guide */}
+        <div>
+          <button
+            className={cn(
+              "flex items-center justify-between gap-2 w-full min-h-[48px] px-4 py-2.5 text-base font-medium rounded-xl transition-all active:scale-[0.97]",
+              isMainExpanded
+                ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/30"
+                : "bg-muted/50 border border-border/50 hover:bg-muted hover:shadow-sm"
+            )}
+            onClick={() => handlePillClick(mainGuide.id)}
+          >
+            <span className="flex items-center gap-2 min-w-0">
+              <Music className="w-4 h-4 shrink-0" />
+              <span className="line-clamp-2 break-words text-left">{mainGuide.title}</span>
+            </span>
+            {isMainExpanded
+              ? <ChevronUp className="w-4 h-4 shrink-0 opacity-50" />
+              : <ChevronDown className="w-4 h-4 shrink-0 opacity-50" />
+            }
+          </button>
+          {isMainExpanded && renderGuideContent(mainGuide.id, mainGuide.title, mainGuide.audio_url, guideImageUrl)}
+        </div>
 
-        {/* Linked guide pills */}
+        {/* Linked guides */}
         {linkedGuides.map((guide) => {
-          const isSelected = selectedGuideId === guide.guide_id && sheetOpen;
+          const isExpanded = selectedGuideId === guide.guide_id;
           return (
-            <button
-              key={guide.guide_id}
-              onClick={() => handlePillClick(guide.guide_id)}
-              className={cn(
-                "flex items-center justify-between gap-2 min-h-[48px] px-4 py-2.5 text-base font-medium rounded-xl transition-all active:scale-[0.97]",
-                isSelected
-                  ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/30"
-                  : "bg-muted/50 border border-border/50 hover:bg-muted hover:shadow-sm"
+            <div key={guide.guide_id}>
+              <button
+                onClick={() => handlePillClick(guide.guide_id)}
+                className={cn(
+                  "flex items-center justify-between gap-2 w-full min-h-[48px] px-4 py-2.5 text-base font-medium rounded-xl transition-all active:scale-[0.97]",
+                  isExpanded
+                    ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/30"
+                    : "bg-muted/50 border border-border/50 hover:bg-muted hover:shadow-sm"
+                )}
+              >
+                <span className="flex items-center gap-2 min-w-0">
+                  <Music className="w-4 h-4 shrink-0" />
+                  <span className="line-clamp-2 break-words text-left">{guide.custom_title || guide.title}</span>
+                </span>
+                {isExpanded
+                  ? <ChevronUp className="w-4 h-4 shrink-0 opacity-50" />
+                  : <ChevronDown className="w-4 h-4 shrink-0 opacity-50" />
+                }
+              </button>
+              {isExpanded && renderGuideContent(
+                guide.guide_id,
+                guide.custom_title || guide.title,
+                undefined,
+                guide.image_url || guideImageUrl
               )}
-            >
-              <span className="flex items-center gap-2 min-w-0">
-                <Music className="w-4 h-4 shrink-0" />
-                <span className="line-clamp-2 break-words text-left">{guide.custom_title || guide.title}</span>
-              </span>
-              <ChevronRight className="w-4 h-4 shrink-0 opacity-50" />
-            </button>
+            </div>
           );
         })}
       </div>
-
-      {/* Bottom sheet for all guides */}
-      <BottomSheet
-        open={sheetOpen}
-        onOpenChange={handleSheetClose}
-        title={sheetTitle}
-        defaultSnap="half"
-        snapPoints={['half', 'full']}
-      >
-        {selectedGuideId && (
-          <NewSectionAudioPlayer
-            key={selectedGuideId}
-            guideId={selectedGuideId}
-            guideTitle={sheetTitle || ''}
-            sections={sheetSections}
-            mainAudioUrl={sheetAudioUrl}
-            guideImageUrl={
-              selectedGuideId === mainGuide.id
-                ? guideImageUrl
-                : linkedGuides.find(g => g.guide_id === selectedGuideId)?.image_url || guideImageUrl
-            }
-            insideSheet={true}
-            lang={languageByGuide[selectedGuideId] || languageCode}
-          />
-        )}
-      </BottomSheet>
     </div>
   );
 };
