@@ -198,11 +198,11 @@ const Index = () => {
               opts={{ align: "start", loop: true }}
               className="w-full"
             >
-              <CarouselComponents.CarouselContent className="-ml-3">
+              <CarouselComponents.CarouselContent className="-ml-3 items-stretch">
                 {filteredGuides.map(guide => {
                   const isPurchased = userPurchases.includes(guide.id);
                   return (
-                    <CarouselComponents.CarouselItem key={guide.id} className="pl-3 basis-[85%] sm:basis-1/2 lg:basis-1/3 xl:basis-1/4">
+                    <CarouselComponents.CarouselItem key={guide.id} className="pl-3 basis-[85%] sm:basis-1/2 lg:basis-1/3 xl:basis-1/4 2xl:basis-1/5 flex">
                       <GuideCard
                         id={guide.id}
                         slug={guide.slug}
@@ -230,8 +230,8 @@ const Index = () => {
                   );
                 })}
               </CarouselComponents.CarouselContent>
-              <CarouselComponents.CarouselPrevious className="hidden sm:flex -left-4" />
-              <CarouselComponents.CarouselNext className="hidden sm:flex -right-4" />
+              <CarouselComponents.CarouselPrevious className="flex -left-2 sm:-left-4" />
+              <CarouselComponents.CarouselNext className="flex -right-2 sm:-right-4" />
             </CarouselComponents.Carousel>
           )}
 
