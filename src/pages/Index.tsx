@@ -202,7 +202,7 @@ const Index = () => {
                 {filteredGuides.map(guide => {
                   const isPurchased = userPurchases.includes(guide.id);
                   return (
-                    <CarouselComponents.CarouselItem key={guide.id} className="pl-3 basis-[85%] sm:basis-1/2 lg:basis-1/3">
+                    <CarouselComponents.CarouselItem key={guide.id} className="pl-3 basis-[85%] sm:basis-1/2 lg:basis-1/3 xl:basis-1/4">
                       <GuideCard
                         id={guide.id}
                         slug={guide.slug}
@@ -230,6 +230,8 @@ const Index = () => {
                   );
                 })}
               </CarouselComponents.CarouselContent>
+              <CarouselComponents.CarouselPrevious className="hidden sm:flex -left-4" />
+              <CarouselComponents.CarouselNext className="hidden sm:flex -right-4" />
             </CarouselComponents.Carousel>
           )}
 

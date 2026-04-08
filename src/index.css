@@ -82,8 +82,8 @@ All colors MUST be HSL.
     --muted-foreground: 25 20% 42%;
 
     /* Mediterranean-inspired accent colors */
-    --accent: 205 88% 48%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 25 20% 91%;
+    --accent-foreground: 25 25% 15%;
     --accent-glow: 205 88% 58%;
     --accent-hover: 205 88% 43%;
 
