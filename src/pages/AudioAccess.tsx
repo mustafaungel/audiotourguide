@@ -771,8 +771,8 @@ export default function AudioAccess() {
         </div>
       </div>
 
-      {/* Content area — consistent padding */}
-      <div className="px-4 pb-6 space-y-4">
+      {/* Content area — consistent padding, extra bottom for mini player */}
+      <div className="px-4 pb-28 space-y-4">
         {/* Multi-tab Audio Interface */}
         <div>
           <MultiTabAudioPlayer
@@ -786,6 +786,7 @@ export default function AudioAccess() {
             mainSections={sections}
             accessCode={accessCode || undefined}
             languageCode={selectedLanguage}
+            guideImageUrl={guideImageUrl}
             onActiveTabChange={setActiveGuideId}
           />
         </div>
