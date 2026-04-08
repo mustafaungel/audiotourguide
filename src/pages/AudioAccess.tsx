@@ -32,6 +32,7 @@ export default function AudioAccess() {
   const [isNetworkIssue, setIsNetworkIssue] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
   const [sections, setSections] = useState<any[]>([]);
+  const [sectionsByLang, setSectionsByLang] = useState<Record<string, any[]>>({});
   const [activeGuideId, setActiveGuideId] = useState<string>('main');
   const [availableLanguages, setAvailableLanguages] = useState<any[]>([]);
   const [linkedLanguageByGuide, setLinkedLanguageByGuide] = useState<Record<string, string>>({});
@@ -266,9 +267,31 @@ export default function AudioAccess() {
     }
   };
 
+  const prefetchOtherLanguages = (languages: any[], currentLang: string, gId: string) => {
+    const others = languages.filter((l: any) => l.language_code !== currentLang);
+    const prefetchNext = (i: number) => {
+      if (i >= others.length || !accessCode) return;
+      setTimeout(async () => {
+        try {
+          const { data } = await supabase.rpc('get_sections_with_access', {
+            p_guide_id: gId,
+            p_access_code: accessCode,
+            p_language_code: others[i].language_code
+          });
+          if (data && data.length > 0) {
+            setSectionsByLang(prev => ({ ...prev, [others[i].language_code]: data }));
+          }
+        } catch (e) {
+          console.warn('[AUDIO-ACCESS] Prefetch failed for', others[i].language_code);
+        }
+        prefetchNext(i + 1);
+      }, 500);
+    };
+    prefetchNext(0);
+  };
+
   const detectAvailableLanguages = async (guideId: string) => {
     try {
-      // Get available languages for this guide
       const { data: languages, error } = await supabase
         .rpc('get_guide_languages', { p_guide_id: guideId });
 
@@ -279,11 +302,13 @@ export default function AudioAccess() {
 
       if (languages && languages.length > 0) {
         setAvailableLanguages(languages);
-        // Prefer English if available, otherwise first language
         const enLang = languages.find((l: any) => l.language_code === 'en');
         const selectedLang = enLang ? 'en' : languages[0].language_code;
         setSelectedLanguage(selectedLang);
         await fetchSectionsForLanguage(guideId, selectedLang);
+        
+        // Background prefetch other languages
+        prefetchOtherLanguages(languages, selectedLang, guideId);
       } else {
         console.warn('No languages available for this guide');
         setSections([]);
@@ -300,7 +325,6 @@ export default function AudioAccess() {
     try {
       console.log(`[AUDIO-ACCESS] Fetching sections for language: ${languageCode}`);
       
-      // Use RPC function to bypass RLS and fetch sections with access verification
       const { data: sectionsData, error } = await supabase
         .rpc('get_sections_with_access', {
           p_guide_id: guideId,
@@ -314,18 +338,14 @@ export default function AudioAccess() {
         return;
       }
 
-      // If no sections found for requested language, try to find ANY available language
       if (!sectionsData || sectionsData.length === 0) {
         console.warn(`No sections found for language: ${languageCode}`);
         
-        // Get available languages
         const { data: languages } = await supabase
           .rpc('get_guide_languages', { p_guide_id: guideId });
         
         if (languages && languages.length > 0) {
-          // Try the first available language
           const fallbackLang = languages[0].language_code;
-          console.log(`Falling back to available language: ${fallbackLang}`);
           
           const { data: fallbackData, error: fallbackError } = await supabase
             .rpc('get_sections_with_access', {
@@ -336,6 +356,7 @@ export default function AudioAccess() {
           
           if (!fallbackError && fallbackData && fallbackData.length > 0) {
             setSections(fallbackData);
+            setSectionsByLang(prev => ({ ...prev, [fallbackLang]: fallbackData }));
             setSelectedLanguage(fallbackLang);
             setAvailableLanguages(languages);
             
@@ -352,6 +373,7 @@ export default function AudioAccess() {
       }
 
       setSections(sectionsData);
+      setSectionsByLang(prev => ({ ...prev, [languageCode]: sectionsData }));
     } catch (error) {
       console.error('Error fetching sections:', error);
       setSections([]);
@@ -361,9 +383,17 @@ export default function AudioAccess() {
   const handleLanguageChange = async (languageCode: string) => {
     console.log(`[AUDIO-ACCESS] Main guide language changed to: ${languageCode}`);
     
+    // 1. Update flag immediately (optimistic)
+    setSelectedLanguage(languageCode);
+    
+    // 2. If cached, show instantly
+    if (sectionsByLang[languageCode]) {
+      setSections(sectionsByLang[languageCode]);
+      return;
+    }
+    
+    // 3. Not cached — fetch in background (old sections stay visible via lastValidSectionsRef in player)
     if (guideId) {
-      // Fetch new sections FIRST, then update language state
-      // This prevents remount jank — data is ready before UI updates
       try {
         const { data: sectionsData, error } = await supabase
           .rpc('get_sections_with_access', {
@@ -374,6 +404,7 @@ export default function AudioAccess() {
         
         if (!error && sectionsData && sectionsData.length > 0) {
           setSections(sectionsData);
+          setSectionsByLang(prev => ({ ...prev, [languageCode]: sectionsData }));
         } else if (!error && (!sectionsData || sectionsData.length === 0)) {
           console.warn('No sections for language:', languageCode);
         }
@@ -381,9 +412,6 @@ export default function AudioAccess() {
         console.error('Error fetching sections:', err);
       }
     }
-    
-    // Update language state AFTER sections are ready
-    setSelectedLanguage(languageCode);
   };
 
   // Handle language changes for linked guides only — main guide is handled by handleLanguageChange directly
