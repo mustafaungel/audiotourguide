@@ -24,6 +24,7 @@ interface NewSectionAudioPlayerProps {
   sections: Section[];
   mainAudioUrl?: string;
   guideImageUrl?: string;
+  insideSheet?: boolean;
   lang?: string;
 }
 
@@ -33,6 +34,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   sections,
   mainAudioUrl,
   guideImageUrl,
+  insideSheet = false,
   lang = 'en'
 }) => {
   const [currentSectionIndex, setCurrentSectionIndex] = useState(-1);
@@ -345,6 +347,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
           isPlaying={isPlaying}
           loading={loading}
           imageUrl={guideImageUrl}
+          variant={insideSheet ? 'inline' : 'fixed'}
           onTogglePlay={togglePlayPause}
           onExpand={() => setIsExpanded(true)}
         />

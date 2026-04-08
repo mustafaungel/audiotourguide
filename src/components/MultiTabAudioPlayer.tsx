@@ -320,6 +320,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
                 ? guideImageUrl
                 : linkedGuides.find(g => g.guide_id === selectedGuideId)?.image_url || guideImageUrl
             }
+            insideSheet={true}
             lang={languageByGuide[selectedGuideId] || languageCode}
           />
         )}

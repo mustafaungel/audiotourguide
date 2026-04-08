@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Play, Pause, SkipBack, SkipForward, ChevronDown, X } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
@@ -67,9 +68,9 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
 
   if (!open) return null;
 
-  return (
+  const content = (
     <>
-      <div className="fixed inset-0 z-[60] bg-background flex flex-col animate-in slide-in-from-bottom duration-300">
+      <div className="fixed inset-0 z-[70] bg-background flex flex-col animate-in slide-in-from-bottom duration-300">
         {/* Blurred background */}
         {imageUrl && (
           <>
@@ -237,4 +238,6 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
       </BottomSheet>
     </>
   );
+
+  return createPortal(content, document.body);
 };
