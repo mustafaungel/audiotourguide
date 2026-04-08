@@ -32,6 +32,7 @@ export default function AudioAccess() {
   const [isNetworkIssue, setIsNetworkIssue] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
   const [sections, setSections] = useState<any[]>([]);
+  const [sectionsByLang, setSectionsByLang] = useState<Record<string, any[]>>({});
   const [activeGuideId, setActiveGuideId] = useState<string>('main');
   const [availableLanguages, setAvailableLanguages] = useState<any[]>([]);
   const [linkedLanguageByGuide, setLinkedLanguageByGuide] = useState<Record<string, string>>({});
