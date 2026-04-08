@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChapterList } from '@/components/ChapterList';
+import { MiniPlayer } from '@/components/MiniPlayer';
+import { ExpandedPlayer } from '@/components/ExpandedPlayer';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAudioProgress } from '@/hooks/useAudioProgress';
@@ -21,6 +23,7 @@ interface NewSectionAudioPlayerProps {
   guideTitle: string;
   sections: Section[];
   mainAudioUrl?: string;
+  guideImageUrl?: string;
   lang?: string;
 }
 
@@ -29,6 +32,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   guideTitle,
   sections,
   mainAudioUrl,
+  guideImageUrl,
   lang = 'en'
 }) => {
   const [currentSectionIndex, setCurrentSectionIndex] = useState(-1);
@@ -40,6 +44,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   const [isMuted, setIsMuted] = useState(false);
   const [previousVolume, setPreviousVolume] = useState(1);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [isExpanded, setIsExpanded] = useState(false);
   
   // Keep last valid sections to prevent empty flash during language switch
   const lastValidSectionsRef = useRef<Section[]>([]);
