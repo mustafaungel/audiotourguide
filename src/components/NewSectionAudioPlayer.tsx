@@ -312,7 +312,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
 
   const currentSection = displaySections[currentSectionIndex];
 
-  const miniPlayerElement = isMobile && isActive && !isExpanded ? (
+  const miniPlayerElement = isMobile && isActive && !isExpanded ? createPortal(
     <MiniPlayer
       title={currentSection?.title || guideTitle}
       currentTime={currentTime}
@@ -327,7 +327,8 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
       onSkipBack={() => skip(-15)}
       onSkipForward={() => skip(15)}
       onSpeedChange={handleSpeedChange}
-    />
+    />,
+    document.body
   ) : null;
 
   const expandedPlayerElement = isMobile ? (
