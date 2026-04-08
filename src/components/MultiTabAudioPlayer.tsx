@@ -264,11 +264,14 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     const sections = guideId === mainGuide.id ? mainSections : (sectionsByGuide[guideId] || []);
     return (
       <div
-        className={cn(
-          "mt-2 mb-2 overflow-hidden",
-          isClosing ? "animate-accordion-up" : "animate-accordion-down"
-        )}
-        onAnimationEnd={() => {
+        className="mt-2 mb-2 overflow-hidden"
+        style={{
+          maxHeight: isClosing ? '0px' : '2000px',
+          opacity: isClosing ? 0 : 1,
+          transform: isClosing ? 'translateY(-8px)' : 'translateY(0)',
+          transition: 'max-height 300ms cubic-bezier(0.4,0,0.2,1), opacity 200ms ease, transform 200ms ease',
+        }}
+        onTransitionEnd={() => {
           if (isClosing) setClosingGuideId(null);
         }}
       >
