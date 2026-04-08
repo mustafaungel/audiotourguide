@@ -834,20 +834,26 @@ const GuideDetail = () => {
             {/* Tabs Content - Responsive sizing */}
             <Tabs defaultValue="chapters" className="w-full">
               <TabsList className="grid w-full grid-cols-3 h-10 md:h-11">
-                <TabsTrigger value="chapters" className="text-xs md:text-sm">Chapters</TabsTrigger>
-                <TabsTrigger value="qrcode" className="text-xs md:text-sm">QR Code</TabsTrigger>
-                <TabsTrigger value="reviews" className="text-xs md:text-sm">Reviews</TabsTrigger>
+                <TabsTrigger value="chapters" className="text-xs md:text-sm"><Headphones className="w-3 h-3 mr-1" />Chapters</TabsTrigger>
+                <TabsTrigger value="qrcode" className="text-xs md:text-sm"><QrCode className="w-3 h-3 mr-1" />QR Code</TabsTrigger>
+                <TabsTrigger value="reviews" className="text-xs md:text-sm"><Star className="w-3 h-3 mr-1" />Reviews</TabsTrigger>
               </TabsList>
               
               <TabsContent value="chapters" className="space-y-3 md:space-y-4">
                 {isPurchased || hasAccessCode ? (
                   <div className="space-y-2 md:space-y-3">
                     {currentChapters.map((chapter, index) => (
-                      <Card key={index} className="p-3 md:p-4 hover:bg-muted/50 cursor-pointer transition-colors">
+                      <Card key={index} className="p-3 md:p-4 hover:bg-muted/50 cursor-pointer transition-all audio-card-glow border-border/30">
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
-                            <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs md:text-sm font-medium shrink-0">
+                            <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-xs md:text-sm font-bold text-primary shrink-0">
                               {index + 1}
+                            </div>
+                            {/* Mini waveform decoration */}
+                            <div className="flex items-center gap-[2px] shrink-0 opacity-30">
+                              {[0, 1, 2].map((i) => (
+                                <div key={i} className="w-[2px] rounded-full bg-primary" style={{ height: `${8 + i * 4}px` }} />
+                              ))}
                             </div>
                             <div className="flex-1 min-w-0">
                               <h4 className="font-medium text-sm md:text-base truncate">{chapter.title}</h4>
