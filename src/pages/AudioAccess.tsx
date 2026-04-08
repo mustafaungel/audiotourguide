@@ -267,9 +267,31 @@ export default function AudioAccess() {
     }
   };
 
+  const prefetchOtherLanguages = (languages: any[], currentLang: string, gId: string) => {
+    const others = languages.filter((l: any) => l.language_code !== currentLang);
+    const prefetchNext = (i: number) => {
+      if (i >= others.length || !accessCode) return;
+      setTimeout(async () => {
+        try {
+          const { data } = await supabase.rpc('get_sections_with_access', {
+            p_guide_id: gId,
+            p_access_code: accessCode,
+            p_language_code: others[i].language_code
+          });
+          if (data && data.length > 0) {
+            setSectionsByLang(prev => ({ ...prev, [others[i].language_code]: data }));
+          }
+        } catch (e) {
+          console.warn('[AUDIO-ACCESS] Prefetch failed for', others[i].language_code);
+        }
+        prefetchNext(i + 1);
+      }, 500);
+    };
+    prefetchNext(0);
+  };
+
   const detectAvailableLanguages = async (guideId: string) => {
     try {
-      // Get available languages for this guide
       const { data: languages, error } = await supabase
         .rpc('get_guide_languages', { p_guide_id: guideId });
 
@@ -280,11 +302,13 @@ export default function AudioAccess() {
 
       if (languages && languages.length > 0) {
         setAvailableLanguages(languages);
-        // Prefer English if available, otherwise first language
         const enLang = languages.find((l: any) => l.language_code === 'en');
         const selectedLang = enLang ? 'en' : languages[0].language_code;
         setSelectedLanguage(selectedLang);
         await fetchSectionsForLanguage(guideId, selectedLang);
+        
+        // Background prefetch other languages
+        prefetchOtherLanguages(languages, selectedLang, guideId);
       } else {
         console.warn('No languages available for this guide');
         setSections([]);
