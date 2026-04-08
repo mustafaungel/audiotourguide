@@ -48,6 +48,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   const [previousVolume, setPreviousVolume] = useState(1);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
   
   // Keep last valid sections to prevent empty flash during language switch
   const lastValidSectionsRef = useRef<Section[]>([]);
