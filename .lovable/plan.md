@@ -1,47 +1,48 @@
 
 
-## Plan: AudioAccess Performans ve Animasyon Düzeltmeleri
+## Plan: AudioAccess Performans İyileştirme + MiniPlayer Büyütme
 
 ### Tespit Edilen Sorunlar
 
-1. **Accordion kapanış animasyonu yok**: `MultiTabAudioPlayer`'da guide kapatılırken içerik anında kayboluyor — sadece `{isExpanded && ...}` conditional render var, çıkış animasyonu yok.
+1. **MiniPlayer `backdrop-blur-2xl`**: MiniPlayer.tsx satır 70'te hâlâ `backdrop-blur-2xl` var — mobilde her frame'de tüm altındaki pikselleri yeniden işliyor, kasma kaynağı.
 
-2. **ExpandedPlayer kapanış animasyonu yok**: `if (!open) return null` ile anında unmount oluyor. Açılırken `animate-in slide-in-from-bottom` var ama kapanırken hiçbir geçiş yok.
+2. **MiniPlayer çok küçük**: Thumbnail `w-10 h-10`, play butonu `w-10 h-10`, skip butonları `w-8 h-8` — mobilde küçük kalıyor.
 
-3. **`backdrop-blur` kaynaklı kasma**: AudioAccess sayfasında 3 yerde `backdrop-blur` kullanılıyor:
-   - Navbar: `backdrop-blur-2xl` (line 675)
-   - Hero background: `blur-2xl` (line 698) 
-   - ChapterList aktif chapter: `backdrop-blur-sm` (line 207)
-   
-   Mobilde bu filtreler her frame'de tüm alt pikselleri yeniden işler → frame drop ve kasma.
+3. **Accordion animasyonları kasma**: `animate-accordion-down/up` keyframe'leri `height` animasyonu yapıyor — layout recalculation tetikliyor, GPU yerine CPU'da çalışıyor.
+
+4. **ChapterList card'larında `shadow-lg`**: Aktif chapter'da `shadow-lg shadow-primary/20` var — her frame'de repaint.
+
+5. **Badge'deki `backdrop-blur-md`**: Hero bölümündeki kategori badge'inde `backdrop-blur-md` var (AudioAccess.tsx satır 717).
 
 ### Çözümler
 
-**`src/components/ExpandedPlayer.tsx`:**
-- `if (!open) return null` yerine BottomSheet benzeri iki fazlı mount/unmount: `rendered` + `visible` state
-- Açılış: mount → next frame → `visible=true` → `slide-in-from-bottom + fade-in`
-- Kapanış: `visible=false` → `slide-out-to-bottom + fade-out` → `onTransitionEnd` → unmount
-- CSS transition kullanılacak (Tailwind animate yerine), böylece hem giriş hem çıkış kontrol edilir
+**`src/components/MiniPlayer.tsx`:**
+- `backdrop-blur-2xl bg-background/90` → `bg-background border-t border-border/40` (opak, blur yok)
+- Thumbnail: `w-10 h-10` → `w-12 h-12`
+- Play butonu: `w-10 h-10` → `w-12 h-12`, ikon boyutu büyüt
+- Skip butonları: `w-8 h-8` → `w-10 h-10`, ikon `w-3.5 h-3.5` → `w-4 h-4`
+- Speed butonu: `h-7` → `h-8`, font biraz büyüt
+- Padding: `px-3 py-2` → `px-4 py-3`
+- Genel olarak daha rahat, daha dokunulabilir bir layout
 
 **`src/components/MultiTabAudioPlayer.tsx`:**
-- Accordion içeriğine kapanış animasyonu ekle
-- Yaklaşım: `selectedGuideId` değiştiğinde eski içeriği hemen kaldırmak yerine, `closingGuideId` state ile fade-out + slide-out animasyonu uygula
-- Animasyon bitince (`onAnimationEnd`) eski guide'ı DOM'dan kaldır
+- Accordion açılış/kapanış animasyonlarını `height` tabanlı keyframe'lerden `max-height` + `opacity` + `transform` geçişine çevir
+- Açılış: `max-height: 0 → 600px`, `opacity: 0 → 1`, `translateY(-8px) → 0`
+- Kapanış: tersi — CSS transition ile, keyframe değil
+- `closingGuideId` mantığı korunur, `onTransitionEnd` ile temizlenir
 
 **`src/pages/AudioAccess.tsx`:**
-- Navbar: `backdrop-blur-2xl` → `bg-background/95` (opak arka plan, blur yok)
-- Hero background: `blur-2xl` → `blur-2xl` kalabilir (statik, bir kere render) ama `will-change-transform` zaten var — sorun yok
-- Genel olarak animasyonlu overlay'lerdeki blur'ları kaldır
+- Badge satır 717: `backdrop-blur-md` → kaldır, `bg-background/80` yeterli
 
 **`src/components/ChapterList.tsx`:**
-- Aktif chapter'daki `backdrop-blur-sm` → kaldır (zaten `bg-primary/10` yeterli)
+- Aktif chapter: `shadow-lg shadow-primary/20` → `shadow-sm` veya kaldır (border yeterli)
 
 ### Dosya Özeti
 
 | Dosya | Değişiklik |
 |-------|-----------|
-| `src/components/ExpandedPlayer.tsx` | İki fazlı mount/unmount ile kapanış animasyonu |
-| `src/components/MultiTabAudioPlayer.tsx` | Accordion kapanış animasyonu (fade-out + slide) |
-| `src/pages/AudioAccess.tsx` | Navbar backdrop-blur kaldır |
-| `src/components/ChapterList.tsx` | Aktif chapter backdrop-blur kaldır |
+| `src/components/MiniPlayer.tsx` | backdrop-blur kaldır, tüm elementleri büyüt |
+| `src/components/MultiTabAudioPlayer.tsx` | Accordion animasyonunu GPU-friendly geçişe çevir |
+| `src/pages/AudioAccess.tsx` | Badge backdrop-blur kaldır |
+| `src/components/ChapterList.tsx` | Aktif chapter shadow hafiflet |
 
