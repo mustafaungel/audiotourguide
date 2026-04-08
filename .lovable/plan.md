@@ -1,25 +1,78 @@
 
-## Plan: GuideCard Sabit Yükseklik Düzeltmesi
+## Plan: Audio Guide Temalı Kart Tasarım Yenileme
 
 ### Problem
-Ekran görüntülerinde açıkça görülüyor: ilk kart ("Discover Hidden Valleys") 2 satır başlık + 2 satır açıklama ile diğerlerinden uzun. `min-h-[2.5rem]` sadece minimum yükseklik belirliyor — içerik 2 satıra çıktığında alan büyüyor ve kartlar eşitsizleşiyor.
+1. Metadata satırında dakika bilgisi sığmıyor, sıkışma yapıyor
+2. Sabit yükseklikler (`h-[2.75rem]`) kırılgan — font/ekran boyutuna göre içerik taşıyor veya boşluk kalıyor
+3. Kartlar generic görünüyor, audio guide teması yansımıyor
 
-### Kök Neden
-- `min-h` minimum garanti eder ama maksimum sınırlamaz
-- `sm:text-lg` ile 2 satırlık başlık 2.5rem'den fazla yer kaplıyor
-- `leading-relaxed` ile açıklama da taşıyor
+### Yeni Tasarım Konsepti
 
-### Çözüm (`src/components/GuideCard.tsx`)
+Spotify/Apple Podcasts tarzı, ses dalgası ve kulaklık temalı kart:
 
-Her metin alanına **sabit yükseklik** (`h-[...]`) + `overflow-hidden` uygula:
+```text
+┌─────────────────────────────┐
+│  [Görsel - aspect-[4/3]]    │
+│  ┌────────┐    ┌──┐ ┌──┐   │
+│  │cultural│    │🔖│ │↗️│   │
+│  └────────┘    └──┘ └──┘   │
+│         ▶ (hover play)      │
+│  ░░▓▓░▓▓▓░░▓░░ (waveform)  │
+├─────────────────────────────┤
+│  🎧 Title (max 2 lines)    │
+│                             │
+│  Description (2 lines)      │
+│                             │
+│  📍 Location · ⏱ 45 min    │
+│                             │
+│  ┌─────────────────────┐    │
+│  │  $4.99  ▶ Listen Now│    │
+│  └─────────────────────┘    │
+└─────────────────────────────┘
+```
 
-1. **Başlık**: `min-h-[2.5rem]` → `h-[2.75rem] sm:h-[3.25rem]` + `overflow-hidden` — her zaman tam 2 satırlık alan (font boyutuna göre hesaplanmış)
-2. **Açıklama**: `min-h-[2.5rem]` → `h-[2.5rem] sm:h-[3rem]` + `overflow-hidden` — tam 2 satır
-3. **Metadata**: zaten `h-[1.5rem]` sabit — doğru
+### Değişiklikler
 
-Bu sayede içerik 1 satır da olsa 2 satır da olsa kart yüksekliği aynı kalır.
+#### 1. `src/components/GuideCard.tsx` — Tam yeniden yapılandırma
 
-### Dosya
+**Görsel bölümü:**
+- Görselin altına CSS ses dalgası barları ekle (3-4 bar, `audio-waveform` rengiyle)
+- Görsel overlay'ini gradient-overlay ile zenginleştir
+
+**İçerik bölümü — sabit yükseklik yerine flexbox çözümü:**
+- Tüm sabit `h-[...]` değerlerini kaldır
+- `flex-1 flex flex-col justify-between` ile kartın iç alanını otomatik dağıt
+- Başlık: `line-clamp-2` (sabit h yok, flex tarafından kontrol edilir)
+- Açıklama: `line-clamp-2` (sabit h yok)
+- Metadata: tek satır, font küçült (`text-xs`), ortadaki nokta (·) ile ayır — artık 3 ayrı flex item yerine tek satır metin
+
+**Metadata satırı düzeltme:**
+- `MapPin + Location · Clock + 45 min` formatı — tek satırda sığar
+- `truncate` ile location taşarsa kesilir
+- `totalPurchases` bilgisini bu satırdan tamamen kaldır (zaten çoğu kartta yok, eşitsizlik yaratıyordu)
+
+**Alt bölüm — fiyat + buton birleşik:**
+- Fiyat ve buton aynı satırda: solda fiyat, sağda "Listen Now" butonu
+- Buton daha kompakt, kulaklık ikonu ile
+
+**Kulaklık ikonu:**
+- Başlığın yanına küçük kulaklık ikonu (🎧) ekle — audio guide kimliği
+
+#### 2. `src/index.css` — Ses dalgası dekoratif barlar
+
+- `.card-waveform` class'ı: görselin alt kenarında 4 küçük animasyonlu bar
+- Hover'da barlar hareket eder (mevcut `audio-wave` keyframe'ini kullanır)
+- Barlar `audio-waveform` renginde, yarı saydam
+
+### Dosyalar
+
 | Dosya | Değişiklik |
 |-------|-----------|
-| `src/components/GuideCard.tsx` | Başlık ve açıklama `min-h` → sabit `h` + `overflow-hidden` |
+| `src/components/GuideCard.tsx` | Kart layout yeniden yapılandırma, metadata düzeltme, audio teması |
+| `src/index.css` | `.card-waveform` dekoratif animasyon class'ı |
+
+### Sonuç
+- Tüm kartlar **doğal olarak** aynı yükseklikte olacak (flex justify-between sayesinde)
+- Dakika sıkışması çözülecek (tek satır, `text-xs`, nokta ayracı)
+- Audio guide teması görsel olarak yansıyacak (ses dalgası barları, kulaklık ikonu)
+- Daha kompakt ve modern görünüm
