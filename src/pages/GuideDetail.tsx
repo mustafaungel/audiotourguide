@@ -711,7 +711,7 @@ const GuideDetail = () => {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Hero Image - Responsive aspect ratio */}
-            <div className="relative aspect-video md:aspect-[16/10] rounded-3xl overflow-hidden shadow-xl min-h-[200px] md:min-h-[300px] bg-muted">
+            <div className="relative aspect-video md:aspect-[16/10] rounded-3xl overflow-hidden shadow-xl min-h-[200px] md:min-h-[300px] bg-muted group">
               <img
                 src={
                   (guide.image_urls?.[0] || guide.image_url)?.startsWith('data:image') 
@@ -725,27 +725,45 @@ const GuideDetail = () => {
                 }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+              
+              {/* Audio Waveform Overlay */}
+              <div className="absolute bottom-0 left-0 right-0 h-8 flex items-end justify-center gap-[3px] px-4 pb-2 opacity-40 group-hover:opacity-70 transition-opacity">
+                {[...Array(15)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="w-[2px] rounded-full bg-white/80 card-waveform-bar"
+                    style={{
+                      height: `${Math.random() * 60 + 20}%`,
+                      animationDelay: `${i * 0.08}s`,
+                    }}
+                  />
+                ))}
+              </div>
+
               <div className="absolute bottom-4 left-4 text-white">
-                <Badge className="mb-2 text-sm px-3 py-1.5">{guide.category}</Badge>
-                <h1 className="ios-title-large md:text-3xl font-bold text-shadow">{guide.title}</h1>
+                <Badge className="mb-2 text-sm px-3 py-1.5 audio-premium-badge">
+                  <Headphones className="w-3 h-3 mr-1" />
+                  {guide.category}
+                </Badge>
+                <h1 className="ios-title-large md:text-3xl font-bold text-shadow flex items-center gap-2">
+                  <Headphones className="w-5 h-5 md:w-6 md:h-6 opacity-70" />
+                  {guide.title}
+                </h1>
               </div>
             </div>
 
             {/* Guide Info */}
-            <Card>
+            <Card className="audio-card-glow border-border/30">
               <CardHeader>
                 <div className="flex flex-col gap-4">
                   {/* Top Row: Location, Duration, Actions */}
                   <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-3 md:gap-4 text-xs md:text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                        <span className="truncate max-w-[120px] md:max-w-none">{guide.location}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                        {Math.floor(guide.duration / 60)} min
-                      </div>
+                    <div className="flex items-center gap-2 text-xs md:text-sm text-muted-foreground">
+                      <MapPin className="w-3.5 h-3.5 md:w-4 md:h-4 shrink-0" />
+                      <span className="truncate max-w-[120px] md:max-w-none">{guide.location}</span>
+                      <span className="text-muted-foreground/40">·</span>
+                      <Clock className="w-3.5 h-3.5 md:w-4 md:h-4 shrink-0" />
+                      <span>{Math.floor(guide.duration / 60)} min</span>
                     </div>
                     
                     <div className="flex gap-2">
