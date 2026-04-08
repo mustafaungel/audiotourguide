@@ -1172,8 +1172,6 @@ const GuideDetail = () => {
                   <CardTitle className="flex items-center gap-2">
                     <Headphones className="w-4 h-4 text-primary" />
                     Related Guides
-                  </CardTitle>
-                </CardHeader>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {relatedGuides.map((relatedGuide) => (
