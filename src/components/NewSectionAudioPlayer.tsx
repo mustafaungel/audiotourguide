@@ -303,6 +303,9 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     );
   }
 
+  const currentSection = displaySections[currentSectionIndex];
+  const isActive = currentSectionIndex >= 0;
+
   return (
     <div className="space-y-6">
       <ChapterList
@@ -330,7 +333,49 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
         onSpeedChange={handleSpeedChange}
         onAutoAdvanceChange={setAutoAdvance}
         lang={lang}
+        hideMobileControls={isActive && isMobile}
       />
+
+      {/* Mobile: Sticky Mini Player */}
+      {isMobile && isActive && !isExpanded && (
+        <MiniPlayer
+          title={currentSection?.title || guideTitle}
+          currentTime={currentTime}
+          duration={duration}
+          isPlaying={isPlaying}
+          loading={loading}
+          imageUrl={guideImageUrl}
+          onTogglePlay={togglePlayPause}
+          onExpand={() => setIsExpanded(true)}
+        />
+      )}
+
+      {/* Mobile: Full-Screen Expanded Player */}
+      {isMobile && (
+        <ExpandedPlayer
+          open={isExpanded}
+          onClose={() => setIsExpanded(false)}
+          title={currentSection?.title || guideTitle}
+          guideTitle={guideTitle}
+          chapterIndex={currentSectionIndex >= 0 ? currentSectionIndex : 0}
+          totalChapters={displaySections.length}
+          currentTime={currentTime}
+          duration={duration}
+          isPlaying={isPlaying}
+          loading={loading}
+          imageUrl={guideImageUrl}
+          playbackSpeed={playbackSpeed}
+          canGoNext={currentSectionIndex < displaySections.length - 1}
+          canGoPrevious={currentSectionIndex > 0}
+          onTogglePlay={togglePlayPause}
+          onSeek={handleSeek}
+          onSkip={skip}
+          onPrevious={previousSection}
+          onNext={nextSection}
+          onSpeedChange={handleSpeedChange}
+          lang={lang}
+        />
+      )}
     </div>
   );
 };
