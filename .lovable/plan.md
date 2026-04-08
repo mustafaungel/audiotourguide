@@ -1,60 +1,47 @@
 
 
-## Plan: Bağlı Rehberlerde BottomSheet → Accordion/Dropdown Geçişi
+## Plan: AudioAccess Performans ve Animasyon Düzeltmeleri
 
-### Problem
-Bağlı audio guide'larda pill butonuna tıklayınca BottomSheet (alttan açılan panel) açılıyor. Bu mobilde MiniPlayer konumlandırma sorunlarına yol açıyor ve kullanıcı deneyimini karmaşıklaştırıyor.
+### Tespit Edilen Sorunlar
 
-### Çözüm
-BottomSheet'i kaldırıp, her pill butonunun tıklandığında **inline olarak aşağı doğru açılan** (collapsible/accordion) bir yapıya geçiş yapılacak. Standalone guide ile aynı mantık — sadece başlangıçta kapalı, tıklayınca içerik açılacak.
+1. **Accordion kapanış animasyonu yok**: `MultiTabAudioPlayer`'da guide kapatılırken içerik anında kayboluyor — sadece `{isExpanded && ...}` conditional render var, çıkış animasyonu yok.
 
-### Görsel Akış
-```text
-Kapalı hali:
-┌──────────────────────────────────┐
-│ ♫  Cappadocia : Introduction   ▼ │  ← tıklanabilir, chevron aşağı
-├──────────────────────────────────┤
-│ ♫  Cappadocia Valleys          ▼ │
-└──────────────────────────────────┘
+2. **ExpandedPlayer kapanış animasyonu yok**: `if (!open) return null` ile anında unmount oluyor. Açılırken `animate-in slide-in-from-bottom` var ama kapanırken hiçbir geçiş yok.
 
-Açık hali (Introduction tıklandı):
-┌──────────────────────────────────┐
-│ ♫  Cappadocia : Introduction   ▲ │  ← aktif, chevron yukarı
-│  ┌────────────────────────────┐  │
-│  │ 🎧 Up Next                │  │
-│  │ 1. ATV Tour Introduction  │  │
-│  │    1:02                    │  │
-│  └────────────────────────────┘  │
-├──────────────────────────────────┤
-│ ♫  Cappadocia Valleys          ▼ │  ← kapalı
-└──────────────────────────────────┘
-```
+3. **`backdrop-blur` kaynaklı kasma**: AudioAccess sayfasında 3 yerde `backdrop-blur` kullanılıyor:
+   - Navbar: `backdrop-blur-2xl` (line 675)
+   - Hero background: `blur-2xl` (line 698) 
+   - ChapterList aktif chapter: `backdrop-blur-sm` (line 207)
+   
+   Mobilde bu filtreler her frame'de tüm alt pikselleri yeniden işler → frame drop ve kasma.
 
-### Teknik Değişiklikler
+### Çözümler
+
+**`src/components/ExpandedPlayer.tsx`:**
+- `if (!open) return null` yerine BottomSheet benzeri iki fazlı mount/unmount: `rendered` + `visible` state
+- Açılış: mount → next frame → `visible=true` → `slide-in-from-bottom + fade-in`
+- Kapanış: `visible=false` → `slide-out-to-bottom + fade-out` → `onTransitionEnd` → unmount
+- CSS transition kullanılacak (Tailwind animate yerine), böylece hem giriş hem çıkış kontrol edilir
 
 **`src/components/MultiTabAudioPlayer.tsx`:**
-- `BottomSheet` import ve kullanımını kaldır
-- `sheetOpen` state'ini kaldır, `selectedGuideId` tek başına açık/kapalı kontrolü yapar (toggle mantığı)
-- Pill butonuna tıklayınca: zaten açıksa kapat, kapalıysa aç + section'ları yükle
-- `ChevronRight` → `ChevronDown`/`ChevronUp` (açık/kapalı duruma göre)
-- Her pill'in altında `selectedGuideId === guide.id` ise `NewSectionAudioPlayer` inline render et (animasyonlu açılma)
-- `insideSheet={false}` olarak geçir (artık sheet yok)
-- Açık olan pill'e görsel vurgu (arka plan rengi, border)
+- Accordion içeriğine kapanış animasyonu ekle
+- Yaklaşım: `selectedGuideId` değiştiğinde eski içeriği hemen kaldırmak yerine, `closingGuideId` state ile fade-out + slide-out animasyonu uygula
+- Animasyon bitince (`onAnimationEnd`) eski guide'ı DOM'dan kaldır
 
-**`src/components/NewSectionAudioPlayer.tsx`:**
-- `insideSheet` prop'u artık kullanılmayacak (hep false gibi davranacak)
-- MiniPlayer her zaman normal fixed konumda render edilecek — portal karmaşıklığı ortadan kalkar
+**`src/pages/AudioAccess.tsx`:**
+- Navbar: `backdrop-blur-2xl` → `bg-background/95` (opak arka plan, blur yok)
+- Hero background: `blur-2xl` → `blur-2xl` kalabilir (statik, bir kere render) ama `will-change-transform` zaten var — sorun yok
+- Genel olarak animasyonlu overlay'lerdeki blur'ları kaldır
 
-**Tıklanabilirlik göstergesi:**
-- Pill butonlarında `ChevronDown` ikonu ile "tıkla ve aç" mesajı verilir
-- Açıkken `ChevronUp` olur
-- Hover/active efektleri korunur
-- `active:scale-[0.97]` animasyonu zaten mevcut
+**`src/components/ChapterList.tsx`:**
+- Aktif chapter'daki `backdrop-blur-sm` → kaldır (zaten `bg-primary/10` yeterli)
 
 ### Dosya Özeti
 
 | Dosya | Değişiklik |
 |-------|-----------|
-| `src/components/MultiTabAudioPlayer.tsx` | BottomSheet → inline accordion, toggle mantığı, chevron yönü |
-| `src/components/NewSectionAudioPlayer.tsx` | insideSheet portal mantığını sadeleştir |
+| `src/components/ExpandedPlayer.tsx` | İki fazlı mount/unmount ile kapanış animasyonu |
+| `src/components/MultiTabAudioPlayer.tsx` | Accordion kapanış animasyonu (fade-out + slide) |
+| `src/pages/AudioAccess.tsx` | Navbar backdrop-blur kaldır |
+| `src/components/ChapterList.tsx` | Aktif chapter backdrop-blur kaldır |
 
