@@ -9,8 +9,7 @@ import { GuideCard } from '@/components/GuideCard';
 import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
-import { Headphones, Search, Filter } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Headphones } from 'lucide-react';
 import * as CarouselComponents from '@/components/ui/carousel';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -25,7 +24,7 @@ import santoriniImage from '@/assets/santorini-greece.jpg';
 const Index = () => {
   const navigate = useNavigate();
   const [selectedGuide, setSelectedGuide] = useState<any>(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  
   const [processingPayment, setProcessingPayment] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -111,7 +110,7 @@ const Index = () => {
       }, 2000);
     }
   };
-  const filteredGuides = useMemo(() => guides.filter(guide => guide.title.toLowerCase().includes(searchTerm.toLowerCase()) || guide.category.toLowerCase().includes(searchTerm.toLowerCase()) || guide.location.toLowerCase().includes(searchTerm.toLowerCase())), [guides, searchTerm]);
+  
   const handlePlayGuide = (guide: any) => {
     setSelectedGuide(guide);
     supabase.functions.invoke('track-viral-engagement', {
@@ -151,49 +150,13 @@ const Index = () => {
       <StatsSection />
       
       {/* Mobile-Optimized Featured Destinations Section */}
-      <section className="mobile-padding mobile-spacing">{/* Mobile-first section */}
+      <section className="mobile-padding mobile-spacing">
         <div className="mobile-container">
-          {/* Section Header */}
-          <div className="text-center mobile-spacing">
-            <div className="inline-flex items-center gap-2 mobile-padding rounded-full audio-premium-badge mb-4">
-              <Headphones className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium">Audio Guides</span>
-            </div>
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold mb-4">Explore Audio Guides</h2>
-            <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
-              Browse our collection of premium audio guides for world heritage sites and cultural destinations
-            </p>
-          </div>
-
-          {/* Enhanced Search and Filter */}
-          <div className="mobile-stack max-w-2xl mx-auto">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search destinations..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10 bg-card/50 backdrop-blur-sm border-border/50 touch-target mobile-text" />
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" className="flex-1 sm:flex-none touch-target">
-                <Filter className="h-4 w-4 mr-2" />
-                Filters
-              </Button>
-              {searchTerm && <Button variant="ghost" size="sm" onClick={() => setSearchTerm('')} className="text-muted-foreground hover:text-foreground touch-target px-4">
-                  Clear
-                </Button>}
-            </div>
-          </div>
-
-          {/* Search Results Info */}
-          {searchTerm && <div className="text-center mb-6">
-              <p className="mobile-caption">
-                {loading ? 'Searching...' : `Found ${filteredGuides.length} result(s) for "${searchTerm}"`}
-              </p>
-            </div>}
-
           {/* Loading State */}
           {loading && <AudioGuideLoader variant="card" count={6} />}
 
           {/* Guides Carousel */}
-          {!loading && filteredGuides.length > 0 && (
+          {!loading && guides.length > 0 && (
             <CarouselComponents.Carousel
               opts={{ align: "start", loop: true }}
               className="w-full"
@@ -236,7 +199,7 @@ const Index = () => {
           )}
 
           {/* No Results */}
-          {!loading && filteredGuides.length === 0 && <div className="text-center py-16 mobile-spacing">
+          {!loading && guides.length === 0 && <div className="text-center py-16 mobile-spacing">
               <div className="text-6xl mb-4">🔍</div>
               <h2 className="mobile-subheading text-foreground mb-2">No destinations found</h2>
               <p className="mobile-caption">Try searching for UNESCO sites, cultural experiences, or specific countries</p>
