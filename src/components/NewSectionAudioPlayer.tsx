@@ -356,51 +356,6 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     />
   ) : null;
 
-  // Portal MiniPlayer to document.body when insideSheet (avoids BottomSheet transform issues)
-  const portaledMiniPlayer = (() => {
-    if (!miniPlayerElement) return null;
-    if (insideSheet) return createPortal(miniPlayerElement, document.body);
-    return null;
-  })();
-
-  if (insideSheet) {
-    return (
-      <>
-        <div className={cn("space-y-6", isActive && isMobile && "pb-20")}>
-          <ChapterList
-            sections={displaySections}
-            currentSectionIndex={currentSectionIndex}
-            isPlaying={isPlaying}
-            loading={loading}
-            currentTime={currentTime}
-            duration={duration}
-            volume={volume}
-            isMuted={isMuted}
-            playbackSpeed={playbackSpeed}
-            canGoNext={currentSectionIndex < displaySections.length - 1}
-            canGoPrevious={currentSectionIndex > 0}
-            autoAdvanceEnabled={autoAdvanceEnabled}
-            isChapterCompleted={isChapterCompleted}
-            onPlaySection={playSection}
-            onTogglePlayPause={togglePlayPause}
-            onSeek={handleSeek}
-            onSkip={skip}
-            onPreviousSection={previousSection}
-            onNextSection={nextSection}
-            onToggleMute={toggleMute}
-            onVolumeChange={handleVolumeChange}
-            onSpeedChange={handleSpeedChange}
-            onAutoAdvanceChange={setAutoAdvance}
-            lang={lang}
-            hideMobileControls={isActive && isMobile}
-          />
-        </div>
-        {portaledMiniPlayer}
-        {expandedPlayerElement}
-      </>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <ChapterList
