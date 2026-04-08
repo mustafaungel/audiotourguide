@@ -19,6 +19,21 @@ interface UseSpotifyAudioProps {
   title: string;
 }
 
+/**
+ * Synchronously resolve an audio URL — no async, no signed URLs.
+ * Keeps the user-gesture context intact for mobile playback.
+ */
+const resolveAudioUrl = (guideId: string, audioPath?: string, mainAudioUrl?: string): string => {
+  const url = audioPath || mainAudioUrl;
+  if (!url) return `/tmp/${guideId}.mp3`;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  if (url.startsWith('/storage/v1/object/public')) {
+    return `https://dsaqlgxajdnwoqvtsrqd.supabase.co${url}`;
+  }
+  const { data } = supabase.storage.from('guide-audio').getPublicUrl(url);
+  return data?.publicUrl || `/tmp/${guideId}.mp3`;
+};
+
 export const useSpotifyAudio = ({ 
   guideId, 
   sections = [], 
@@ -45,52 +60,6 @@ export const useSpotifyAudio = ({
   // Keep refs in sync
   useEffect(() => { repeatModeRef.current = repeatMode; }, [repeatMode]);
   useEffect(() => { currentSectionRef.current = currentSection; }, [currentSection]);
-
-  const loadAudioSource = async (sectionIndex?: number) => {
-    try {
-      setLoading(true);
-      console.log('[AUDIO] Loading audio source:', { guideId, sectionIndex, hasMainUrl: !!mainAudioUrl });
-      
-      let audioUrl = mainAudioUrl;
-      
-      if (sections.length > 0 && sectionIndex !== undefined && sections[sectionIndex]?.audio_url) {
-        audioUrl = sections[sectionIndex].audio_url;
-        console.log('[AUDIO] Using section audio URL');
-      }
-      
-      if (audioUrl) {
-        console.log('[AUDIO] Using provided audio URL:', audioUrl.substring(0, 50) + '...');
-        setAudioSrc(audioUrl);
-        return audioUrl;
-      }
-      
-      console.log('[AUDIO] Fetching from Supabase storage...');
-      const { data: urlData } = await supabase.storage
-        .from('guide-audio')
-        .createSignedUrl(`${guideId}.mp3`, 3600);
-      
-      if (urlData?.signedUrl) {
-        console.log('[AUDIO] Got Supabase signed URL');
-        setAudioSrc(urlData.signedUrl);
-        return urlData.signedUrl;
-      }
-      
-      const fallbackUrl = `/tmp/${guideId}.mp3`;
-      console.log('[AUDIO] Using fallback URL:', fallbackUrl);
-      setAudioSrc(fallbackUrl);
-      return fallbackUrl;
-    } catch (error) {
-      console.error('[AUDIO] Error loading audio source:', error);
-      toast({
-        title: 'Audio Error',
-        description: 'Failed to load audio source',
-        variant: 'destructive',
-      });
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleAudioEnd = useCallback(() => {
     const mode = repeatModeRef.current;
@@ -148,7 +117,10 @@ export const useSpotifyAudio = ({
     });
   }, [playbackSpeed, volume, handleAudioEnd]);
 
-  const play = async (sectionIndex?: number) => {
+  /**
+   * Synchronous play — resolves URL without async, keeps gesture context.
+   */
+  const play = (sectionIndex?: number) => {
     try {
       const targetSection = sectionIndex ?? currentSection;
       
@@ -159,56 +131,49 @@ export const useSpotifyAudio = ({
 
       if (!audioRef.current) {
         const audio = new Audio();
+        audio.preload = 'auto';
+        audio.setAttribute('playsinline', '');
         audioRef.current = audio;
         setupAudioElement(audio);
       }
 
-      let currentAudioSrc = audioSrc;
-      if (!audioSrc || sectionIndex !== undefined) {
-        console.log('[AUDIO] Play: Loading audio source for section', targetSection);
-        const src = await loadAudioSource(targetSection);
-        if (!src) {
-          console.error('[AUDIO] Play: Failed to load audio source');
-          return;
-        }
-        currentAudioSrc = src;
-        console.log('[AUDIO] Play: Audio source loaded successfully');
+      // Resolve URL synchronously
+      const sectionAudioUrl = sections[targetSection]?.audio_url;
+      const resolvedUrl = resolveAudioUrl(guideId, sectionAudioUrl, mainAudioUrl);
+      
+      setAudioSrc(resolvedUrl);
+      
+      audioRef.current.src = resolvedUrl;
+      audioRef.current.volume = Math.min(1, Math.max(0, volume));
+      audioRef.current.playbackRate = playbackSpeed;
+      
+      if (sections[targetSection]?.start_time) {
+        audioRef.current.currentTime = sections[targetSection].start_time!;
       }
-
-      if (audioRef.current && currentAudioSrc) {
-        console.log('[AUDIO] Play: Setting audio src and starting playback');
-        audioRef.current.src = currentAudioSrc;
-        audioRef.current.volume = Math.min(1, Math.max(0, volume));
-        audioRef.current.playbackRate = playbackSpeed;
-        
-        if (sections[targetSection]?.start_time) {
-          audioRef.current.currentTime = sections[targetSection].start_time!;
-          console.log('[AUDIO] Play: Set start time to', sections[targetSection].start_time);
-        }
-        
-        await audioRef.current.play();
-        setIsPlaying(true);
-        setCurrentSection(targetSection);
-        console.log('[AUDIO] Play: Playback started successfully');
-        
-        const sectionTitle = sections[targetSection]?.title || title;
-        toast({
-          title: 'Now Playing',
-          description: sectionTitle,
-        });
-      } else {
-        console.error('[AUDIO] Play: Missing audio ref or src', { 
-          hasAudioRef: !!audioRef.current, 
-          currentAudioSrc 
-        });
+      
+      const playPromise = audioRef.current.play();
+      
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            setIsPlaying(true);
+            setCurrentSection(targetSection);
+            const sectionTitle = sections[targetSection]?.title || title;
+            toast({ title: 'Now Playing', description: sectionTitle });
+          })
+          .catch((error) => {
+            console.error('[AUDIO] Play error:', error);
+            if (error.name !== 'AbortError') {
+              toast({ title: 'Playback Error', description: 'Failed to start playback', variant: 'destructive' });
+            }
+            setIsPlaying(false);
+          });
       }
+      
+      setCurrentSection(targetSection);
     } catch (error) {
       console.error('[AUDIO] Play error:', error);
-      toast({
-        title: 'Playback Error',
-        description: 'Failed to start playback',
-        variant: 'destructive',
-      });
+      toast({ title: 'Playback Error', description: 'Failed to start playback', variant: 'destructive' });
     }
   };
 
@@ -235,13 +200,13 @@ export const useSpotifyAudio = ({
     }
   };
 
-  const playSection = async (index: number) => {
+  const playSection = (index: number) => {
     if (index >= 0 && index < sections.length) {
-      await play(index);
+      play(index);
     }
   };
 
-  const nextSection = async () => {
+  const nextSection = () => {
     let nextIndex = currentSection + 1;
     
     if (isShuffled) {
@@ -250,17 +215,17 @@ export const useSpotifyAudio = ({
     }
     
     if (nextIndex < sections.length) {
-      await playSection(nextIndex);
+      playSection(nextIndex);
     } else if (repeatMode === 'all') {
-      await playSection(0);
+      playSection(0);
     }
   };
 
-  const previousSection = async () => {
+  const previousSection = () => {
     if (currentSection > 0) {
-      await playSection(currentSection - 1);
+      playSection(currentSection - 1);
     } else if (repeatMode === 'all') {
-      await playSection(sections.length - 1);
+      playSection(sections.length - 1);
     }
   };
 
@@ -293,16 +258,8 @@ export const useSpotifyAudio = ({
     const nextMode = modes[(currentIndex + 1) % modes.length];
     setRepeatMode(nextMode);
     
-    const modeLabels = {
-      none: 'Repeat Off',
-      one: 'Repeat One',
-      all: 'Repeat All'
-    };
-    
-    toast({
-      title: modeLabels[nextMode],
-      description: `Repeat mode: ${nextMode}`,
-    });
+    const modeLabels = { none: 'Repeat Off', one: 'Repeat One', all: 'Repeat All' };
+    toast({ title: modeLabels[nextMode], description: `Repeat mode: ${nextMode}` });
   };
 
   const skip = (seconds: number) => {
