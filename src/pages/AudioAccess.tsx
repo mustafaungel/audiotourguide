@@ -672,7 +672,7 @@ export default function AudioAccess() {
   return (
     <div className="min-h-screen bg-background">
       {/* iOS-style minimal navbar */}
-      <div className="sticky top-0 z-50 backdrop-blur-2xl bg-background/80 border-b border-border/30">
+      <div className="sticky top-0 z-50 bg-background/95 border-b border-border/30 shadow-sm">
         <div className="grid grid-cols-[48px_1fr_48px] items-center px-2 min-h-12 h-auto py-1">
           <button
             onClick={() => navigate(-1)}
@@ -796,7 +796,7 @@ export default function AudioAccess() {
           {!showReviewForm ? (
              <button
               onClick={() => setShowReviewForm(true)}
-              className="w-full flex items-center justify-center gap-2 min-h-[48px] py-3.5 rounded-2xl bg-primary/5 border border-primary/20 text-sm font-medium text-foreground active:scale-[0.98] transition-all duration-200"
+              className="w-full flex items-center justify-center gap-2 min-h-[48px] py-3.5 rounded-2xl bg-primary/5 border border-primary/20 text-sm font-medium text-foreground active:scale-[0.98] active:bg-primary/10 active:shadow-inner shadow-sm hover:shadow-md transition-all duration-200"
             >
               <Star className="w-4 h-4 text-yellow-500" />
               {t('leaveReview', selectedLanguage)}

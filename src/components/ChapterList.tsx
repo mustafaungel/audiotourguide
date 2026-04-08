@@ -202,9 +202,9 @@ export const ChapterList: React.FC<ChapterListProps> = ({
               }}
               className={cn(
                 "w-full text-left rounded-xl p-4 transition-all min-h-[72px] touch-manipulation group/chapter",
-                "hover:bg-primary/5 active:scale-[0.97]",
+                "hover:bg-primary/5 active:scale-[0.97] active:bg-primary/15 active:shadow-inner",
                 isCurrent 
-                  ? "bg-primary/10 border-2 border-primary/50 border-l-primary shadow-lg shadow-primary/20 backdrop-blur-sm" 
+                  ? "bg-gradient-to-r from-primary/10 to-primary/5 border-2 border-primary/50 border-l-primary shadow-lg shadow-primary/20" 
                   : "bg-card/30 border border-transparent"
               )}
             >

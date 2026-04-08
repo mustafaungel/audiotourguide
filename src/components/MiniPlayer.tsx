@@ -59,15 +59,15 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({
         : "w-full z-10"
     )}>
       {/* Progress bar on top edge */}
-      <div className="h-[2px] bg-muted/50 w-full">
+      <div className="h-[3px] bg-muted/30 w-full">
         <div
-          className="h-full bg-primary transition-all duration-300"
+          className="h-full bg-gradient-to-r from-primary/70 via-primary to-primary/80 transition-all duration-300"
           style={{ width: `${progress}%` }}
         />
       </div>
 
       <div
-        className="backdrop-blur-2xl bg-background/90 border-t border-border/30 px-3 py-2"
+        className="bg-background/95 border-t border-border/30 px-3 py-3 shadow-[0_-2px_12px_-4px_hsl(var(--primary)/0.1)]"
         onClick={(e) => {
           if ((e.target as HTMLElement).closest('[data-play-btn]')) return;
           haptics.light();
@@ -80,7 +80,7 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({
             <img
               src={imageUrl}
               alt=""
-              className="w-10 h-10 rounded-lg object-cover shadow-sm ring-1 ring-border/20 shrink-0"
+              className="w-12 h-12 rounded-xl object-cover shadow-md ring-1 ring-border/20 shrink-0"
               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
             />
           )}
@@ -102,9 +102,9 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({
                 haptics.light();
                 onSkipBack();
               }}
-              className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-muted-foreground active:scale-90 transition-transform"
+              className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-muted-foreground active:scale-90 active:bg-muted/60 transition-all"
             >
-              <SkipBack className="w-3.5 h-3.5" fill="currentColor" />
+              <SkipBack className="w-4 h-4" fill="currentColor" />
             </button>
           )}
 
@@ -117,15 +117,15 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({
               onTogglePlay();
             }}
             className={cn(
-              "w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90",
-              "bg-primary text-primary-foreground shadow-sm"
+              "w-12 h-12 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90",
+              "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
             )}
             disabled={loading}
           >
             {isPlaying ? (
-              <Pause className="w-4.5 h-4.5" fill="currentColor" />
+              <Pause className="w-5 h-5" fill="currentColor" />
             ) : (
-              <Play className="w-4.5 h-4.5 ml-0.5" fill="currentColor" />
+              <Play className="w-5 h-5 ml-0.5" fill="currentColor" />
             )}
           </button>
 
@@ -138,9 +138,9 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({
                 haptics.light();
                 onSkipForward();
               }}
-              className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-muted-foreground active:scale-90 transition-transform"
+              className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-muted-foreground active:scale-90 active:bg-muted/60 transition-all"
             >
-              <SkipForward className="w-3.5 h-3.5" fill="currentColor" />
+              <SkipForward className="w-4 h-4" fill="currentColor" />
             </button>
           )}
 

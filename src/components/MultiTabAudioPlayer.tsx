@@ -60,6 +60,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     [mainGuide.id]: languageCode
   });
   const [selectedGuideId, setSelectedGuideId] = useState<string | null>(null);
+  const [closingGuideId, setClosingGuideId] = useState<string | null>(null);
   const fetchingRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
@@ -225,7 +226,20 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     if (guideId !== mainGuide.id) {
       ensureGuideSections(guideId);
     }
-    setSelectedGuideId(prev => prev === guideId ? null : guideId);
+    setSelectedGuideId(prev => {
+      if (prev === guideId) {
+        // Closing: trigger exit animation
+        setClosingGuideId(guideId);
+        setTimeout(() => setClosingGuideId(null), 280);
+        return null;
+      }
+      // Opening a new one: close old with animation if exists
+      if (prev) {
+        setClosingGuideId(prev);
+        setTimeout(() => setClosingGuideId(null), 280);
+      }
+      return guideId;
+    });
     onActiveTabChange?.(guideId === mainGuide.id ? 'main' : guideId);
   }, [mainGuide.id, ensureGuideSections, onActiveTabChange]);
 
@@ -247,10 +261,18 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
 
   const isMainExpanded = selectedGuideId === mainGuide.id;
 
-  const renderGuideContent = (guideId: string, title: string, audioUrl?: string, imageUrl?: string) => {
+  const renderGuideContent = (guideId: string, title: string, isClosing: boolean, audioUrl?: string, imageUrl?: string) => {
     const sections = guideId === mainGuide.id ? mainSections : (sectionsByGuide[guideId] || []);
     return (
-      <div className="mt-2 mb-2 animate-in fade-in slide-in-from-top-2 duration-300">
+      <div
+        className={cn(
+          "mt-2 mb-2 overflow-hidden transition-all duration-280 ease-out",
+          isClosing
+            ? "opacity-0 max-h-0 -translate-y-1"
+            : "opacity-100 max-h-[2000px] translate-y-0 animate-in fade-in slide-in-from-top-2 duration-300"
+        )}
+        style={{ transitionProperty: 'opacity, max-height, transform' }}
+      >
         <NewSectionAudioPlayer
           key={guideId}
           guideId={guideId}
@@ -271,10 +293,11 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
         <div>
           <button
             className={cn(
-              "flex items-center justify-between gap-2 w-full min-h-[48px] px-4 py-2.5 text-base font-medium rounded-xl transition-all active:scale-[0.97]",
+            "flex items-center justify-between gap-2 w-full min-h-[48px] px-4 py-2.5 text-base font-medium rounded-xl transition-all duration-200",
+              "active:scale-[0.97] active:shadow-inner",
               isMainExpanded
-                ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/30"
-                : "bg-muted/50 border border-border/50 hover:bg-muted hover:shadow-sm"
+                ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/30 active:bg-primary/80"
+                : "bg-muted/50 border border-border/50 hover:bg-muted hover:shadow-sm active:bg-muted"
             )}
             onClick={() => handlePillClick(mainGuide.id)}
           >
@@ -283,11 +306,11 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
               <span className="line-clamp-2 break-words text-left">{mainGuide.title}</span>
             </span>
             {isMainExpanded
-              ? <ChevronUp className="w-4 h-4 shrink-0 opacity-50" />
+              ? <ChevronUp className="w-4 h-4 shrink-0 opacity-70" />
               : <ChevronDown className="w-4 h-4 shrink-0 opacity-50" />
             }
           </button>
-          {isMainExpanded && renderGuideContent(mainGuide.id, mainGuide.title, mainGuide.audio_url, guideImageUrl)}
+          {(isMainExpanded || closingGuideId === mainGuide.id) && renderGuideContent(mainGuide.id, mainGuide.title, closingGuideId === mainGuide.id, mainGuide.audio_url, guideImageUrl)}
         </div>
 
         {/* Linked guides */}
@@ -298,10 +321,11 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
               <button
                 onClick={() => handlePillClick(guide.guide_id)}
                 className={cn(
-                  "flex items-center justify-between gap-2 w-full min-h-[48px] px-4 py-2.5 text-base font-medium rounded-xl transition-all active:scale-[0.97]",
+                  "flex items-center justify-between gap-2 w-full min-h-[48px] px-4 py-2.5 text-base font-medium rounded-xl transition-all duration-200",
+                  "active:scale-[0.97] active:shadow-inner",
                   isExpanded
-                    ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/30"
-                    : "bg-muted/50 border border-border/50 hover:bg-muted hover:shadow-sm"
+                    ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/30 active:bg-primary/80"
+                    : "bg-muted/50 border border-border/50 hover:bg-muted hover:shadow-sm active:bg-muted"
                 )}
               >
                 <span className="flex items-center gap-2 min-w-0">
@@ -309,13 +333,14 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
                   <span className="line-clamp-2 break-words text-left">{guide.custom_title || guide.title}</span>
                 </span>
                 {isExpanded
-                  ? <ChevronUp className="w-4 h-4 shrink-0 opacity-50" />
+                  ? <ChevronUp className="w-4 h-4 shrink-0 opacity-70" />
                   : <ChevronDown className="w-4 h-4 shrink-0 opacity-50" />
                 }
               </button>
-              {isExpanded && renderGuideContent(
+              {(isExpanded || closingGuideId === guide.guide_id) && renderGuideContent(
                 guide.guide_id,
                 guide.custom_title || guide.title,
+                closingGuideId === guide.guide_id,
                 undefined,
                 guide.image_url || guideImageUrl
               )}
