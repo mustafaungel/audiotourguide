@@ -10,6 +10,7 @@ interface MiniPlayerProps {
   isPlaying: boolean;
   loading?: boolean;
   imageUrl?: string;
+  variant?: 'fixed' | 'inline';
   onTogglePlay: () => void;
   onExpand: () => void;
 }
@@ -23,6 +24,7 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({
   imageUrl,
   onTogglePlay,
   onExpand,
+  variant = 'fixed',
 }) => {
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
@@ -34,7 +36,11 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 safe-area-bottom">
+    <div className={cn(
+      variant === 'fixed'
+        ? "fixed bottom-0 left-0 right-0 z-50 safe-area-bottom"
+        : "sticky bottom-0 z-10 mt-4"
+    )}>
       {/* Progress bar on top edge */}
       <div className="h-[2px] bg-muted/50 w-full">
         <div
