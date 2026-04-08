@@ -349,10 +349,18 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     />
   ) : null;
 
+  // Portal MiniPlayer into BottomSheet footer when insideSheet
+  const portaledMiniPlayer = (() => {
+    if (!miniPlayerElement || !insideSheet) return null;
+    const footerEl = document.getElementById('bottom-sheet-footer');
+    if (!footerEl) return miniPlayerElement;
+    return createPortal(miniPlayerElement, footerEl);
+  })();
+
   if (insideSheet) {
     return (
       <>
-        <div className="space-y-6 pb-20">
+        <div className="space-y-6">
           <ChapterList
             sections={displaySections}
             currentSectionIndex={currentSectionIndex}
@@ -381,7 +389,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
             hideMobileControls={isActive && isMobile}
           />
         </div>
-        {miniPlayerElement}
+        {portaledMiniPlayer}
         {expandedPlayerElement}
       </>
     );
