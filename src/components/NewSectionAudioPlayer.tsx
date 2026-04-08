@@ -181,7 +181,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
       audioRef.current = new Audio();
       audioRef.current.preload = 'auto';
       audioRef.current.setAttribute('playsinline', '');
-      audioRef.current.crossOrigin = 'anonymous';
+      
       setupAudioElement(audioRef.current);
     }
     
