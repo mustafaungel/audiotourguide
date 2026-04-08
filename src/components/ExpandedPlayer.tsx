@@ -1,0 +1,240 @@
+import React, { useState } from 'react';
+import { Play, Pause, SkipBack, SkipForward, ChevronDown, X } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
+import { Button } from '@/components/ui/button';
+import { BottomSheet } from '@/components/ui/bottom-sheet';
+import { cn } from '@/lib/utils';
+import { haptics } from '@/lib/haptics';
+import { t } from '@/lib/translations';
+
+interface ExpandedPlayerProps {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  guideTitle: string;
+  chapterIndex: number;
+  totalChapters: number;
+  currentTime: number;
+  duration: number;
+  isPlaying: boolean;
+  loading?: boolean;
+  imageUrl?: string;
+  playbackSpeed: number;
+  canGoNext: boolean;
+  canGoPrevious: boolean;
+  onTogglePlay: () => void;
+  onSeek: (value: number[]) => void;
+  onSkip: (seconds: number) => void;
+  onPrevious: () => void;
+  onNext: () => void;
+  onSpeedChange: (speed: number) => void;
+  lang?: string;
+}
+
+export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
+  open,
+  onClose,
+  title,
+  guideTitle,
+  chapterIndex,
+  totalChapters,
+  currentTime,
+  duration,
+  isPlaying,
+  loading,
+  imageUrl,
+  playbackSpeed,
+  canGoNext,
+  canGoPrevious,
+  onTogglePlay,
+  onSeek,
+  onSkip,
+  onPrevious,
+  onNext,
+  onSpeedChange,
+  lang = 'en',
+}) => {
+  const [showSpeedSheet, setShowSpeedSheet] = useState(false);
+  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+  const speedOptions = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
+
+  const formatTime = (seconds: number) => {
+    if (!seconds || isNaN(seconds)) return '0:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  if (!open) return null;
+
+  return (
+    <>
+      <div className="fixed inset-0 z-[60] bg-background flex flex-col animate-in slide-in-from-bottom duration-300">
+        {/* Blurred background */}
+        {imageUrl && (
+          <>
+            <div
+              className="absolute inset-0 scale-110 blur-3xl opacity-20 will-change-transform"
+              style={{
+                backgroundImage: `url(${imageUrl})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/80 to-background" />
+          </>
+        )}
+
+        {/* Content */}
+        <div className="relative flex flex-col h-full safe-area-top safe-area-bottom">
+          {/* Header — collapse button */}
+          <div className="flex items-center justify-between px-4 pt-3 pb-2">
+            <button
+              onClick={() => { haptics.light(); onClose(); }}
+              className="w-10 h-10 flex items-center justify-center text-muted-foreground active:opacity-60"
+            >
+              <ChevronDown className="w-6 h-6" />
+            </button>
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              {t('nowPlaying', lang)}
+            </span>
+            <div className="w-10" /> {/* Spacer */}
+          </div>
+
+          {/* Album art */}
+          <div className="flex-1 flex items-center justify-center px-8 py-4">
+            <div className="w-full max-w-[280px] aspect-square">
+              {imageUrl ? (
+                <img
+                  src={imageUrl}
+                  alt={title}
+                  className="w-full h-full rounded-2xl object-cover shadow-2xl ring-1 ring-border/10"
+                  onError={(e) => { (e.target as HTMLImageElement).src = '/hero-audio-guide.jpg'; }}
+                />
+              ) : (
+                <div className="w-full h-full rounded-2xl bg-muted/30 flex items-center justify-center">
+                  <Play className="w-16 h-16 text-muted-foreground/30" />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Track info */}
+          <div className="px-6 pb-2 text-center">
+            <h2 className="text-lg font-bold text-foreground line-clamp-2">{title}</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              {chapterIndex + 1} / {totalChapters} • {guideTitle}
+            </p>
+          </div>
+
+          {/* Seek slider */}
+          <div className="px-6 pb-2">
+            <Slider
+              value={[progress]}
+              max={100}
+              step={0.1}
+              onValueChange={onSeek}
+              className="w-full"
+            />
+            <div className="flex justify-between mt-1.5">
+              <span className="text-[11px] text-muted-foreground tabular-nums">{formatTime(currentTime)}</span>
+              <span className="text-[11px] text-muted-foreground tabular-nums">{formatTime(duration)}</span>
+            </div>
+          </div>
+
+          {/* Main controls */}
+          <div className="flex items-center justify-center gap-6 px-6 pb-4">
+            {/* Skip -15 */}
+            <button
+              onClick={() => { haptics.light(); onSkip(-15); }}
+              className="w-12 h-12 flex items-center justify-center text-foreground active:scale-90 transition-transform"
+            >
+              <span className="text-xs font-bold">-15</span>
+            </button>
+
+            {/* Previous */}
+            <button
+              onClick={() => { haptics.light(); onPrevious(); }}
+              disabled={!canGoPrevious}
+              className="w-12 h-12 flex items-center justify-center text-foreground disabled:opacity-30 active:scale-90 transition-transform"
+            >
+              <SkipBack className="w-6 h-6" fill="currentColor" />
+            </button>
+
+            {/* Play/Pause — large */}
+            <button
+              onClick={() => { haptics.medium(); onTogglePlay(); }}
+              disabled={loading}
+              className={cn(
+                "w-16 h-16 rounded-full flex items-center justify-center transition-all active:scale-90",
+                "bg-primary text-primary-foreground shadow-lg shadow-primary/30"
+              )}
+            >
+              {isPlaying ? (
+                <Pause className="w-7 h-7" fill="currentColor" />
+              ) : (
+                <Play className="w-7 h-7 ml-1" fill="currentColor" />
+              )}
+            </button>
+
+            {/* Next */}
+            <button
+              onClick={() => { haptics.light(); onNext(); }}
+              disabled={!canGoNext}
+              className="w-12 h-12 flex items-center justify-center text-foreground disabled:opacity-30 active:scale-90 transition-transform"
+            >
+              <SkipForward className="w-6 h-6" fill="currentColor" />
+            </button>
+
+            {/* Skip +15 */}
+            <button
+              onClick={() => { haptics.light(); onSkip(15); }}
+              className="w-12 h-12 flex items-center justify-center text-foreground active:scale-90 transition-transform"
+            >
+              <span className="text-xs font-bold">+15</span>
+            </button>
+          </div>
+
+          {/* Speed control */}
+          <div className="flex justify-center pb-6">
+            <button
+              onClick={() => { haptics.medium(); setShowSpeedSheet(true); }}
+              className="px-4 py-2 rounded-full bg-muted/50 text-sm font-semibold text-foreground active:scale-95 transition-transform"
+            >
+              {playbackSpeed === 1.0 ? t('normal', lang) : `${playbackSpeed}×`}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Speed bottom sheet */}
+      <BottomSheet
+        open={showSpeedSheet}
+        onOpenChange={setShowSpeedSheet}
+        title={t('playbackSpeed', lang)}
+        defaultSnap="mini"
+      >
+        <div className="pb-6 space-y-1">
+          {speedOptions.map((speed) => (
+            <button
+              key={speed}
+              onClick={() => {
+                haptics.selection();
+                onSpeedChange(speed);
+                setTimeout(() => setShowSpeedSheet(false), 200);
+              }}
+              className={cn(
+                "w-full h-12 flex items-center justify-center rounded-lg transition-all touch-manipulation",
+                playbackSpeed === speed ? "font-bold text-primary scale-105" : "text-muted-foreground"
+              )}
+            >
+              <span className={cn("text-base", playbackSpeed === speed && "text-lg font-semibold")}>
+                {speed === 1.0 ? t('normal', lang) : `${speed}×`}
+              </span>
+            </button>
+          ))}
+        </div>
+      </BottomSheet>
+    </>
+  );
+};
