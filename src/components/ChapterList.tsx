@@ -199,21 +199,28 @@ export const ChapterList: React.FC<ChapterListProps> = ({
                 }
               }}
               className={cn(
-                "w-full text-left rounded-xl p-4 transition-all min-h-[72px] touch-manipulation",
-                "hover:bg-muted/50 active:scale-[0.97]",
+                "w-full text-left rounded-xl p-4 transition-all min-h-[72px] touch-manipulation group/chapter",
+                "hover:bg-primary/5 active:scale-[0.97]",
                 isCurrent 
-                  ? "bg-primary/15 border-2 border-primary/40 shadow-lg shadow-primary/20" 
+                  ? "bg-primary/10 border-2 border-primary/50 border-l-primary shadow-lg shadow-primary/20 backdrop-blur-sm" 
                   : "bg-card/30 border border-transparent"
               )}
             >
               <div className="flex items-center gap-3">
+                {/* Mini Waveform Decoration */}
+                <div className="flex items-center gap-0.5 opacity-30 group-hover/chapter:opacity-60 transition-opacity">
+                  <div className="w-[2px] h-2 bg-primary rounded-full" style={{ animationDelay: '0s' }} />
+                  <div className="w-[2px] h-3 bg-primary rounded-full" style={{ animationDelay: '0.15s' }} />
+                  <div className="w-[2px] h-1.5 bg-primary rounded-full" style={{ animationDelay: '0.3s' }} />
+                </div>
+
                 {/* Chapter Number Badge */}
                 <div className="flex-shrink-0">
                   <div className={cn(
                     "w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold",
                     isCurrent 
-                      ? "bg-primary text-primary-foreground" 
-                      : "bg-muted text-muted-foreground"
+                      ? "bg-gradient-to-br from-primary to-primary/70 text-primary-foreground" 
+                      : "bg-primary/10 text-muted-foreground"
                   )}>
                     {isCurrent && isPlaying ? (
                       <Pause className="w-4 h-4" fill="currentColor" />
@@ -234,7 +241,7 @@ export const ChapterList: React.FC<ChapterListProps> = ({
                     )}>
                       {section.title}
                     </h4>
-                    <span className="text-xs text-muted-foreground whitespace-nowrap font-medium tabular-nums shrink-0">
+                    <span className="text-xs text-muted-foreground whitespace-nowrap font-medium tabular-nums shrink-0 bg-primary/10 rounded-full px-2 py-0.5">
                       {formatTime(section.duration_seconds || 0)}
                     </span>
                   </div>
@@ -245,13 +252,18 @@ export const ChapterList: React.FC<ChapterListProps> = ({
                     </p>
                   )}
 
-                  {/* Progress Bar for Current Chapter */}
+                  {/* Progress Bar for Current Chapter — Spotify Style */}
                   {isCurrent && (
                     <div className="mt-3">
-                      <div className="h-[3px] bg-muted rounded-full overflow-hidden shadow-sm">
+                      <div className="relative h-1 bg-muted rounded-full overflow-visible">
                         <div
-                          className="h-full bg-gradient-to-r from-primary/60 via-primary to-primary/80 transition-all duration-300 shadow-sm shadow-primary/50"
+                          className="h-full bg-gradient-to-r from-primary/60 via-primary to-primary/80 rounded-full transition-all duration-300 shadow-sm shadow-primary/30"
                           style={{ width: `${progress}%` }}
+                        />
+                        {/* Scrubber Dot */}
+                        <div
+                          className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-primary rounded-full shadow-md shadow-primary/40 transition-all duration-300"
+                          style={{ left: `calc(${progress}% - 5px)` }}
                         />
                       </div>
                       <div className="flex justify-between mt-1.5">
