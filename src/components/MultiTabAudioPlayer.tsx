@@ -271,12 +271,11 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     return (
       <div
         className={cn(
-          "mt-2 mb-2 overflow-hidden transition-all duration-280 ease-out",
+          "mt-2 mb-2 transition-opacity duration-280 ease-out",
           isClosing
-            ? "opacity-0 max-h-0 -translate-y-1"
-            : "opacity-100 max-h-[2000px] translate-y-0 animate-in fade-in slide-in-from-top-2 duration-300"
+            ? "opacity-0 pointer-events-none"
+            : "opacity-100 animate-in fade-in duration-300"
         )}
-        style={{ transitionProperty: 'opacity, max-height, transform' }}
       >
         <NewSectionAudioPlayer
           key={guideId}
@@ -299,10 +298,10 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
           <button
             className={cn(
             "flex items-center justify-between gap-2 w-full min-h-[48px] px-4 py-2.5 text-base font-medium rounded-xl transition-all duration-200",
-              "active:scale-[0.97] active:shadow-inner",
+              "active:scale-[0.95] active:shadow-inner",
               isMainExpanded
-                ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/30 active:bg-primary/80"
-                : "bg-muted/50 border border-border/50 hover:bg-muted hover:shadow-sm active:bg-muted"
+                ? "bg-primary text-primary-foreground shadow-lg ring-2 ring-primary/30 active:bg-primary/80"
+                : "bg-muted/50 border border-border/50 hover:bg-muted hover:shadow-sm active:bg-muted/80"
             )}
             onClick={() => handlePillClick(mainGuide.id)}
           >
@@ -327,10 +326,10 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
                 onClick={() => handlePillClick(guide.guide_id)}
                 className={cn(
                   "flex items-center justify-between gap-2 w-full min-h-[48px] px-4 py-2.5 text-base font-medium rounded-xl transition-all duration-200",
-                  "active:scale-[0.97] active:shadow-inner",
+                  "active:scale-[0.95] active:shadow-inner",
                   isExpanded
-                    ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/30 active:bg-primary/80"
-                    : "bg-muted/50 border border-border/50 hover:bg-muted hover:shadow-sm active:bg-muted"
+                    ? "bg-primary text-primary-foreground shadow-lg ring-2 ring-primary/30 active:bg-primary/80"
+                    : "bg-muted/50 border border-border/50 hover:bg-muted hover:shadow-sm active:bg-muted/80"
                 )}
               >
                 <span className="flex items-center gap-2 min-w-0">

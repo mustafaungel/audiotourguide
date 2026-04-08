@@ -202,7 +202,7 @@ export const ChapterList: React.FC<ChapterListProps> = ({
               }}
               className={cn(
                 "w-full text-left rounded-xl p-4 transition-all min-h-[72px] touch-manipulation group/chapter",
-                "hover:bg-primary/5 active:scale-[0.97] active:bg-primary/15 active:shadow-inner",
+                "hover:bg-primary/5 active:scale-[0.96] active:bg-primary/20 active:shadow-inner",
                 isCurrent 
                   ? "bg-gradient-to-r from-primary/10 to-primary/5 border-2 border-primary/50 border-l-primary shadow-lg shadow-primary/20" 
                   : "bg-card/30 border border-transparent"
@@ -259,12 +259,12 @@ export const ChapterList: React.FC<ChapterListProps> = ({
                     <div className="mt-3">
                       <div className="relative h-1 bg-muted rounded-full overflow-visible">
                         <div
-                          className="h-full bg-gradient-to-r from-primary/60 via-primary to-primary/80 rounded-full transition-all duration-300 shadow-sm shadow-primary/30"
+                          className="h-full bg-gradient-to-r from-primary/60 via-primary to-primary/80 rounded-full shadow-sm shadow-primary/30"
                           style={{ width: `${progress}%` }}
                         />
                         {/* Scrubber Dot */}
                         <div
-                          className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-primary rounded-full shadow-md shadow-primary/40 transition-all duration-300"
+                          className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-primary rounded-full shadow-md shadow-primary/40"
                           style={{ left: `calc(${progress}% - 5px)` }}
                         />
                       </div>
