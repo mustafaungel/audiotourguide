@@ -59,9 +59,14 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
   const [languageByGuide, setLanguageByGuide] = useState<Record<string, string>>({
     [mainGuide.id]: languageCode
   });
-  const [selectedGuideId, setSelectedGuideId] = useState<string | null>(null);
+  const [selectedGuideId, setSelectedGuideId] = useState<string | null>(mainGuide.id);
   const [closingGuideId, setClosingGuideId] = useState<string | null>(null);
   const fetchingRef = useRef<Set<string>>(new Set());
+
+  // Sync parent on mount so activeGuideId matches the auto-expanded main guide
+  useEffect(() => {
+    onActiveTabChange?.('main');
+  }, []);
 
   useEffect(() => {
     loadLinkedGuides();
