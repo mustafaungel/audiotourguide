@@ -5,6 +5,7 @@ import { Music, ChevronDown, ChevronUp } from 'lucide-react';
 import { t } from '@/lib/translations';
 import { AudioGuideLoader } from './AudioGuideLoader';
 import { cn } from '@/lib/utils';
+import { haptics } from '@/lib/haptics';
 
 interface Section {
   id: string;
@@ -60,6 +61,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     [mainGuide.id]: languageCode
   });
   const [selectedGuideId, setSelectedGuideId] = useState<string | null>(null);
+  const [closingGuideId, setClosingGuideId] = useState<string | null>(null);
   const fetchingRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
@@ -222,12 +224,23 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
   }, [linkedGuides, accessCode, mainGuide.id, ensureGuideSections]);
 
   const handlePillClick = useCallback((guideId: string) => {
+    haptics.light();
     if (guideId !== mainGuide.id) {
       ensureGuideSections(guideId);
     }
-    setSelectedGuideId(prev => prev === guideId ? null : guideId);
+    if (selectedGuideId === guideId) {
+      // Start closing animation
+      setClosingGuideId(guideId);
+      setSelectedGuideId(null);
+    } else {
+      // Close previous with animation if any
+      if (selectedGuideId) {
+        setClosingGuideId(selectedGuideId);
+      }
+      setSelectedGuideId(guideId);
+    }
     onActiveTabChange?.(guideId === mainGuide.id ? 'main' : guideId);
-  }, [mainGuide.id, ensureGuideSections, onActiveTabChange]);
+  }, [mainGuide.id, ensureGuideSections, onActiveTabChange, selectedGuideId]);
 
   if (loading && mainSections.length === 0) {
     return <AudioGuideLoader variant="inline" message={t('loading', languageCode)} />;
@@ -247,10 +260,18 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
 
   const isMainExpanded = selectedGuideId === mainGuide.id;
 
-  const renderGuideContent = (guideId: string, title: string, audioUrl?: string, imageUrl?: string) => {
+  const renderGuideContent = (guideId: string, title: string, isClosing: boolean, audioUrl?: string, imageUrl?: string) => {
     const sections = guideId === mainGuide.id ? mainSections : (sectionsByGuide[guideId] || []);
     return (
-      <div className="mt-2 mb-2 animate-in fade-in slide-in-from-top-2 duration-300">
+      <div
+        className={cn(
+          "mt-2 mb-2 overflow-hidden",
+          isClosing ? "animate-accordion-up" : "animate-accordion-down"
+        )}
+        onAnimationEnd={() => {
+          if (isClosing) setClosingGuideId(null);
+        }}
+      >
         <NewSectionAudioPlayer
           key={guideId}
           guideId={guideId}
@@ -263,6 +284,9 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
       </div>
     );
   };
+
+  const shouldShowContent = (guideId: string) => selectedGuideId === guideId || closingGuideId === guideId;
+  const isClosingContent = (guideId: string) => closingGuideId === guideId && selectedGuideId !== guideId;
 
   return (
     <div className="w-full max-w-4xl mx-auto">
@@ -287,7 +311,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
               : <ChevronDown className="w-4 h-4 shrink-0 opacity-50" />
             }
           </button>
-          {isMainExpanded && renderGuideContent(mainGuide.id, mainGuide.title, mainGuide.audio_url, guideImageUrl)}
+          {shouldShowContent(mainGuide.id) && renderGuideContent(mainGuide.id, mainGuide.title, isClosingContent(mainGuide.id), mainGuide.audio_url, guideImageUrl)}
         </div>
 
         {/* Linked guides */}
@@ -313,9 +337,10 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
                   : <ChevronDown className="w-4 h-4 shrink-0 opacity-50" />
                 }
               </button>
-              {isExpanded && renderGuideContent(
+              {shouldShowContent(guide.guide_id) && renderGuideContent(
                 guide.guide_id,
                 guide.custom_title || guide.title,
+                isClosingContent(guide.guide_id),
                 undefined,
                 guide.image_url || guideImageUrl
               )}
