@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChapterList } from '@/components/ChapterList';
+import { MiniPlayer } from '@/components/MiniPlayer';
+import { ExpandedPlayer } from '@/components/ExpandedPlayer';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAudioProgress } from '@/hooks/useAudioProgress';
@@ -21,6 +23,7 @@ interface NewSectionAudioPlayerProps {
   guideTitle: string;
   sections: Section[];
   mainAudioUrl?: string;
+  guideImageUrl?: string;
   lang?: string;
 }
 
@@ -29,6 +32,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   guideTitle,
   sections,
   mainAudioUrl,
+  guideImageUrl,
   lang = 'en'
 }) => {
   const [currentSectionIndex, setCurrentSectionIndex] = useState(-1);
@@ -40,6 +44,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   const [isMuted, setIsMuted] = useState(false);
   const [previousVolume, setPreviousVolume] = useState(1);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [isExpanded, setIsExpanded] = useState(false);
   
   // Keep last valid sections to prevent empty flash during language switch
   const lastValidSectionsRef = useRef<Section[]>([]);
@@ -298,6 +303,9 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     );
   }
 
+  const currentSection = displaySections[currentSectionIndex];
+  const isActive = currentSectionIndex >= 0;
+
   return (
     <div className="space-y-6">
       <ChapterList
@@ -325,7 +333,49 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
         onSpeedChange={handleSpeedChange}
         onAutoAdvanceChange={setAutoAdvance}
         lang={lang}
+        hideMobileControls={isActive && isMobile}
       />
+
+      {/* Mobile: Sticky Mini Player */}
+      {isMobile && isActive && !isExpanded && (
+        <MiniPlayer
+          title={currentSection?.title || guideTitle}
+          currentTime={currentTime}
+          duration={duration}
+          isPlaying={isPlaying}
+          loading={loading}
+          imageUrl={guideImageUrl}
+          onTogglePlay={togglePlayPause}
+          onExpand={() => setIsExpanded(true)}
+        />
+      )}
+
+      {/* Mobile: Full-Screen Expanded Player */}
+      {isMobile && (
+        <ExpandedPlayer
+          open={isExpanded}
+          onClose={() => setIsExpanded(false)}
+          title={currentSection?.title || guideTitle}
+          guideTitle={guideTitle}
+          chapterIndex={currentSectionIndex >= 0 ? currentSectionIndex : 0}
+          totalChapters={displaySections.length}
+          currentTime={currentTime}
+          duration={duration}
+          isPlaying={isPlaying}
+          loading={loading}
+          imageUrl={guideImageUrl}
+          playbackSpeed={playbackSpeed}
+          canGoNext={currentSectionIndex < displaySections.length - 1}
+          canGoPrevious={currentSectionIndex > 0}
+          onTogglePlay={togglePlayPause}
+          onSeek={handleSeek}
+          onSkip={skip}
+          onPrevious={previousSection}
+          onNext={nextSection}
+          onSpeedChange={handleSpeedChange}
+          lang={lang}
+        />
+      )}
     </div>
   );
 };

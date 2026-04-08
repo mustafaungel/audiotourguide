@@ -36,6 +36,7 @@ interface MultiTabAudioPlayerProps {
   mainSections?: Section[];
   accessCode?: string;
   languageCode?: string;
+  guideImageUrl?: string;
   onClose?: () => void;
   onActiveTabChange?: (tabId: string) => void;
 }
@@ -48,6 +49,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
   mainSections = [],
   accessCode,
   languageCode = 'en',
+  guideImageUrl,
   onClose,
   onActiveTabChange
 }) => {
@@ -232,6 +234,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
         key={mainGuide.id}
         guideId={mainGuide.id} guideTitle={mainGuide.title}
         sections={mainSections} mainAudioUrl={mainGuide.audio_url}
+        guideImageUrl={guideImageUrl}
         lang={languageByGuide[mainGuide.id] || languageCode}
       />
     );
@@ -299,6 +302,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
             guideTitle={sheetTitle || ''}
             sections={sheetSections}
             mainAudioUrl={sheetAudioUrl}
+            guideImageUrl={guideImageUrl}
             lang={languageByGuide[selectedGuideId] || languageCode}
           />
         )}

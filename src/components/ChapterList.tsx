@@ -42,6 +42,7 @@ interface ChapterListProps {
   onVolumeChange?: (newVolume: number[]) => void;
   onSpeedChange?: (speed: number) => void;
   onAutoAdvanceChange?: (enabled: boolean) => void;
+  hideMobileControls?: boolean;
   lang?: string;
 }
 
@@ -61,6 +62,7 @@ export const ChapterList: React.FC<ChapterListProps> = ({
   playbackSpeed = 1.0,
   canGoNext = true,
   canGoPrevious = true,
+  hideMobileControls = false,
   className,
   lang = 'en',
 }) => {
@@ -95,8 +97,8 @@ export const ChapterList: React.FC<ChapterListProps> = ({
             {t('upNext', lang)}
           </CardTitle>
           
-          {/* Playback Controls */}
-          {currentSectionIndex >= 0 && (
+          {/* Playback Controls — hidden on mobile when mini player is active */}
+          {currentSectionIndex >= 0 && !hideMobileControls && (
             <div className="flex items-center gap-1">
               {/* Previous */}
               {onPreviousSection && sections.length > 1 && (
