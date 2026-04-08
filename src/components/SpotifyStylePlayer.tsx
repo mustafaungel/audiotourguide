@@ -127,7 +127,7 @@ export const SpotifyStylePlayer: React.FC<SpotifyStylePlayerProps> = ({
   };
 
   const handleVolumeChange = (newVolume: number[]) => {
-    const vol = newVolume[0];
+    const vol = newVolume[0] / 100;
     setVolumeLevel(vol);
     setIsMuted(vol === 0);
   };
@@ -138,7 +138,7 @@ export const SpotifyStylePlayer: React.FC<SpotifyStylePlayerProps> = ({
     if (!isMuted) {
       setVolumeLevel(0);
     } else {
-      setVolumeLevel(volume || 50);
+      setVolumeLevel(volume || 0.5);
     }
   };
 
@@ -455,7 +455,7 @@ export const SpotifyStylePlayer: React.FC<SpotifyStylePlayerProps> = ({
                       )}
                     </Button>
                     <Slider
-                      value={[isMuted ? 0 : volume]}
+                      value={[isMuted ? 0 : volume * 100]}
                       max={100}
                       step={1}
                       onValueChange={handleVolumeChange}
