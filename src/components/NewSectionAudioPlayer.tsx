@@ -9,6 +9,7 @@ import { useAudioProgress } from '@/hooks/useAudioProgress';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { t } from '@/lib/translations';
+import { cn } from '@/lib/utils';
 
 interface Section {
   id: string;
