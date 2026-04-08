@@ -1,48 +1,31 @@
 
 
-## Plan: Dil Fallback + BottomSheet İçi MiniPlayer Düzeltmesi
+## Plan: BottomSheet İçindeki MiniPlayer Konumlandırma Düzeltmesi
 
-### Değişiklik 1: Bağlı Rehberlerde Dil Fallback
+### Problem
+BottomSheet içinde MiniPlayer `sticky bottom-0` olarak scroll content'in **içinde** render ediliyor. Scroll container'ın `maxHeight` ve `overflow-y-scroll` kısıtlaması nedeniyle MiniPlayer düzgün yapışmıyor — content'in altında kalıyor, kısmen kesiliyorsa ya da çok aşağıda görünüyor. Standalone guide'larda (`fixed bottom-0`) sorun yok çünkü viewport'a sabitleniyor.
 
-**Problem:** Kullanıcı ana rehberi Rusça dinliyor → bağlı rehbere geçiyor → Rusça section yok → boş liste.
+### Çözüm
+MiniPlayer'ı BottomSheet'in scroll container'ından **çıkarıp**, sheet'in flex layout'unda scroll div'in altına sabitlemek. Bunun için:
 
-**Çözüm:** `ensureGuideSections` fonksiyonunda, istenen dilde section bulunamazsa otomatik olarak İngilizce'ye düş:
-
-```text
-İstenen dil (ör: ru) → section yok?
-  → İngilizce (en) dene → section var? → kullan
-  → İngilizce de yok? → mevcut ilk dili bul ve kullan
-  → languageByGuide state'ini fallback diliyle güncelle
-```
-
-### Değişiklik 2: BottomSheet İçinde MiniPlayer Düzeltmesi
-
-**Problem:** MiniPlayer `sticky bottom-0` olarak sheet'in scroll content'i içinde render ediliyor. Bu, scroll container'ın `maxHeight` ve `overflow-y: scroll` kısıtlaması nedeniyle düzgün yapışmıyor — content ile birlikte kayıyor veya kısmen kesiliyorsa görünmüyor.
-
-**Çözüm:** MiniPlayer'ı BottomSheet'in scroll alanı **dışına** çıkar. BottomSheet'in flex layout'unu kullanarak MiniPlayer'ı scroll content'in altında, sheet'in kendi alt kenarına sabitlenmiş şekilde render et:
-
-- `NewSectionAudioPlayer` → MiniPlayer'ı ayrı bir callback/render prop ile dışarı çıkar
-- Alternatif (daha basit): BottomSheet content div'inin `maxHeight` hesaplamasını MiniPlayer yüksekliğini hesaba katacak şekilde güncelle ve MiniPlayer'ı content div'den **sonra**, sheet flex container'ın içinde ama scroll'un dışında render et
-
-Pratik uygulama: `NewSectionAudioPlayer`'a bir `renderMiniPlayerOutside` callback prop eklemek yerine, daha temiz bir yaklaşımla MiniPlayer'ı sheet'in scroll alanından ayıracağız:
-
-- `NewSectionAudioPlayer` içinde `insideSheet` true ise MiniPlayer'ı component return'ün en dışına, `space-y-6` div'in dışına render et
-- BottomSheet content wrapper'ında MiniPlayer'ın görünür kalması için scroll container'a `pb-20` padding ekle
+1. **BottomSheet'e footer slot ekle** — scroll content div'inden sonra, sheet flex column'ının altında render edilecek bir alan
+2. **Scroll content maxHeight'ı footer varken küçült** — MiniPlayer (~64px) için yer aç
+3. **NewSectionAudioPlayer** — MiniPlayer'ı `createPortal` ile BottomSheet footer alanına render et
 
 ### Teknik Değişiklikler
 
-**`src/components/MultiTabAudioPlayer.tsx`:**
-- `ensureGuideSections`'a İngilizce fallback zinciri ekle
-- Fallback dili `languageByGuide` state'ine yaz
+**`src/components/ui/bottom-sheet.tsx`:**
+- Sheet div'inin içine, scroll content div'inden sonra `<div id="bottom-sheet-footer" />` ekle
+- `maxHeight` hesaplamasında footer alanı için 64px daha çıkar (veya footer mevcutsa otomatik hesapla)
 
 **`src/components/NewSectionAudioPlayer.tsx`:**
-- `insideSheet` true ise MiniPlayer'ı `space-y-6` div'in **dışında** render et (fragment ile)
-- Sheet scroll content'ine MiniPlayer için yer açmak amacıyla alt padding ekle
+- `insideSheet` true ise MiniPlayer'ı `createPortal(miniPlayer, document.getElementById('bottom-sheet-footer'))` ile render et
+- Böylece MiniPlayer scroll alanının dışında, sheet'in altında sabit kalır
 
 ### Dosya Özeti
 
 | Dosya | Değişiklik |
 |-------|-----------|
-| `src/components/MultiTabAudioPlayer.tsx` | `ensureGuideSections`'a en fallback, languageByGuide güncelleme |
-| `src/components/NewSectionAudioPlayer.tsx` | insideSheet modda MiniPlayer konumlandırma düzeltmesi |
+| `src/components/ui/bottom-sheet.tsx` | Footer container div ekle, maxHeight ayarla |
+| `src/components/NewSectionAudioPlayer.tsx` | insideSheet modda MiniPlayer'ı portal ile footer'a render et |
 
