@@ -88,9 +88,12 @@ export const ChapterList: React.FC<ChapterListProps> = ({
 
   return (
     <>
-      <Card className={cn("bg-card/50 border-border/50", className?.includes('in-sheet') && "border-0 shadow-none bg-transparent", className)}>
+      <Card className={cn("audio-card-glow border-border/30 bg-card/50", className?.includes('in-sheet') && "border-0 shadow-none bg-transparent", className)}>
         <CardHeader className="pb-4 flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-lg font-semibold">{t('upNext', lang)}</CardTitle>
+          <CardTitle className="text-lg font-semibold flex items-center gap-2">
+            <Headphones className="w-4 h-4 text-primary" />
+            {t('upNext', lang)}
+          </CardTitle>
           
           {/* Playback Controls */}
           {currentSectionIndex >= 0 && (
