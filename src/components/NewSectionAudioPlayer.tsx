@@ -365,7 +365,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   if (insideSheet) {
     return (
       <>
-        <div className="space-y-6">
+        <div className={cn("space-y-6", isActive && isMobile && "pb-20")}>
           <ChapterList
             sections={displaySections}
             currentSectionIndex={currentSectionIndex}
