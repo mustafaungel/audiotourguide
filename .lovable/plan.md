@@ -1,45 +1,49 @@
 
 
-## Plan: Audio Playback Düzeltme + Bağlı Rehber İyileştirmesi
+## Plan: Bağlı Rehber Player'ı Düzeltme — BottomSheet İçi Uyumluluk
 
-### Sorun 1: Hiçbir yerde ses çalmıyor
+### Problem
+Bağlı rehberleri olan turlar (ör: "Hot Air Balloon Tour Introduction") `BottomSheet` içinde `NewSectionAudioPlayer` render ediyor. Ancak MiniPlayer ve ExpandedPlayer `position: fixed` kullanıyor — bu BottomSheet'in kendi `fixed z-50` konumlandırmasıyla çakışıyor:
 
-**Kök Neden:** `NewSectionAudioPlayer.tsx` satır 184'te `crossOrigin = 'anonymous'` ayarlanıyor. Supabase storage URL'leri CORS header'ları göndermediğinde bu sessizce hata veriyor ve ses yüklenmiyor. Aynı zamanda `useSpotifyAudio.ts`'deki `play()` fonksiyonu `async` — `await loadAudioSource()` çağrısı kullanıcı gesture bağlamını kırıyor.
+- **MiniPlayer** (`fixed bottom-0 z-50`) → BottomSheet'in arkasında kalıyor veya BottomSheet kapatılınca görünmüyor
+- **ExpandedPlayer** (`fixed inset-0 z-[60]`) → Açılıyor ama BottomSheet scroll lock ile çakışıyor
+- Sonuç: Bağlı rehberlerde MiniPlayer/ExpandedPlayer düzgün çalışmıyor
 
-**Düzeltme:**
+Bağlı rehber olmayan turlar (ör: "Discover Hidden Valleys") ise doğrudan sayfaya render edildiği için sorunsuz çalışıyor.
 
-1. **`src/components/NewSectionAudioPlayer.tsx`** — `crossOrigin = 'anonymous'` satırını kaldır (satır 184)
-2. **`src/hooks/useSpotifyAudio.ts`** — `play()` fonksiyonunda Audio nesnesini senkron oluştur, `src` atama ve `play()` çağrısını `await loadAudioSource` sonrasında değil, doğrudan gesture context'inde yap. `loadAudioSource`'u senkron URL çözümleme ile değiştir (zaten `resolveAudioUrl` pattern'i var, async Supabase signed URL'e gerek yok — public URL yeterli).
+### Çözüm
 
-### Sorun 2: Bağlı rehberler için iyileştirme eksik
-
-`MultiTabAudioPlayer` → `BottomSheet` içinde `NewSectionAudioPlayer` render ediyor. Bu player'ın içindeki MiniPlayer ve ExpandedPlayer zaten çalışıyor ama BottomSheet içinde `position: fixed` öğeler z-index çakışması yaşayabilir.
-
-**Düzeltme:**
-
-3. **`src/components/MultiTabAudioPlayer.tsx`** — BottomSheet içindeki `NewSectionAudioPlayer`'a `guideImageUrl` prop'unu her linked guide için de ilet (şu an sadece main guide image geçiriliyor, linked guide'ların kendi image'ları yok). Linked guide image'ını fetch et.
+`NewSectionAudioPlayer`'a bir `insideSheet` prop'u ekle. BottomSheet içindeyken:
+- **MiniPlayer**: `fixed` yerine BottomSheet'in altına yapışık (`sticky`) olarak render edilir
+- **ExpandedPlayer**: z-index'i yükseltilir (`z-[70]`) ve BottomSheet'i override eder
+- `MultiTabAudioPlayer` bu prop'u BottomSheet içindeki player'a geçirir
 
 ### Teknik Değişiklikler
 
-**`src/hooks/useSpotifyAudio.ts`:**
-- `loadAudioSource` fonksiyonunu senkron hale getir — `createSignedUrl` yerine `getPublicUrl` kullan (senkron, await yok)
-- `play()` içinde Audio oluşturma → src atama → play() zincirini tek senkron akışta yap
-- Async kısmı sadece fallback olarak tut
-
 **`src/components/NewSectionAudioPlayer.tsx`:**
-- `audioRef.current.crossOrigin = 'anonymous'` satırını sil
-- Bu tek satır değişikliği CORS hatasını çözer
+- `insideSheet?: boolean` prop ekle
+- `insideSheet` true ise MiniPlayer'ı `fixed` yerine sheet content'in altında inline/sticky olarak göster
+- ExpandedPlayer'ı her durumda Portal ile render et (BottomSheet'in dışında)
+
+**`src/components/MiniPlayer.tsx`:**
+- `variant?: 'fixed' | 'inline'` prop ekle
+- `inline` modda: `fixed bottom-0` yerine `sticky bottom-0` veya flow içi render
+- Görünüm/işlevsellik aynı kalır
+
+**`src/components/ExpandedPlayer.tsx`:**
+- z-index'i `z-[70]`'e yükselt (BottomSheet z-50'nin üstünde)
+- `ReactDOM.createPortal` ile `document.body`'ye render et → BottomSheet DOM'undan bağımsız
 
 **`src/components/MultiTabAudioPlayer.tsx`:**
-- Linked guide'ların image_url'lerini `loadLinkedGuides` sırasında çek
-- `LinkedGuide` interface'ine `image_url` ekle
-- BottomSheet içindeki `NewSectionAudioPlayer`'a linked guide'ın kendi image'ını geçir
+- BottomSheet içindeki `NewSectionAudioPlayer`'a `insideSheet={true}` geçir
+- Standalone render'da (linkedGuides.length === 0) `insideSheet` geçirme
 
 ### Dosya Özeti
 
 | Dosya | Değişiklik |
 |-------|-----------|
-| `src/components/NewSectionAudioPlayer.tsx` | `crossOrigin` kaldır |
-| `src/hooks/useSpotifyAudio.ts` | Senkron URL çözümleme, gesture context koruması |
-| `src/components/MultiTabAudioPlayer.tsx` | Linked guide image desteği |
+| `src/components/NewSectionAudioPlayer.tsx` | `insideSheet` prop, MiniPlayer variant seçimi |
+| `src/components/MiniPlayer.tsx` | `variant` prop — inline/fixed mod |
+| `src/components/ExpandedPlayer.tsx` | z-index artır, Portal ile render |
+| `src/components/MultiTabAudioPlayer.tsx` | `insideSheet={true}` prop geçir |
 
