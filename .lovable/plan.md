@@ -1,27 +1,25 @@
 
-
-## Plan: Kart Yükseklik Eşitleme — Kök Neden Düzeltme
+## Plan: GuideCard Sabit Yükseklik Düzeltmesi
 
 ### Problem
-Ekran görüntüsünde ilk kart ("Discover Hidden Valleys") diğerlerinden uzun. Sebebi:
-- `totalPurchases > 0` olan kartlarda Users ikonu gösteriliyor, metadata satırı 2 satıra sarıyor
-- Diğer kartlarda bu ikon yok → metadata tek satır → kart daha kısa
-- `min-h-[1.5rem]` bu farkı karşılamıyor çünkü wrapping 2 satır oluşturuyor
+Ekran görüntülerinde açıkça görülüyor: ilk kart ("Discover Hidden Valleys") 2 satır başlık + 2 satır açıklama ile diğerlerinden uzun. `min-h-[2.5rem]` sadece minimum yükseklik belirliyor — içerik 2 satıra çıktığında alan büyüyor ve kartlar eşitsizleşiyor.
 
-### Çözüm
+### Kök Neden
+- `min-h` minimum garanti eder ama maksimum sınırlamaz
+- `sm:text-lg` ile 2 satırlık başlık 2.5rem'den fazla yer kaplıyor
+- `leading-relaxed` ile açıklama da taşıyor
 
-**`src/components/GuideCard.tsx`** — iki değişiklik:
+### Çözüm (`src/components/GuideCard.tsx`)
 
-1. **Metadata satırını `flex-nowrap overflow-hidden`** yap — böylece içerik ne olursa olsun tek satırda kalır, taşan kısım gizlenir
-2. **Veya** `totalPurchases` gösterimini kaldırıp kartları tamamen eşitle (daha temiz)
+Her metin alanına **sabit yükseklik** (`h-[...]`) + `overflow-hidden` uygula:
 
-Önerilen yaklaşım: metadata satırına `flex-nowrap` ekle ve `min-h-[1.5rem]` yerine sabit `h-[1.5rem]` kullan. Bu sayede tüm kartlar aynı yükseklikte olur.
+1. **Başlık**: `min-h-[2.5rem]` → `h-[2.75rem] sm:h-[3.25rem]` + `overflow-hidden` — her zaman tam 2 satırlık alan (font boyutuna göre hesaplanmış)
+2. **Açıklama**: `min-h-[2.5rem]` → `h-[2.5rem] sm:h-[3rem]` + `overflow-hidden` — tam 2 satır
+3. **Metadata**: zaten `h-[1.5rem]` sabit — doğru
 
-### Değişiklik
+Bu sayede içerik 1 satır da olsa 2 satır da olsa kart yüksekliği aynı kalır.
 
-| Dosya | Satır | Değişiklik |
-|-------|-------|-----------|
-| `src/components/GuideCard.tsx` | 176 | `flex-wrap` → `flex-nowrap overflow-hidden h-[1.5rem]` |
-
-Tek satırlık değişiklik — metadata her zaman tek satırda kalacak, kart yükseklikleri eşitlenecek.
-
+### Dosya
+| Dosya | Değişiklik |
+|-------|-----------|
+| `src/components/GuideCard.tsx` | Başlık ve açıklama `min-h` → sabit `h` + `overflow-hidden` |
