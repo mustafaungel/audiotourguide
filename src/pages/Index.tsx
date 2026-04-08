@@ -162,7 +162,7 @@ const Index = () => {
               className="w-full"
             >
               <CarouselComponents.CarouselContent className="-ml-3 items-stretch">
-                {filteredGuides.map(guide => {
+                {guides.map(guide => {
                   const isPurchased = userPurchases.includes(guide.id);
                   return (
                     <CarouselComponents.CarouselItem key={guide.id} className="pl-3 basis-[85%] sm:basis-1/2 lg:basis-1/3 xl:basis-1/4 2xl:basis-1/5 flex">
