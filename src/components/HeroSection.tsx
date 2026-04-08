@@ -1,30 +1,42 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Play, Headphones, Sparkles } from 'lucide-react';
+import { Headphones } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import heroImage from '@/assets/hero-world-travel.jpg';
+
 export const HeroSection: React.FC = () => {
   const navigate = useNavigate();
-  return <section className="relative min-h-[50vh] md:min-h-[60vh] flex items-center justify-center overflow-hidden">{/* Optimized viewport */}
+  return (
+    <section className="relative min-h-[50vh] md:min-h-[60vh] flex items-center justify-center overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0">
-        <img 
-          src={heroImage} 
-          alt="World Travel and Cultural Heritage Sites" 
-          width={1200} 
-          height={675} 
-          className="w-full h-full object-cover opacity-60" 
+        <img
+          src={heroImage}
+          alt="World Travel and Cultural Heritage Sites"
+          width={1200}
+          height={675}
+          className="w-full h-full object-cover opacity-60"
           loading="eager"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-background/40 to-background/60" />
       </div>
 
+      {/* Headphone silhouette background decoration */}
+      <div className="audio-hero-silhouette" />
+
+      {/* Decorative sound wave lines */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-1/3 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/10 to-transparent" />
+        <div className="absolute top-1/2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/8 to-transparent" />
+        <div className="absolute top-2/3 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/6 to-transparent" />
+      </div>
+
       {/* Content */}
       <div className="relative z-10 text-center max-w-4xl mx-auto mobile-container">
-        <div className="mobile-spacing">{/* Mobile-first spacing */}
+        <div className="mobile-spacing">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card/20 backdrop-blur-md border border-border/50">
-            <Sparkles className="h-4 w-4 text-primary" />
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full audio-premium-badge">
+            <Headphones className="h-4 w-4 text-primary" />
             <span className="text-sm font-medium">Discover World Heritage & Culture</span>
           </div>
 
@@ -41,20 +53,12 @@ export const HeroSection: React.FC = () => {
           {/* CTA Buttons */}
           <div className="flex flex-col gap-mobile-padding sm:gap-4 justify-center items-center w-full max-w-sm mx-auto sm:max-w-none sm:flex-row">
             <Button variant="hero" size="default" className="w-full sm:w-auto px-6 py-3" onClick={() => navigate('/country')}>
-              <Play className="h-4 w-4 mr-2" />
+              <Headphones className="h-4 w-4 mr-2" />
               Explore Destinations
             </Button>
           </div>
-
-          {/* Features */}
-          
         </div>
       </div>
-
-      {/* Decorative Elements */}
-      <div className="absolute top-1/4 left-10 w-32 h-32 bg-primary/10 rounded-full blur-xl animate-pulse" />
-      <div className="absolute bottom-1/4 right-10 w-24 h-24 bg-accent/10 rounded-full blur-xl animate-pulse" style={{
-      animationDelay: '1s'
-    }} />
-    </section>;
+    </section>
+  );
 };

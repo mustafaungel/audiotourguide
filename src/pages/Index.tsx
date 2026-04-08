@@ -155,7 +155,7 @@ const Index = () => {
         <div className="mobile-container">
           {/* Section Header */}
           <div className="text-center mobile-spacing">
-            <div className="inline-flex items-center gap-2 mobile-padding rounded-full bg-card/20 backdrop-blur-md border border-border/50 mb-4">
+            <div className="inline-flex items-center gap-2 mobile-padding rounded-full audio-premium-badge mb-4">
               <Headphones className="h-4 w-4 text-primary" />
               <span className="text-sm font-medium">Audio Guides</span>
             </div>
@@ -258,7 +258,7 @@ const Index = () => {
 
 
       {/* CTA Section */}
-      <section className="mobile-padding mobile-spacing bg-gradient-hero">
+      <section className="mobile-padding mobile-spacing bg-gradient-hero relative overflow-hidden audio-wave-decoration">
         <div className="mobile-container max-w-4xl text-center">
           <h2 className="mobile-heading sm:text-3xl lg:text-4xl text-foreground mb-4">
             Ready to Discover the World?

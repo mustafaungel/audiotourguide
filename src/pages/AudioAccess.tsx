@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { GuestReviewForm } from "@/components/GuestReviewForm";
 import { GuideLanguageSelector } from '@/components/GuideLanguageSelector';
 import { Badge } from "@/components/ui/badge";
-import { Star, MapPin, Clock, ChevronLeft, Lock, Wifi, WifiOff, RotateCcw } from "lucide-react";
+import { Star, MapPin, Clock, ChevronLeft, Lock, Wifi, WifiOff, RotateCcw, Headphones } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -644,7 +644,7 @@ export default function AudioAccess() {
   return (
     <div className="min-h-screen bg-background">
       {/* iOS-style minimal navbar */}
-      <div className="sticky top-0 z-50 backdrop-blur-xl bg-background/80 border-b border-border/50">
+      <div className="sticky top-0 z-50 backdrop-blur-2xl bg-background/80 border-b border-border/30">
         <div className="grid grid-cols-[48px_1fr_48px] items-center px-2 min-h-12 h-auto py-1">
           <button
             onClick={() => navigate(-1)}
@@ -653,7 +653,8 @@ export default function AudioAccess() {
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <span className="text-sm font-semibold text-foreground text-center px-1 line-clamp-2 break-words">
+          <span className="text-sm font-semibold text-foreground text-center px-1 line-clamp-2 break-words inline-flex items-center justify-center gap-1.5">
+            <Headphones className="h-3.5 w-3.5 text-primary shrink-0" />
             {guide.title}
           </span>
           <div className="flex items-center justify-center">
@@ -682,7 +683,7 @@ export default function AudioAccess() {
               <img
                 src={guideImageUrl}
                 alt={guide.title}
-                className="w-44 h-44 rounded-2xl object-cover shadow-xl ring-1 ring-white/10"
+                className="w-44 h-44 rounded-2xl object-cover shadow-xl ring-2 ring-primary/20"
                 onError={(e) => { e.currentTarget.src = '/hero-audio-guide.jpg'; }}
               />
               <Badge className="absolute top-2 left-2 text-[10px] px-2 py-0.5 rounded-lg backdrop-blur-md bg-background/70 text-foreground border-0 shadow-sm">
@@ -764,9 +765,9 @@ export default function AudioAccess() {
         {/* Collapsible Guest Review Section */}
         <div>
           {!showReviewForm ? (
-            <button
+             <button
               onClick={() => setShowReviewForm(true)}
-              className="w-full flex items-center justify-center gap-2 min-h-[48px] py-3.5 rounded-2xl bg-muted/50 text-sm font-medium text-foreground active:scale-[0.98] transition-all duration-200"
+              className="w-full flex items-center justify-center gap-2 min-h-[48px] py-3.5 rounded-2xl bg-primary/5 border border-primary/20 text-sm font-medium text-foreground active:scale-[0.98] transition-all duration-200"
             >
               <Star className="w-4 h-4 text-yellow-500" />
               {t('leaveReview', selectedLanguage)}

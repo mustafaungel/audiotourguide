@@ -138,7 +138,7 @@ const Countries = () => {
               {filteredCountries.map(({ country, flag, count }) => (
                 <Card 
                   key={country}
-                  className="mobile-card hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer group"
+                  className="mobile-card border-border/30 audio-card-glow hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer group"
                   onClick={() => handleCountryClick(country)}
                 >
                   <CardContent className="p-4 text-center">
@@ -154,7 +154,7 @@ const Countries = () => {
                     
                     {/* Guide Count */}
                     <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
-                      <Headphones className="h-3 w-3" />
+                      <Headphones className="h-3.5 w-3.5 text-primary/60" />
                       <span>{count} guide{count !== 1 ? 's' : ''}</span>
                     </div>
                   </CardContent>
