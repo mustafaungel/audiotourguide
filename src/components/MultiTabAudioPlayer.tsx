@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { NewSectionAudioPlayer } from './NewSectionAudioPlayer';
-import { GuideLanguageSelector } from './GuideLanguageSelector';
 import { supabase } from '@/integrations/supabase/client';
-import { Headphones, ChevronRight } from 'lucide-react';
+import { Music, ChevronRight } from 'lucide-react';
 import { t } from '@/lib/translations';
 import { AudioGuideLoader } from './AudioGuideLoader';
 import { BottomSheet } from './ui/bottom-sheet';
@@ -66,7 +65,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     loadLinkedGuides();
   }, [mainGuide.id, accessCode]);
 
-  // Sync main guide language from parent
+  // Sync main guide language from parent — do NOT eagerly fetch linked guides
   useEffect(() => {
     setLanguageByGuide(prev => ({ ...prev, [mainGuide.id]: languageCode }));
   }, [languageCode, mainGuide.id]);
@@ -75,11 +74,13 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     const effectiveLang = overrideLanguage || languageByGuide[guideId] || languageCode;
     const cacheKey = `${guideId}_${effectiveLang}`;
 
+    // Return cached data instantly
     if (sectionCache.has(cacheKey)) {
       setSectionsByGuide(prev => ({ ...prev, [guideId]: sectionCache.get(cacheKey)! }));
       return;
     }
 
+    // Prevent duplicate in-flight requests
     if (fetchingRef.current.has(cacheKey)) return;
     if (!accessCode) return;
 
@@ -101,6 +102,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
         if (!error && data?.length > 0) sectionsData = data;
       }
 
+      // Only fallback on empty result, not as normal path
       if (sectionsData.length === 0) {
         const { data, error } = await supabase.from('guide_sections')
           .select('*').eq('guide_id', guideId).eq('language_code', effectiveLang).order('order_index');
@@ -168,6 +170,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
       window.dispatchEvent(new CustomEvent('linkedGuideHandled'));
     };
 
+    // Only handle linked guide language changes — ignore main guide (page handles it)
     const handleLanguageChange = async (e: CustomEvent) => {
       const { languageCode: newLang, guideId: targetId } = (e as any).detail || {};
       if (targetId && newLang && targetId !== mainGuide.id) {
@@ -219,41 +222,6 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     return '';
   }, [selectedGuideId, mainGuide]);
 
-  // Compute section count for each guide (from cache or live data)
-  const getSectionCount = useCallback((guideId: string): number | null => {
-    if (guideId === mainGuide.id) return mainSections.length || null;
-    const cached = sectionsByGuide[guideId];
-    if (cached) return cached.length;
-    // Check in-memory cache
-    const lang = languageByGuide[guideId] || languageCode;
-    const cacheKey = `${guideId}_${lang}`;
-    const fromCache = sectionCache.get(cacheKey);
-    if (fromCache) return fromCache.length;
-    return null;
-  }, [mainGuide.id, mainSections, sectionsByGuide, languageByGuide, languageCode]);
-
-  // Compute total duration for sheet header
-  const sheetMeta = useMemo(() => {
-    const secs = sheetSections.reduce((acc, s) => acc + (s.duration_seconds || 0), 0);
-    const mins = Math.floor(secs / 60);
-    return { chapters: sheetSections.length, duration: mins };
-  }, [sheetSections]);
-
-  // Handle language change from within BottomSheet
-  const handleSheetLanguageChange = useCallback((newLang: string) => {
-    if (!selectedGuideId) return;
-    if (selectedGuideId === mainGuide.id) {
-      // For main guide, dispatch to page-level handler
-      setLanguageByGuide(prev => ({ ...prev, [mainGuide.id]: newLang }));
-      // The page's handleLanguageChange will be called via the GuideLanguageSelector's onLanguageChange
-    } else {
-      // For linked guides, use existing event system
-      window.dispatchEvent(new CustomEvent('changeGuideLanguage', {
-        detail: { guideId: selectedGuideId, languageCode: newLang }
-      }));
-    }
-  }, [selectedGuideId, mainGuide.id]);
-
   if (loading && mainSections.length === 0) {
     return <AudioGuideLoader variant="inline" message={t('loading', languageCode)} />;
   }
@@ -271,92 +239,46 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
 
   const isMainSelected = selectedGuideId === mainGuide.id && sheetOpen;
 
-  // Mini waveform decoration component
-  const MiniWaveform = ({ active }: { active: boolean }) => (
-    <div className="flex items-end gap-[2px] h-4 shrink-0">
-      {[1, 2, 3].map((i) => (
-        <div
-          key={i}
-          className={cn(
-            "w-[3px] rounded-full transition-all duration-300",
-            active
-              ? "bg-primary-foreground animate-pulse"
-              : "bg-primary/40"
-          )}
-          style={{
-            height: `${i === 2 ? 16 : i === 1 ? 10 : 12}px`,
-            animationDelay: active ? `${i * 150}ms` : '0ms',
-          }}
-        />
-      ))}
-    </div>
-  );
-
   return (
     <div className="w-full max-w-4xl mx-auto">
-      {/* Premium Audio Card Buttons */}
-      <div className="flex flex-col w-full mb-4 gap-0">
-        {/* Main guide card */}
+      {/* Pill buttons */}
+      <div className="grid w-full mb-4 gap-2 grid-cols-1">
+        {/* Main guide pill */}
         <button
           className={cn(
-            "group relative flex items-center gap-3 min-h-[56px] px-4 py-3 text-base font-medium transition-all active:scale-[0.98] overflow-hidden",
-            "rounded-t-2xl border-b border-border/20",
+            "flex items-center justify-between gap-2 min-h-[48px] px-4 py-2.5 text-base font-medium rounded-xl transition-all active:scale-[0.97]",
             isMainSelected
-              ? "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg audio-card-glow"
-              : "bg-card/80 backdrop-blur-sm border border-border/40 hover:bg-primary/5"
+              ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/30"
+              : "bg-muted/50 border border-border/50 hover:bg-muted hover:shadow-sm"
           )}
           onClick={() => handlePillClick(mainGuide.id)}
         >
-          <MiniWaveform active={isMainSelected} />
-          <Headphones className={cn("w-4 h-4 shrink-0", isMainSelected ? "text-primary-foreground" : "text-primary")} />
-          <span className="flex-1 line-clamp-2 break-words text-left">{mainGuide.title}</span>
-          <div className="flex items-center gap-2 shrink-0">
-            {getSectionCount(mainGuide.id) && (
-              <span className={cn(
-                "text-[10px] font-semibold px-2 py-0.5 rounded-full",
-                isMainSelected ? "bg-primary-foreground/20 text-primary-foreground" : "bg-primary/10 text-primary"
-              )}>
-                {getSectionCount(mainGuide.id)} ch
-              </span>
-            )}
-            <ChevronRight className={cn("w-4 h-4 opacity-50", isMainSelected ? "text-primary-foreground" : "")} />
-          </div>
+          <span className="flex items-center gap-2 min-w-0">
+            <Music className="w-4 h-4 shrink-0" />
+            <span className="line-clamp-2 break-words text-left">{mainGuide.title}</span>
+          </span>
+          <ChevronRight className="w-4 h-4 shrink-0 opacity-50" />
         </button>
 
-        {/* Linked guide cards */}
-        {linkedGuides.map((guide, index) => {
+        {/* Linked guide pills */}
+        {linkedGuides.map((guide) => {
           const isSelected = selectedGuideId === guide.guide_id && sheetOpen;
-          const isLast = index === linkedGuides.length - 1;
-          const count = getSectionCount(guide.guide_id);
           return (
             <button
               key={guide.guide_id}
               onClick={() => handlePillClick(guide.guide_id)}
               className={cn(
-                "group relative flex items-center gap-3 min-h-[56px] px-4 py-3 text-base font-medium transition-all active:scale-[0.98] overflow-hidden",
-                isLast ? "rounded-b-2xl" : "border-b border-border/20",
-                !isLast && "border-x border-border/40",
-                isLast && "border border-t-0 border-border/40",
-                !isLast && !isSelected && "border-t-0",
+                "flex items-center justify-between gap-2 min-h-[48px] px-4 py-2.5 text-base font-medium rounded-xl transition-all active:scale-[0.97]",
                 isSelected
-                  ? "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg audio-card-glow border-primary/50"
-                  : "bg-card/80 backdrop-blur-sm hover:bg-primary/5"
+                  ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/30"
+                  : "bg-muted/50 border border-border/50 hover:bg-muted hover:shadow-sm"
               )}
             >
-              <MiniWaveform active={isSelected} />
-              <Headphones className={cn("w-4 h-4 shrink-0", isSelected ? "text-primary-foreground" : "text-primary")} />
-              <span className="flex-1 line-clamp-2 break-words text-left">{guide.custom_title || guide.title}</span>
-              <div className="flex items-center gap-2 shrink-0">
-                {count !== null && (
-                  <span className={cn(
-                    "text-[10px] font-semibold px-2 py-0.5 rounded-full",
-                    isSelected ? "bg-primary-foreground/20 text-primary-foreground" : "bg-primary/10 text-primary"
-                  )}>
-                    {count} ch
-                  </span>
-                )}
-                <ChevronRight className={cn("w-4 h-4 opacity-50", isSelected ? "text-primary-foreground" : "")} />
-              </div>
+              <span className="flex items-center gap-2 min-w-0">
+                <Music className="w-4 h-4 shrink-0" />
+                <span className="line-clamp-2 break-words text-left">{guide.custom_title || guide.title}</span>
+              </span>
+              <ChevronRight className="w-4 h-4 shrink-0 opacity-50" />
             </button>
           );
         })}
@@ -371,38 +293,14 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
         snapPoints={['half', 'full']}
       >
         {selectedGuideId && (
-          <div className="space-y-3">
-            {/* Sheet header meta */}
-            <div className="flex items-center gap-2 px-1">
-              <Headphones className="w-4 h-4 text-primary" />
-              <span className="text-sm font-semibold text-foreground line-clamp-1">{sheetTitle}</span>
-              {sheetMeta.chapters > 0 && (
-                <span className="text-[10px] font-medium text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-full ml-auto shrink-0">
-                  {sheetMeta.chapters} ch · {sheetMeta.duration} {t('min', languageCode)}
-                </span>
-              )}
-            </div>
-
-            {/* Compact inline language selector for this guide */}
-            <div className="border-b border-border/20 pb-3">
-              <GuideLanguageSelector
-                guideId={mainGuide.id}
-                selectedLanguage={languageByGuide[selectedGuideId] || languageCode}
-                onLanguageChange={handleSheetLanguageChange}
-                activeGuideId={selectedGuideId}
-              />
-            </div>
-
-            {/* Player */}
-            <NewSectionAudioPlayer
-              key={selectedGuideId}
-              guideId={selectedGuideId}
-              guideTitle={sheetTitle || ''}
-              sections={sheetSections}
-              mainAudioUrl={sheetAudioUrl}
-              lang={languageByGuide[selectedGuideId] || languageCode}
-            />
-          </div>
+          <NewSectionAudioPlayer
+            key={selectedGuideId}
+            guideId={selectedGuideId}
+            guideTitle={sheetTitle || ''}
+            sections={sheetSections}
+            mainAudioUrl={sheetAudioUrl}
+            lang={languageByGuide[selectedGuideId] || languageCode}
+          />
         )}
       </BottomSheet>
     </div>

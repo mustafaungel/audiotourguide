@@ -745,9 +745,6 @@ export default function AudioAccess() {
 
       {/* Content area — consistent padding */}
       <div className="px-4 pb-6 space-y-4">
-        {/* Your Audio Guides header — only shows when linked guides exist */}
-        <div id="audio-guides-header" />
-
         {/* Multi-tab Audio Interface */}
         <div>
           <MultiTabAudioPlayer
