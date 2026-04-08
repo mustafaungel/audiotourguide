@@ -1,92 +1,45 @@
 
 
-## Plan: Mobil Audio Player Fonksiyonellik İyileştirmesi
+## Plan: Audio Playback Düzeltme + Bağlı Rehber İyileştirmesi
 
-### Mevcut Sorunlar (Mobil)
-1. **Kalıcı kontrol yok** — Aşağı kaydırınca play/pause kontrolü görünmez oluyor
-2. **Seek slider yok** — Sadece chapter içi ince progress bar var, sürüklenemiyor
-3. **Kontroller sıkışık** — Prev/skip/next/speed butonları card header'a sıkıştırılmış, küçük dokunma alanları
-4. **Tam ekran player yok** — Spotify/Apple Music gibi expand edilebilir bir görünüm yok
-5. **Görsel kimlik eksik** — Albüm görseli, now playing bilgisi player'da yok
+### Sorun 1: Hiçbir yerde ses çalmıyor
 
-### Çözüm: 2 Katmanlı Mobil Player
+**Kök Neden:** `NewSectionAudioPlayer.tsx` satır 184'te `crossOrigin = 'anonymous'` ayarlanıyor. Supabase storage URL'leri CORS header'ları göndermediğinde bu sessizce hata veriyor ve ses yüklenmiyor. Aynı zamanda `useSpotifyAudio.ts`'deki `play()` fonksiyonu `async` — `await loadAudioSource()` çağrısı kullanıcı gesture bağlamını kırıyor.
 
-#### Katman 1: Sticky Mini Player (Ekran Alt)
-Bir bölüm çalmaya başlayınca ekranın altına sabitlenir, kaydırırken bile görünür kalır.
+**Düzeltme:**
 
-```text
-┌──────────────────────────────────┐
-│ [▶] Chapter 3: Old Town  1:23   │
-│ ████████░░░░░░░░░░░░░░░░  ─ ▲   │
-└──────────────────────────────────┘
-```
+1. **`src/components/NewSectionAudioPlayer.tsx`** — `crossOrigin = 'anonymous'` satırını kaldır (satır 184)
+2. **`src/hooks/useSpotifyAudio.ts`** — `play()` fonksiyonunda Audio nesnesini senkron oluştur, `src` atama ve `play()` çağrısını `await loadAudioSource` sonrasında değil, doğrudan gesture context'inde yap. `loadAudioSource`'u senkron URL çözümleme ile değiştir (zaten `resolveAudioUrl` pattern'i var, async Supabase signed URL'e gerek yok — public URL yeterli).
 
-- Albüm görseli (küçük), bölüm adı, play/pause, mini progress bar
-- Yukarı ok ile tam ekrana genişler
-- Safe area padding (iPhone notch/home indicator)
+### Sorun 2: Bağlı rehberler için iyileştirme eksik
 
-#### Katman 2: Tam Ekran Expanded Player
-Mini player'a tıklanınca veya yukarı swipe ile açılır.
+`MultiTabAudioPlayer` → `BottomSheet` içinde `NewSectionAudioPlayer` render ediyor. Bu player'ın içindeki MiniPlayer ve ExpandedPlayer zaten çalışıyor ama BottomSheet içinde `position: fixed` öğeler z-index çakışması yaşayabilir.
 
-```text
-┌──────────────────────────────────┐
-│  ▼  Collapse          Now Playing│
-│                                  │
-│        ┌──────────────┐          │
-│        │  Album Art   │          │
-│        │   200x200    │          │
-│        └──────────────┘          │
-│                                  │
-│  Chapter 3: Old Town Square      │
-│  3 of 8 • Prague Walking Tour    │
-│                                  │
-│  ████████████░░░░░░░░░░░░░░░░░  │
-│  1:23              4:56          │
-│                                  │
-│    ⏪-15   ⏮  [ ▶ ]  ⏭  ⏩+15   │
-│                                  │
-│         🔀   🔁   1.0×           │
-└──────────────────────────────────┘
-```
+**Düzeltme:**
 
-- Büyük albüm görseli, dominant renk arka plan
-- Draggable seek slider
-- Büyük kontrol butonları (min 48px touch target)
-- Shuffle, repeat, speed kontrolleri
-- Swipe down ile mini player'a küçülme
+3. **`src/components/MultiTabAudioPlayer.tsx`** — BottomSheet içindeki `NewSectionAudioPlayer`'a `guideImageUrl` prop'unu her linked guide için de ilet (şu an sadece main guide image geçiriliyor, linked guide'ların kendi image'ları yok). Linked guide image'ını fetch et.
 
 ### Teknik Değişiklikler
 
-**Dosya: `src/components/NewSectionAudioPlayer.tsx`**
-- Mobilde `currentSectionIndex >= 0` (bir şey çalıyorken) sticky mini player render et
-- Mini player'a tıklanınca `isExpanded` state ile tam ekran aç
-- Tam ekran player: albüm görseli (prop olarak alınacak), seek slider, büyük kontroller
-- `position: fixed; bottom: 0` ile yapışık kalması
-- `guideImageUrl` prop'u ekle (AudioAccess'ten geçirilecek)
+**`src/hooks/useSpotifyAudio.ts`:**
+- `loadAudioSource` fonksiyonunu senkron hale getir — `createSignedUrl` yerine `getPublicUrl` kullan (senkron, await yok)
+- `play()` içinde Audio oluşturma → src atama → play() zincirini tek senkron akışta yap
+- Async kısmı sadece fallback olarak tut
 
-**Dosya: `src/components/ChapterList.tsx`**
-- Header'daki kontrolleri sadeleştir (mini player'a taşındığı için)
-- Mobilde header kontrollerini gizle (mini player zaten gösteriyor)
+**`src/components/NewSectionAudioPlayer.tsx`:**
+- `audioRef.current.crossOrigin = 'anonymous'` satırını sil
+- Bu tek satır değişikliği CORS hatasını çözer
 
-**Dosya: `src/pages/AudioAccess.tsx`**
-- `MultiTabAudioPlayer`'a `guideImageUrl` prop'u geçir
-- Sticky player nedeniyle sayfa altına padding ekle (`pb-[120px]`)
-
-**Dosya: `src/components/MultiTabAudioPlayer.tsx`**
-- `guideImageUrl` prop'unu `NewSectionAudioPlayer`'a ilet
-
-### Dokunulmayacaklar
-- SpotifyStylePlayer (GuideDetail sayfasında kullanılıyor, ayrı akış)
-- Audio playback logic (useSpotifyAudio, audio element management)
-- BottomSheet mekanizması — linked guide drawer'lar aynen kalır
-- Payment, auth, Supabase queries — sıfır değişiklik
+**`src/components/MultiTabAudioPlayer.tsx`:**
+- Linked guide'ların image_url'lerini `loadLinkedGuides` sırasında çek
+- `LinkedGuide` interface'ine `image_url` ekle
+- BottomSheet içindeki `NewSectionAudioPlayer`'a linked guide'ın kendi image'ını geçir
 
 ### Dosya Özeti
 
 | Dosya | Değişiklik |
 |-------|-----------|
-| `src/components/NewSectionAudioPlayer.tsx` | Sticky mini player + tam ekran expanded player ekleme |
-| `src/components/ChapterList.tsx` | Mobilde header kontrollerini sadeleştirme |
-| `src/pages/AudioAccess.tsx` | Image prop geçirme, bottom padding |
-| `src/components/MultiTabAudioPlayer.tsx` | Image prop iletme |
+| `src/components/NewSectionAudioPlayer.tsx` | `crossOrigin` kaldır |
+| `src/hooks/useSpotifyAudio.ts` | Senkron URL çözümleme, gesture context koruması |
+| `src/components/MultiTabAudioPlayer.tsx` | Linked guide image desteği |
 
