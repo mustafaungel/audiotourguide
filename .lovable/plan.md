@@ -1,41 +1,27 @@
 
 
-## Plan: Kart Boyutu Eşitleme, Sıralama Düzeltme ve Masaüstü Görünürlük
+## Plan: Kart Yükseklik Eşitleme — Kök Neden Düzeltme
 
 ### Problem
-
-1. **Kartlar farklı boyutlarda**: Ekran görüntüsünde ilk kart (384 min, 1 kullanıcı bilgisi var) diğerlerinden uzun. Açıklama ve metadata satırları farklı yükseklik oluşturuyor.
-2. **Admin sıralama ≠ ana sayfa sırası**: Admin tüm guide'ları (linked, gizli, onaysız dahil) listelerken, ana sayfa sadece `published + approved + standalone` olanları gösteriyor.
-3. **Masaüstünde tüm kartlar görünmüyor**: Carousel yapısı sınırlı sayıda kart gösteriyor.
+Ekran görüntüsünde ilk kart ("Discover Hidden Valleys") diğerlerinden uzun. Sebebi:
+- `totalPurchases > 0` olan kartlarda Users ikonu gösteriliyor, metadata satırı 2 satıra sarıyor
+- Diğer kartlarda bu ikon yok → metadata tek satır → kart daha kısa
+- `min-h-[1.5rem]` bu farkı karşılamıyor çünkü wrapping 2 satır oluşturuyor
 
 ### Çözüm
 
-#### 1. GuideCard eşit yükseklik (`src/components/GuideCard.tsx`)
-- Kart zaten `h-full flex flex-col` kullanıyor ama iç alanlar esnemeli:
-  - Başlık: `line-clamp-2` + `min-h-[2.5rem]` ekle (2 satır yer ayır)
-  - Açıklama: zaten `line-clamp-2` var, `min-h-[2.5rem]` ekle
-  - Metadata satırı (location, duration, purchases): sabit min-height ver
-- Bu sayede içerik az olan kartlar da aynı yüksekliğe esner
+**`src/components/GuideCard.tsx`** — iki değişiklik:
 
-#### 2. Carousel item'larda eşit yükseklik (`src/pages/Index.tsx`)
-- `CarouselItem` içindeki `GuideCard`'ı saran div'e `h-full` ekle
-- `CarouselContent`'e `items-stretch` ekle (flexbox'ta tüm item'lar aynı yükseklikte olsun)
+1. **Metadata satırını `flex-nowrap overflow-hidden`** yap — böylece içerik ne olursa olsun tek satırda kalır, taşan kısım gizlenir
+2. **Veya** `totalPurchases` gösterimini kaldırıp kartları tamamen eşitle (daha temiz)
 
-#### 3. Admin sıralama: sadece public guide'lar (`src/components/AdminGuideOrderManager.tsx`)
-- `fetchGuides` sorgusuna `.eq('is_published', true).eq('is_approved', true).eq('is_standalone', true)` filtresi ekle
-- Başlığı "Guide Order (Public)" olarak güncelle — kullanıcı neyi yönettiğini net görsün
-- Bu sayede admin listesi ile ana sayfa birebir aynı subset ve sırayı gösterir
+Önerilen yaklaşım: metadata satırına `flex-nowrap` ekle ve `min-h-[1.5rem]` yerine sabit `h-[1.5rem]` kullan. Bu sayede tüm kartlar aynı yükseklikte olur.
 
-#### 4. Masaüstünde daha fazla kart görünürlüğü (`src/pages/Index.tsx`)
-- Mevcut: `basis-[85%] sm:basis-1/2 lg:basis-1/3 xl:basis-1/4`
-- `2xl:basis-1/5` ekle — büyük ekranlarda 5 kart görünsün
-- Carousel navigation okları zaten mevcut; mobilde de görünür yap: `className="flex -left-2 sm:-left-4"` (hidden kaldır)
+### Değişiklik
 
-### Dosyalar
+| Dosya | Satır | Değişiklik |
+|-------|-------|-----------|
+| `src/components/GuideCard.tsx` | 176 | `flex-wrap` → `flex-nowrap overflow-hidden h-[1.5rem]` |
 
-| Dosya | Değişiklik |
-|-------|-----------|
-| `src/components/GuideCard.tsx` | Başlık ve açıklamaya min-height ekle |
-| `src/pages/Index.tsx` | CarouselContent'e items-stretch, büyük ekran basis, mobil oklar |
-| `src/components/AdminGuideOrderManager.tsx` | fetchGuides'a public filtresi ekle |
+Tek satırlık değişiklik — metadata her zaman tek satırda kalacak, kart yükseklikleri eşitlenecek.
 
