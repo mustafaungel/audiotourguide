@@ -87,7 +87,7 @@ export function GuideCard({
 
   return (
     <Card
-      className="group overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer select-none bg-card border-border/50 shadow-card hover:shadow-tourism hover:scale-[1.02] active:scale-[0.98] h-full flex flex-col"
+      className="group overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer select-none bg-card border-border/30 shadow-card audio-card-glow hover:scale-[1.02] active:scale-[0.98] h-full flex flex-col"
       onClick={handleView}
     >
       {/* Image Section */}
@@ -103,23 +103,19 @@ export function GuideCard({
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
           {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
 
-          {/* Waveform bars at bottom of image */}
-          <div className="card-waveform absolute bottom-0 left-0 right-0 flex items-end justify-center gap-[3px] h-6 px-4 pb-1">
-            <span className="waveform-bar" style={{ animationDelay: '0ms' }} />
-            <span className="waveform-bar" style={{ animationDelay: '150ms' }} />
-            <span className="waveform-bar" style={{ animationDelay: '300ms' }} />
-            <span className="waveform-bar" style={{ animationDelay: '100ms' }} />
-            <span className="waveform-bar" style={{ animationDelay: '250ms' }} />
-            <span className="waveform-bar" style={{ animationDelay: '50ms' }} />
-            <span className="waveform-bar" style={{ animationDelay: '200ms' }} />
+          {/* Waveform bars at bottom of image — 11 bars premium */}
+          <div className="card-waveform absolute bottom-0 left-0 right-0 flex items-end justify-center gap-[2px] h-5 px-4 pb-1">
+            {[0, 120, 240, 80, 200, 40, 160, 280, 100, 220, 60].map((delay, i) => (
+              <span key={i} className="waveform-bar" style={{ animationDelay: `${delay}ms` }} />
+            ))}
           </div>
         </div>
 
         {/* Category badge */}
         <div className="absolute top-3 left-3">
-          <Badge className={`${getCategoryColor(category)} text-[11px] font-medium px-2 py-0.5`}>
+          <Badge className={`${getCategoryColor(category)} text-[10px] font-medium px-2 py-0.5 audio-premium-badge`}>
             {category}
           </Badge>
         </div>
@@ -129,25 +125,25 @@ export function GuideCard({
           <Button
             size="icon"
             variant="secondary"
-            className="h-8 w-8 rounded-full bg-card/70 backdrop-blur-sm hover:bg-card touch-manipulation"
+            className="h-7 w-7 rounded-full bg-card/60 backdrop-blur-md hover:bg-card border-0 touch-manipulation"
             onClick={handleBookmark}
           >
-            <Bookmark className="h-3.5 w-3.5" />
+            <Bookmark className="h-3 w-3" />
           </Button>
           <Button
             size="icon"
             variant="secondary"
-            className="h-8 w-8 rounded-full bg-card/70 backdrop-blur-sm hover:bg-card touch-manipulation"
+            className="h-7 w-7 rounded-full bg-card/60 backdrop-blur-md hover:bg-card border-0 touch-manipulation"
             onClick={handleShare}
           >
-            <Share2 className="h-3.5 w-3.5" />
+            <Share2 className="h-3 w-3" />
           </Button>
         </div>
 
-        {/* Play button overlay on hover */}
+        {/* Hover overlay — headphone + sound waves */}
         <div className="absolute inset-0 bg-background/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center pointer-events-none">
           <div className="rounded-full h-14 w-14 bg-primary/90 backdrop-blur-sm flex items-center justify-center shadow-lg play-button-glow">
-            <Play className="h-6 w-6 ml-0.5 text-primary-foreground" />
+            <Headphones className="h-6 w-6 text-primary-foreground" />
           </div>
         </div>
       </CardHeader>
@@ -175,7 +171,7 @@ export function GuideCard({
         </div>
 
         {/* Price + CTA row */}
-        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/50">
+        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/30">
           <span className="text-base font-bold">${(price / 100).toFixed(2)}</span>
           <Button
             variant="default"

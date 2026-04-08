@@ -38,9 +38,9 @@ export const Navigation = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b border-border/30 bg-background/95 backdrop-blur-2xl supports-[backdrop-filter]:bg-background/60">
       <div className="mobile-container">
-        <div className="flex h-14 sm:h-16 items-center justify-between">{/* Mobile-first header height */}
+        <div className="flex h-14 sm:h-16 items-center justify-between">
           {/* Logo and Brand */}
           <Link to="/" className="flex items-center space-x-2 min-w-0">
             <ResponsiveLogo variant="compact" size="lg" showCompanyName={false} />
@@ -48,7 +48,8 @@ export const Navigation = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link to="/guides" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+            <Link to="/guides" className="text-sm font-medium text-foreground hover:text-primary transition-colors inline-flex items-center gap-1.5">
+              <Headphones className="h-3.5 w-3.5" />
               Audio Guides
             </Link>
             <Link to="/country" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
@@ -97,7 +98,7 @@ export const Navigation = () => {
                   <Menu className="w-5 h-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-80 mobile-padding">{/* Mobile-first sheet */}
+              <SheetContent side="right" className="w-80 mobile-padding">
                 <SheetHeader>
                   <SheetTitle>
                     <ResponsiveLogo variant="compact" size="md" showCompanyName={false} />
@@ -123,14 +124,14 @@ export const Navigation = () => {
                       onClick={closeMobileMenu}
                       className="flex items-center py-3 text-base font-medium text-foreground hover:text-primary transition-colors touch-target"
                     >
-                      <MapPin className="w-5 h-5 mr-3" />
+                      <Headphones className="w-5 h-5 mr-3" />
                       Audio Guides
                     </Link>
                   </nav>
 
-                  {/* Admin Section - Only for Admin Users */}
+                  {/* Admin Section */}
                   {user && userProfile?.role === 'admin' && (
-                    <div className="space-y-4 pt-6 border-t">
+                    <div className="space-y-4 pt-6 border-t border-border/30">
                       <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
                         <User className="h-8 w-8 text-muted-foreground" />
                         <div>
@@ -166,7 +167,7 @@ export const Navigation = () => {
                   )}
 
                   {/* Theme Toggle */}
-                  <div className="pt-4 border-t">
+                  <div className="pt-4 border-t border-border/30">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">Theme</span>
                       <ThemeToggle />

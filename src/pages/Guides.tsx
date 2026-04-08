@@ -178,9 +178,10 @@ const Guides = () => {
       <Navigation />
       
       {/* Page Header */}
-      <section className="mobile-padding mobile-spacing bg-gradient-subtle">
-        <div className="mobile-container text-center">
-          <div className="inline-flex items-center gap-2 mobile-padding rounded-full bg-card/20 backdrop-blur-md border border-border/50 mb-4">
+      <section className="mobile-padding mobile-spacing bg-gradient-subtle relative overflow-hidden">
+        <div className="audio-hero-silhouette" />
+        <div className="mobile-container text-center relative z-10">
+          <div className="inline-flex items-center gap-2 mobile-padding rounded-full audio-premium-badge mb-4">
             <Headphones className="h-4 w-4 text-primary" />
             <span className="mobile-caption font-medium">Audio Guides</span>
           </div>
