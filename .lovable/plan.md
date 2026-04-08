@@ -1,88 +1,89 @@
 
+Amaç: iki ana problemi birlikte düzeltmek:
+1. Light/dark modda hover/focus sırasında yazıların görünmez olması ve renk çakışmaları
+2. Admin’deki guide order ile ana sayfa/public listelerin uyuşmaması ve tüm guide’ların görünmemesi
 
-## Plan: Dark/Light Mod Renk Uyumsuzlukları — Tam Sistem Analizi ve Düzeltme
+1. Tema/renk problemi için kök düzeltme
+- `src/components/ui/button.tsx` içindeki `ghost` varyantını düzelteceğim.
+- Mevcut sorun: `hover:text-accent-foreground` global olduğu için, sadece arka plan override edilen butonlarda yazı hover’da beyaza dönüyor.
+- Yeni yaklaşım:
+  - `ghost` default’unu `hover:bg-accent hover:text-accent-foreground` yerine daha güvenli, semantik ve kontrastlı hale getirmek
+  - Özellikle admin gibi text-heavy alanlarda hover’da foreground’un korunmasını sağlamak
+- Bu, sadece QR Code Management değil; tüm ghost buton tabanlı hover bug’larını sistem genelinde toparlar.
 
-### Problem Özeti
+2. Kırılan ortak UI primitive’leri düzeltme
+Aşağıdaki primitive dosyalarda hover/focus text/background kombinasyonlarını gözden geçirip güvenli hale getireceğim:
+- `src/components/ui/dropdown-menu.tsx`
+- `src/components/ui/select.tsx`
+- gerekirse aynı desen olan diğer Radix wrapper’lar (`menubar`, `navigation-menu`, `toggle`)
+Amaç:
+- Light modda beyaz yazı/beyazımsı zemin
+- Dark modda düşük kontrast
+- focus/open state’lerde okunmaz menü item’ları
+sorunlarını topluca çözmek.
 
-Ekran görüntüsünde admin panelindeki Collapsible butonlar (QR Code Management, Contact Management vb.) hover durumunda neredeyse ayırt edilemiyor. Ayrıca sistemde birçok yerde hardcoded renkler (`bg-white`, `bg-gray-*`, `bg-blue-100`, `bg-green-50`, `text-gray-600` vb.) dark mode'da kırılıyor.
+3. Admin panel özel düzeltmeleri
+- `src/components/AdminDashboard.tsx`
+  - Collapsible trigger’larda hover/focus durumunu açık ve tutarlı hale getireceğim
+  - Gerekirse `text-foreground` / `hover:text-foreground` açıkça eklenecek
+- `src/components/AdminGuideOrderManager.tsx`
+  - Row içindeki action icon butonlarının light/dark hover arka planlarını da normalize edeceğim
+  - Böylece admin listede ikonlar ve metinler tüm temalarda tutarlı olur
 
-### Tespit Edilen Sorunlar
+4. Public tarafta renk çakışmalarını derinlemesine toparlama
+Özellikle görselde öne çıkan kart/list alanlarında:
+- `src/components/GuideCard.tsx`
+- `src/components/FeaturedGuides.tsx`
+- `src/pages/Index.tsx`
+- `src/pages/Guides.tsx`
+Yapılacaklar:
+- hardcoded veya zayıf kontrastlı badge/overlay/secondary button alanlarını semantik token’larla eşleştirmek
+- kart üstü badge, fiyat badge, overlay button ve hover state’leri light/dark için tek tek düzeltmek
+- hover’da metin renginin beklenmedik değişmesini engellemek
 
-#### 1. Admin Panel — Collapsible buton hover görünmezliği
-**`AdminDashboard.tsx` satır 149**: `hover:bg-muted/50` çok düşük kontrast → hem light hem dark'ta imleç üzerindeyken fark edilmiyor.
+5. Guide order neden public tarafta farklı görünüyor: kök neden
+Kod analizi sonucu iki ana sebep var:
+- Admin listesi tüm guide’ları gösteriyor; ana sayfa/public listeler yalnızca `is_published + is_approved + is_standalone` guide’ları gösteriyor
+- Ana sayfada liste grid değil, carousel; dolayısıyla “tamamı görünmüyor” hissi normal, çünkü geri kalanlar yatay kayıyor ve görünür değil
 
-#### 2. GuideCard — Hardcoded `bg-white` dark mode'da kırılıyor
-**`GuideCard.tsx` satır 139, 150**: Bookmark/Share butonları `bg-white/80 hover:bg-white` → dark mode'da parlak beyaz kare olarak görünüyor.
-**`GuideCard.tsx` satır 96-112**: Kategori/difficulty badge'leri (`bg-blue-100 text-blue-800`, `bg-green-100 text-green-800` vb.) → dark mode'da okunaksız.
+6. Sıralama uyumsuzluğu için uygulanacak çözüm
+- `src/components/AdminGuideOrderManager.tsx`
+  - Mevcut yapıyı koruyacağım ama görünür/public sıralamayı daha net temsil edecek hale getireceğim
+  - Gerekirse plan dahilinde visible/public subset mantığını yansıtacak küçük iyileştirme yapılacak
+- `src/pages/Index.tsx`
+  - Ana sayfadaki carousel’i public sıralamayı daha net gösteren yapıya çevireceğim
+  - En azından:
+    - görünür navigation eklemek
+    - desktop’ta daha fazla item görünür hale getirmek
+    - mobile/desktop’ta “tamamı görünmüyor” algısını kaldırmak
+- `src/pages/Guides.tsx`
+  - Zaten grid kullanıyor; burada asıl amaç admin sıralamasıyla aynı public subset’i net biçimde göstermek
+  - ordering query tutarlılığı korunacak, gerekirse secondary sort normalize edilecek
 
-#### 3. Admin bileşenleri — Hardcoded renkler
-- **`AdminEmailTesting.tsx`**: `bg-green-50 border-green-200 text-green-800` / `bg-red-50 border-red-200 text-red-800` → dark mode karşılığı yok
-- **`AdminEmailResend.tsx`**: `bg-green-50` / `bg-red-50`, `text-gray-600` → dark mode karşılığı yok
-- **`AdminQRCodeRegenerator.tsx`**: `bg-blue-600 text-white` → sistem dışı hardcoded
-- **`GuideCreationForm.tsx`**: `text-gray-500` → dark mode'da okunaksız
+7. Ana sayfada tüm guide’ların görünmemesi için çözüm
+- En net çözüm: `Index.tsx` içindeki yatay carousel yapısını daha görünür/navigable hale getirmek
+- Muhtemel uygulama:
+  - `CarouselPrevious` / `CarouselNext` butonlarını ana sayfada da aktif göstermek
+  - masaüstünde daha fazla kartı aynı anda göstermek
+  - istenirse carousel yerine responsive grid’e geçmek
+Kod yapısına göre en düşük riskli seçenek: önce mevcut carousel’i görünür navigasyonla ve daha doğru basis değerleriyle düzeltmek.
 
-#### 4. AudioAccess sayfası
-- **`AudioAccess.tsx` satır 615-621**: `bg-gray-50 dark:bg-gray-900`, `text-gray-700 dark:text-gray-300` → dark variant var ama tailwind semantic renk sistemi kullanılmıyor
+8. Uygulama yaklaşımı
+Sıra:
+1. ortak theme primitive’leri
+2. admin hover/focus alanları
+3. public card/list renkleri
+4. homepage ordering/görünürlük
+5. guides page ordering consistency
 
-#### 5. GuideDetail sayfası
-- **satır 927**: `bg-white` QR code container → dark mode'da parlak kare
-- **satır 949**: `bg-white dark:bg-gray-800` → kısmen düzeltilmiş ama gray-800 sistem dışı
+9. Etki
+Bu değişikliklerden sonra:
+- hover’da yazıların beyaza dönmesi gibi tema bug’ları sistem genelinde kalkacak
+- admin ve son kullanıcı tarafında dark/light kontrast daha tutarlı olacak
+- ana sayfadaki public guide sırası admin’deki public sırayla daha uyumlu algılanacak
+- mobile ve desktop’ta daha fazla guide görünür olacak, “tamamı görünmüyor” sorunu giderilecek
 
-#### 6. AdminPanel
-- **satır 503**: `bg-white` input → dark mode'da kırılıyor
-
-#### 7. PaymentFlowTestPanel & StripeDebugPanel
-- `bg-white/60` → dark mode'da görünmez veya çirkin
-
-### Çözüm
-
-Her dosyada hardcoded renkleri Tailwind CSS değişken tabanlı semantic renklerle değiştir:
-
-| Hardcoded | Semantic Karşılık |
-|-----------|-------------------|
-| `bg-white` | `bg-card` veya `bg-background` |
-| `bg-white/80` | `bg-card/80` |
-| `bg-white/60` | `bg-card/60` |
-| `bg-gray-50` | `bg-muted/50` |
-| `bg-gray-900` | `bg-muted` |
-| `text-gray-600` | `text-muted-foreground` |
-| `text-gray-500` | `text-muted-foreground` |
-| `bg-green-50 text-green-800` | `bg-success/10 text-success dark:bg-success/20 dark:text-success` |
-| `bg-red-50 text-red-800` | `bg-destructive/10 text-destructive dark:bg-destructive/20` |
-| `bg-blue-100 text-blue-800` | `bg-accent/10 text-accent dark:bg-accent/20 dark:text-accent` |
-
-#### Admin Collapsible hover düzeltmesi
-`AdminDashboard.tsx` satır 149: `hover:bg-muted/50` → `hover:bg-muted` (daha belirgin hover state)
-
-#### GuideCard badge'leri dark mode uyumlu
-Kategori ve difficulty fonksiyonlarına `dark:` varyantları ekle:
-```
-cultural: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
-historical: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
-...
-```
-
-### Dosyalar
-
-| Dosya | Değişiklik |
-|-------|-----------|
-| `src/components/AdminDashboard.tsx` | Collapsible hover: `hover:bg-muted` |
-| `src/components/GuideCard.tsx` | `bg-white/80` → `bg-card/80`, badge dark variants |
-| `src/components/AdminEmailTesting.tsx` | Success/error renklerine dark variants ekle |
-| `src/components/AdminEmailResend.tsx` | `bg-green-50` → semantic + dark variant |
-| `src/components/AdminQRCodeRegenerator.tsx` | `bg-blue-600 text-white` → `bg-primary text-primary-foreground` |
-| `src/components/GuideCreationForm.tsx` | `text-gray-500` → `text-muted-foreground` |
-| `src/pages/AudioAccess.tsx` | `bg-gray-50` → `bg-muted/50`, `text-gray-*` → semantic |
-| `src/pages/GuideDetail.tsx` | `bg-white` → `bg-card`, gray-800 → semantic |
-| `src/pages/AdminPanel.tsx` | `bg-white` input → `bg-card` |
-| `src/components/PaymentFlowTestPanel.tsx` | `bg-white/60` → `bg-card/60` |
-| `src/components/StripeDebugPanel.tsx` | `bg-white/60` → `bg-card/60` |
-| `src/components/StripeTestHelper.tsx` | `bg-white/60` → `bg-card/60` |
-| `src/components/EmailSystemTest.tsx` | Success/error dark variants |
-| `src/components/RegionalAccessError.tsx` | Zaten dark variant var, kontrol amaçlı |
-
-### Etki
-- Tüm bileşenler dark/light modda tutarlı görünecek
-- Admin panelinde hover state'ler belirgin olacak
-- Hardcoded beyaz/gri renkler kaldırılacak → tema değişikliklerinde otomatik uyum
-
+Teknik not
+- Kök renk problemi büyük ölçüde `Button` ghost varyantından geliyor; bunu sadece tek tek sayfalarda yamamak yerine primitive seviyesinde çözeceğim
+- Sıralama problemi veri kaybı değil; admin liste mantığı ile public liste mantığı farklı. Public görünüm yalnızca yayınlanmış/onaylı/standalone guide’ları gösteriyor
+- Ana sayfadaki “tamamı görünmüyor” sorunu veri sırası kadar layout kaynaklı: `Index.tsx` içinde carousel var, grid yok; bu yüzden tüm öğeler aynı anda görünmüyor
