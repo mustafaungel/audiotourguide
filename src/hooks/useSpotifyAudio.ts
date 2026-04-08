@@ -38,7 +38,13 @@ export const useSpotifyAudio = ({
   const [repeatMode, setRepeatMode] = useState<'none' | 'one' | 'all'>('none');
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const repeatModeRef = useRef(repeatMode);
+  const currentSectionRef = useRef(currentSection);
   const { toast } = useToast();
+
+  // Keep refs in sync
+  useEffect(() => { repeatModeRef.current = repeatMode; }, [repeatMode]);
+  useEffect(() => { currentSectionRef.current = currentSection; }, [currentSection]);
 
   const loadAudioSource = async (sectionIndex?: number) => {
     try {
@@ -47,7 +53,6 @@ export const useSpotifyAudio = ({
       
       let audioUrl = mainAudioUrl;
       
-      // If we have sections and a specific section is requested
       if (sections.length > 0 && sectionIndex !== undefined && sections[sectionIndex]?.audio_url) {
         audioUrl = sections[sectionIndex].audio_url;
         console.log('[AUDIO] Using section audio URL');
@@ -59,7 +64,6 @@ export const useSpotifyAudio = ({
         return audioUrl;
       }
       
-      // Try to get audio from Supabase storage
       console.log('[AUDIO] Fetching from Supabase storage...');
       const { data: urlData } = await supabase.storage
         .from('guide-audio')
@@ -71,7 +75,6 @@ export const useSpotifyAudio = ({
         return urlData.signedUrl;
       }
       
-      // Fallback to public directory
       const fallbackUrl = `/tmp/${guideId}.mp3`;
       console.log('[AUDIO] Using fallback URL:', fallbackUrl);
       setAudioSrc(fallbackUrl);
@@ -89,6 +92,37 @@ export const useSpotifyAudio = ({
     }
   };
 
+  const handleAudioEnd = useCallback(() => {
+    const mode = repeatModeRef.current;
+    const section = currentSectionRef.current;
+    
+    switch (mode) {
+      case 'one':
+        if (audioRef.current) {
+          audioRef.current.currentTime = 0;
+          audioRef.current.play();
+        }
+        break;
+      case 'all':
+        if (section < sections.length - 1) {
+          playSection(section + 1);
+        } else if (sections.length > 0) {
+          playSection(0);
+        } else {
+          setIsPlaying(false);
+          setCurrentTime(0);
+        }
+        break;
+      default:
+        if (section < sections.length - 1) {
+          playSection(section + 1);
+        } else {
+          setIsPlaying(false);
+          setCurrentTime(0);
+        }
+    }
+  }, [sections.length]);
+
   const setupAudioElement = useCallback((audio: HTMLAudioElement) => {
     audio.addEventListener('timeupdate', () => {
       setCurrentTime(audio.currentTime);
@@ -97,7 +131,7 @@ export const useSpotifyAudio = ({
     audio.addEventListener('loadedmetadata', () => {
       setDuration(audio.duration);
       audio.playbackRate = playbackSpeed;
-      audio.volume = volume;
+      audio.volume = Math.min(1, Math.max(0, volume));
     });
     
     audio.addEventListener('ended', () => {
@@ -112,50 +146,23 @@ export const useSpotifyAudio = ({
       });
       setIsPlaying(false);
     });
-  }, [playbackSpeed, volume]);
-
-  const handleAudioEnd = useCallback(() => {
-    switch (repeatMode) {
-      case 'one':
-        // Repeat current section
-        if (audioRef.current) {
-          audioRef.current.currentTime = 0;
-          audioRef.current.play();
-        }
-        break;
-      case 'all':
-        // Go to next section or loop back to first
-        if (currentSection < sections.length - 1) {
-          playSection(currentSection + 1);
-        } else if (sections.length > 0) {
-          playSection(0);
-        } else {
-          setIsPlaying(false);
-          setCurrentTime(0);
-        }
-        break;
-      default:
-        // Auto-advance to next section if available
-        if (currentSection < sections.length - 1) {
-          playSection(currentSection + 1);
-        } else {
-          setIsPlaying(false);
-          setCurrentTime(0);
-        }
-    }
-  }, [repeatMode, currentSection, sections.length]);
+  }, [playbackSpeed, volume, handleAudioEnd]);
 
   const play = async (sectionIndex?: number) => {
     try {
       const targetSection = sectionIndex ?? currentSection;
       
+      // Pause existing playback to prevent overlap
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+
       if (!audioRef.current) {
         const audio = new Audio();
         audioRef.current = audio;
         setupAudioElement(audio);
       }
 
-      // Load audio source if needed and store in local variable
       let currentAudioSrc = audioSrc;
       if (!audioSrc || sectionIndex !== undefined) {
         console.log('[AUDIO] Play: Loading audio source for section', targetSection);
@@ -164,18 +171,16 @@ export const useSpotifyAudio = ({
           console.error('[AUDIO] Play: Failed to load audio source');
           return;
         }
-        currentAudioSrc = src; // Use freshly loaded src
+        currentAudioSrc = src;
         console.log('[AUDIO] Play: Audio source loaded successfully');
       }
 
-      // Use currentAudioSrc (not audioSrc state) to ensure we have the latest value
       if (audioRef.current && currentAudioSrc) {
         console.log('[AUDIO] Play: Setting audio src and starting playback');
         audioRef.current.src = currentAudioSrc;
-        audioRef.current.volume = volume;
+        audioRef.current.volume = Math.min(1, Math.max(0, volume));
         audioRef.current.playbackRate = playbackSpeed;
         
-        // If playing a specific section with start time
         if (sections[targetSection]?.start_time) {
           audioRef.current.currentTime = sections[targetSection].start_time!;
           console.log('[AUDIO] Play: Set start time to', sections[targetSection].start_time);
@@ -240,7 +245,6 @@ export const useSpotifyAudio = ({
     let nextIndex = currentSection + 1;
     
     if (isShuffled) {
-      // Random next section
       const availableIndices = sections.map((_, i) => i).filter(i => i !== currentSection);
       nextIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
     }
@@ -261,9 +265,10 @@ export const useSpotifyAudio = ({
   };
 
   const setVolumeLevel = (newVolume: number) => {
-    setVolume(newVolume);
+    const normalized = Math.min(1, Math.max(0, newVolume));
+    setVolume(normalized);
     if (audioRef.current) {
-      audioRef.current.volume = newVolume;
+      audioRef.current.volume = normalized;
     }
   };
 
@@ -318,16 +323,26 @@ export const useSpotifyAudio = ({
   // Update audio settings when they change
   useEffect(() => {
     if (audioRef.current) {
-      audioRef.current.volume = volume;
+      audioRef.current.volume = Math.min(1, Math.max(0, volume));
       audioRef.current.playbackRate = playbackSpeed;
     }
   }, [volume, playbackSpeed]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = '';
+        audioRef.current = null;
+      }
+    };
+  }, []);
 
   const currentSectionData = sections[currentSection];
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return {
-    // Playback state
     isPlaying,
     loading,
     currentTime,
@@ -335,35 +350,23 @@ export const useSpotifyAudio = ({
     progress,
     volume,
     playbackSpeed,
-    
-    // Section state
     currentSection,
     currentSectionData,
     sections,
-    
-    // Playlist state
     isShuffled,
     repeatMode,
-    
-    // Playback controls
     play,
     pause,
     stop,
     seek,
     skip,
-    
-    // Section controls
     playSection,
     nextSection,
     previousSection,
-    
-    // Settings
     setVolume: setVolumeLevel,
     setSpeed: setSpeedLevel,
     toggleShuffle,
     toggleRepeat,
-    
-    // Cleanup
     cleanup,
   };
 };

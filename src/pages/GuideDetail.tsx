@@ -15,7 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Star, MapPin, Clock, Users, Play, Download, Share2, Bookmark, ChevronLeft, Lock, Copy, QrCode, Check, Link, ShoppingCart, Headphones } from "lucide-react";
+import { Star, MapPin, Clock, Users, Play, Download, Share2, Bookmark, ChevronLeft, Lock, Copy, Check, Link, ShoppingCart, Headphones } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useViralTracking } from "@/hooks/useViralTracking";
 import { useAuth } from "@/contexts/AuthContext";
@@ -833,9 +833,8 @@ const GuideDetail = () => {
 
             {/* Tabs Content - Responsive sizing */}
             <Tabs defaultValue="chapters" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 h-10 md:h-11">
+              <TabsList className="grid w-full grid-cols-2 h-10 md:h-11">
                 <TabsTrigger value="chapters" className="text-xs md:text-sm"><Headphones className="w-3 h-3 mr-1" />Chapters</TabsTrigger>
-                <TabsTrigger value="qrcode" className="text-xs md:text-sm"><QrCode className="w-3 h-3 mr-1" />QR Code</TabsTrigger>
                 <TabsTrigger value="reviews" className="text-xs md:text-sm"><Star className="w-3 h-3 mr-1" />Reviews</TabsTrigger>
               </TabsList>
               
@@ -936,128 +935,6 @@ const GuideDetail = () => {
                 )}
               </TabsContent>
               
-              <TabsContent value="qrcode" className="space-y-4">
-                <Card className="p-6">
-                  <div className="text-center space-y-4">
-                    <div className="flex items-center justify-center gap-2 mb-4">
-                      <QrCode className="w-5 h-5 text-primary" />
-                      <h3 className="text-lg font-semibold">QR Code Access</h3>
-                    </div>
-                    
-                    {isPurchased || showQRCode ? (
-                      <div className="space-y-4">
-                        {guide.qr_code_url && (
-                          <div className="flex justify-center">
-                            <div className="inline-block p-6 bg-card rounded-xl border-2 border-border shadow-sm ring-2 ring-primary/20">
-                              <img 
-                                src={guide.qr_code_url} 
-                                alt="QR Code for guide access"
-                                className="w-48 h-48 mx-auto"
-                              />
-                            </div>
-                          </div>
-                        )}
-                        
-                        <div className="space-y-3">
-                          <p className="text-sm text-muted-foreground">
-                            Scan this QR code to access your audio guide on any device
-                          </p>
-                          
-                          {(paymentSuccess || searchParams.get('access_code')) && (
-                            <div className="space-y-2 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                              <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                <label className="text-sm font-medium text-green-700 dark:text-green-300">Your Access Code</label>
-                              </div>
-                              <div className="flex gap-2">
-                                <div className="flex-1 p-3 bg-card rounded-md border border-green-200 dark:border-green-700 text-lg font-mono text-center">
-                                  {searchParams.get('access_code') || 'Loading...'}
-                                </div>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => copyToClipboard(searchParams.get('access_code') || '', 'Access code')}
-                                  className="border-green-200 dark:border-green-700"
-                                >
-                                  <Copy className="w-4 h-4" />
-                                </Button>
-                              </div>
-                              <p className="text-sm text-green-600 dark:text-green-400">
-                                Save this code - you'll need it to access your audio guide
-                              </p>
-                            </div>
-                          )}
-                          
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium">Share Link</label>
-                            <div className="flex gap-2">
-                              <div className="flex-1 p-3 bg-muted rounded-md text-sm font-mono truncate">
-                                {window.location.origin}/guide/{guide.slug || guide.id}{searchParams.get('access_code') ? `?access_code=${searchParams.get('access_code')}` : ''}
-                              </div>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => copyToClipboard(
-                                  `${window.location.origin}/guide/${guide.slug || guide.id}${searchParams.get('access_code') ? `?access_code=${searchParams.get('access_code')}` : ''}`,
-                                  'Share link'
-                                )}
-                              >
-                                <Copy className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-6">
-                        <div className="inline-block p-12 bg-muted/30 rounded-xl border-2 border-dashed border-border relative overflow-hidden">
-                          <div className="relative">
-                            <QrCode className="w-32 h-32 mx-auto text-muted-foreground/20" />
-                            <div className="absolute inset-0 flex items-center justify-center flex-col gap-2">
-                              <Lock className="w-10 h-10 text-muted-foreground/50" />
-                              <Headphones className="w-6 h-6 text-primary/30" />
-                            </div>
-                          </div>
-                          {/* Decorative waveform */}
-                          <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-[2px] opacity-20">
-                            {[...Array(9)].map((_, i) => (
-                              <div key={i} className="w-[2px] rounded-full bg-primary" style={{ height: `${4 + Math.sin(i * 0.7) * 6}px` }} />
-                            ))}
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-3">
-                          <h4 className="text-lg font-medium">QR Code Locked</h4>
-                          <p className="text-muted-foreground">
-                            Purchase this guide to unlock your personal QR code for easy access and sharing
-                          </p>
-                          
-                          <div className="flex flex-col gap-2 mt-4">
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <div className="w-2 h-2 bg-primary rounded-full" />
-                              Access your guide on any device
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <div className="w-2 h-2 bg-primary rounded-full" />
-                              Share with friends and family
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <div className="w-2 h-2 bg-primary rounded-full" />
-                              No internet required after download
-                            </div>
-                          </div>
-                          
-                          <div className="text-center">
-                            <p className="text-sm text-muted-foreground">
-                              → Purchase the full guide in the sidebar to unlock QR code
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </Card>
-              </TabsContent>
               
               <TabsContent value="reviews" className="space-y-4">
                 <ReviewsSection guideId={guide.id} isPurchased={isPurchased} showAllReviews={true} />
@@ -1067,8 +944,18 @@ const GuideDetail = () => {
             {/* Enhanced Audio Player - Sticky on mobile, normal on desktop */}
             {(isPurchased || hasAccessCode) && (
               <div className="mt-8 md:relative md:mt-8">
+                {/* Now Playing Header */}
+                <div className="flex items-center gap-2 mb-3 px-1">
+                  <Headphones className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium text-muted-foreground">Now Playing</span>
+                  <div className="flex items-center gap-[2px] opacity-40">
+                    {[0, 1, 2, 3, 4].map((i) => (
+                      <div key={i} className="w-[2px] rounded-full bg-primary card-waveform-bar" style={{ height: `${6 + Math.sin(i * 0.8) * 5}px`, animationDelay: `${i * 0.1}s` }} />
+                    ))}
+                  </div>
+                </div>
                 {/* Mobile: Fixed to bottom with safe area */}
-                <div className="fixed bottom-0 left-0 right-0 z-40 md:relative md:z-auto bg-background border-t md:border-0 pb-safe md:pb-0">
+                <div className="fixed bottom-0 left-0 right-0 z-40 md:relative md:z-auto bg-background border-t md:border-0 pb-safe md:pb-0 audio-card-glow md:rounded-2xl md:border md:border-border/30">
                   <EnhancedAudioPlayer
                     guide={{
                       id: guide.id,
