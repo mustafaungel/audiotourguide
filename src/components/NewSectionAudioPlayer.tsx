@@ -298,22 +298,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     };
   }, []);
 
-  // Track portal target for BottomSheet footer
   const isActive = currentSectionIndex >= 0;
-  useEffect(() => {
-    if (insideSheet && isMobile && isActive && !isExpanded) {
-      const check = () => {
-        const el = document.getElementById('bottom-sheet-footer');
-        setPortalTarget(el);
-      };
-      check();
-      const timer = setTimeout(check, 100);
-      const timer2 = setTimeout(check, 300);
-      return () => { clearTimeout(timer); clearTimeout(timer2); };
-    } else {
-      setPortalTarget(null);
-    }
-  }, [insideSheet, isMobile, isActive, isExpanded]);
 
   // Stable empty state — fixed height to prevent layout shift
   if (!displaySections.length) {
