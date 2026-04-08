@@ -146,7 +146,7 @@ export const AdminDashboard = () => {
               <CollapsibleTrigger asChild>
                 <Button 
                   variant="ghost" 
-                  className="w-full justify-between p-4 hover:bg-muted h-auto"
+                  className="w-full justify-between p-4 hover:bg-muted text-foreground hover:text-foreground h-auto"
                 >
                   <div className="flex items-center gap-2">
                     <section.icon className="h-5 w-5" />

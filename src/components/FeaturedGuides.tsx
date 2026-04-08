@@ -99,13 +99,13 @@ export const FeaturedGuides = () => {
 
   const getCategoryColor = (category: string) => {
     const colors = {
-      cultural: 'bg-blue-100 text-blue-800',
-      historical: 'bg-amber-100 text-amber-800',
-      adventure: 'bg-green-100 text-green-800',
-      scenic: 'bg-purple-100 text-purple-800',
-      urban: 'bg-gray-100 text-gray-800',
+      cultural: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+      historical: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
+      adventure: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+      scenic: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
+      urban: 'bg-muted text-muted-foreground',
     };
-    return colors[category as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+    return colors[category as keyof typeof colors] || 'bg-muted text-muted-foreground';
   };
 
   if (loading) {
@@ -156,7 +156,7 @@ export const FeaturedGuides = () => {
                       </Badge>
                     </div>
                     <div className="absolute top-4 right-4">
-                      <Badge variant="secondary" className="bg-black/50 text-white">
+                      <Badge variant="secondary" className="bg-background/70 backdrop-blur-sm text-foreground">
                         {formatPrice(guide.price_usd)}
                       </Badge>
                     </div>
