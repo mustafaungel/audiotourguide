@@ -1,49 +1,48 @@
 
 
-## Plan: Bağlı Rehber Player'ı Düzeltme — BottomSheet İçi Uyumluluk
+## Plan: Dil Fallback + BottomSheet İçi MiniPlayer Düzeltmesi
 
-### Problem
-Bağlı rehberleri olan turlar (ör: "Hot Air Balloon Tour Introduction") `BottomSheet` içinde `NewSectionAudioPlayer` render ediyor. Ancak MiniPlayer ve ExpandedPlayer `position: fixed` kullanıyor — bu BottomSheet'in kendi `fixed z-50` konumlandırmasıyla çakışıyor:
+### Değişiklik 1: Bağlı Rehberlerde Dil Fallback
 
-- **MiniPlayer** (`fixed bottom-0 z-50`) → BottomSheet'in arkasında kalıyor veya BottomSheet kapatılınca görünmüyor
-- **ExpandedPlayer** (`fixed inset-0 z-[60]`) → Açılıyor ama BottomSheet scroll lock ile çakışıyor
-- Sonuç: Bağlı rehberlerde MiniPlayer/ExpandedPlayer düzgün çalışmıyor
+**Problem:** Kullanıcı ana rehberi Rusça dinliyor → bağlı rehbere geçiyor → Rusça section yok → boş liste.
 
-Bağlı rehber olmayan turlar (ör: "Discover Hidden Valleys") ise doğrudan sayfaya render edildiği için sorunsuz çalışıyor.
+**Çözüm:** `ensureGuideSections` fonksiyonunda, istenen dilde section bulunamazsa otomatik olarak İngilizce'ye düş:
 
-### Çözüm
+```text
+İstenen dil (ör: ru) → section yok?
+  → İngilizce (en) dene → section var? → kullan
+  → İngilizce de yok? → mevcut ilk dili bul ve kullan
+  → languageByGuide state'ini fallback diliyle güncelle
+```
 
-`NewSectionAudioPlayer`'a bir `insideSheet` prop'u ekle. BottomSheet içindeyken:
-- **MiniPlayer**: `fixed` yerine BottomSheet'in altına yapışık (`sticky`) olarak render edilir
-- **ExpandedPlayer**: z-index'i yükseltilir (`z-[70]`) ve BottomSheet'i override eder
-- `MultiTabAudioPlayer` bu prop'u BottomSheet içindeki player'a geçirir
+### Değişiklik 2: BottomSheet İçinde MiniPlayer Düzeltmesi
+
+**Problem:** MiniPlayer `sticky bottom-0` olarak sheet'in scroll content'i içinde render ediliyor. Bu, scroll container'ın `maxHeight` ve `overflow-y: scroll` kısıtlaması nedeniyle düzgün yapışmıyor — content ile birlikte kayıyor veya kısmen kesiliyorsa görünmüyor.
+
+**Çözüm:** MiniPlayer'ı BottomSheet'in scroll alanı **dışına** çıkar. BottomSheet'in flex layout'unu kullanarak MiniPlayer'ı scroll content'in altında, sheet'in kendi alt kenarına sabitlenmiş şekilde render et:
+
+- `NewSectionAudioPlayer` → MiniPlayer'ı ayrı bir callback/render prop ile dışarı çıkar
+- Alternatif (daha basit): BottomSheet content div'inin `maxHeight` hesaplamasını MiniPlayer yüksekliğini hesaba katacak şekilde güncelle ve MiniPlayer'ı content div'den **sonra**, sheet flex container'ın içinde ama scroll'un dışında render et
+
+Pratik uygulama: `NewSectionAudioPlayer`'a bir `renderMiniPlayerOutside` callback prop eklemek yerine, daha temiz bir yaklaşımla MiniPlayer'ı sheet'in scroll alanından ayıracağız:
+
+- `NewSectionAudioPlayer` içinde `insideSheet` true ise MiniPlayer'ı component return'ün en dışına, `space-y-6` div'in dışına render et
+- BottomSheet content wrapper'ında MiniPlayer'ın görünür kalması için scroll container'a `pb-20` padding ekle
 
 ### Teknik Değişiklikler
 
-**`src/components/NewSectionAudioPlayer.tsx`:**
-- `insideSheet?: boolean` prop ekle
-- `insideSheet` true ise MiniPlayer'ı `fixed` yerine sheet content'in altında inline/sticky olarak göster
-- ExpandedPlayer'ı her durumda Portal ile render et (BottomSheet'in dışında)
-
-**`src/components/MiniPlayer.tsx`:**
-- `variant?: 'fixed' | 'inline'` prop ekle
-- `inline` modda: `fixed bottom-0` yerine `sticky bottom-0` veya flow içi render
-- Görünüm/işlevsellik aynı kalır
-
-**`src/components/ExpandedPlayer.tsx`:**
-- z-index'i `z-[70]`'e yükselt (BottomSheet z-50'nin üstünde)
-- `ReactDOM.createPortal` ile `document.body`'ye render et → BottomSheet DOM'undan bağımsız
-
 **`src/components/MultiTabAudioPlayer.tsx`:**
-- BottomSheet içindeki `NewSectionAudioPlayer`'a `insideSheet={true}` geçir
-- Standalone render'da (linkedGuides.length === 0) `insideSheet` geçirme
+- `ensureGuideSections`'a İngilizce fallback zinciri ekle
+- Fallback dili `languageByGuide` state'ine yaz
+
+**`src/components/NewSectionAudioPlayer.tsx`:**
+- `insideSheet` true ise MiniPlayer'ı `space-y-6` div'in **dışında** render et (fragment ile)
+- Sheet scroll content'ine MiniPlayer için yer açmak amacıyla alt padding ekle
 
 ### Dosya Özeti
 
 | Dosya | Değişiklik |
 |-------|-----------|
-| `src/components/NewSectionAudioPlayer.tsx` | `insideSheet` prop, MiniPlayer variant seçimi |
-| `src/components/MiniPlayer.tsx` | `variant` prop — inline/fixed mod |
-| `src/components/ExpandedPlayer.tsx` | z-index artır, Portal ile render |
-| `src/components/MultiTabAudioPlayer.tsx` | `insideSheet={true}` prop geçir |
+| `src/components/MultiTabAudioPlayer.tsx` | `ensureGuideSections`'a en fallback, languageByGuide güncelleme |
+| `src/components/NewSectionAudioPlayer.tsx` | insideSheet modda MiniPlayer konumlandırma düzeltmesi |
 
