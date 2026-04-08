@@ -308,6 +308,84 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   const currentSection = displaySections[currentSectionIndex];
   const isActive = currentSectionIndex >= 0;
 
+  const miniPlayerElement = isMobile && isActive && !isExpanded ? (
+    <MiniPlayer
+      title={currentSection?.title || guideTitle}
+      currentTime={currentTime}
+      duration={duration}
+      isPlaying={isPlaying}
+      loading={loading}
+      imageUrl={guideImageUrl}
+      variant={insideSheet ? 'inline' : 'fixed'}
+      onTogglePlay={togglePlayPause}
+      onExpand={() => setIsExpanded(true)}
+    />
+  ) : null;
+
+  const expandedPlayerElement = isMobile ? (
+    <ExpandedPlayer
+      open={isExpanded}
+      onClose={() => setIsExpanded(false)}
+      title={currentSection?.title || guideTitle}
+      guideTitle={guideTitle}
+      chapterIndex={currentSectionIndex >= 0 ? currentSectionIndex : 0}
+      totalChapters={displaySections.length}
+      currentTime={currentTime}
+      duration={duration}
+      isPlaying={isPlaying}
+      loading={loading}
+      imageUrl={guideImageUrl}
+      playbackSpeed={playbackSpeed}
+      canGoNext={currentSectionIndex < displaySections.length - 1}
+      canGoPrevious={currentSectionIndex > 0}
+      onTogglePlay={togglePlayPause}
+      onSeek={handleSeek}
+      onSkip={skip}
+      onPrevious={previousSection}
+      onNext={nextSection}
+      onSpeedChange={handleSpeedChange}
+      lang={lang}
+    />
+  ) : null;
+
+  if (insideSheet) {
+    return (
+      <>
+        <div className="space-y-6 pb-20">
+          <ChapterList
+            sections={displaySections}
+            currentSectionIndex={currentSectionIndex}
+            isPlaying={isPlaying}
+            loading={loading}
+            currentTime={currentTime}
+            duration={duration}
+            volume={volume}
+            isMuted={isMuted}
+            playbackSpeed={playbackSpeed}
+            canGoNext={currentSectionIndex < displaySections.length - 1}
+            canGoPrevious={currentSectionIndex > 0}
+            autoAdvanceEnabled={autoAdvanceEnabled}
+            isChapterCompleted={isChapterCompleted}
+            onPlaySection={playSection}
+            onTogglePlayPause={togglePlayPause}
+            onSeek={handleSeek}
+            onSkip={skip}
+            onPreviousSection={previousSection}
+            onNextSection={nextSection}
+            onToggleMute={toggleMute}
+            onVolumeChange={handleVolumeChange}
+            onSpeedChange={handleSpeedChange}
+            onAutoAdvanceChange={setAutoAdvance}
+            lang={lang}
+            hideMobileControls={isActive && isMobile}
+          />
+        </div>
+        {miniPlayerElement}
+        {expandedPlayerElement}
+      </>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <ChapterList
@@ -337,48 +415,8 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
         lang={lang}
         hideMobileControls={isActive && isMobile}
       />
-
-      {/* Mobile: Sticky Mini Player */}
-      {isMobile && isActive && !isExpanded && (
-        <MiniPlayer
-          title={currentSection?.title || guideTitle}
-          currentTime={currentTime}
-          duration={duration}
-          isPlaying={isPlaying}
-          loading={loading}
-          imageUrl={guideImageUrl}
-          variant={insideSheet ? 'inline' : 'fixed'}
-          onTogglePlay={togglePlayPause}
-          onExpand={() => setIsExpanded(true)}
-        />
-      )}
-
-      {/* Mobile: Full-Screen Expanded Player */}
-      {isMobile && (
-        <ExpandedPlayer
-          open={isExpanded}
-          onClose={() => setIsExpanded(false)}
-          title={currentSection?.title || guideTitle}
-          guideTitle={guideTitle}
-          chapterIndex={currentSectionIndex >= 0 ? currentSectionIndex : 0}
-          totalChapters={displaySections.length}
-          currentTime={currentTime}
-          duration={duration}
-          isPlaying={isPlaying}
-          loading={loading}
-          imageUrl={guideImageUrl}
-          playbackSpeed={playbackSpeed}
-          canGoNext={currentSectionIndex < displaySections.length - 1}
-          canGoPrevious={currentSectionIndex > 0}
-          onTogglePlay={togglePlayPause}
-          onSeek={handleSeek}
-          onSkip={skip}
-          onPrevious={previousSection}
-          onNext={nextSection}
-          onSpeedChange={handleSpeedChange}
-          lang={lang}
-        />
-      )}
+      {miniPlayerElement}
+      {expandedPlayerElement}
     </div>
   );
 };

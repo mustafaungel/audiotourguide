@@ -89,30 +89,53 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
 
     fetchingRef.current.add(cacheKey);
 
-    try {
-      let sectionsData: any[] = [];
-
-      if (guideId === mainGuide.id) {
+    const fetchSectionsForLang = async (gId: string, lang: string): Promise<any[]> => {
+      if (gId === mainGuide.id) {
         const { data, error } = await supabase.rpc('get_sections_with_access', {
-          p_guide_id: guideId, p_access_code: accessCode.trim(), p_language_code: effectiveLang
+          p_guide_id: gId, p_access_code: accessCode!.trim(), p_language_code: lang
         });
-        if (!error && data?.length > 0) sectionsData = data;
+        if (!error && data?.length > 0) return data;
       } else {
         const { data, error } = await supabase.rpc('get_linked_guide_sections_with_access', {
-          p_main_guide_id: mainGuide.id, p_access_code: accessCode.trim(),
-          p_target_guide_id: guideId, p_language_code: effectiveLang
+          p_main_guide_id: mainGuide.id, p_access_code: accessCode!.trim(),
+          p_target_guide_id: gId, p_language_code: lang
         });
-        if (!error && data?.length > 0) sectionsData = data;
+        if (!error && data?.length > 0) return data;
+      }
+      // Direct table fallback
+      const { data, error } = await supabase.from('guide_sections')
+        .select('*').eq('guide_id', gId).eq('language_code', lang).order('order_index');
+      if (!error && data?.length > 0) return data;
+      return [];
+    };
+
+    try {
+      let sectionsData = await fetchSectionsForLang(guideId, effectiveLang);
+      let usedLang = effectiveLang;
+
+      // Language fallback: try English first, then any available language
+      if (sectionsData.length === 0 && effectiveLang !== 'en') {
+        sectionsData = await fetchSectionsForLang(guideId, 'en');
+        if (sectionsData.length > 0) usedLang = 'en';
       }
 
-      // Only fallback on empty result, not as normal path
-      if (sectionsData.length === 0) {
-        const { data, error } = await supabase.from('guide_sections')
-          .select('*').eq('guide_id', guideId).eq('language_code', effectiveLang).order('order_index');
-        if (!error && data?.length > 0) sectionsData = data;
+      if (sectionsData.length === 0 && effectiveLang !== 'en') {
+        const { data: availableLangs } = await supabase.from('guide_sections')
+          .select('language_code').eq('guide_id', guideId).limit(1);
+        if (availableLangs?.[0]?.language_code) {
+          const fallbackLang = availableLangs[0].language_code;
+          sectionsData = await fetchSectionsForLang(guideId, fallbackLang);
+          if (sectionsData.length > 0) usedLang = fallbackLang;
+        }
       }
 
-      sectionCache.set(cacheKey, sectionsData);
+      // Update language state if we fell back
+      if (usedLang !== effectiveLang) {
+        setLanguageByGuide(prev => ({ ...prev, [guideId]: usedLang }));
+      }
+
+      const finalCacheKey = `${guideId}_${usedLang}`;
+      sectionCache.set(finalCacheKey, sectionsData);
       setSectionsByGuide(prev => ({ ...prev, [guideId]: sectionsData }));
     } catch (error) {
       console.error('MultiTabAudioPlayer: Error loading sections:', error);
