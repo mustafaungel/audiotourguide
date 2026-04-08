@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Play, Pause, SkipBack, SkipForward, ChevronDown } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, ChevronDown, X } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
+import { Button } from '@/components/ui/button';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { cn } from '@/lib/utils';
 import { haptics } from '@/lib/haptics';
@@ -54,29 +55,9 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
   onSpeedChange,
   lang = 'en',
 }) => {
-  const [shouldRender, setShouldRender] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
   const [showSpeedSheet, setShowSpeedSheet] = useState(false);
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
   const speedOptions = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
-
-  // Two-phase mount/unmount for exit animation
-  useEffect(() => {
-    if (open) {
-      setShouldRender(true);
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => setIsVisible(true));
-      });
-    } else {
-      setIsVisible(false);
-    }
-  }, [open]);
-
-  const handleTransitionEnd = useCallback(() => {
-    if (!isVisible && !open) {
-      setShouldRender(false);
-    }
-  }, [isVisible, open]);
 
   const formatTime = (seconds: number) => {
     if (!seconds || isNaN(seconds)) return '0:00';
@@ -85,20 +66,11 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  if (!shouldRender) return null;
+  if (!open) return null;
 
   const content = (
     <>
-      <div
-        className="fixed inset-0 z-[70] bg-background flex flex-col"
-        style={{
-          transform: isVisible ? 'translateY(0)' : 'translateY(100%)',
-          opacity: isVisible ? 1 : 0,
-          transition: 'transform 300ms cubic-bezier(0.32, 0.72, 0, 1), opacity 200ms ease',
-          willChange: 'transform, opacity',
-        }}
-        onTransitionEnd={handleTransitionEnd}
-      >
+      <div className="fixed inset-0 z-[70] bg-background flex flex-col animate-in slide-in-from-bottom duration-300">
         {/* Blurred background */}
         {imageUrl && (
           <>
@@ -127,7 +99,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
               {t('nowPlaying', lang)}
             </span>
-            <div className="w-10" />
+            <div className="w-10" /> {/* Spacer */}
           </div>
 
           {/* Album art */}
@@ -173,12 +145,15 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
 
           {/* Main controls */}
           <div className="flex items-center justify-center gap-6 px-6 pb-4">
+            {/* Skip -15 */}
             <button
               onClick={() => { haptics.light(); onSkip(-15); }}
               className="w-12 h-12 flex items-center justify-center text-foreground active:scale-90 transition-transform"
             >
               <span className="text-xs font-bold">-15</span>
             </button>
+
+            {/* Previous */}
             <button
               onClick={() => { haptics.light(); onPrevious(); }}
               disabled={!canGoPrevious}
@@ -186,6 +161,8 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
             >
               <SkipBack className="w-6 h-6" fill="currentColor" />
             </button>
+
+            {/* Play/Pause — large */}
             <button
               onClick={() => { haptics.medium(); onTogglePlay(); }}
               disabled={loading}
@@ -200,6 +177,8 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
                 <Play className="w-7 h-7 ml-1" fill="currentColor" />
               )}
             </button>
+
+            {/* Next */}
             <button
               onClick={() => { haptics.light(); onNext(); }}
               disabled={!canGoNext}
@@ -207,6 +186,8 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
             >
               <SkipForward className="w-6 h-6" fill="currentColor" />
             </button>
+
+            {/* Skip +15 */}
             <button
               onClick={() => { haptics.light(); onSkip(15); }}
               className="w-12 h-12 flex items-center justify-center text-foreground active:scale-90 transition-transform"

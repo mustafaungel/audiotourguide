@@ -204,7 +204,7 @@ export const ChapterList: React.FC<ChapterListProps> = ({
                 "w-full text-left rounded-xl p-4 transition-all min-h-[72px] touch-manipulation group/chapter",
                 "hover:bg-primary/5 active:scale-[0.97]",
                 isCurrent 
-                  ? "bg-primary/10 border-2 border-primary/50 border-l-primary shadow-lg shadow-primary/20" 
+                  ? "bg-primary/10 border-2 border-primary/50 border-l-primary shadow-lg shadow-primary/20 backdrop-blur-sm" 
                   : "bg-card/30 border border-transparent"
               )}
             >
