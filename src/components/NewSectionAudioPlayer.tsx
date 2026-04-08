@@ -320,7 +320,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
       loading={loading}
       imageUrl={guideImageUrl}
       playbackSpeed={playbackSpeed}
-      variant={insideSheet ? 'inline' : 'fixed'}
+      variant="fixed"
       onTogglePlay={togglePlayPause}
       onExpand={() => setIsExpanded(true)}
       onSkipBack={() => skip(-15)}
