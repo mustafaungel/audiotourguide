@@ -355,13 +355,11 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     />
   ) : null;
 
-  // Portal MiniPlayer into BottomSheet footer when insideSheet
+  // Portal MiniPlayer to document.body when insideSheet (avoids BottomSheet transform issues)
   const portaledMiniPlayer = (() => {
     if (!miniPlayerElement) return null;
-    if (!insideSheet) return null;
-    if (portalTarget) return createPortal(miniPlayerElement, portalTarget);
-    // Fallback: render inline if portal target not yet available
-    return miniPlayerElement;
+    if (insideSheet) return createPortal(miniPlayerElement, document.body);
+    return null;
   })();
 
   if (insideSheet) {
