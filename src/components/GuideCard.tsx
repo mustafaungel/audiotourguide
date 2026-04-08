@@ -168,10 +168,10 @@ export function GuideCard({
       <CardContent className="p-4 sm:p-6 flex-1 flex flex-col">
         <div className="space-y-3 sm:space-y-4 flex-1 flex flex-col">
           <div>
-            <h3 className="font-semibold text-base sm:text-lg leading-tight line-clamp-2 min-h-[2.5rem]">{title}</h3>
+            <h3 className="font-semibold text-base sm:text-lg leading-tight line-clamp-2 h-[2.75rem] sm:h-[3.25rem] overflow-hidden">{title}</h3>
           </div>
 
-          <p className="text-muted-foreground text-sm sm:text-base line-clamp-2 leading-relaxed min-h-[2.5rem]">{description}</p>
+          <p className="text-muted-foreground text-sm sm:text-base line-clamp-2 leading-relaxed h-[2.5rem] sm:h-[3rem] overflow-hidden">{description}</p>
 
           <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground flex-nowrap overflow-hidden h-[1.5rem]">
             <div className="flex items-center gap-1">
