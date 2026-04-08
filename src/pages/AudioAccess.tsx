@@ -714,7 +714,7 @@ export default function AudioAccess() {
                 className="w-44 h-44 rounded-2xl object-cover shadow-xl ring-2 ring-primary/20"
                 onError={(e) => { e.currentTarget.src = '/hero-audio-guide.jpg'; }}
               />
-              <Badge className="absolute top-2 left-2 text-[10px] px-2 py-0.5 rounded-lg backdrop-blur-md bg-background/70 text-foreground border-0 shadow-sm">
+              <Badge className="absolute top-2 left-2 text-[10px] px-2 py-0.5 rounded-lg bg-background/90 text-foreground border-0 shadow-sm">
                 {guide.category}
               </Badge>
             </div>
