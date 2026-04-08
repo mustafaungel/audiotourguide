@@ -1,91 +1,92 @@
 
 
-## Plan: Dil Değişiminde Anında Geçiş — Sıfır Gecikme Hissi
+## Plan: Mobil Audio Player Fonksiyonellik İyileştirmesi
 
-### Problem
-Dil butonuna tıklandığında bayrak ve içerik gecikmeli güncelleniyor çünkü mevcut akış:
-1. Kullanıcı dile tıklar → `handleLanguageChange` çağrılır
-2. Supabase RPC ile yeni dil section'ları fetch edilir (ağ bekleme)
-3. Fetch tamamlanınca `setSections` + `setSelectedLanguage` güncellenir
+### Mevcut Sorunlar (Mobil)
+1. **Kalıcı kontrol yok** — Aşağı kaydırınca play/pause kontrolü görünmez oluyor
+2. **Seek slider yok** — Sadece chapter içi ince progress bar var, sürüklenemiyor
+3. **Kontroller sıkışık** — Prev/skip/next/speed butonları card header'a sıkıştırılmış, küçük dokunma alanları
+4. **Tam ekran player yok** — Spotify/Apple Music gibi expand edilebilir bir görünüm yok
+5. **Görsel kimlik eksik** — Albüm görseli, now playing bilgisi player'da yok
 
-Bu sırada kullanıcı eski bayrağı/içeriği görmeye devam eder → "sonradan değişiyor" hissi.
+### Çözüm: 2 Katmanlı Mobil Player
 
-### Çözüm Stratejisi: 3 Katmanlı Optimizasyon
+#### Katman 1: Sticky Mini Player (Ekran Alt)
+Bir bölüm çalmaya başlayınca ekranın altına sabitlenir, kaydırırken bile görünür kalır.
 
-#### 1. Sayfa Seviyesi Section Cache (AudioAccess.tsx)
-- `sectionsByLang` adında `Record<string, Section[]>` cache ekle
-- Her fetch edilen dil sonucu cache'e yaz
-- Dil değiştiğinde önce cache'e bak → varsa anında göster, fetch atma
-- İlk yüklemede mevcut dili cache'e yaz
+```text
+┌──────────────────────────────────┐
+│ [▶] Chapter 3: Old Town  1:23   │
+│ ████████░░░░░░░░░░░░░░░░  ─ ▲   │
+└──────────────────────────────────┘
+```
 
-#### 2. Optimistik State Güncellemesi (AudioAccess.tsx)
-- `setSelectedLanguage(languageCode)` → fetch'ten ÖNCE çağır (bayrak anında değişir)
-- Cache'de varsa `setSections(cached)` anında → sıfır gecikme
-- Cache'de yoksa eski section'ları göstermeye devam et + arka planda fetch at
-- Fetch tamamlanınca `setSections` + cache güncelle
+- Albüm görseli (küçük), bölüm adı, play/pause, mini progress bar
+- Yukarı ok ile tam ekrana genişler
+- Safe area padding (iPhone notch/home indicator)
 
-#### 3. Arka Plan Prefetch (AudioAccess.tsx)
-- `detectAvailableLanguages` tamamlandıktan sonra, diğer dilleri arka planda prefetch et
-- `requestIdleCallback` veya `setTimeout(fn, 1000)` ile ana thread'i bloklama
-- Prefetch edilen section'lar cache'e yazılır → sonraki dil değişimi anında olur
+#### Katman 2: Tam Ekran Expanded Player
+Mini player'a tıklanınca veya yukarı swipe ile açılır.
+
+```text
+┌──────────────────────────────────┐
+│  ▼  Collapse          Now Playing│
+│                                  │
+│        ┌──────────────┐          │
+│        │  Album Art   │          │
+│        │   200x200    │          │
+│        └──────────────┘          │
+│                                  │
+│  Chapter 3: Old Town Square      │
+│  3 of 8 • Prague Walking Tour    │
+│                                  │
+│  ████████████░░░░░░░░░░░░░░░░░  │
+│  1:23              4:56          │
+│                                  │
+│    ⏪-15   ⏮  [ ▶ ]  ⏭  ⏩+15   │
+│                                  │
+│         🔀   🔁   1.0×           │
+└──────────────────────────────────┘
+```
+
+- Büyük albüm görseli, dominant renk arka plan
+- Draggable seek slider
+- Büyük kontrol butonları (min 48px touch target)
+- Shuffle, repeat, speed kontrolleri
+- Swipe down ile mini player'a küçülme
 
 ### Teknik Değişiklikler
 
-**`src/pages/AudioAccess.tsx`:**
+**Dosya: `src/components/NewSectionAudioPlayer.tsx`**
+- Mobilde `currentSectionIndex >= 0` (bir şey çalıyorken) sticky mini player render et
+- Mini player'a tıklanınca `isExpanded` state ile tam ekran aç
+- Tam ekran player: albüm görseli (prop olarak alınacak), seek slider, büyük kontroller
+- `position: fixed; bottom: 0` ile yapışık kalması
+- `guideImageUrl` prop'u ekle (AudioAccess'ten geçirilecek)
 
-```typescript
-// Yeni state
-const [sectionsByLang, setSectionsByLang] = useState<Record<string, any[]>>({});
+**Dosya: `src/components/ChapterList.tsx`**
+- Header'daki kontrolleri sadeleştir (mini player'a taşındığı için)
+- Mobilde header kontrollerini gizle (mini player zaten gösteriyor)
 
-// handleLanguageChange — optimistik
-const handleLanguageChange = async (languageCode: string) => {
-  // 1. Bayrak anında değişir
-  setSelectedLanguage(languageCode);
-  
-  // 2. Cache'de varsa anında göster
-  if (sectionsByLang[languageCode]) {
-    setSections(sectionsByLang[languageCode]);
-    return; // Ağ isteği yok → anında
-  }
-  
-  // 3. Cache'de yoksa arka planda fetch
-  const { data } = await supabase.rpc('get_sections_with_access', { ... });
-  if (data?.length > 0) {
-    setSections(data);
-    setSectionsByLang(prev => ({ ...prev, [languageCode]: data }));
-  }
-};
+**Dosya: `src/pages/AudioAccess.tsx`**
+- `MultiTabAudioPlayer`'a `guideImageUrl` prop'u geçir
+- Sticky player nedeniyle sayfa altına padding ekle (`pb-[120px]`)
 
-// detectAvailableLanguages sonrası prefetch
-const prefetchOtherLanguages = (languages, currentLang) => {
-  const others = languages.filter(l => l.language_code !== currentLang);
-  const prefetchNext = (i) => {
-    if (i >= others.length) return;
-    setTimeout(async () => {
-      const { data } = await supabase.rpc('get_sections_with_access', { ... });
-      if (data?.length > 0) {
-        setSectionsByLang(prev => ({ ...prev, [others[i].language_code]: data }));
-      }
-      prefetchNext(i + 1);
-    }, 500); // Her dil arası 500ms — bant genişliğini ezme
-  };
-  prefetchNext(0);
-};
-```
-
-**`src/components/NewSectionAudioPlayer.tsx`:**
-- `lastValidSectionsRef` zaten var — cache boşken eski section'lar gösterilir → flash yok
+**Dosya: `src/components/MultiTabAudioPlayer.tsx`**
+- `guideImageUrl` prop'unu `NewSectionAudioPlayer`'a ilet
 
 ### Dokunulmayacaklar
-- GuideLanguageSelector UI — zaten optimistik collapse yapıyor
-- MultiTabAudioPlayer — kendi `sectionCache` Map'i ile bağlı rehberleri yönetiyor
-- Audio playback, payment flow, auth — sıfır değişiklik
+- SpotifyStylePlayer (GuideDetail sayfasında kullanılıyor, ayrı akış)
+- Audio playback logic (useSpotifyAudio, audio element management)
+- BottomSheet mekanizması — linked guide drawer'lar aynen kalır
+- Payment, auth, Supabase queries — sıfır değişiklik
 
-### Dosya
+### Dosya Özeti
 
 | Dosya | Değişiklik |
 |-------|-----------|
-| `src/pages/AudioAccess.tsx` | Section cache, optimistik state, arka plan prefetch |
-
-Tek dosya değişikliği. Mevcut `fetchSectionsForLanguage` fonksiyonu cache-aware hale getirilir, `handleLanguageChange` optimistik güncelleme yapar, `detectAvailableLanguages` sonrası prefetch başlatılır.
+| `src/components/NewSectionAudioPlayer.tsx` | Sticky mini player + tam ekran expanded player ekleme |
+| `src/components/ChapterList.tsx` | Mobilde header kontrollerini sadeleştirme |
+| `src/pages/AudioAccess.tsx` | Image prop geçirme, bottom padding |
+| `src/components/MultiTabAudioPlayer.tsx` | Image prop iletme |
 
