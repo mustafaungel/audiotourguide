@@ -22,6 +22,7 @@ interface LinkedGuide {
   title: string;
   slug: string;
   master_access_code?: string;
+  image_url?: string;
   sections: Section[];
 }
 
@@ -128,18 +129,30 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
         .rpc('get_full_linked_guides_with_access', { p_guide_id: mainGuide.id, p_access_code: accessCode.trim() });
 
       if (!rpcError && fullLinkedGuides?.length > 0) {
+        const guideIds = fullLinkedGuides.map((g: any) => g.guide_id);
+        const { data: guideImages } = await supabase
+          .from('audio_guides').select('id, image_url').in('id', guideIds);
+        const imageMap = new Map((guideImages || []).map((g: any) => [g.id, g.image_url]));
+
         const processed: LinkedGuide[] = fullLinkedGuides.map((g: any) => ({
           guide_id: g.guide_id, custom_title: g.custom_title, order_index: g.order_index || 0,
-          title: g.title, slug: g.slug, master_access_code: g.master_access_code, sections: []
+          title: g.title, slug: g.slug, master_access_code: g.master_access_code,
+          image_url: imageMap.get(g.guide_id) || undefined, sections: []
         }));
         setLinkedGuides(processed.sort((a, b) => a.order_index - b.order_index));
       } else {
         const { data: simple, error: fallbackError } = await supabase
           .rpc('get_linked_guides_with_access', { p_guide_id: mainGuide.id, p_access_code: accessCode.trim() });
         if (!fallbackError && simple?.length > 0) {
+          const guideIds = simple.map((g: any) => g.guide_id);
+          const { data: guideImages } = await supabase
+            .from('audio_guides').select('id, image_url').in('id', guideIds);
+          const imageMap = new Map((guideImages || []).map((g: any) => [g.id, g.image_url]));
+
           const processed: LinkedGuide[] = simple.map((g: any) => ({
             guide_id: g.guide_id, custom_title: g.custom_title, order_index: g.order_index || 0,
-            title: g.title, slug: g.slug, master_access_code: g.master_access_code, sections: []
+            title: g.title, slug: g.slug, master_access_code: g.master_access_code,
+            image_url: imageMap.get(g.guide_id) || undefined, sections: []
           }));
           setLinkedGuides(processed.sort((a, b) => a.order_index - b.order_index));
         } else {
@@ -302,7 +315,11 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
             guideTitle={sheetTitle || ''}
             sections={sheetSections}
             mainAudioUrl={sheetAudioUrl}
-            guideImageUrl={guideImageUrl}
+            guideImageUrl={
+              selectedGuideId === mainGuide.id
+                ? guideImageUrl
+                : linkedGuides.find(g => g.guide_id === selectedGuideId)?.image_url || guideImageUrl
+            }
             lang={languageByGuide[selectedGuideId] || languageCode}
           />
         )}
