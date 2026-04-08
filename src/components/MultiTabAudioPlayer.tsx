@@ -5,6 +5,7 @@ import { Music, ChevronDown, ChevronUp } from 'lucide-react';
 import { t } from '@/lib/translations';
 import { AudioGuideLoader } from './AudioGuideLoader';
 import { cn } from '@/lib/utils';
+import { haptics } from '@/lib/haptics';
 
 interface Section {
   id: string;
@@ -60,6 +61,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     [mainGuide.id]: languageCode
   });
   const [selectedGuideId, setSelectedGuideId] = useState<string | null>(null);
+  const [closingGuideId, setClosingGuideId] = useState<string | null>(null);
   const fetchingRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
@@ -222,12 +224,23 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
   }, [linkedGuides, accessCode, mainGuide.id, ensureGuideSections]);
 
   const handlePillClick = useCallback((guideId: string) => {
+    haptics.light();
     if (guideId !== mainGuide.id) {
       ensureGuideSections(guideId);
     }
-    setSelectedGuideId(prev => prev === guideId ? null : guideId);
+    if (selectedGuideId === guideId) {
+      // Start closing animation
+      setClosingGuideId(guideId);
+      setSelectedGuideId(null);
+    } else {
+      // Close previous with animation if any
+      if (selectedGuideId) {
+        setClosingGuideId(selectedGuideId);
+      }
+      setSelectedGuideId(guideId);
+    }
     onActiveTabChange?.(guideId === mainGuide.id ? 'main' : guideId);
-  }, [mainGuide.id, ensureGuideSections, onActiveTabChange]);
+  }, [mainGuide.id, ensureGuideSections, onActiveTabChange, selectedGuideId]);
 
   if (loading && mainSections.length === 0) {
     return <AudioGuideLoader variant="inline" message={t('loading', languageCode)} />;
