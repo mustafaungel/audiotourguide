@@ -9,6 +9,7 @@ import { useAudioProgress } from '@/hooks/useAudioProgress';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { t } from '@/lib/translations';
+import { cn } from '@/lib/utils';
 
 interface Section {
   id: string;
@@ -48,7 +49,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   const [previousVolume, setPreviousVolume] = useState(1);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+  // portalTarget removed — MiniPlayer always portals to document.body when insideSheet
   
   // Keep last valid sections to prevent empty flash during language switch
   const lastValidSectionsRef = useRef<Section[]>([]);
@@ -298,22 +299,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     };
   }, []);
 
-  // Track portal target for BottomSheet footer
   const isActive = currentSectionIndex >= 0;
-  useEffect(() => {
-    if (insideSheet && isMobile && isActive && !isExpanded) {
-      const check = () => {
-        const el = document.getElementById('bottom-sheet-footer');
-        setPortalTarget(el);
-      };
-      check();
-      const timer = setTimeout(check, 100);
-      const timer2 = setTimeout(check, 300);
-      return () => { clearTimeout(timer); clearTimeout(timer2); };
-    } else {
-      setPortalTarget(null);
-    }
-  }, [insideSheet, isMobile, isActive, isExpanded]);
 
   // Stable empty state — fixed height to prevent layout shift
   if (!displaySections.length) {
@@ -335,7 +321,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
       loading={loading}
       imageUrl={guideImageUrl}
       playbackSpeed={playbackSpeed}
-      variant={insideSheet ? 'inline' : 'fixed'}
+      variant="fixed"
       onTogglePlay={togglePlayPause}
       onExpand={() => setIsExpanded(true)}
       onSkipBack={() => skip(-15)}
@@ -370,19 +356,17 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     />
   ) : null;
 
-  // Portal MiniPlayer into BottomSheet footer when insideSheet
+  // Portal MiniPlayer to document.body when insideSheet (avoids BottomSheet transform issues)
   const portaledMiniPlayer = (() => {
     if (!miniPlayerElement) return null;
-    if (!insideSheet) return null;
-    if (portalTarget) return createPortal(miniPlayerElement, portalTarget);
-    // Fallback: render inline if portal target not yet available
-    return miniPlayerElement;
+    if (insideSheet) return createPortal(miniPlayerElement, document.body);
+    return null;
   })();
 
   if (insideSheet) {
     return (
       <>
-        <div className="space-y-6">
+        <div className={cn("space-y-6", isActive && isMobile && "pb-20")}>
           <ChapterList
             sections={displaySections}
             currentSectionIndex={currentSectionIndex}

@@ -245,8 +245,7 @@ export function BottomSheet({
           {children}
         </div>
 
-        {/* Footer slot for portaled content (e.g. MiniPlayer) */}
-        <div id="bottom-sheet-footer" className="w-full shrink-0" />
+        {/* Footer slot removed — MiniPlayer now portals to document.body */}
       </div>
     </>
   );
