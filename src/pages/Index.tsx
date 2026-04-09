@@ -9,8 +9,7 @@ import { GuideCard } from '@/components/GuideCard';
 import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Headphones, MapPin, X } from 'lucide-react';
+import { Headphones, MapPin } from 'lucide-react';
 import * as CarouselComponents from '@/components/ui/carousel';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -190,28 +189,69 @@ const Index = () => {
       {/* Country/City Filter + Guides Section */}
       <section className="mobile-padding mobile-spacing">
         <div className="mobile-container">
-          {/* Filter Bar */}
+          {/* Destination Filter Chips */}
           {!loading && guides.length > 0 && countries.length > 0 && (
-            <div className="flex items-center gap-2 mb-4 flex-wrap">
-              <MapPin className="w-4 h-4 text-primary shrink-0" />
-              <Select value={selectedCountry} onValueChange={(v) => { setSelectedCountry(v); setSelectedCity(''); }}>
-                <SelectTrigger className="w-[160px] h-9 text-sm"><SelectValue placeholder="All Countries" /></SelectTrigger>
-                <SelectContent>
-                  {countries.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              {selectedCountry && cities.length > 0 && (
-                <Select value={selectedCity} onValueChange={setSelectedCity}>
-                  <SelectTrigger className="w-[160px] h-9 text-sm"><SelectValue placeholder="All Cities" /></SelectTrigger>
-                  <SelectContent>
-                    {cities.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              )}
-              {(selectedCountry || selectedCity) && (
-                <button onClick={() => { setSelectedCountry(''); setSelectedCity(''); }} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
-                  <X className="w-3 h-3" /> Clear
+            <div className="mb-5 space-y-3">
+              {/* Country chips */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                <button
+                  onClick={() => { setSelectedCountry(''); setSelectedCity(''); }}
+                  className={`shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium border transition-all active:scale-95 ${
+                    !selectedCountry
+                      ? 'bg-primary text-primary-foreground border-primary shadow-md'
+                      : 'bg-card border-border text-muted-foreground hover:bg-muted'
+                  }`}
+                >
+                  <Headphones className="w-3.5 h-3.5" /> All
                 </button>
+                {countries.map(c => {
+                  const count = guides.filter(g => g.location?.includes(c)).length;
+                  return (
+                    <button
+                      key={c}
+                      onClick={() => { setSelectedCountry(c); setSelectedCity(''); }}
+                      className={`shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium border transition-all active:scale-95 ${
+                        selectedCountry === c
+                          ? 'bg-primary text-primary-foreground border-primary shadow-md'
+                          : 'bg-card border-border text-foreground hover:bg-muted hover:shadow-sm'
+                      }`}
+                    >
+                      <MapPin className="w-3.5 h-3.5" /> {c}
+                      <span className="text-xs opacity-70">({count})</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {/* City chips (shown when country selected) */}
+              {selectedCountry && cities.length > 1 && (
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                  <button
+                    onClick={() => setSelectedCity('')}
+                    className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all active:scale-95 ${
+                      !selectedCity
+                        ? 'bg-primary/15 text-primary border-primary/30'
+                        : 'bg-card border-border text-muted-foreground hover:bg-muted'
+                    }`}
+                  >
+                    All Cities
+                  </button>
+                  {cities.map(c => {
+                    const count = guides.filter(g => g.location?.startsWith(c)).length;
+                    return (
+                      <button
+                        key={c}
+                        onClick={() => setSelectedCity(c)}
+                        className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all active:scale-95 ${
+                          selectedCity === c
+                            ? 'bg-primary/15 text-primary border-primary/30'
+                            : 'bg-card border-border text-muted-foreground hover:bg-muted'
+                        }`}
+                      >
+                        {c} ({count})
+                      </button>
+                    );
+                  })}
+                </div>
               )}
             </div>
           )}
