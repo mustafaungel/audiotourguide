@@ -70,6 +70,8 @@ type TranslationKeys = {
   showMore: string;
   showLess: string;
   close: string;
+  autoPlay: string;
+  speed: string;
 };
 
 const translations: Record<string, TranslationKeys> = {
@@ -137,6 +139,8 @@ const translations: Record<string, TranslationKeys> = {
     showMore: 'Show more',
     showLess: 'Show less',
     close: 'Close',
+    autoPlay: 'Autoplay',
+    speed: 'Speed',
   },
   tr: {
     upNext: 'Sıradaki',
@@ -202,6 +206,8 @@ const translations: Record<string, TranslationKeys> = {
     showMore: 'Devamını göster',
     showLess: 'Daha az göster',
     close: 'Kapat',
+    autoPlay: 'Otomatik',
+    speed: 'Hız',
   },
   es: {
     upNext: 'A continuación',
@@ -267,6 +273,8 @@ const translations: Record<string, TranslationKeys> = {
     showMore: 'Ver más',
     showLess: 'Ver menos',
     close: 'Cerrar',
+    autoPlay: 'Automático',
+    speed: 'Velocidad',
   },
   fr: {
     upNext: 'À suivre',
@@ -332,6 +340,8 @@ const translations: Record<string, TranslationKeys> = {
     showMore: 'Voir plus',
     showLess: 'Voir moins',
     close: 'Fermer',
+    autoPlay: 'Lecture auto',
+    speed: 'Vitesse',
   },
   de: {
     upNext: 'Als Nächstes',
@@ -397,6 +407,8 @@ const translations: Record<string, TranslationKeys> = {
     showMore: 'Mehr anzeigen',
     showLess: 'Weniger anzeigen',
     close: 'Schließen',
+    autoPlay: 'Automatisch',
+    speed: 'Geschwindigkeit',
   },
   it: {
     upNext: 'Prossimo',
@@ -462,6 +474,8 @@ const translations: Record<string, TranslationKeys> = {
     showMore: 'Mostra di più',
     showLess: 'Mostra meno',
     close: 'Chiudi',
+    autoPlay: 'Auto',
+    speed: 'Velocità',
   },
   pt: {
     upNext: 'A seguir',
@@ -527,6 +541,8 @@ const translations: Record<string, TranslationKeys> = {
     showMore: 'Ver mais',
     showLess: 'Ver menos',
     close: 'Fechar',
+    autoPlay: 'Automático',
+    speed: 'Velocidade',
   },
   ru: {
     upNext: 'Далее',
@@ -592,6 +608,8 @@ const translations: Record<string, TranslationKeys> = {
     showMore: 'Показать больше',
     showLess: 'Показать меньше',
     close: 'Закрыть',
+    autoPlay: 'Авто',
+    speed: 'Скорость',
   },
   zh: {
     upNext: '下一个',
@@ -657,6 +675,8 @@ const translations: Record<string, TranslationKeys> = {
     showMore: '展开更多',
     showLess: '收起',
     close: '关闭',
+    autoPlay: '自动播放',
+    speed: '速度',
   },
   ja: {
     upNext: '次の再生',
@@ -722,6 +742,8 @@ const translations: Record<string, TranslationKeys> = {
     showMore: 'もっと見る',
     showLess: '閉じる',
     close: '閉じる',
+    autoPlay: '自動再生',
+    speed: '速度',
   },
   ko: {
     upNext: '다음 재생',
@@ -787,6 +809,8 @@ const translations: Record<string, TranslationKeys> = {
     showMore: '더 보기',
     showLess: '접기',
     close: '닫기',
+    autoPlay: '자동재생',
+    speed: '속도',
   },
   ar: {
     upNext: 'التالي',
@@ -852,6 +876,8 @@ const translations: Record<string, TranslationKeys> = {
     showMore: 'عرض المزيد',
     showLess: 'عرض أقل',
     close: 'إغلاق',
+    autoPlay: 'تشغيل تلقائي',
+    speed: 'السرعة',
   },
 };
 

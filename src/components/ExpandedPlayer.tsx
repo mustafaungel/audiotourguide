@@ -351,61 +351,44 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
             </button>
           </div>
 
-          {/* Speed control */}
-          <div className="flex justify-center gap-3 pb-6">
-            {/* Speed control - inline toggle */}
-            <div className="relative">
-              <button
-                onClick={() => { haptics.medium(); setShowSpeedPicker(!showSpeedPicker); }}
-                className="h-10 px-5 rounded-full bg-foreground/10 backdrop-blur-sm border border-foreground/10 flex items-center gap-2 active:scale-95 active:bg-foreground/20 transition-all"
-              >
-                <span className="text-sm font-bold text-foreground tabular-nums">
-                  {playbackSpeed === 1.0 ? '1.0×' : `${playbackSpeed}×`}
-                </span>
-                <span className="text-xs text-foreground/50">Speed</span>
-              </button>
-              {showSpeedPicker && (
-                <div className="absolute bottom-12 left-1/2 -translate-x-1/2 bg-background/95 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl p-2 flex gap-1 z-[80]">
-                  {speedOptions.map((speed) => (
-                    <button
-                      key={speed}
-                      onClick={() => { haptics.selection(); onSpeedChange(speed); setShowSpeedPicker(false); }}
-                      className={cn(
-                        "h-9 px-3 rounded-xl text-sm font-bold transition-all active:scale-90",
-                        playbackSpeed === speed
-                          ? "bg-primary text-primary-foreground shadow-sm"
-                          : "text-foreground/70 hover:bg-foreground/10"
-                      )}
-                    >
-                      {speed}×
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+          {/* Speed + Auto controls */}
+          <div className="flex justify-center items-center gap-3 pb-6">
+            {/* Speed - tap to cycle */}
+            <button
+              onClick={() => {
+                haptics.selection();
+                const idx = speedOptions.indexOf(playbackSpeed);
+                onSpeedChange(speedOptions[(idx + 1) % speedOptions.length]);
+              }}
+              className="h-10 min-w-[72px] px-4 rounded-full bg-foreground/10 backdrop-blur-sm border border-foreground/10 flex items-center justify-center gap-1.5 active:scale-95 active:bg-foreground/20 transition-all"
+            >
+              <span className="text-sm font-bold text-foreground tabular-nums">
+                {playbackSpeed}×
+              </span>
+            </button>
 
-            {/* Auto-advance pill */}
+            {/* Auto-advance toggle */}
             {onToggleAutoAdvance && (
               <button
                 onClick={() => { haptics.medium(); onToggleAutoAdvance(); }}
                 className={cn(
-                  "h-10 px-5 rounded-full backdrop-blur-sm border flex items-center gap-2 active:scale-95 transition-all",
+                  "h-10 px-4 rounded-full flex items-center gap-2 active:scale-95 transition-all border",
                   autoAdvance
-                    ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/25"
-                    : "bg-foreground/10 border-foreground/10 text-foreground/50 active:bg-foreground/20"
+                    ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/30"
+                    : "bg-foreground/10 border-foreground/10 text-muted-foreground"
                 )}
               >
-                <span className="text-sm font-bold">{autoAdvance ? '▶ Auto' : 'Auto'}</span>
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill={autoAdvance ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+                <span className="text-sm font-bold">{t('autoPlay', lang) || 'Autoplay'}</span>
               </button>
             )}
           </div>
         </div>
       </div>
 
-      {/* Speed picker backdrop - closes on tap outside */}
-      {showSpeedPicker && (
-        <div className="fixed inset-0 z-[75]" onClick={() => setShowSpeedPicker(false)} />
-      )}
+      {/* No backdrop needed - speed is now tap-to-cycle */}
     </>
   );
 

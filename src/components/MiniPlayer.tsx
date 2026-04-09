@@ -172,20 +172,22 @@ export const MiniPlayer = React.memo<MiniPlayerProps>(({
           </div>
 
           {/* Speed + Auto */}
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center gap-1 shrink-0">
             {onSpeedChange && (
               <button data-play-btn onClick={(e) => { e.stopPropagation(); cycleSpeed(); }}
-                className="h-8 min-w-[36px] px-2.5 rounded-lg flex items-center justify-center text-[11px] font-bold text-foreground bg-muted/60 border border-border/30 active:scale-90 active:bg-muted transition-all tabular-nums">
+                className="h-8 min-w-[34px] px-2 rounded-lg flex items-center justify-center text-[11px] font-bold text-foreground bg-muted/60 border border-border/30 active:scale-90 active:bg-muted transition-all tabular-nums">
                 {playbackSpeed}x
               </button>
             )}
             {onToggleAutoAdvance && (
               <button data-play-btn onClick={(e) => { e.stopPropagation(); haptics.medium(); onToggleAutoAdvance(); }}
-                className={cn("h-8 min-w-[36px] px-2.5 rounded-lg flex items-center justify-center text-[11px] font-bold border active:scale-90 transition-all",
+                className={cn("h-8 w-8 rounded-lg flex items-center justify-center active:scale-90 transition-all border",
                   autoAdvance
                     ? "bg-primary text-primary-foreground border-primary shadow-sm shadow-primary/20"
-                    : "bg-muted/60 text-muted-foreground border-border/30")}>
-                {autoAdvance ? '▶' : '▶'}
+                    : "bg-muted/60 text-muted-foreground/40 border-border/30")}>
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill={autoAdvance ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2.5">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
               </button>
             )}
           </div>
