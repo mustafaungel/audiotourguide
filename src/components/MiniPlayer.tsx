@@ -67,7 +67,7 @@ interface MiniPlayerProps {
   onToggleAutoAdvance?: () => void;
 }
 
-const SPEED_OPTIONS = [0.75, 1, 1.25, 1.5, 2];
+const SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
 export const MiniPlayer = React.memo<MiniPlayerProps>(({
   title,
@@ -98,8 +98,15 @@ export const MiniPlayer = React.memo<MiniPlayerProps>(({
   };
 
   const cycleSpeed = () => {
+    // When at normal (1x) or unknown speed, go to 0.5 (slowest)
+    // Otherwise advance to next speed in sequence
     const currentIndex = SPEED_OPTIONS.indexOf(playbackSpeed);
-    const nextSpeed = SPEED_OPTIONS[(currentIndex + 1) % SPEED_OPTIONS.length];
+    let nextSpeed: number;
+    if (currentIndex === -1 || currentIndex === SPEED_OPTIONS.length - 1) {
+      nextSpeed = SPEED_OPTIONS[0]; // Back to 0.5
+    } else {
+      nextSpeed = SPEED_OPTIONS[currentIndex + 1];
+    }
     onSpeedChange?.(nextSpeed);
     haptics.light();
   };

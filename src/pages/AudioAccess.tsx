@@ -45,8 +45,8 @@ export default function AudioAccess() {
   const openGuideId = searchParams.get('open_guide_id');
 
   // Only re-verify when guideId, accessCode, or sessionId changes
-  // Skip re-fetch when user changes if we already have access
   const hasLoadedRef = useRef(false);
+  const loadingRef = useRef(false);
 
   useEffect(() => {
     if (!guideId) {
@@ -55,12 +55,12 @@ export default function AudioAccess() {
       return;
     }
 
-    // Don't re-fetch if we already have access and only user changed
-    if (hasLoadedRef.current && hasAccess && guide) {
-      return;
-    }
+    // Prevent double-load (React StrictMode or rapid re-renders)
+    if (hasLoadedRef.current && hasAccess && guide) return;
+    if (loadingRef.current) return;
 
-    verifyAccessAndLoadGuide();
+    loadingRef.current = true;
+    verifyAccessAndLoadGuide().finally(() => { loadingRef.current = false; });
   }, [guideId, accessCode, sessionId]);
 
   // Refresh when ?refresh=1 is present
