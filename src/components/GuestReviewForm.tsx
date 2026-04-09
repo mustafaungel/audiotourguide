@@ -56,6 +56,17 @@ export const GuestReviewForm = ({ guideId, onReviewSubmitted, lang = 'en' }: Gue
       return;
     }
 
+    // Spam protection: 5-minute cooldown per guide
+    const cooldownKey = `review_cooldown_${guideId}`;
+    const lastSubmit = localStorage.getItem(cooldownKey);
+    if (lastSubmit && Date.now() - parseInt(lastSubmit) < 5 * 60 * 1000) {
+      toast.error('Please wait a few minutes before submitting another review.');
+      return;
+    }
+
+    // Sanitize input (strip HTML tags)
+    const sanitize = (str: string) => str.replace(/<[^>]*>/g, '').trim();
+
     setLoading(true);
 
     try {
@@ -63,9 +74,9 @@ export const GuestReviewForm = ({ guideId, onReviewSubmitted, lang = 'en' }: Gue
         .from('guest_reviews')
         .insert({
           guide_id: guideId,
-          name: formData.name.trim(),
+          name: sanitize(formData.name),
           email: formData.email.trim().toLowerCase(),
-          comment: formData.comment.trim(),
+          comment: sanitize(formData.comment),
           rating: formData.rating
         });
 
@@ -84,6 +95,7 @@ export const GuestReviewForm = ({ guideId, onReviewSubmitted, lang = 'en' }: Gue
       }
 
       toast.success(t('reviewSuccess', lang));
+      localStorage.setItem(cooldownKey, Date.now().toString());
       setFormData({ name: '', email: '', comment: '', rating: 0 });
       onReviewSubmitted?.();
     } catch (error) {

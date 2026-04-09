@@ -39,7 +39,7 @@ interface GuideItem {
   display_order: number;
   languages: string[];
   slug: string;
-  master_access_code: string | null;
+  share_url: string | null;
 }
 
 interface LinkedGuideInfo {
@@ -89,15 +89,15 @@ const SortableGuideRow = ({
   const isPending = guide.is_published && !guide.is_approved;
 
   const handlePreview = () => {
-    if (guide.master_access_code) {
-      window.open(`/access/${guide.id}?access_code=${guide.master_access_code}`, '_blank');
+    if (guide.share_url) {
+      window.open(guide.share_url, '_blank');
     } else {
       toast.error('No access code for this guide');
     }
   };
 
-  const accessLink = guide.master_access_code
-    ? buildAccessUrl(guide.id, guide.master_access_code, 'public')
+  const accessLink = guide.share_url
+    ? guide.share_url
     : null;
   const detailLink = `${getBaseUrl()}/guide/${guide.slug}`;
 
@@ -366,7 +366,7 @@ export const AdminGuideOrderManager = ({ onCreateNew, onEdit }: { onCreateNew?: 
     try {
       const { data, error } = await supabase
         .from('audio_guides')
-        .select('id, title, location, is_published, is_approved, is_standalone, price_usd, display_order, languages, slug, master_access_code')
+        .select('id, title, location, is_published, is_approved, is_standalone, price_usd, display_order, languages, slug, share_url')
         .order('display_order', { ascending: true })
         .order('created_at', { ascending: false });
 
