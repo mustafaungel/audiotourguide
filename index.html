@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Audio Tour Guides - Discover World Heritage Sites & Cultural Experiences</title>
     <link rel="icon" href="/logo-audio-tour-guides.png" type="image/png">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#e8622c">
     <meta name="description" content="Explore UNESCO World Heritage sites and cultural attractions with professional audio tour guides. Discover hidden stories, local traditions, and historical insights from around the world." />
     <meta name="keywords" content="audio tour guides, UNESCO sites, cultural tours, travel guides, museum tours, heritage sites, tourism audio guides, world attractions" />
     <!-- Performance Hints -->
@@ -22,12 +24,15 @@
     <meta property="og:title" content="Audio Tour Guides - Discover World Heritage Sites & Cultural Experiences" />
     <meta property="og:description" content="Explore UNESCO World Heritage sites and cultural attractions with professional audio tour guides. Discover hidden stories and historical insights." />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta property="og:image" content="https://guided-sound-ai.lovable.app/logo-audio-tour-guides.png" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@lovable_dev" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta name="twitter:site" content="@audiotourguides" />
+    <meta name="twitter:image" content="https://guided-sound-ai.lovable.app/logo-audio-tour-guides.png" />
     
+    <!-- Security: Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co https://*.stripe.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://api.openai.com https://api.elevenlabs.io; frame-src 'self' https://js.stripe.com https://hooks.stripe.com;">
+
     <!-- Critical CSS for above-the-fold content (eliminates render-blocking) -->
     <style>
       *,::before,::after{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}
@@ -48,6 +53,7 @@
   </head>
 
   <body>
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:z-[99999] focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-white focus:text-black focus:rounded focus:shadow-lg focus:text-sm focus:font-medium">Skip to main content</a>
     <div id="root">
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:hsl(25,20%,96%);gap:20px">
         <div style="width:48px;height:48px;border-radius:50%;background:hsl(22,88%,52%,0.1);display:flex;align-items:center;justify-content:center;animation:ip 2s ease-in-out infinite">

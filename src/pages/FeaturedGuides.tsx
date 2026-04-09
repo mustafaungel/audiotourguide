@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AudioGuideLoader } from '@/components/AudioGuideLoader';
 import { useNavigate } from 'react-router-dom';
+import { SEO } from '@/components/SEO';
 import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -102,6 +103,21 @@ const FeaturedGuides = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Featured Audio Guides"
+        description="Explore our handpicked collection of the best audio tour guides for UNESCO World Heritage sites and cultural attractions worldwide."
+        canonicalUrl="https://guided-sound-ai.lovable.app/featured-guides"
+        structuredData={[
+          {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://guided-sound-ai.lovable.app" },
+              { "@type": "ListItem", "position": 2, "name": "Featured Guides", "item": "https://guided-sound-ai.lovable.app/featured-guides" }
+            ]
+          }
+        ]}
+      />
       <Navigation />
       
       {/* Header Section */}

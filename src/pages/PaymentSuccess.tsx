@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { AudioGuideLoader } from '@/components/AudioGuideLoader';
 import { useSearchParams, Link } from 'react-router-dom';
+import { SEO } from '@/components/SEO';
 import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -142,6 +143,11 @@ export default function PaymentSuccess() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Payment Successful"
+        description="Your payment was successful. Enjoy your audio tour guide!"
+        noindex={true}
+      />
       <Navigation />
       
       <div className="max-w-2xl mx-auto px-6 py-16">

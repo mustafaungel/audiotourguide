@@ -77,6 +77,7 @@ const App = () => {
                 <Toaster />
                 <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                   <ScrollToTop />
+                  <main id="main-content">
                   <Suspense fallback={<PageLoader />}>
                     <Routes>
                       <Route path="/" element={<Index />} />
@@ -96,6 +97,7 @@ const App = () => {
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </Suspense>
+                </main>
                 </BrowserRouter>
               </TooltipProvider>
             </AuthProvider>

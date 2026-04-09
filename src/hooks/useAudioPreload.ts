@@ -20,7 +20,9 @@ export const useAudioPreload = (sections: Section[], currentIndex: number) => {
     audio.src = nextSection.audio_url;
     
     return () => {
-      audio.src = '';
+      audio.pause();
+      audio.removeAttribute('src');
+      audio.load();
     };
   }, [currentIndex, sections]);
 };

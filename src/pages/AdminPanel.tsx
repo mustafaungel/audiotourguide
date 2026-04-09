@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-
+import { SEO } from '@/components/SEO';
 import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -331,8 +331,13 @@ const AdminPanel = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Admin Panel"
+        description="Admin panel for managing audio tour guides."
+        noindex={true}
+      />
       <Navigation />
-      
+
       <div className="container mx-auto px-4 py-6 md:py-8 pb-safe">
         <div className="mb-6 md:mb-8">
           <h1 className="text-2xl md:text-3xl font-bold mb-2">Admin Panel</h1>

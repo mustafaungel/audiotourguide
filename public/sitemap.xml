@@ -3,33 +3,33 @@
   <!-- Homepage -->
   <url>
     <loc>https://guided-sound-ai.lovable.app/</loc>
-    <lastmod>2025-01-06</lastmod>
+    <lastmod>2026-04-09</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
-  
+
   <!-- Main Pages -->
   <url>
     <loc>https://guided-sound-ai.lovable.app/guides</loc>
-    <lastmod>2025-01-06</lastmod>
+    <lastmod>2026-04-09</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
-  
+
   <url>
     <loc>https://guided-sound-ai.lovable.app/country</loc>
-    <lastmod>2025-01-06</lastmod>
+    <lastmod>2026-04-09</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
-  
+
   <url>
     <loc>https://guided-sound-ai.lovable.app/featured-guides</loc>
-    <lastmod>2025-01-06</lastmod>
+    <lastmod>2026-04-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
-  
-  <!-- Note: Dynamic guide pages will be indexed via Google's crawling -->
-  <!-- Add specific guide URLs here when they are created -->
+
+  <!-- Note: Individual guide pages are served by the dynamic sitemap at -->
+  <!-- https://dsaqlgxajdnwoqvtsrqd.supabase.co/functions/v1/generate-sitemap -->
 </urlset>

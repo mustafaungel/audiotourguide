@@ -1,5 +1,6 @@
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { AudioGuideLoader } from '@/components/AudioGuideLoader';
+import { SEO } from '@/components/SEO';
 import { useState, useEffect } from "react";
 import { MultiTabAudioPlayer } from "@/components/MultiTabAudioPlayer";
 import { Button } from "@/components/ui/button";
@@ -671,6 +672,11 @@ export default function AudioAccess() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title={guide?.title ? `${guide.title} - Audio Access` : "Audio Access"}
+        description={guide?.description || "Access your audio tour guide."}
+        noindex={true}
+      />
       {/* iOS-style minimal navbar */}
       <div className="sticky top-0 z-50 bg-background/95 border-b border-border/30 shadow-sm">
         <div className="grid grid-cols-[48px_1fr_48px] items-center px-2 min-h-12 h-auto py-1">

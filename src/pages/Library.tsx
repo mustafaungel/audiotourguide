@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Navigation } from '@/components/Navigation';
+import { SEO } from '@/components/SEO';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -124,6 +125,11 @@ export default function Library() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="My Library"
+        description="Access your purchased audio tour guides."
+        noindex={true}
+      />
       <Navigation />
       
       <div className="max-w-7xl mx-auto px-6 py-16">

@@ -25,10 +25,21 @@ export default defineConfig(({ mode }) => ({
       output: {
         chunkFileNames: 'assets/[name]-[hash]-v3.js',
         entryFileNames: 'assets/[name]-[hash]-v3.js',
-        assetFileNames: 'assets/[name]-[hash]-v3.[ext]'
+        assetFileNames: 'assets/[name]-[hash]-v3.[ext]',
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-ui': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-tabs', '@radix-ui/react-toast', '@radix-ui/react-tooltip', '@radix-ui/react-select'],
+          'vendor-stripe': ['@stripe/stripe-js', '@stripe/react-stripe-js'],
+          'vendor-query': ['@tanstack/react-query'],
+        }
       }
     },
-    chunkSizeWarningLimit: 500,
-    sourcemap: false
+    chunkSizeWarningLimit: 300,
+    sourcemap: false,
+    minify: 'esbuild',
+    target: 'es2020',
+  },
+  esbuild: {
+    drop: mode === 'production' ? ['console', 'debugger'] : [],
   }
 }));
