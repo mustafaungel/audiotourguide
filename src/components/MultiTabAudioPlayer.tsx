@@ -249,10 +249,14 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     }
     setSelectedGuideId(prev => {
       if (prev === guideId) {
-        // Closing: trigger exit animation
+        // Closing: trigger exit animation, then remove after animation completes
         setClosingGuideId(guideId);
-        setTimeout(() => setClosingGuideId(null), 280);
-        return null;
+        setTimeout(() => {
+          setClosingGuideId(null);
+          setSelectedGuideId(null);
+        }, 280);
+        // Keep selected during animation to prevent layout jump
+        return guideId;
       }
       // Opening a new one: close old with animation if exists
       if (prev) {
