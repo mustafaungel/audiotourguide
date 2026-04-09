@@ -12,23 +12,32 @@ import { t } from '@/lib/translations';
 const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; duration: number; isPlaying: boolean }> = ({ scriptText, currentTime, duration }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Split into sentences (not paragraphs) for smoother flow
+  // Split into ~2-3 sentence groups for balanced tracking
   const lines = useMemo(() => {
-    // Split by sentences for more granular tracking
-    const sentences = scriptText
-      .replace(/\n\n+/g, ' ')
-      .replace(/([.!?])\s+/g, '$1\n')
-      .split('\n')
-      .map(s => s.trim())
-      .filter(s => s.length > 10);
+    if (!scriptText || duration <= 0) return [];
 
-    if (sentences.length === 0) return [];
-    const totalWords = sentences.reduce((sum, s) => sum + s.split(/\s+/).length, 0);
-    let cumWords = 0;
-    return sentences.map(text => {
-      const words = text.split(/\s+/).length;
-      const startPct = cumWords / totalWords;
-      cumWords += words;
+    // Split by sentences
+    const allSentences = scriptText
+      .replace(/\n\n+/g, ' ')
+      .replace(/\n/g, ' ')
+      .split(/(?<=[.!?])\s+/)
+      .map(s => s.trim())
+      .filter(s => s.length > 5);
+
+    if (allSentences.length === 0) return [];
+
+    // Group every 2 sentences together for smoother flow
+    const groups: string[] = [];
+    for (let i = 0; i < allSentences.length; i += 2) {
+      const chunk = allSentences.slice(i, i + 2).join(' ');
+      if (chunk.length > 5) groups.push(chunk);
+    }
+
+    const totalChars = groups.reduce((sum, g) => sum + g.length, 0);
+    let cumChars = 0;
+    return groups.map(text => {
+      const startPct = cumChars / totalChars;
+      cumChars += text.length;
       return { text, startTime: startPct * duration };
     });
   }, [scriptText, duration]);

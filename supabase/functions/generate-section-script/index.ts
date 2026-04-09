@@ -74,6 +74,7 @@ Critical rules:
 - Write for SPOKEN delivery — this will be read aloud by a professional voice
 - Use contractions and natural speech patterns appropriate for ${lang}
 - No markdown, no headers, no bullet points, no asterisks — pure narration text only
+- NEVER use quotation marks (" " ' ') in the script — they cause problems in text-to-speech. Rephrase quoted speech as indirect speech instead
 - Every historical fact must be accurate and verifiable for ${place} in ${city}, ${country}`
           },
           {
@@ -102,7 +103,12 @@ Write a compelling, factually accurate narration that makes the visitor feel the
     }
 
     const data = await response.json();
-    const script = data.choices[0].message.content.trim();
+    // Clean quotes that cause TTS issues
+    const script = data.choices[0].message.content.trim()
+      .replace(/[""]/g, '')
+      .replace(/['']/g, "'")
+      .replace(/["]/g, '')
+      .replace(/\s{2,}/g, ' ');
 
     return new Response(JSON.stringify({ script, section_title: section.title, language: lang }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
