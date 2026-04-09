@@ -143,7 +143,9 @@ export function AddLanguageDialog({ open, onClose, guideId, guideTitle, guideLoc
         const { data: titleTrans } = await supabase.functions.invoke('translate-script', {
           body: { script: orig.title, source_language: 'English', target_language: selectedLangName, place: guideTitle, section_title: orig.title }
         });
-        const translatedTitle = cleanMarkers(titleTrans?.translated_script || orig.title);
+        // Keep only first line of title (GPT sometimes adds full paragraphs)
+        const rawTitle = cleanMarkers(titleTrans?.translated_script || orig.title);
+        const translatedTitle = rawTitle.split('\n')[0].trim();
 
         // Step 2: Translate description/script
         setProgress({ current: i * 3 + 1, total: total * 3, message: `Translating script ${i + 1}/${total}...` });
