@@ -17,7 +17,7 @@ serve(async (req) => {
       throw new Error('OPENAI_API_KEY is not configured');
     }
 
-    const { country, city, place, section, previous_ending, previous_opening, next_title, language } = await req.json();
+    const { country, city, place, section, previous_ending, previous_opening, previous_openings_list, next_title, language } = await req.json();
     if (!place || !section) {
       throw new Error('Place and section are required');
     }
@@ -42,19 +42,23 @@ serve(async (req) => {
 Your narration style:
 - HOOK: Start with something immediately captivating. NEVER start with "Welcome to..." or "Let me tell you about..." or any generic opening.
 
-CRITICAL OPENING VARIETY RULE:
-You MUST use a COMPLETELY DIFFERENT opening technique for EACH section. NEVER repeat the same opening style as the previous section. Rotate through these techniques:
-1. A startling historical fact or date
-2. A rhetorical question to the listener
-3. A vivid sound or smell description ("Listen closely... you might hear...")
-4. A dramatic scene-setting ("The year is 537 AD...")
-5. A surprising statistic or measurement
-6. A local legend or myth opening
-7. A famous quote from a historical figure
-8. A direct sensory observation ("Run your fingers along this wall...")
-9. A contrast between past and present
-10. An anecdote about a specific person who was here
-If the previous section started with "Imagine...", you MUST NOT use "Imagine" or any visualization command. If the previous used a question, you MUST NOT start with a question. Each opening must feel fresh and unpredictable.
+ABSOLUTE OPENING RULES (VIOLATION = FAILURE):
+- BANNED PHRASES for opening: "Listen closely", "Imagine", "Picture this", "Have you ever wondered", "As you stand here", "Welcome to". Using ANY of these more than ONCE across the entire tour is FORBIDDEN.
+- Every section MUST open with a completely unique first sentence that has NEVER been used in any previous section.
+- If a list of previous openings is provided, you MUST NOT start with ANY similar pattern.
+- Vary opening techniques across these (use each AT MOST ONCE in the entire tour):
+  * A specific historical date and event ("On September 14, 1509, an earthquake...")
+  * A direct factual statement ("This column weighs 70 tonnes.")
+  * A quote from a historical figure
+  * A surprising comparison ("Taller than a 15-story building...")
+  * A local legend starting mid-story
+  * An architectural observation about what you can physically see
+  * A sound or atmosphere description (but NOT "Listen closely")
+  * A question (but NOT "Have you ever wondered")
+  * An anecdote about a specific named person
+  * A contrast between two time periods
+- ALSO BANNED: Starting consecutive sections with the same part of speech (two questions in a row, two imperatives in a row, etc.)
+- The transitions between sections should feel natural but NOT use formulaic phrases like "As we prepare to move on" or "Let's continue our journey". Be creative with transitions too.
 - STORYTELLING: Weave facts into compelling narratives. You are telling a STORY, not giving a lecture. Every fact should serve the narrative.
 - HUMOR: Include 1-2 clever observations or witty remarks that feel natural and intelligent. The humor should make the listener smile, never cringe. Think of it as the kind of comment a well-read, charming friend would make.
 - SENSORY: Paint vivid pictures with words — describe the golden light hitting ancient stones, the echo of footsteps in vaulted halls, the scent of cypress trees, the rough texture of centuries-old walls.
@@ -81,7 +85,7 @@ Section details:
 - Key topics to cover: ${(section.key_topics || []).join(', ')}
 - Mood/tone: ${section.mood || 'engaging'}
 - Fun fact to include: ${section.fun_fact || ''}
-${previous_ending ? `\nCONTINUITY - The previous section ended with:\n"${previous_ending}"\n${previous_opening ? `\nThe previous section STARTED with: "${previous_opening}"\nYou MUST use a COMPLETELY DIFFERENT opening technique. Do NOT start similarly.` : ''}\n\nCRITICAL: This section MUST feel like a natural continuation of the tour. Reference what was just discussed, use a connecting phrase, and build upon the narrative thread. Do NOT start as if this is a new, disconnected story.` : '\nThis is the OPENING section of the tour. Set the scene, create excitement, and give the visitor a reason to listen to every section.'}
+${previous_ending ? `\nCONTINUITY - The previous section ended with:\n"${previous_ending}"\n${previous_opening ? `\nThe previous section STARTED with: "${previous_opening}"\nYou MUST use a COMPLETELY DIFFERENT opening technique.` : ''}${previous_openings_list ? `\n\nALL PREVIOUS OPENINGS (DO NOT REPEAT ANY OF THESE PATTERNS):\n${previous_openings_list}\n\nYour opening MUST be completely different from ALL of the above.` : ''}\n\nThis section should feel connected to the previous one but start with a FRESH, UNIQUE opening.` : '\nThis is the OPENING section of the tour. Start with a dramatic, captivating hook. Do NOT use "Imagine" or "Listen closely" — save those for later sections if needed.'}
 ${next_title ? `\nThe next section is: "${next_title}"\nEnd by naturally leading the visitor toward the next stop. Create anticipation without being forced.` : '\nThis is the FINAL section of the tour. End with a memorable reflection, recommend the best photo spots, mention what to see nearby, and thank the listener for joining the tour.'}
 
 Write a compelling, factually accurate narration that makes the visitor feel the magic and significance of this place. Remember: approximately ${wordCount} words, in ${lang}, pure narration text only.`

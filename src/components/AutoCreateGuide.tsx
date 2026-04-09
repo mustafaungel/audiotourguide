@@ -295,12 +295,16 @@ export function AutoCreateGuide() {
         const previousEnding = prevScript ? prevScript.slice(-500) : null;
         const previousOpening = prevScript ? prevScript.split('.')[0] + '.' : null;
 
+        // Collect ALL previous openings to prevent repetition
+        const allPreviousOpenings = scripts.map((s, idx) => `Section ${idx + 1}: "${s.split('.')[0]}."`).join('\n');
+
         const { data: scriptData, error: scriptError } = await supabase.functions.invoke('generate-section-script', {
           body: {
             country, city: finalCity, place: finalPlace,
             section: sections[i],
             previous_ending: previousEnding,
             previous_opening: previousOpening,
+            previous_openings_list: allPreviousOpenings || null,
             next_title: i < sections.length - 1 ? sections[i + 1].title : null,
             language: primaryLangName
           }
