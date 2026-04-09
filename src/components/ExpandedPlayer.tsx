@@ -79,18 +79,19 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
                 key={i}
                 data-line={i}
                 className={cn(
-                  "mb-5 text-center",
+                  "mb-7 text-center",
                   "transition-[opacity,transform,color] duration-700 ease-out",
                   isActive
-                    ? "text-foreground font-medium"
+                    ? "text-foreground"
                     : "text-muted-foreground"
                 )}
                 style={{
-                  fontFamily: "'Playfair Display', serif",
-                  fontSize: isActive ? '17px' : '15px',
-                  lineHeight: '1.75',
+                  fontFamily: "'Playfair Display', Georgia, 'Times New Roman', serif",
+                  fontSize: isActive ? '16px' : '14.5px',
+                  lineHeight: '2',
+                  letterSpacing: '0.01em',
                   opacity,
-                  transform: isActive ? 'translateY(0)' : `translateY(${i > activeIdx ? '4px' : '-2px'})`,
+                  transform: isActive ? 'translateY(0)' : `translateY(${i > activeIdx ? '3px' : '-1px'})`,
                 }}
               >
                 {line.text}
@@ -350,22 +351,31 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
           </div>
 
           {/* Speed control */}
-          <div className="flex justify-center gap-3 pb-6">
+          <div className="flex justify-center gap-2.5 pb-6">
+            {/* Speed control pill */}
             <button
               onClick={() => { haptics.medium(); setShowSpeedSheet(true); }}
-              className="px-4 py-2 rounded-full bg-muted/50 text-sm font-semibold text-foreground active:scale-95 transition-transform"
+              className="h-9 px-4 rounded-full bg-foreground/10 backdrop-blur-sm border border-foreground/5 flex items-center gap-1.5 active:scale-95 transition-all"
             >
-              {playbackSpeed === 1.0 ? t('normal', lang) : `${playbackSpeed}×`}
+              <svg className="w-3.5 h-3.5 text-foreground/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span className="text-xs font-bold text-foreground tabular-nums">
+                {playbackSpeed === 1.0 ? '1.0×' : `${playbackSpeed}×`}
+              </span>
             </button>
+
+            {/* Auto-advance pill */}
             {onToggleAutoAdvance && (
               <button
                 onClick={() => { haptics.light(); onToggleAutoAdvance(); }}
                 className={cn(
-                  "px-4 py-2 rounded-full text-sm font-semibold active:scale-95 transition-all",
-                  autoAdvance ? "bg-primary/15 text-primary" : "bg-muted/50 text-muted-foreground"
+                  "h-9 px-4 rounded-full backdrop-blur-sm border flex items-center gap-1.5 active:scale-95 transition-all",
+                  autoAdvance
+                    ? "bg-primary/15 border-primary/30 text-primary"
+                    : "bg-foreground/10 border-foreground/5 text-foreground/50"
                 )}
               >
-                Auto ▶
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+                <span className="text-xs font-bold">Auto</span>
               </button>
             )}
           </div>

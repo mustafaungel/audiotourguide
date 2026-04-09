@@ -671,8 +671,9 @@ export default function AudioAccess() {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title={guide?.title ? `${guide.title} - Audio Access` : "Audio Access"}
-        description={guide?.description || "Access your audio tour guide."}
+        title={guide?.title ? `${guide.title} in ${guide.location}` : "Audio Access"}
+        description={guide?.description || `Listen to ${guide?.title} audio tour guide. Professional narration in multiple languages.`}
+        image={guideImageUrl !== '/hero-audio-guide.jpg' ? guideImageUrl : undefined}
         noindex={true}
       />
       {/* iOS-style minimal navbar */}

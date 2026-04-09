@@ -46,6 +46,8 @@ interface MiniPlayerProps {
   onSpeedChange?: (speed: number) => void;
   onPrevious?: () => void;
   onNext?: () => void;
+  autoAdvance?: boolean;
+  onToggleAutoAdvance?: () => void;
 }
 
 const SPEED_OPTIONS = [0.75, 1, 1.25, 1.5, 2];
@@ -64,6 +66,8 @@ export const MiniPlayer = React.memo<MiniPlayerProps>(({
   onSpeedChange,
   onPrevious,
   onNext,
+  autoAdvance,
+  onToggleAutoAdvance,
   playbackSpeed = 1,
   variant = 'fixed',
 }) => {
@@ -163,13 +167,22 @@ export const MiniPlayer = React.memo<MiniPlayerProps>(({
             </button>
           </div>
 
-          {/* Speed */}
-          {onSpeedChange && (
-            <button data-play-btn onClick={(e) => { e.stopPropagation(); cycleSpeed(); }}
-              className="h-7 px-2 rounded-md flex items-center justify-center shrink-0 text-[10px] font-bold text-muted-foreground bg-muted/50 active:scale-90 transition-transform tabular-nums">
-              {playbackSpeed}x
-            </button>
-          )}
+          {/* Speed + Auto */}
+          <div className="flex items-center gap-1 shrink-0">
+            {onSpeedChange && (
+              <button data-play-btn onClick={(e) => { e.stopPropagation(); cycleSpeed(); }}
+                className="h-7 px-2 rounded-md flex items-center justify-center text-[10px] font-bold text-muted-foreground bg-muted/40 active:scale-90 transition-transform tabular-nums">
+                {playbackSpeed}x
+              </button>
+            )}
+            {onToggleAutoAdvance && (
+              <button data-play-btn onClick={(e) => { e.stopPropagation(); haptics.light(); onToggleAutoAdvance(); }}
+                className={cn("h-7 px-1.5 rounded-md flex items-center justify-center text-[9px] font-bold active:scale-90 transition-all",
+                  autoAdvance ? "bg-primary/20 text-primary" : "bg-muted/40 text-muted-foreground/40")}>
+                A
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Progress bar at bottom */}
