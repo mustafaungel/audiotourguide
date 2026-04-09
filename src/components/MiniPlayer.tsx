@@ -6,30 +6,36 @@ import { haptics } from '@/lib/haptics';
 // Marquee component for long titles
 const MarqueeText: React.FC<{ text: string; className?: string }> = ({ text, className }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const textRef = useRef<HTMLSpanElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
   const [shouldScroll, setShouldScroll] = useState(false);
 
   useEffect(() => {
-    // Delay measurement to ensure portal is mounted
-    const timer = setTimeout(() => {
-      if (containerRef.current && textRef.current) {
-        setShouldScroll(textRef.current.scrollWidth > containerRef.current.clientWidth + 5);
+    const check = () => {
+      if (containerRef.current && innerRef.current) {
+        const overflow = innerRef.current.scrollWidth > containerRef.current.clientWidth;
+        setShouldScroll(overflow);
       }
-    }, 100);
-    return () => clearTimeout(timer);
+    };
+    // Check after mount, after layout, and on resize
+    const t1 = setTimeout(check, 50);
+    const t2 = setTimeout(check, 300);
+    const t3 = setTimeout(check, 800);
+    const observer = new ResizeObserver(check);
+    if (containerRef.current) observer.observe(containerRef.current);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); observer.disconnect(); };
   }, [text]);
 
   return (
-    <div ref={containerRef} className={cn("overflow-hidden whitespace-nowrap", className)}>
-      <span
-        ref={textRef}
-        className={cn(shouldScroll && "inline-block animate-marquee")}
-        style={shouldScroll ? { animationDuration: `${Math.max(8, text.length * 0.25)}s` } : undefined}
+    <div ref={containerRef} className={cn("overflow-hidden", className)}>
+      <div
+        ref={innerRef}
+        className={cn("whitespace-nowrap", shouldScroll && "animate-marquee inline-block")}
+        style={shouldScroll ? { animationDuration: `${Math.max(10, text.length * 0.3)}s` } : undefined}
       >
-        {text}
-        {shouldScroll && <span className="mx-12 text-muted-foreground/30">•</span>}
-        {shouldScroll && text}
-      </span>
+        <span>{text}</span>
+        {shouldScroll && <span className="mx-16 text-muted-foreground/20">•</span>}
+        {shouldScroll && <span>{text}</span>}
+      </div>
     </div>
   );
 };
@@ -181,12 +187,12 @@ export const MiniPlayer = React.memo<MiniPlayerProps>(({
             )}
             {onToggleAutoAdvance && (
               <button data-play-btn onClick={(e) => { e.stopPropagation(); haptics.medium(); onToggleAutoAdvance(); }}
-                className={cn("h-8 w-8 rounded-lg flex items-center justify-center active:scale-90 transition-all border",
+                className={cn("h-8 w-8 rounded-lg flex items-center justify-center active:scale-90 transition-colors duration-200 border",
                   autoAdvance
-                    ? "bg-primary text-primary-foreground border-primary shadow-sm shadow-primary/20"
-                    : "bg-muted/60 text-muted-foreground/40 border-border/30")}>
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill={autoAdvance ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2.5">
-                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                    ? "bg-green-500 text-white border-green-500 shadow-sm shadow-green-500/30"
+                    : "bg-muted/60 text-muted-foreground/50 border-border/30")}>
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                  <path d="M5 4l10 8-10 8V4zM17 4h2v16h-2V4z"/>
                 </svg>
               </button>
             )}

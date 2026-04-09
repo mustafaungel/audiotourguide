@@ -80,7 +80,7 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
                 data-line={i}
                 className={cn(
                   "mb-8 text-center",
-                  "transition-[opacity,transform,color] duration-700 ease-out",
+                  "transition-[opacity,transform,color] duration-500 ease-out will-change-[opacity,transform]",
                   isActive
                     ? "text-foreground font-medium"
                     : "text-muted-foreground font-light"
@@ -372,14 +372,14 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
               <button
                 onClick={() => { haptics.medium(); onToggleAutoAdvance(); }}
                 className={cn(
-                  "h-10 px-4 rounded-full flex items-center gap-2 active:scale-95 transition-all border",
+                  "h-10 px-5 rounded-full flex items-center gap-2 active:scale-95 transition-colors duration-200 border",
                   autoAdvance
-                    ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/30"
+                    ? "bg-green-500 text-white border-green-500 shadow-lg shadow-green-500/30"
                     : "bg-foreground/10 border-foreground/10 text-muted-foreground"
                 )}
               >
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill={autoAdvance ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
-                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                  <path d="M5 4l10 8-10 8V4zM17 4h2v16h-2V4z"/>
                 </svg>
                 <span className="text-sm font-bold">{t('autoPlay', lang) || 'Autoplay'}</span>
               </button>
