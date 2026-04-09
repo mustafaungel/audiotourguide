@@ -113,24 +113,16 @@ export function AddLanguageDialog({ open, onClose, guideId, guideTitle, guideLoc
     setStep('working');
 
     try {
-      // 1. Fetch original (is_original=true) sections
+      // 1. Fetch English sections as source for translation
       const { data: origSections, error: fetchErr } = await supabase
         .from('guide_sections')
         .select('id, title, description, order_index, duration_seconds')
         .eq('guide_id', guideId)
-        .eq('is_original', true)
+        .eq('language_code', 'en')
         .order('order_index');
 
       if (fetchErr || !origSections?.length) {
-        // Fallback: try English sections
-        const { data: enSections } = await supabase
-          .from('guide_sections')
-          .select('id, title, description, order_index, duration_seconds')
-          .eq('guide_id', guideId)
-          .eq('language_code', 'en')
-          .order('order_index');
-        if (!enSections?.length) throw new Error('No original sections found');
-        origSections?.splice(0, origSections.length, ...enSections);
+        throw new Error('No English sections found to translate from');
       }
 
       const total = origSections!.length;
