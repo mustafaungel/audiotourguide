@@ -8,16 +8,24 @@ import { cn } from '@/lib/utils';
 import { haptics } from '@/lib/haptics';
 import { t } from '@/lib/translations';
 
-// Karaoke-style lyrics: only active paragraph visible, reveals as audio progresses
+// Spotify/Apple Music style lyrics view
 const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; duration: number; isPlaying: boolean }> = ({ scriptText, currentTime, duration }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const paragraphs = useMemo(() => {
-    const parts = scriptText.split(/\n\n+/).map(p => p.trim()).filter(p => p.length > 0);
-    if (parts.length === 0) return [];
-    const totalWords = parts.reduce((sum, p) => sum + p.split(/\s+/).length, 0);
+  // Split into sentences (not paragraphs) for smoother flow
+  const lines = useMemo(() => {
+    // Split by sentences for more granular tracking
+    const sentences = scriptText
+      .replace(/\n\n+/g, ' ')
+      .replace(/([.!?])\s+/g, '$1\n')
+      .split('\n')
+      .map(s => s.trim())
+      .filter(s => s.length > 10);
+
+    if (sentences.length === 0) return [];
+    const totalWords = sentences.reduce((sum, s) => sum + s.split(/\s+/).length, 0);
     let cumWords = 0;
-    return parts.map(text => {
+    return sentences.map(text => {
       const words = text.split(/\s+/).length;
       const startPct = cumWords / totalWords;
       cumWords += words;
@@ -27,19 +35,18 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
 
   const activeIdx = useMemo(() => {
     if (duration <= 0) return 0;
-    for (let i = paragraphs.length - 1; i >= 0; i--) {
-      if (currentTime >= paragraphs[i].startTime) return i;
+    for (let i = lines.length - 1; i >= 0; i--) {
+      if (currentTime >= lines[i].startTime) return i;
     }
     return 0;
-  }, [currentTime, paragraphs, duration]);
+  }, [currentTime, lines, duration]);
 
-  // Auto-scroll active paragraph into view
   useEffect(() => {
     if (!containerRef.current) return;
-    const el = containerRef.current.querySelector(`[data-para="${activeIdx}"]`) as HTMLElement;
+    const el = containerRef.current.querySelector(`[data-line="${activeIdx}"]`) as HTMLElement;
     if (el) {
       const container = containerRef.current;
-      const target = el.offsetTop - 24;
+      const target = el.offsetTop - container.clientHeight * 0.35;
       container.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
     }
   }, [activeIdx]);
@@ -47,40 +54,40 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
   return (
     <div className="h-full relative">
       <div ref={containerRef} className="h-full overflow-hidden" style={{ touchAction: 'none' }}>
-        <div className="px-2 py-4">
-          {paragraphs.map((p, i) => {
-            // Only show active paragraph and the one right before it (fading out)
+        <div className="px-1 pt-[30vh] pb-[50vh]">
+          {lines.map((line, i) => {
             const isActive = i === activeIdx;
-            const isPast = i < activeIdx;
-            const isFuture = i > activeIdx;
-            const isNearActive = Math.abs(i - activeIdx) <= 1;
+            const distance = i - activeIdx;
+            const isPast = distance < 0;
+            const isFar = Math.abs(distance) > 3;
 
             return (
-              <div
+              <p
                 key={i}
-                data-para={i}
+                data-line={i}
                 className={cn(
-                  "transition-all duration-700 ease-out mb-6",
-                  isActive && "opacity-100",
-                  isPast && isNearActive && "opacity-20",
-                  isPast && !isNearActive && "opacity-0 h-0 overflow-hidden mb-0",
-                  isFuture && "opacity-0 h-0 overflow-hidden mb-0"
+                  "py-1.5 font-semibold transition-all duration-500 ease-out",
+                  isActive && "text-[22px] leading-[1.5] text-foreground",
+                  !isActive && isPast && !isFar && "text-[20px] leading-[1.5] text-foreground/25",
+                  !isActive && !isPast && !isFar && "text-[20px] leading-[1.5] text-foreground/20",
+                  isFar && isPast && "text-[20px] leading-[1.5] text-foreground/10",
+                  isFar && !isPast && "text-[20px] leading-[1.5] text-foreground/8",
                 )}
+                style={{
+                  filter: isActive ? 'none' : `blur(${Math.min(Math.abs(distance) * 0.4, 2)}px)`,
+                  transform: isActive ? 'scale(1.02)' : 'scale(1)',
+                  transformOrigin: 'left center',
+                }}
               >
-                <p className={cn(
-                  "text-[16px] leading-[1.8]",
-                  isActive ? "text-foreground" : "text-foreground/40"
-                )}>
-                  {p.text}
-                </p>
-              </div>
+                {line.text}
+              </p>
             );
           })}
         </div>
       </div>
-      {/* Subtle top/bottom fades */}
-      <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-background to-transparent pointer-events-none z-10" />
-      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent pointer-events-none z-10" />
+      {/* Immersive gradient fades */}
+      <div className="absolute top-0 left-0 right-0 h-[35vh] bg-gradient-to-b from-background via-background/70 to-transparent pointer-events-none z-10" />
+      <div className="absolute bottom-0 left-0 right-0 h-[30vh] bg-gradient-to-t from-background via-background/70 to-transparent pointer-events-none z-10" />
     </div>
   );
 };
