@@ -62,10 +62,11 @@ export function AutoCreateGuide() {
   const [placeInput, setPlaceInput] = useState('');
   const [category, setCategory] = useState('');
   const [voiceGender, setVoiceGender] = useState<'female' | 'male'>('female');
-  const [selectedVoiceId, setSelectedVoiceId] = useState('');
   const [voices, setVoices] = useState<Voice[]>([]);
   const [loadingVoices, setLoadingVoices] = useState(false);
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(['en']);
+  // Per-language voice selection: { langCode: voiceId }
+  const [voiceByLanguage, setVoiceByLanguage] = useState<Record<string, string>>({});
   const [priceUsd, setPriceUsd] = useState('499');
 
   // Suggestion state
@@ -94,9 +95,6 @@ export function AutoCreateGuide() {
         const { data, error } = await supabase.functions.invoke('list-voices', { body: {} });
         if (!error && data?.voices) {
           setVoices(data.voices);
-          // Auto-select first female voice
-          const firstFemale = data.voices.find((v: Voice) => v.gender === 'female');
-          if (firstFemale) setSelectedVoiceId(firstFemale.voice_id);
         }
       } catch { /* silent */ }
       finally { setLoadingVoices(false); }
@@ -105,6 +103,11 @@ export function AutoCreateGuide() {
 
   // Filter voices by gender
   const filteredVoices = voices.filter(v => v.gender === voiceGender);
+
+  // Set voice for a specific language
+  const setVoiceForLang = useCallback((langCode: string, voiceId: string) => {
+    setVoiceByLanguage(prev => ({ ...prev, [langCode]: voiceId }));
+  }, []);
 
   // Country selection → load cities
   const handleCountryChange = useCallback(async (countryName: string) => {
@@ -218,8 +221,9 @@ export function AutoCreateGuide() {
     if (!country || !finalCity || !finalPlace) return;
 
     setCurrentStep('creating');
-    const voiceId = selectedVoiceId || (voiceGender === 'female' ? '9BWtsMINqrJLrRacOk9x' : 'pNInz6obpgDQGcFmaJgB');
+    const defaultVoice = voiceGender === 'female' ? '9BWtsMINqrJLrRacOk9x' : 'pNInz6obpgDQGcFmaJgB';
     const primaryLang = selectedLanguages[0];
+    const getVoiceForLang = (langCode: string) => voiceByLanguage[langCode] || defaultVoice;
     const primaryLangName = ELEVENLABS_LANGUAGES.find(l => l.code === primaryLang)?.name || 'English';
     const sections = plannedSections;
 
@@ -274,7 +278,7 @@ export function AutoCreateGuide() {
           detail: `${primaryLangName}: ${i + 1}/${sections.length}`
         });
         const { data: audioData, error: audioError } = await supabase.functions.invoke('generate-audio', {
-          body: { text: scripts[i], voiceId, modelId: 'eleven_multilingual_v2' }
+          body: { text: scripts[i], voiceId: getVoiceForLang(primaryLang), modelId: 'eleven_multilingual_v2' }
         });
         if (audioError || !audioData?.audio_url) throw new Error(`Failed to generate audio for section ${i + 1}`);
         primarySections.push({
@@ -312,7 +316,7 @@ export function AutoCreateGuide() {
           const translatedScript = transData?.translated_script || scripts[i];
           // Generate audio
           const { data: audioData } = await supabase.functions.invoke('generate-audio', {
-            body: { text: translatedScript, voiceId, modelId: 'eleven_multilingual_v2' }
+            body: { text: translatedScript, voiceId: getVoiceForLang(langCode), modelId: 'eleven_multilingual_v2' }
           });
           additionalSections.push({
             title: sections[i].title,
@@ -332,7 +336,7 @@ export function AutoCreateGuide() {
       const totalDuration = primarySections.reduce((sum, s) => sum + s.duration_seconds, 0);
 
       // SEO-friendly title and description
-      const guideTitle = `${finalCity} : ${finalPlace}`;
+      const guideTitle = `${finalPlace} Audio Guide`;
       const guideDescription = `Explore ${finalPlace} in ${finalCity}, ${country}. Professional audio tour guide with ${sections.length} stops covering history, culture, and hidden stories.`;
 
       const { data: guideData, error: guideError } = await supabase.functions.invoke('create-guide', {
@@ -487,67 +491,7 @@ export function AutoCreateGuide() {
               </div>
             )}
 
-            {/* Voice Selection */}
-            <div className="space-y-2">
-              <Label className="flex items-center gap-1.5"><Mic className="w-3.5 h-3.5" /> Voice</Label>
-              <div className="flex gap-3 mb-2">
-                <button
-                  onClick={() => { setVoiceGender('female'); const f = voices.find(v => v.gender === 'female'); if (f) setSelectedVoiceId(f.voice_id); }}
-                  className={`flex-1 px-4 py-3 rounded-xl text-sm font-medium border transition-all ${
-                    voiceGender === 'female'
-                      ? 'bg-primary/15 border-primary text-primary ring-2 ring-primary/30'
-                      : 'border-border hover:bg-muted'
-                  }`}
-                >
-                  Female
-                </button>
-                <button
-                  onClick={() => { setVoiceGender('male'); const m = voices.find(v => v.gender === 'male'); if (m) setSelectedVoiceId(m.voice_id); }}
-                  className={`flex-1 px-4 py-3 rounded-xl text-sm font-medium border transition-all ${
-                    voiceGender === 'male'
-                      ? 'bg-primary/15 border-primary text-primary ring-2 ring-primary/30'
-                      : 'border-border hover:bg-muted'
-                  }`}
-                >
-                  Male
-                </button>
-              </div>
-              {loadingVoices ? (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
-                  <Loader2 className="w-4 h-4 animate-spin" /> Loading voices...
-                </div>
-              ) : filteredVoices.length > 0 ? (
-                <div className="space-y-1.5">
-                <Select value={selectedVoiceId} onValueChange={setSelectedVoiceId}>
-                  <SelectTrigger><SelectValue placeholder="Select a voice..." /></SelectTrigger>
-                  <SelectContent className="max-h-[250px]">
-                    {filteredVoices.map(v => (
-                      <SelectItem key={v.voice_id} value={v.voice_id}>
-                        {v.name} {v.accent !== 'unknown' ? `(${v.accent})` : ''} {v.description ? `— ${v.description}` : ''}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {selectedVoiceId && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      const voice = voices.find(v => v.voice_id === selectedVoiceId);
-                      if (voice) playVoicePreview(voice.voice_id, voice.preview_url);
-                    }}
-                    className="w-full"
-                  >
-                    {playingPreview === selectedVoiceId ? '⏹ Stop Preview' : '▶ Preview Voice'}
-                  </Button>
-                )}
-                </div>
-              ) : (
-                <p className="text-xs text-muted-foreground">No voices available. Using default voice.</p>
-              )}
-            </div>
-
-            {/* Languages */}
+            {/* Languages (select first, then assign voices) */}
             <div className="space-y-2">
               <Label className="flex items-center gap-1.5"><Languages className="w-3.5 h-3.5" /> Languages ({selectedLanguages.length} selected)</Label>
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 max-h-[200px] overflow-y-auto border rounded-lg p-2">
@@ -566,6 +510,60 @@ export function AutoCreateGuide() {
                 ))}
               </div>
             </div>
+
+            {/* Per-language Voice Selection */}
+            {selectedLanguages.length > 0 && (
+              <div className="space-y-3">
+                <Label className="flex items-center gap-1.5"><Mic className="w-3.5 h-3.5" /> Voice per Language</Label>
+                <div className="flex gap-3 mb-1">
+                  <button
+                    onClick={() => setVoiceGender('female')}
+                    className={`flex-1 px-3 py-2 rounded-xl text-sm font-medium border transition-all ${
+                      voiceGender === 'female' ? 'bg-primary/15 border-primary text-primary ring-2 ring-primary/30' : 'border-border hover:bg-muted'
+                    }`}
+                  >Female</button>
+                  <button
+                    onClick={() => setVoiceGender('male')}
+                    className={`flex-1 px-3 py-2 rounded-xl text-sm font-medium border transition-all ${
+                      voiceGender === 'male' ? 'bg-primary/15 border-primary text-primary ring-2 ring-primary/30' : 'border-border hover:bg-muted'
+                    }`}
+                  >Male</button>
+                </div>
+                {loadingVoices ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+                    <Loader2 className="w-4 h-4 animate-spin" /> Loading voices...
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {selectedLanguages.map(langCode => {
+                      const langInfo = ELEVENLABS_LANGUAGES.find(l => l.code === langCode);
+                      const selectedVoice = voiceByLanguage[langCode] || '';
+                      return (
+                        <div key={langCode} className="flex items-center gap-2">
+                          <span className="text-sm font-medium w-24 shrink-0 truncate">{langInfo?.flag} {langInfo?.name}</span>
+                          <Select value={selectedVoice} onValueChange={(v) => setVoiceForLang(langCode, v)}>
+                            <SelectTrigger className="flex-1 h-9 text-xs"><SelectValue placeholder="Select voice..." /></SelectTrigger>
+                            <SelectContent className="max-h-[200px]">
+                              {filteredVoices.map(v => (
+                                <SelectItem key={v.voice_id} value={v.voice_id}>
+                                  {v.name} {v.accent !== 'unknown' ? `(${v.accent})` : ''}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {selectedVoice && (
+                            <Button variant="ghost" size="sm" className="shrink-0 px-2"
+                              onClick={() => { const v = voices.find(x => x.voice_id === selectedVoice); if (v) playVoicePreview(v.voice_id, v.preview_url); }}>
+                              {playingPreview === selectedVoice ? '⏹' : '▶'}
+                            </Button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Price */}
             <div className="space-y-2">

@@ -12,9 +12,9 @@ serve(async (req) => {
   }
 
   try {
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAIApiKey) {
-      throw new Error('OPENAI_API_KEY is not configured');
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+    if (!geminiApiKey) {
+      throw new Error('GEMINI_API_KEY is not configured');
     }
 
     const authHeader = req.headers.get('Authorization')!;
@@ -33,57 +33,67 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { title, city, country, category, prompt: customPrompt } = await req.json();
+    const { title, city, country, category } = await req.json();
 
     if (!title || !city || !country) {
       throw new Error('Title, city, and country are required');
     }
 
-    console.log('Generating image for:', { title, city, country, category });
+    console.log('Generating image with Gemini for:', { title, city, country, category });
 
-    // Use custom prompt if provided, otherwise generate one
-    const imagePrompt = customPrompt || `Ultra realistic, photorealistic professional travel photography of ${title} in ${city}, ${country}, ${category ? `${category} attraction, ` : ''}scenic view, award-winning photography, professional photographer, ultra high resolution, stunning detail, vibrant natural colors, perfect lighting, tourist perspective, masterpiece quality, National Geographic style`;
+    // Photorealistic prompt with place name text overlay
+    const imagePrompt = `A stunning ultra-realistic photograph of ${title} in ${city}, ${country}. Golden hour lighting, professional travel photography, National Geographic quality. The text "${title}" is elegantly overlaid at the bottom of the image in a clean white sans-serif font with a subtle dark gradient behind it for readability. Photorealistic, sharp focus, vivid natural colors, cinematic composition, breathtaking view. ${category ? `${category} attraction.` : ''}`;
 
-    const response = await fetch('https://api.openai.com/v1/images/generations', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'dall-e-3',
-        prompt: imagePrompt,
-        n: 1,
-        size: '1024x1024',
-        quality: 'hd',
-        response_format: 'b64_json'
-      }),
-    });
+    // Call Gemini Nano Banana Pro API
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiApiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: imagePrompt }] }],
+          generationConfig: {
+            responseModalities: ['IMAGE'],
+            imageConfig: { aspectRatio: '16:9', imageSize: '1K' }
+          }
+        }),
+      }
+    );
 
     if (!response.ok) {
-      const error = await response.json();
-      console.error('OpenAI Image API error:', error);
-      throw new Error(error.error?.message || 'Failed to generate image');
+      const errorText = await response.text();
+      console.error('Gemini API error:', response.status, errorText);
+      throw new Error(`Gemini API error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('OpenAI response structure:', { dataKeys: Object.keys(data), hasData: !!data.data });
-    
-    // Handle dall-e-3 response format
-    const imageBase64 = data.data[0].b64_json;
+
+    // Extract base64 image from Gemini response
+    let imageBase64 = null;
+    let mimeType = 'image/png';
+    const parts = data?.candidates?.[0]?.content?.parts || [];
+    for (const part of parts) {
+      if (part.inlineData) {
+        imageBase64 = part.inlineData.data;
+        mimeType = part.inlineData.mimeType || 'image/png';
+        break;
+      }
+    }
+
     if (!imageBase64) {
-      console.error('No image data received:', data);
-      throw new Error('No image data received from OpenAI');
+      console.error('No image data in Gemini response:', JSON.stringify(data).substring(0, 500));
+      throw new Error('No image data received from Gemini');
     }
 
     // Upload to Supabase Storage
+    const ext = mimeType.includes('png') ? 'png' : mimeType.includes('webp') ? 'webp' : 'jpg';
     const imageBuffer = Uint8Array.from(atob(imageBase64), c => c.charCodeAt(0));
-    const fileName = `generated-${Date.now()}-${crypto.randomUUID()}.webp`;
+    const fileName = `generated-${Date.now()}-${crypto.randomUUID()}.${ext}`;
 
     const { error: uploadError } = await supabaseClient.storage
       .from('guide-images')
       .upload(fileName, imageBuffer, {
-        contentType: 'image/webp',
+        contentType: mimeType,
         cacheControl: '3600'
       });
 
@@ -93,14 +103,14 @@ serve(async (req) => {
         .from('guide-images')
         .getPublicUrl(fileName);
       imageUrl = publicUrl;
+    } else {
+      console.error('Storage upload error:', uploadError);
     }
 
     console.log('Successfully generated and uploaded image:', { fileName, hasUrl: !!imageUrl });
 
     return new Response(JSON.stringify({
       image_url: imageUrl,
-      imageContent: imageBase64,
-      prompt: imagePrompt,
       generatedAt: new Date().toISOString()
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

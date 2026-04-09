@@ -21,7 +21,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { buildAccessUrl, getBaseUrl } from '@/lib/url-utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { GripVertical, Save, Loader2, Pencil, ExternalLink, Eye, EyeOff, Link2, ChevronDown, Copy, Plus } from 'lucide-react';
+import { GripVertical, Save, Loader2, Pencil, ExternalLink, Eye, EyeOff, Link2, ChevronDown, Copy, Plus, Trash2, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { getLanguageFlag, getLanguageName } from '@/lib/language-utils';
@@ -229,6 +229,25 @@ const SortableGuideRow = ({
               {guide.is_published ? 'Hide' : 'Publish'}
             </TooltipContent>
           </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="h-7 w-7 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
+                onClick={async () => {
+                  if (!confirm('Delete this guide and all its sections permanently?')) return;
+                  const { error } = await supabase.from('audio_guides').delete().eq('id', guide.id);
+                  if (error) { toast.error('Failed to delete'); return; }
+                  toast.success('Guide deleted');
+                  fetchGuides();
+                }}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-xs">Delete</TooltipContent>
+          </Tooltip>
         </div>
       </div>
 
@@ -288,6 +307,7 @@ export const AdminGuideOrderManager = ({ onCreateNew, onEdit }: { onCreateNew?: 
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [collections, setCollections] = useState<CollectionMap>({});
   const [guideTitles, setGuideTitles] = useState<Record<string, string>>({});
+  const [filterCountry, setFilterCountry] = useState('');
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -499,6 +519,26 @@ export const AdminGuideOrderManager = ({ onCreateNew, onEdit }: { onCreateNew?: 
           </div>
         </div>
 
+        {/* Country filter chips */}
+        {guides.length > 0 && (() => {
+          const countries = Array.from(new Set(guides.map(g => g.location?.split(',').pop()?.trim()).filter(Boolean))).sort();
+          return countries.length > 0 ? (
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-2">
+              <MapPin className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+              <button onClick={() => setFilterCountry('')}
+                className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium border transition-all ${!filterCountry ? 'bg-primary text-primary-foreground border-primary' : 'border-border hover:bg-muted'}`}>
+                All ({guides.length})
+              </button>
+              {countries.map(c => (
+                <button key={c} onClick={() => setFilterCountry(c!)}
+                  className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium border transition-all ${filterCountry === c ? 'bg-primary text-primary-foreground border-primary' : 'border-border hover:bg-muted'}`}>
+                  {c} ({guides.filter(g => g.location?.includes(c!)).length})
+                </button>
+              ))}
+            </div>
+          ) : null;
+        })()}
+
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -506,7 +546,7 @@ export const AdminGuideOrderManager = ({ onCreateNew, onEdit }: { onCreateNew?: 
         >
           <SortableContext items={guides.map((g) => g.id)} strategy={verticalListSortingStrategy}>
             <div className="space-y-1">
-              {guides.map((guide, index) => (
+              {guides.filter(g => !filterCountry || g.location?.includes(filterCountry)).map((guide, index) => (
                 <SortableGuideRow
                   key={guide.id}
                   guide={guide}
