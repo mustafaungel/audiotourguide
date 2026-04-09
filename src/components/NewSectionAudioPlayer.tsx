@@ -73,23 +73,26 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   // When sections change (e.g. language switch), stop current audio and reset
   const prevSectionsRef = useRef<Section[]>(sections);
   useEffect(() => {
-    if (prevSectionsRef.current !== sections && sections.length > 0 && audioRef.current) {
-      const wasPlaying = isPlaying;
-      const prevIndex = currentSectionIndex;
-
-      // Stop current playback
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      setIsPlaying(false);
-      setCurrentTime(0);
-      setDuration(0);
-
+    if (prevSectionsRef.current !== sections && sections.length > 0) {
       // Clear resolved URLs so new language URLs are used
       resolvedUrlsRef.current = [];
 
-      // Auto-resume same section in new language if was playing
-      if (wasPlaying && prevIndex >= 0 && prevIndex < sections.length) {
-        setTimeout(() => playSection(prevIndex), 100);
+      if (audioRef.current) {
+        const wasPlaying = isPlaying;
+        const prevIndex = currentSectionIndex;
+
+        // Stop current playback and clear src so resume uses new URL
+        audioRef.current.pause();
+        audioRef.current.removeAttribute('src');
+        audioRef.current.load();
+        setIsPlaying(false);
+        setCurrentTime(0);
+        setDuration(0);
+
+        // Auto-resume same section in new language if was playing
+        if (wasPlaying && prevIndex >= 0 && prevIndex < sections.length) {
+          setTimeout(() => playSection(prevIndex), 150);
+        }
       }
     }
     prevSectionsRef.current = sections;
