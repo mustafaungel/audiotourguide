@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Play, Pause, SkipBack, SkipForward, ChevronDown, X } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
@@ -7,6 +7,74 @@ import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { cn } from '@/lib/utils';
 import { haptics } from '@/lib/haptics';
 import { t } from '@/lib/translations';
+
+// Paragraph-tracking lyrics view
+const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; duration: number; isPlaying: boolean }> = ({ scriptText, currentTime, duration, isPlaying }) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Split into paragraphs and assign time ranges based on word count
+  const paragraphs = useMemo(() => {
+    const parts = scriptText.split(/\n\n+/).map(p => p.trim()).filter(p => p.length > 0);
+    if (parts.length === 0) return [];
+
+    const totalWords = parts.reduce((sum, p) => sum + p.split(/\s+/).length, 0);
+    let cumWords = 0;
+
+    return parts.map(text => {
+      const words = text.split(/\s+/).length;
+      const startPct = cumWords / totalWords;
+      cumWords += words;
+      const endPct = cumWords / totalWords;
+      return { text, startTime: startPct * duration, endTime: endPct * duration };
+    });
+  }, [scriptText, duration]);
+
+  // Find active paragraph index
+  const activeIdx = useMemo(() => {
+    if (duration <= 0) return 0;
+    for (let i = paragraphs.length - 1; i >= 0; i--) {
+      if (currentTime >= paragraphs[i].startTime) return i;
+    }
+    return 0;
+  }, [currentTime, paragraphs, duration]);
+
+  // Auto-scroll to active paragraph
+  useEffect(() => {
+    if (!scrollRef.current) return;
+    const active = scrollRef.current.querySelector(`[data-para="${activeIdx}"]`);
+    if (active) {
+      active.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [activeIdx]);
+
+  return (
+    <div className="h-full flex flex-col">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto overscroll-contain scroll-smooth">
+        <div className="space-y-4 py-4">
+          {paragraphs.map((p, i) => (
+            <p
+              key={i}
+              data-para={i}
+              className={cn(
+                "text-base leading-relaxed transition-all duration-500 px-1",
+                i === activeIdx
+                  ? "text-foreground font-medium scale-[1.01]"
+                  : i < activeIdx
+                    ? "text-muted-foreground/50"
+                    : "text-muted-foreground/40"
+              )}
+            >
+              {p.text}
+            </p>
+          ))}
+        </div>
+      </div>
+      {/* Fade gradients */}
+      <div className="absolute top-0 left-0 right-0 h-12 bg-gradient-to-b from-background to-transparent pointer-events-none z-10" />
+      <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-background to-transparent pointer-events-none z-10" />
+    </div>
+  );
+};
 
 interface ExpandedPlayerProps {
   open: boolean;
@@ -122,21 +190,10 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
             <div className="w-10" /> {/* Spacer */}
           </div>
 
-          {/* Script Lyrics View (Spotify-style) */}
+          {/* Script Lyrics View (Spotify-style with paragraph tracking) */}
           <div className="flex-1 relative overflow-hidden px-6 py-4">
             {scriptText ? (
-              <div className="h-full flex flex-col">
-                <div className="flex-1 overflow-y-auto overscroll-contain">
-                  <div className="relative">
-                    <p className="text-base leading-relaxed text-foreground/85 whitespace-pre-line">
-                      {scriptText}
-                    </p>
-                  </div>
-                </div>
-                {/* Top/bottom fade gradients */}
-                <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-background to-transparent pointer-events-none z-10" />
-                <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-background to-transparent pointer-events-none z-10" />
-              </div>
+              <ScriptLyricsView scriptText={scriptText} currentTime={currentTime} duration={duration} isPlaying={isPlaying} />
             ) : imageUrl ? (
               <div className="h-full flex items-center justify-center">
                 <img
