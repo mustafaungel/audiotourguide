@@ -8,24 +8,21 @@ import { cn } from '@/lib/utils';
 import { haptics } from '@/lib/haptics';
 import { t } from '@/lib/translations';
 
-// Paragraph-tracking lyrics view
-const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; duration: number; isPlaying: boolean }> = ({ scriptText, currentTime, duration, isPlaying }) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
+// Paragraph-tracking lyrics view (no manual scroll, auto-follow only)
+const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; duration: number; isPlaying: boolean }> = ({ scriptText, currentTime, duration }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Split into paragraphs and assign time ranges based on word count
   const paragraphs = useMemo(() => {
     const parts = scriptText.split(/\n\n+/).map(p => p.trim()).filter(p => p.length > 0);
     if (parts.length === 0) return [];
-
     const totalWords = parts.reduce((sum, p) => sum + p.split(/\s+/).length, 0);
     let cumWords = 0;
-
     return parts.map(text => {
       const words = text.split(/\s+/).length;
       const startPct = cumWords / totalWords;
       cumWords += words;
-      const endPct = cumWords / totalWords;
-      return { text, startTime: startPct * duration, endTime: endPct * duration };
+      return { text, startTime: startPct * duration };
     });
   }, [scriptText, duration]);
 
@@ -40,28 +37,35 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
 
   // Auto-scroll to active paragraph
   useEffect(() => {
-    if (!scrollRef.current) return;
-    const active = scrollRef.current.querySelector(`[data-para="${activeIdx}"]`);
-    if (active) {
-      active.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (!containerRef.current) return;
+    const el = containerRef.current.querySelector(`[data-para="${activeIdx}"]`) as HTMLElement;
+    if (el) {
+      const container = containerRef.current;
+      const targetScroll = el.offsetTop - container.clientHeight / 3;
+      container.scrollTo({ top: Math.max(0, targetScroll), behavior: 'smooth' });
     }
   }, [activeIdx]);
 
   return (
-    <div className="h-full flex flex-col">
-      <div ref={scrollRef} className="flex-1 overflow-y-auto overscroll-contain scroll-smooth">
-        <div className="space-y-4 py-4">
+    <div className="h-full relative">
+      {/* No manual scroll - overflow hidden, only auto-scroll via JS */}
+      <div
+        ref={containerRef}
+        className="h-full overflow-hidden"
+        style={{ touchAction: 'none' }}
+      >
+        <div className="px-2 pt-8 pb-32 space-y-5">
           {paragraphs.map((p, i) => (
             <p
               key={i}
               data-para={i}
               className={cn(
-                "text-base leading-relaxed transition-all duration-500 px-1",
+                "text-[15px] leading-[1.7] transition-all duration-700 ease-out",
                 i === activeIdx
-                  ? "text-foreground font-medium scale-[1.01]"
+                  ? "text-foreground opacity-100"
                   : i < activeIdx
-                    ? "text-muted-foreground/50"
-                    : "text-muted-foreground/40"
+                    ? "text-foreground/30 opacity-60"
+                    : "text-foreground/20 opacity-40"
               )}
             >
               {p.text}
@@ -69,9 +73,9 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
           ))}
         </div>
       </div>
-      {/* Fade gradients */}
-      <div className="absolute top-0 left-0 right-0 h-12 bg-gradient-to-b from-background to-transparent pointer-events-none z-10" />
-      <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-background to-transparent pointer-events-none z-10" />
+      {/* Strong fade gradients */}
+      <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-background via-background/80 to-transparent pointer-events-none z-10" />
+      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none z-10" />
     </div>
   );
 };
@@ -141,10 +145,22 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
   useEffect(() => {
     if (open) {
       setShouldRender(true);
+      // Lock body scroll when expanded player is open
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.top = `-${window.scrollY}px`;
       requestAnimationFrame(() => {
         requestAnimationFrame(() => setIsVisible(true));
       });
     } else {
+      // Restore body scroll
+      const scrollY = document.body.style.top;
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.top = '';
+      window.scrollTo(0, parseInt(scrollY || '0') * -1);
       setIsVisible(false);
       const timer = setTimeout(() => setShouldRender(false), 300);
       return () => clearTimeout(timer);
