@@ -16,32 +16,54 @@ serve(async (req) => {
       throw new Error('ELEVENLABS_API_KEY is not configured');
     }
 
-    // Fetch all available voices from ElevenLabs
-    const response = await fetch('https://api.elevenlabs.io/v1/voices', {
-      headers: {
-        'xi-api-key': elevenlabsApiKey,
-      },
+    // Fetch voices with v2 API for verified_languages support
+    const response = await fetch('https://api.elevenlabs.io/v2/voices?page_size=100', {
+      headers: { 'xi-api-key': elevenlabsApiKey },
     });
 
     if (!response.ok) {
-      throw new Error(`ElevenLabs API error: ${response.status}`);
+      // Fallback to v1 if v2 fails
+      const v1Response = await fetch('https://api.elevenlabs.io/v1/voices', {
+        headers: { 'xi-api-key': elevenlabsApiKey },
+      });
+      if (!v1Response.ok) throw new Error(`ElevenLabs API error: ${v1Response.status}`);
+      const v1Data = await v1Response.json();
+      const v1Voices = (v1Data.voices || []).map((v: any) => ({
+        voice_id: v.voice_id,
+        name: v.name,
+        category: v.category || 'premade',
+        gender: v.labels?.gender || 'unknown',
+        accent: v.labels?.accent || 'unknown',
+        description: v.labels?.description || v.labels?.['use case'] || '',
+        preview_url: v.preview_url || null,
+        languages: ['en'],
+      }));
+      return new Response(JSON.stringify({ voices: v1Voices }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const data = await response.json();
     const voices = data.voices || [];
 
-    // Map and categorize voices
-    const mappedVoices = voices.map((v: any) => ({
-      voice_id: v.voice_id,
-      name: v.name,
-      category: v.category || 'premade',
-      labels: v.labels || {},
-      gender: v.labels?.gender || 'unknown',
-      age: v.labels?.age || 'unknown',
-      accent: v.labels?.accent || 'unknown',
-      description: v.labels?.description || v.labels?.['use case'] || '',
-      preview_url: v.preview_url || null,
-    }));
+    const mappedVoices = voices.map((v: any) => {
+      // Extract verified language codes
+      const verifiedLangs = (v.verified_languages || []).map((l: any) => l.language_id || l.code || '');
+      const labelLang = v.labels?.language || 'en';
+      // Combine: verified languages + label language (deduplicated)
+      const allLangs = [...new Set([...verifiedLangs, labelLang].filter(Boolean))];
+
+      return {
+        voice_id: v.voice_id,
+        name: v.name,
+        category: v.category || 'premade',
+        gender: v.labels?.gender || 'unknown',
+        accent: v.labels?.accent || 'unknown',
+        description: v.labels?.description || v.labels?.['use case'] || '',
+        preview_url: v.preview_url || null,
+        languages: allLangs.length > 0 ? allLangs : ['en'],
+      };
+    });
 
     // Sort: premade first, then by name
     const sorted = mappedVoices.sort((a: any, b: any) => {

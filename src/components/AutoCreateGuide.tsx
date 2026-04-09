@@ -42,6 +42,7 @@ interface Voice {
   accent: string;
   description: string;
   preview_url: string | null;
+  languages: string[];
 }
 
 type Step = 'form' | 'plan_review' | 'generating_scripts' | 'script_review' | 'creating' | 'done_review' | 'published';
@@ -184,15 +185,14 @@ export function AutoCreateGuide() {
         setVoiceByLanguage(vbl => { const copy = { ...vbl }; delete copy[langCode]; return copy; });
         return prev.filter(l => l !== langCode);
       }
-      // Auto-assign a voice that isn't already used by another language
+      // Auto-assign: prefer native voice for this language, then unused voice
       const usedVoices = Object.values(voiceByLanguage);
-      const available = filteredVoices.find(v => !usedVoices.includes(v.voice_id));
-      if (available) {
-        setVoiceByLanguage(vbl => ({ ...vbl, [langCode]: available.voice_id }));
-      } else if (filteredVoices.length > 0) {
-        // All voices used, pick by index
-        const idx = prev.length % filteredVoices.length;
-        setVoiceByLanguage(vbl => ({ ...vbl, [langCode]: filteredVoices[idx].voice_id }));
+      const nativeVoices = filteredVoices.filter(v => v.languages?.includes(langCode));
+      const nativeAvailable = nativeVoices.find(v => !usedVoices.includes(v.voice_id));
+      const anyAvailable = filteredVoices.find(v => !usedVoices.includes(v.voice_id));
+      const picked = nativeAvailable || anyAvailable || filteredVoices[prev.length % Math.max(1, filteredVoices.length)];
+      if (picked) {
+        setVoiceByLanguage(vbl => ({ ...vbl, [langCode]: picked.voice_id }));
       }
       return [...prev, langCode];
     });
@@ -617,15 +617,18 @@ export function AutoCreateGuide() {
                     {selectedLanguages.map(langCode => {
                       const langInfo = ELEVENLABS_LANGUAGES.find(l => l.code === langCode);
                       const selectedVoice = voiceByLanguage[langCode] || '';
+                      // Filter voices: prefer native speakers of this language, fallback to all
+                      const langVoices = filteredVoices.filter(v => v.languages?.includes(langCode));
+                      const voicesForLang = langVoices.length > 0 ? langVoices : filteredVoices;
                       return (
                         <div key={langCode} className="flex items-center gap-2">
                           <span className="text-sm font-medium w-24 shrink-0 truncate">{langInfo?.flag} {langInfo?.name}</span>
                           <Select value={selectedVoice} onValueChange={(v) => setVoiceForLang(langCode, v)}>
                             <SelectTrigger className="flex-1 h-9 text-xs"><SelectValue placeholder="Select voice..." /></SelectTrigger>
                             <SelectContent className="max-h-[200px]">
-                              {filteredVoices.map(v => (
+                              {voicesForLang.map(v => (
                                 <SelectItem key={v.voice_id} value={v.voice_id}>
-                                  {v.name} {v.accent !== 'unknown' ? `(${v.accent})` : ''}
+                                  {v.name} {v.accent !== 'unknown' ? `(${v.accent})` : ''} {v.languages?.includes(langCode) ? '★' : ''}
                                 </SelectItem>
                               ))}
                             </SelectContent>
