@@ -668,12 +668,15 @@ export default function AudioAccess() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEO
-        title={guide?.title ? `${guide.title} in ${guide.location}` : "Audio Access"}
-        description={guide?.description || `Listen to ${guide?.title} audio tour guide. Professional narration in multiple languages.`}
-        image={guideImageUrl !== '/hero-audio-guide.jpg' ? guideImageUrl : undefined}
-        noindex={true}
-      />
+      {/* Only set SEO after guide loads - prevents title flickering in browser tab */}
+      {guide && (
+        <SEO
+          title={`${guide.title} in ${guide.location}`}
+          description={guide.description || `Listen to ${guide.title} audio tour guide.`}
+          image={guideImageUrl !== '/hero-audio-guide.jpg' ? guideImageUrl : undefined}
+          noindex={true}
+        />
+      )}
       {/* iOS-style minimal navbar */}
       <div className="sticky top-0 z-50 bg-background/95 border-b border-border/30 shadow-sm">
         <div className="grid grid-cols-[48px_1fr_48px] items-center px-2 min-h-12 h-auto py-1">
