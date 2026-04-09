@@ -10,18 +10,18 @@ export interface RetryOptions {
 }
 
 export const defaultRetryOptions: RetryOptions = {
-  maxAttempts: 5,
-  baseDelay: 2000,
-  maxDelay: 30000,
+  maxAttempts: 3,
+  baseDelay: 800,
+  maxDelay: 10000,
   backoffFactor: 2,
 };
 
 // Enhanced retry options for regional/international users
 export const regionalRetryOptions: RetryOptions = {
-  maxAttempts: 7,
-  baseDelay: 3000,
-  maxDelay: 60000,
-  backoffFactor: 2.5,
+  maxAttempts: 5,
+  baseDelay: 1500,
+  maxDelay: 15000,
+  backoffFactor: 2,
 };
 
 export class NetworkError extends Error {

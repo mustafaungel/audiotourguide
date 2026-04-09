@@ -1,7 +1,7 @@
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { AudioGuideLoader } from '@/components/AudioGuideLoader';
 import { SEO } from '@/components/SEO';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { MultiTabAudioPlayer } from "@/components/MultiTabAudioPlayer";
 import { Button } from "@/components/ui/button";
 import { GuestReviewForm } from "@/components/GuestReviewForm";
@@ -44,6 +44,10 @@ export default function AudioAccess() {
   const sessionId = searchParams.get('session_id');
   const openGuideId = searchParams.get('open_guide_id');
 
+  // Only re-verify when guideId, accessCode, or sessionId changes
+  // Skip re-fetch when user changes if we already have access
+  const hasLoadedRef = useRef(false);
+
   useEffect(() => {
     if (!guideId) {
       setError('Guide ID is required');
@@ -51,8 +55,13 @@ export default function AudioAccess() {
       return;
     }
 
+    // Don't re-fetch if we already have access and only user changed
+    if (hasLoadedRef.current && hasAccess && guide) {
+      return;
+    }
+
     verifyAccessAndLoadGuide();
-  }, [guideId, accessCode, sessionId, user]);
+  }, [guideId, accessCode, sessionId]);
 
   // Refresh when ?refresh=1 is present
   useEffect(() => {
@@ -125,7 +134,7 @@ export default function AudioAccess() {
             p_access_code: accessCode?.trim()
           });
         },
-        { maxAttempts: 3, baseDelay: 2000 }
+        { maxAttempts: 3, baseDelay: 800, maxDelay: 5000 }
       );
       
       const { data: guideData, error: accessError } = result;
@@ -182,10 +191,11 @@ export default function AudioAccess() {
       setGuide(transformedGuide);
       setHasAccess(true);
       setAccessGranted(true);
-      
+      hasLoadedRef.current = true;
+
       // Auto-detect and fetch sections in available language
       await detectAvailableLanguages(guideId);
-      
+
       // Handle open_guide_id parameter if present
       if (openGuideId) {
         console.log('[AUDIO-ACCESS] Auto-opening linked guide:', openGuideId);
@@ -269,26 +279,23 @@ export default function AudioAccess() {
   };
 
   const prefetchOtherLanguages = (languages: any[], currentLang: string, gId: string) => {
+    if (!accessCode) return;
     const others = languages.filter((l: any) => l.language_code !== currentLang);
-    const prefetchNext = (i: number) => {
-      if (i >= others.length || !accessCode) return;
-      setTimeout(async () => {
+    // Prefetch all other languages in parallel after a short idle delay
+    setTimeout(() => {
+      others.forEach(async (lang: any) => {
         try {
           const { data } = await supabase.rpc('get_sections_with_access', {
             p_guide_id: gId,
             p_access_code: accessCode,
-            p_language_code: others[i].language_code
+            p_language_code: lang.language_code
           });
           if (data && data.length > 0) {
-            setSectionsByLang(prev => ({ ...prev, [others[i].language_code]: data }));
+            setSectionsByLang(prev => ({ ...prev, [lang.language_code]: data }));
           }
-        } catch (e) {
-          console.warn('[AUDIO-ACCESS] Prefetch failed for', others[i].language_code);
-        }
-        prefetchNext(i + 1);
-      }, 500);
-    };
-    prefetchNext(0);
+        } catch (_) { /* silent prefetch failure */ }
+      });
+    }, 300);
   };
 
   const detectAvailableLanguages = async (guideId: string) => {
@@ -296,10 +303,7 @@ export default function AudioAccess() {
       const { data: languages, error } = await supabase
         .rpc('get_guide_languages', { p_guide_id: guideId });
 
-      if (error) {
-        console.error('Error fetching available languages:', error);
-        return;
-      }
+      if (error) return;
 
       if (languages && languages.length > 0) {
         setAvailableLanguages(languages);
@@ -307,15 +311,13 @@ export default function AudioAccess() {
         const selectedLang = enLang ? 'en' : languages[0].language_code;
         setSelectedLanguage(selectedLang);
         await fetchSectionsForLanguage(guideId, selectedLang);
-        
-        // Background prefetch other languages
+
+        // Background prefetch other languages in parallel
         prefetchOtherLanguages(languages, selectedLang, guideId);
       } else {
-        console.warn('No languages available for this guide');
         setSections([]);
       }
-    } catch (error) {
-      console.error('Error detecting available languages:', error);
+    } catch (_) {
       setSections([]);
     }
   };
@@ -340,35 +342,31 @@ export default function AudioAccess() {
       }
 
       if (!sectionsData || sectionsData.length === 0) {
-        console.warn(`No sections found for language: ${languageCode}`);
-        
-        const { data: languages } = await supabase
-          .rpc('get_guide_languages', { p_guide_id: guideId });
-        
-        if (languages && languages.length > 0) {
-          const fallbackLang = languages[0].language_code;
-          
-          const { data: fallbackData, error: fallbackError } = await supabase
-            .rpc('get_sections_with_access', {
-              p_guide_id: guideId,
-              p_access_code: accessCode,
-              p_language_code: fallbackLang
-            });
-          
-          if (!fallbackError && fallbackData && fallbackData.length > 0) {
-            setSections(fallbackData);
-            setSectionsByLang(prev => ({ ...prev, [fallbackLang]: fallbackData }));
-            setSelectedLanguage(fallbackLang);
-            setAvailableLanguages(languages);
-            
-            toast({
-              title: "Language Auto-Selected",
-              description: `Guide is available in ${languages[0].native_name}`,
-            });
-            return;
+        // Use already-loaded availableLanguages instead of making another RPC call
+        if (availableLanguages.length > 0) {
+          const fallbackLang = availableLanguages[0].language_code;
+          if (fallbackLang !== languageCode) {
+            const { data: fallbackData, error: fallbackError } = await supabase
+              .rpc('get_sections_with_access', {
+                p_guide_id: guideId,
+                p_access_code: accessCode,
+                p_language_code: fallbackLang
+              });
+
+            if (!fallbackError && fallbackData && fallbackData.length > 0) {
+              setSections(fallbackData);
+              setSectionsByLang(prev => ({ ...prev, [fallbackLang]: fallbackData }));
+              setSelectedLanguage(fallbackLang);
+
+              toast({
+                title: "Language Auto-Selected",
+                description: `Guide is available in ${availableLanguages[0].native_name}`,
+              });
+              return;
+            }
           }
         }
-        
+
         setSections([]);
         return;
       }
@@ -440,7 +438,7 @@ export default function AudioAccess() {
             body: { session_id: sessionId, guide_id: guideId }
           });
         },
-        { maxAttempts: 3, baseDelay: 2000 }
+        { maxAttempts: 3, baseDelay: 800, maxDelay: 5000 }
       );
       
       const { data, error } = result;
