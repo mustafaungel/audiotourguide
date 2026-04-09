@@ -21,7 +21,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { buildAccessUrl, getBaseUrl } from '@/lib/url-utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { GripVertical, Save, Loader2, Pencil, ExternalLink, Eye, EyeOff, Link2, ChevronDown, Copy, Plus, Trash2, MapPin } from 'lucide-react';
+import { GripVertical, Save, Loader2, Pencil, ExternalLink, Eye, EyeOff, Link2, ChevronDown, Copy, Plus, Trash2, MapPin, Globe } from 'lucide-react';
+import { AddLanguageDialog } from '@/components/AddLanguageDialog';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { getLanguageFlag, getLanguageName } from '@/lib/language-utils';
@@ -55,6 +56,7 @@ const SortableGuideRow = ({
   index,
   onTogglePublish,
   onEdit,
+  onAddLanguage,
   togglingId,
   linkedGuides,
   guideTitles,
@@ -63,6 +65,7 @@ const SortableGuideRow = ({
   index: number;
   onTogglePublish: (id: string, current: boolean) => void;
   onEdit: (id: string) => void;
+  onAddLanguage: (guide: { id: string; title: string; location: string }) => void;
   togglingId: string | null;
   linkedGuides: LinkedGuideInfo[];
   guideTitles: Record<string, string>;
@@ -234,6 +237,19 @@ const SortableGuideRow = ({
               <Button
                 variant="ghost"
                 size="icon-sm"
+                className="h-7 w-7 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950"
+                onClick={() => onAddLanguage({ id: guide.id, title: guide.title, location: guide.location })}
+              >
+                <Globe className="h-3.5 w-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-xs">Add Language</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-sm"
                 className="h-7 w-7 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
                 onClick={async () => {
                   if (!confirm('Delete this guide and all its sections permanently?')) return;
@@ -308,6 +324,7 @@ export const AdminGuideOrderManager = ({ onCreateNew, onEdit }: { onCreateNew?: 
   const [collections, setCollections] = useState<CollectionMap>({});
   const [guideTitles, setGuideTitles] = useState<Record<string, string>>({});
   const [filterCountry, setFilterCountry] = useState('');
+  const [addLangGuide, setAddLangGuide] = useState<{ id: string; title: string; location: string } | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -553,6 +570,7 @@ export const AdminGuideOrderManager = ({ onCreateNew, onEdit }: { onCreateNew?: 
                   index={index}
                   onTogglePublish={handleTogglePublish}
                   onEdit={handleEdit}
+                  onAddLanguage={setAddLangGuide}
                   togglingId={togglingId}
                   linkedGuides={collections[guide.id] || []}
                   guideTitles={guideTitles}
@@ -568,6 +586,17 @@ export const AdminGuideOrderManager = ({ onCreateNew, onEdit }: { onCreateNew?: 
           </p>
         )}
       </div>
+
+      {/* Add Language Dialog */}
+      {addLangGuide && (
+        <AddLanguageDialog
+          open={!!addLangGuide}
+          onClose={() => { setAddLangGuide(null); fetchGuides(); }}
+          guideId={addLangGuide.id}
+          guideTitle={addLangGuide.title}
+          guideLocation={addLangGuide.location}
+        />
+      )}
     </TooltipProvider>
   );
 };
