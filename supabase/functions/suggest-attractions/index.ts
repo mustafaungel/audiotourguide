@@ -37,22 +37,34 @@ serve(async (req) => {
           },
           {
             role: 'user',
-            content: `List the top 25 tourist attractions, landmarks, museums, historical sites, natural wonders, valleys, and cultural locations in ${city}, ${country} that international tourists visit.
+            content: `List ALL major tourist attractions in ${city}, ${country}. Be EXHAUSTIVE — include EVERY notable place a tourist might visit. Aim for 30-50 results.
 
-For each attraction provide:
+Include ALL of these categories:
+- Museums and open-air museums
+- Historical sites, castles, fortresses, ruins
+- Valleys, gorges, natural formations (list EACH valley separately)
+- Underground cities and cave systems
+- Churches, mosques, temples, religious sites
+- Viewpoints and panoramic spots
+- Cultural experiences (shows, performances, crafts)
+- Adventure activities (balloon tours, ATV, horse riding, camel rides)
+- Markets, bazaars, local districts
+- UNESCO World Heritage sites
+- Hidden gems and lesser-known spots
+
+For example, for Cappadocia you should include: Goreme Open Air Museum, Zelve Open Air Museum, Derinkuyu Underground City, Kaymakli Underground City, Pasabag/Monks Valley, Love Valley, Rose Valley, Red Valley, Pigeon Valley, Ihlara Valley, Devrent Valley, Uchisar Castle, Ortahisar Castle, Hot Air Balloon experience, ATV tours, Avanos pottery town, Whirling Dervish shows, and many more.
+
+For each provide:
 - "name": Official name in English
-- "type": One of [museum, historical_site, valley, natural_wonder, castle, palace, temple, mosque, church, cathedral, monument, park, market, district, bridge, tower, archaeological_site, cave, waterfall, beach, island, garden, theater, gallery, fortress, ruins, viewpoint, square]
+- "type": One of [museum, historical_site, valley, natural_wonder, castle, palace, temple, mosque, church, cathedral, monument, park, market, district, bridge, tower, archaeological_site, cave, waterfall, beach, island, garden, theater, gallery, fortress, ruins, viewpoint, square, experience, adventure]
 - "description": One-line description (max 100 chars)
 - "suggested_category": One of [Cultural Heritage, Natural Wonder, Historical, Art & Culture, Architecture, Religious, Modern Attraction, Local Experience]
-- "significance": Why this place is important for visitors (max 150 chars)
+- "significance": Why this place is important (max 150 chars)
 
-Return ONLY a valid JSON array. Include both world-famous landmarks AND hidden gems. Ensure all names and facts are accurate.
-
-Example format:
-[{"name": "Goreme Open Air Museum", "type": "museum", "description": "UNESCO cave churches with stunning Byzantine frescoes", "suggested_category": "Cultural Heritage", "significance": "Best preserved example of rock-carved Byzantine art in the world"}]`
+Return ONLY a valid JSON array. Be comprehensive — missing a popular attraction is worse than including too many.`
           }
         ],
-        max_tokens: 3000,
+        max_tokens: 6000,
         temperature: 0.3,
       }),
     });
