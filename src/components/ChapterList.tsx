@@ -249,8 +249,8 @@ export const ChapterList: React.FC<ChapterListProps> = ({
                   </div>
                   
                   {section.description && (
-                    <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
-                      {section.description}
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      {section.description.length > 150 ? section.description.substring(0, 150) + '...' : section.description}
                     </p>
                   )}
 
