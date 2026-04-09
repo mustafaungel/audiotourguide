@@ -9,7 +9,8 @@ import { GuideCard } from '@/components/GuideCard';
 import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
-import { Headphones } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Headphones, MapPin, X } from 'lucide-react';
 import * as CarouselComponents from '@/components/ui/carousel';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -26,6 +27,8 @@ const Index = () => {
   const [selectedGuide, setSelectedGuide] = useState<any>(null);
   
   const [processingPayment, setProcessingPayment] = useState<string | null>(null);
+  const [selectedCountry, setSelectedCountry] = useState<string>('');
+  const [selectedCity, setSelectedCity] = useState<string>('');
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -117,6 +120,41 @@ const Index = () => {
       body: { action: 'view', guide_id: guide.id }
     }).catch(err => console.error('Error tracking guide view:', err));
   };
+  // Extract countries and cities from guide locations
+  const countries = useMemo(() => {
+    const set = new Set<string>();
+    guides.forEach(g => {
+      const parts = g.location?.split(',');
+      if (parts?.length >= 2) set.add(parts[parts.length - 1].trim());
+    });
+    return Array.from(set).sort();
+  }, [guides]);
+
+  const cities = useMemo(() => {
+    const set = new Set<string>();
+    guides.forEach(g => {
+      const parts = g.location?.split(',');
+      if (parts?.length >= 2) {
+        const country = parts[parts.length - 1].trim();
+        if (!selectedCountry || country === selectedCountry) {
+          set.add(parts[0].trim());
+        }
+      }
+    });
+    return Array.from(set).sort();
+  }, [guides, selectedCountry]);
+
+  const filteredGuides = useMemo(() => {
+    return guides.filter(g => {
+      const parts = g.location?.split(',');
+      const guideCity = parts?.[0]?.trim() || '';
+      const guideCountry = parts?.[parts.length - 1]?.trim() || '';
+      if (selectedCountry && guideCountry !== selectedCountry) return false;
+      if (selectedCity && guideCity !== selectedCity) return false;
+      return true;
+    });
+  }, [guides, selectedCountry, selectedCity]);
+
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -149,20 +187,46 @@ const Index = () => {
       <HeroSection />
       <StatsSection />
       
-      {/* Mobile-Optimized Featured Destinations Section */}
+      {/* Country/City Filter + Guides Section */}
       <section className="mobile-padding mobile-spacing">
         <div className="mobile-container">
+          {/* Filter Bar */}
+          {!loading && guides.length > 0 && countries.length > 0 && (
+            <div className="flex items-center gap-2 mb-4 flex-wrap">
+              <MapPin className="w-4 h-4 text-primary shrink-0" />
+              <Select value={selectedCountry} onValueChange={(v) => { setSelectedCountry(v); setSelectedCity(''); }}>
+                <SelectTrigger className="w-[160px] h-9 text-sm"><SelectValue placeholder="All Countries" /></SelectTrigger>
+                <SelectContent>
+                  {countries.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              {selectedCountry && cities.length > 0 && (
+                <Select value={selectedCity} onValueChange={setSelectedCity}>
+                  <SelectTrigger className="w-[160px] h-9 text-sm"><SelectValue placeholder="All Cities" /></SelectTrigger>
+                  <SelectContent>
+                    {cities.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              )}
+              {(selectedCountry || selectedCity) && (
+                <button onClick={() => { setSelectedCountry(''); setSelectedCity(''); }} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
+                  <X className="w-3 h-3" /> Clear
+                </button>
+              )}
+            </div>
+          )}
+
           {/* Loading State */}
           {loading && <AudioGuideLoader variant="card" count={6} />}
 
           {/* Guides Carousel */}
-          {!loading && guides.length > 0 && (
+          {!loading && filteredGuides.length > 0 && (
             <CarouselComponents.Carousel
               opts={{ align: "start", loop: true }}
               className="w-full"
             >
               <CarouselComponents.CarouselContent className="-ml-3 items-stretch">
-                {guides.map(guide => {
+                {filteredGuides.map(guide => {
                   const isPurchased = userPurchases.includes(guide.id);
                   return (
                     <CarouselComponents.CarouselItem key={guide.id} className="pl-3 basis-[85%] sm:basis-1/2 lg:basis-1/3 xl:basis-1/4 2xl:basis-1/5 flex">
@@ -199,7 +263,7 @@ const Index = () => {
           )}
 
           {/* No Results */}
-          {!loading && guides.length === 0 && <div className="text-center py-16 mobile-spacing">
+          {!loading && filteredGuides.length === 0 && <div className="text-center py-16 mobile-spacing">
               <div className="text-6xl mb-4">🔍</div>
               <h2 className="mobile-subheading text-foreground mb-2">No destinations found</h2>
               <p className="mobile-caption">Try searching for UNESCO sites, cultural experiences, or specific countries</p>
