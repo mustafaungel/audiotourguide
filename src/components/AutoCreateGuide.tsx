@@ -95,6 +95,11 @@ export function AutoCreateGuide() {
         const { data, error } = await supabase.functions.invoke('list-voices', { body: {} });
         if (!error && data?.voices) {
           setVoices(data.voices);
+          // Auto-assign first female voice to default language (English)
+          const firstFemale = data.voices.find((v: Voice) => v.gender === 'female');
+          if (firstFemale) {
+            setVoiceByLanguage(prev => ({ ...prev, en: prev.en || firstFemale.voice_id }));
+          }
         }
       } catch { /* silent */ }
       finally { setLoadingVoices(false); }
@@ -168,16 +173,27 @@ export function AutoCreateGuide() {
     }
   }, []);
 
-  // Language toggle
+  // Language toggle - auto-assign a different voice for each new language
   const toggleLanguage = useCallback((langCode: string) => {
     setSelectedLanguages(prev => {
       if (prev.includes(langCode)) {
-        if (prev.length === 1) return prev; // Keep at least one
+        if (prev.length === 1) return prev;
+        setVoiceByLanguage(vbl => { const copy = { ...vbl }; delete copy[langCode]; return copy; });
         return prev.filter(l => l !== langCode);
+      }
+      // Auto-assign a voice that isn't already used by another language
+      const usedVoices = Object.values(voiceByLanguage);
+      const available = filteredVoices.find(v => !usedVoices.includes(v.voice_id));
+      if (available) {
+        setVoiceByLanguage(vbl => ({ ...vbl, [langCode]: available.voice_id }));
+      } else if (filteredVoices.length > 0) {
+        // All voices used, pick by index
+        const idx = prev.length % filteredVoices.length;
+        setVoiceByLanguage(vbl => ({ ...vbl, [langCode]: filteredVoices[idx].voice_id }));
       }
       return [...prev, langCode];
     });
-  }, []);
+  }, [filteredVoices, voiceByLanguage]);
 
   // Voice preview
   const playVoicePreview = useCallback((voiceId: string, previewUrl: string | null) => {
