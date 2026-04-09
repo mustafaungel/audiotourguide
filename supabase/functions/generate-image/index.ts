@@ -18,17 +18,22 @@ serve(async (req) => {
     }
 
     const authHeader = req.headers.get('Authorization')!;
-    const supabaseClient = createClient(
+    const authClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     );
-
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(authHeader.replace('Bearer ', ''));
+    const { data: { user }, error: authError } = await authClient.auth.getUser(authHeader.replace('Bearer ', ''));
     if (authError || !user) {
       throw new Error('Unauthorized');
     }
 
-    const { title, city, country, category } = await req.json();
+    // Service role for storage upload
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    const { title, city, country, category, prompt: customPrompt } = await req.json();
 
     if (!title || !city || !country) {
       throw new Error('Title, city, and country are required');
@@ -36,8 +41,8 @@ serve(async (req) => {
 
     console.log('Generating image for:', { title, city, country, category });
 
-    // Create ultra-realistic prompt for travel destinations
-    const imagePrompt = `Ultra realistic, photorealistic professional travel photography of ${title} in ${city}, ${country}, ${category ? `${category} attraction, ` : ''}scenic view, award-winning photography, professional photographer, ultra high resolution, stunning detail, vibrant natural colors, perfect lighting, tourist perspective, masterpiece quality, National Geographic style`;
+    // Use custom prompt if provided, otherwise generate one
+    const imagePrompt = customPrompt || `Ultra realistic, photorealistic professional travel photography of ${title} in ${city}, ${country}, ${category ? `${category} attraction, ` : ''}scenic view, award-winning photography, professional photographer, ultra high resolution, stunning detail, vibrant natural colors, perfect lighting, tourist perspective, masterpiece quality, National Geographic style`;
 
     const response = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
@@ -71,9 +76,29 @@ serve(async (req) => {
       throw new Error('No image data received from OpenAI');
     }
 
-    console.log('Successfully generated image');
+    // Upload to Supabase Storage
+    const imageBuffer = Uint8Array.from(atob(imageBase64), c => c.charCodeAt(0));
+    const fileName = `guide-images/generated-${Date.now()}-${crypto.randomUUID()}.webp`;
 
-    return new Response(JSON.stringify({ 
+    const { error: uploadError } = await supabaseClient.storage
+      .from('guide-images')
+      .upload(fileName, imageBuffer, {
+        contentType: 'image/webp',
+        cacheControl: '3600'
+      });
+
+    let imageUrl = null;
+    if (!uploadError) {
+      const { data: { publicUrl } } = supabaseClient.storage
+        .from('guide-images')
+        .getPublicUrl(fileName);
+      imageUrl = publicUrl;
+    }
+
+    console.log('Successfully generated and uploaded image:', { fileName, hasUrl: !!imageUrl });
+
+    return new Response(JSON.stringify({
+      image_url: imageUrl,
       imageContent: imageBase64,
       prompt: imagePrompt,
       generatedAt: new Date().toISOString()

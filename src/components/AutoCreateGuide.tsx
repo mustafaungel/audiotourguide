@@ -44,7 +44,7 @@ interface Voice {
   preview_url: string | null;
 }
 
-type Step = 'form' | 'creating' | 'done';
+type Step = 'form' | 'plan_review' | 'creating' | 'done_review' | 'published';
 
 interface CreationProgress {
   step: number;
@@ -78,6 +78,13 @@ export function AutoCreateGuide() {
   const [currentStep, setCurrentStep] = useState<Step>('form');
   const [progress, setProgress] = useState<CreationProgress>({ step: 0, totalSteps: 6, message: '' });
   const [result, setResult] = useState<{ shareUrl: string; accessCode: string; guideId: string } | null>(null);
+
+  // Plan review state
+  const [plannedSections, setPlannedSections] = useState<PlannedSection[]>([]);
+
+  // Voice preview
+  const [previewAudio, setPreviewAudio] = useState<HTMLAudioElement | null>(null);
+  const [playingPreview, setPlayingPreview] = useState<string | null>(null);
 
   // Load voices on mount
   useEffect(() => {
@@ -169,11 +176,43 @@ export function AutoCreateGuide() {
     });
   }, []);
 
+  // Voice preview
+  const playVoicePreview = useCallback((voiceId: string, previewUrl: string | null) => {
+    if (previewAudio) { previewAudio.pause(); setPreviewAudio(null); }
+    if (playingPreview === voiceId) { setPlayingPreview(null); return; }
+    if (!previewUrl) return;
+    const audio = new Audio(previewUrl);
+    audio.onended = () => { setPlayingPreview(null); setPreviewAudio(null); };
+    audio.play().then(() => { setPlayingPreview(voiceId); setPreviewAudio(audio); }).catch(() => {});
+  }, [previewAudio, playingPreview]);
+
   // Form validation
   const isFormValid = country && (city || cityInput) && (place || placeInput) && selectedLanguages.length > 0;
 
-  // === MAIN CREATION FLOW ===
-  const handleCreate = async () => {
+  // === STEP 1: PLAN SECTIONS (before creation) ===
+  const handlePlanSections = async () => {
+    const finalCity = city || cityInput;
+    const finalPlace = place || placeInput;
+    if (!country || !finalCity || !finalPlace) return;
+
+    setCurrentStep('creating');
+    setProgress({ step: 1, totalSteps: 1, message: 'Researching location and planning sections...' });
+
+    try {
+      const { data: planData, error: planError } = await supabase.functions.invoke('plan-guide-sections', {
+        body: { country, city: finalCity, place: finalPlace, place_type: '', category: category || 'Historical' }
+      });
+      if (planError || !planData?.sections) throw new Error('Failed to plan sections');
+      setPlannedSections(planData.sections);
+      setCurrentStep('plan_review');
+    } catch (error: any) {
+      toast.error(`Planning failed: ${error.message}`);
+      setCurrentStep('form');
+    }
+  };
+
+  // === STEP 2: CREATE GUIDE (after plan approval) ===
+  const handleStartCreation = async () => {
     const finalCity = city || cityInput;
     const finalPlace = place || placeInput;
     if (!country || !finalCity || !finalPlace) return;
@@ -182,16 +221,9 @@ export function AutoCreateGuide() {
     const voiceId = selectedVoiceId || (voiceGender === 'female' ? '9BWtsMINqrJLrRacOk9x' : 'pNInz6obpgDQGcFmaJgB');
     const primaryLang = selectedLanguages[0];
     const primaryLangName = ELEVENLABS_LANGUAGES.find(l => l.code === primaryLang)?.name || 'English';
+    const sections = plannedSections;
 
     try {
-      // Step 1: Plan sections
-      setProgress({ step: 1, totalSteps: 6, message: 'Researching location and planning sections...' });
-      const { data: planData, error: planError } = await supabase.functions.invoke('plan-guide-sections', {
-        body: { country, city: finalCity, place: finalPlace, place_type: '', category: category || 'Historical' }
-      });
-      if (planError || !planData?.sections) throw new Error('Failed to plan sections');
-      const sections: PlannedSection[] = planData.sections;
-
       // Step 2: Generate scripts for each section (each builds on the previous)
       const scripts: string[] = [];
       for (let i = 0; i < sections.length; i++) {
@@ -219,10 +251,13 @@ export function AutoCreateGuide() {
 
       // Step 3: Generate cover image
       setProgress({ step: 3, totalSteps: 6, message: 'Generating cover image...' });
-      const { data: imageData, error: imageError } = await supabase.functions.invoke('generate-image', {
+      const { data: imageData } = await supabase.functions.invoke('generate-image', {
         body: {
-          prompt: `Ultra-realistic professional travel photography of ${finalPlace} in ${finalCity}, ${country}. Golden hour lighting, National Geographic quality, showcasing the most iconic and breathtaking view. Vibrant colors, sharp focus, cinematic composition. No text, no watermarks.`,
-          location: `${finalCity}, ${country}`
+          title: finalPlace,
+          city: finalCity,
+          country,
+          category: category || 'Historical',
+          prompt: `Ultra-realistic professional travel photography of ${finalPlace} in ${finalCity}, ${country}. Golden hour lighting, National Geographic quality, showcasing the most iconic and breathtaking view. Vibrant colors, sharp focus, cinematic composition. No text, no watermarks.`
         }
       });
       const imageUrl = imageData?.image_url || null;
@@ -309,7 +344,7 @@ export function AutoCreateGuide() {
           price_usd: parseInt(priceUsd) || 499,
           image_urls: imageUrl ? [imageUrl] : [],
           sections: allSections,
-          is_published: true,
+          is_published: false,
           is_featured: false
         }
       });
@@ -321,8 +356,8 @@ export function AutoCreateGuide() {
         accessCode: guideData.guide.master_access_code || '',
         guideId: guideData.guide.id
       });
-      setCurrentStep('done');
-      toast.success('Guide created successfully!');
+      setCurrentStep('done_review');
+      toast.success('Guide created! Review before publishing.');
 
     } catch (error: any) {
       toast.error(`Creation failed: ${error.message}`);
@@ -478,6 +513,7 @@ export function AutoCreateGuide() {
                   <Loader2 className="w-4 h-4 animate-spin" /> Loading voices...
                 </div>
               ) : filteredVoices.length > 0 ? (
+                <div className="space-y-1.5">
                 <Select value={selectedVoiceId} onValueChange={setSelectedVoiceId}>
                   <SelectTrigger><SelectValue placeholder="Select a voice..." /></SelectTrigger>
                   <SelectContent className="max-h-[250px]">
@@ -488,6 +524,20 @@ export function AutoCreateGuide() {
                     ))}
                   </SelectContent>
                 </Select>
+                {selectedVoiceId && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const voice = voices.find(v => v.voice_id === selectedVoiceId);
+                      if (voice) playVoicePreview(voice.voice_id, voice.preview_url);
+                    }}
+                    className="w-full"
+                  >
+                    {playingPreview === selectedVoiceId ? '⏹ Stop Preview' : '▶ Preview Voice'}
+                  </Button>
+                )}
+                </div>
               ) : (
                 <p className="text-xs text-muted-foreground">No voices available. Using default voice.</p>
               )}
@@ -525,14 +575,51 @@ export function AutoCreateGuide() {
               <p className="text-xs text-muted-foreground">Price: ${(parseInt(priceUsd) / 100).toFixed(2)}</p>
             </div>
 
-            {/* Create Button */}
+            {/* Plan Button */}
             <Button
-              onClick={handleCreate}
+              onClick={handlePlanSections}
               disabled={!isFormValid}
               className="w-full h-12 text-base"
             >
-              Create Guide
+              Plan Sections
             </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // === RENDER: PLAN REVIEW ===
+  if (currentStep === 'plan_review') {
+    const totalMinutes = plannedSections.reduce((sum, s) => sum + s.estimated_minutes, 0);
+    return (
+      <div className="max-w-3xl">
+        <Card>
+          <CardHeader>
+            <CardTitle>Review Section Plan — {plannedSections.length} Sections ({totalMinutes} min)</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">{place || placeInput} — {city || cityInput}, {country}</p>
+            <div className="max-h-[400px] overflow-y-auto space-y-2 border rounded-lg p-3">
+              {plannedSections.map((s, i) => (
+                <div key={i} className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/50">
+                  <span className="text-xs font-bold text-primary bg-primary/10 rounded-full w-6 h-6 flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium">{s.title}</p>
+                    <p className="text-xs text-muted-foreground">{s.subtitle} • {s.estimated_minutes} min • {s.mood}</p>
+                    {s.fun_fact && <p className="text-xs text-primary/70 mt-0.5">💡 {s.fun_fact}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-2 pt-2">
+              <Button onClick={handleStartCreation} className="flex-1">
+                Approve & Start Creating ({plannedSections.length} sections, {selectedLanguages.length} language{selectedLanguages.length > 1 ? 's' : ''})
+              </Button>
+              <Button variant="outline" onClick={() => { setCurrentStep('form'); setPlannedSections([]); }}>
+                Back to Form
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -567,17 +654,68 @@ export function AutoCreateGuide() {
     );
   }
 
-  // === RENDER: DONE ===
+  // === RENDER: DONE REVIEW (before publishing) ===
+  if (currentStep === 'done_review') {
+    const handlePublish = async () => {
+      if (!result) return;
+      const { error } = await supabase.from('audio_guides')
+        .update({ is_published: true, is_standalone: true })
+        .eq('id', result.guideId);
+      if (error) { toast.error('Failed to publish'); return; }
+      toast.success('Guide published to site!');
+      setCurrentStep('published');
+    };
+
+    return (
+      <div className="max-w-xl mx-auto">
+        <Card>
+          <CardContent className="py-10 text-center space-y-6">
+            <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto">
+              <CheckCircle className="w-8 h-8 text-amber-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold mb-1">Guide Ready for Review</h2>
+              <p className="text-muted-foreground text-sm">{place || placeInput} — {city || cityInput}, {country}</p>
+              <p className="text-xs text-muted-foreground mt-1">Preview the guide, then publish when ready.</p>
+            </div>
+            {result && (
+              <div className="space-y-3">
+                <div className="bg-muted rounded-lg p-4 text-left space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground">Preview Link (not yet public)</p>
+                  <div className="flex items-center gap-2">
+                    <code className="text-xs flex-1 break-all">{result.shareUrl}</code>
+                    <Button size="sm" variant="ghost" onClick={() => { navigator.clipboard.writeText(result.shareUrl); toast.success('Copied!'); }}>
+                      <Copy className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" className="flex-1" onClick={() => window.open(result.shareUrl, '_blank')}>
+                    Preview Guide
+                  </Button>
+                  <Button className="flex-1" onClick={handlePublish}>
+                    Publish to Site
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // === RENDER: PUBLISHED ===
   return (
     <div className="max-w-xl mx-auto">
       <Card>
-        <CardContent className="py-12 text-center space-y-6">
+        <CardContent className="py-10 text-center space-y-6">
           <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto">
             <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
           <div>
-            <h2 className="text-xl font-bold mb-1">Guide Created Successfully!</h2>
-            <p className="text-muted-foreground text-sm">{place || placeInput} — {city || cityInput}, {country}</p>
+            <h2 className="text-xl font-bold mb-1">Guide Published!</h2>
+            <p className="text-muted-foreground text-sm">Now visible on homepage, guides page, and destinations.</p>
           </div>
           {result && (
             <div className="space-y-3">
@@ -592,14 +730,9 @@ export function AutoCreateGuide() {
                 <p className="text-xs font-medium text-muted-foreground mt-2">Access Code</p>
                 <Badge variant="secondary">{result.accessCode}</Badge>
               </div>
-              <div className="flex gap-2">
-                <Button className="flex-1" onClick={() => window.open(result.shareUrl, '_blank')}>
-                  Open Guide
-                </Button>
-                <Button variant="outline" className="flex-1" onClick={() => { setCurrentStep('form'); setResult(null); }}>
-                  Create Another
-                </Button>
-              </div>
+              <Button variant="outline" className="w-full" onClick={() => { setCurrentStep('form'); setResult(null); setPlannedSections([]); }}>
+                Create Another Guide
+              </Button>
             </div>
           )}
         </CardContent>

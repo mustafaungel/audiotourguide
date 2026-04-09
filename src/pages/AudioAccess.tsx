@@ -679,7 +679,7 @@ export default function AudioAccess() {
       <div className="sticky top-0 z-50 bg-background/95 border-b border-border/30 shadow-sm">
         <div className="grid grid-cols-[48px_1fr_48px] items-center px-2 min-h-12 h-auto py-1">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/')}
             className="flex items-center justify-center w-10 h-10 text-primary active:opacity-60 transition-opacity"
             aria-label={t('back', selectedLanguage)}
           >
