@@ -22,7 +22,7 @@ serve(async (req) => {
       throw new Error('Place and section are required');
     }
 
-    const estimatedMinutes = section.estimated_minutes || 3;
+    const estimatedMinutes = Math.max(3, section.estimated_minutes || 3); // Minimum 3 minutes
     const wordCount = estimatedMinutes * 150; // ~150 words per minute of speech
     const lang = language || 'English';
 

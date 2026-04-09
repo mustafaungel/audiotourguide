@@ -42,21 +42,31 @@ Your planning principles:
 4. DEPTH: Go beyond surface-level facts. Include expert-level insights, architectural details, artistic significance, and cultural context that visitors cannot get from a simple guidebook.
 5. ENGAGEMENT: Each section must have a "wow factor" — a surprising fact, hidden detail, dramatic story, or compelling narrative that visitors would completely miss without a guide.
 
-Section count: Determine the optimal number based on the ACTUAL layout, size, and significance of this specific location. A massive open-air museum with 20 notable stops should have 20 sections. A small monument may only need 3-4. Let the location's real structure dictate the plan. Do NOT apply arbitrary limits.
+Section count: Research the ACTUAL notable points of interest, architectural features, artworks, historical markers, and visitor stops at this specific location. Professional audio guides for major landmarks typically have 15-25 stops. Your section count MUST reflect the real physical layout:
+
+- Major museums, cathedrals, palaces, open-air museums: 15-25 sections (one per notable room, artwork, or architectural feature)
+- Medium sites (valleys, smaller museums, historical complexes): 8-15 sections
+- Small monuments, viewpoints, single structures: 4-8 sections
+
+For example, Hagia Sophia should have 15-20 sections covering: exterior, Imperial Gate, narthex, main nave, central dome, apse, mihrab, minbar, sultan's loge, Weeping Column, north gallery mosaics, Deisis mosaic, Empress Zoe mosaic, Comnenus mosaic, Viking runes, seraphim angels, marble urns, conclusion.
+
+Do NOT undercount. If a location has 20 notable points, create 20 sections. Match or exceed what professional audio guide companies offer for the same location.
 
 Return ONLY a valid JSON array.`
           },
           {
             role: 'user',
-            content: `Create a detailed section plan for a professional audio tour of ${place} in ${city}, ${country}.
+            content: `Create a comprehensive section plan for a professional audio tour of ${place} in ${city}, ${country}.
 Location type: ${place_type || 'tourist attraction'}
 Category: ${category || 'Historical'}
+
+IMPORTANT: Research this specific location thoroughly. Include EVERY notable point of interest, artwork, architectural feature, and historical marker that a visitor would encounter. Professional audio guides for this type of location typically have 15-25 stops. Your plan should be at least as comprehensive.
 
 For each section provide:
 {
   "title": "Stop N – [Descriptive Name]" (max 60 chars),
   "subtitle": "What the visitor will discover here" (max 100 chars),
-  "key_topics": ["topic1", "topic2", "topic3", "topic4"] (4-6 specific topics/stories to cover),
+  "key_topics": ["topic1", "topic2", "topic3", "topic4", "topic5"] (4-6 specific topics/stories to cover),
   "estimated_minutes": N (narration duration, 2-5 minutes per section),
   "mood": "one of: awe-inspiring, mysterious, playful, solemn, adventurous, romantic, dramatic, educational, contemplative",
   "transition_hint": "How this section connects to the next one",
@@ -65,13 +75,14 @@ For each section provide:
 
 Requirements:
 - Start with an engaging INTRODUCTION section (welcome, historical overview, what makes this place special)
-- End with a memorable CONCLUSION section (reflection, best photo spots, what to see next)
-- Each section should cover a distinct, real point of interest at this location
+- End with a memorable CONCLUSION section (reflection, best photo spots, what to see next, nearby attractions)
+- EVERY notable room, artwork, architectural feature, and historical marker must have its own section
 - All facts must be historically accurate and verifiable for ${place}
-- Order sections in the logical visiting sequence a real guide would use`
+- Order sections in the logical visiting sequence following the actual visitor route
+- Total tour duration should be 40-60+ minutes for major landmarks`
           }
         ],
-        max_tokens: 4000,
+        max_tokens: 8000,
         temperature: 0.4,
       }),
     });

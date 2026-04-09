@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,6 +34,16 @@ interface PlannedSection {
   fun_fact: string;
 }
 
+interface Voice {
+  voice_id: string;
+  name: string;
+  gender: string;
+  category: string;
+  accent: string;
+  description: string;
+  preview_url: string | null;
+}
+
 type Step = 'form' | 'creating' | 'done';
 
 interface CreationProgress {
@@ -52,6 +62,9 @@ export function AutoCreateGuide() {
   const [placeInput, setPlaceInput] = useState('');
   const [category, setCategory] = useState('');
   const [voiceGender, setVoiceGender] = useState<'female' | 'male'>('female');
+  const [selectedVoiceId, setSelectedVoiceId] = useState('');
+  const [voices, setVoices] = useState<Voice[]>([]);
+  const [loadingVoices, setLoadingVoices] = useState(false);
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(['en']);
   const [priceUsd, setPriceUsd] = useState('499');
 
@@ -65,6 +78,26 @@ export function AutoCreateGuide() {
   const [currentStep, setCurrentStep] = useState<Step>('form');
   const [progress, setProgress] = useState<CreationProgress>({ step: 0, totalSteps: 6, message: '' });
   const [result, setResult] = useState<{ shareUrl: string; accessCode: string; guideId: string } | null>(null);
+
+  // Load voices on mount
+  useEffect(() => {
+    (async () => {
+      setLoadingVoices(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('list-voices', { body: {} });
+        if (!error && data?.voices) {
+          setVoices(data.voices);
+          // Auto-select first female voice
+          const firstFemale = data.voices.find((v: Voice) => v.gender === 'female');
+          if (firstFemale) setSelectedVoiceId(firstFemale.voice_id);
+        }
+      } catch { /* silent */ }
+      finally { setLoadingVoices(false); }
+    })();
+  }, []);
+
+  // Filter voices by gender
+  const filteredVoices = voices.filter(v => v.gender === voiceGender);
 
   // Country selection → load cities
   const handleCountryChange = useCallback(async (countryName: string) => {
@@ -146,7 +179,7 @@ export function AutoCreateGuide() {
     if (!country || !finalCity || !finalPlace) return;
 
     setCurrentStep('creating');
-    const voiceId = voiceGender === 'female' ? '9BWtsMINqrJLrRacOk9x' : 'pNInz6obpgDQGcFmaJgB';
+    const voiceId = selectedVoiceId || (voiceGender === 'female' ? '9BWtsMINqrJLrRacOk9x' : 'pNInz6obpgDQGcFmaJgB');
     const primaryLang = selectedLanguages[0];
     const primaryLangName = ELEVENLABS_LANGUAGES.find(l => l.code === primaryLang)?.name || 'English';
 
@@ -407,31 +440,49 @@ export function AutoCreateGuide() {
               </div>
             )}
 
-            {/* Voice Gender */}
+            {/* Voice Selection */}
             <div className="space-y-2">
               <Label className="flex items-center gap-1.5"><Mic className="w-3.5 h-3.5" /> Voice</Label>
-              <div className="flex gap-3">
+              <div className="flex gap-3 mb-2">
                 <button
-                  onClick={() => setVoiceGender('female')}
+                  onClick={() => { setVoiceGender('female'); const f = voices.find(v => v.gender === 'female'); if (f) setSelectedVoiceId(f.voice_id); }}
                   className={`flex-1 px-4 py-3 rounded-xl text-sm font-medium border transition-all ${
                     voiceGender === 'female'
                       ? 'bg-primary/15 border-primary text-primary ring-2 ring-primary/30'
                       : 'border-border hover:bg-muted'
                   }`}
                 >
-                  Female (Aria)
+                  Female
                 </button>
                 <button
-                  onClick={() => setVoiceGender('male')}
+                  onClick={() => { setVoiceGender('male'); const m = voices.find(v => v.gender === 'male'); if (m) setSelectedVoiceId(m.voice_id); }}
                   className={`flex-1 px-4 py-3 rounded-xl text-sm font-medium border transition-all ${
                     voiceGender === 'male'
                       ? 'bg-primary/15 border-primary text-primary ring-2 ring-primary/30'
                       : 'border-border hover:bg-muted'
                   }`}
                 >
-                  Male (Adam)
+                  Male
                 </button>
               </div>
+              {loadingVoices ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+                  <Loader2 className="w-4 h-4 animate-spin" /> Loading voices...
+                </div>
+              ) : filteredVoices.length > 0 ? (
+                <Select value={selectedVoiceId} onValueChange={setSelectedVoiceId}>
+                  <SelectTrigger><SelectValue placeholder="Select a voice..." /></SelectTrigger>
+                  <SelectContent className="max-h-[250px]">
+                    {filteredVoices.map(v => (
+                      <SelectItem key={v.voice_id} value={v.voice_id}>
+                        {v.name} {v.accent !== 'unknown' ? `(${v.accent})` : ''} {v.description ? `— ${v.description}` : ''}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <p className="text-xs text-muted-foreground">No voices available. Using default voice.</p>
+              )}
             </div>
 
             {/* Languages */}
