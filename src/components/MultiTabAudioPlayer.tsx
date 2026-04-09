@@ -60,7 +60,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     [mainGuide.id]: languageCode
   });
   const [selectedGuideId, setSelectedGuideId] = useState<string | null>(null);
-  const [closingGuideId, setClosingGuideId] = useState<string | null>(null);
+  // closingGuideId removed — using CSS grid-rows animation instead
   const fetchingRef = useRef<Set<string>>(new Set());
 
   // Sync parent on mount so activeGuideId matches the auto-expanded main guide
@@ -247,24 +247,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     if (guideId !== mainGuide.id) {
       ensureGuideSections(guideId);
     }
-    setSelectedGuideId(prev => {
-      if (prev === guideId) {
-        // Closing: trigger exit animation, then remove after animation completes
-        setClosingGuideId(guideId);
-        setTimeout(() => {
-          setClosingGuideId(null);
-          setSelectedGuideId(null);
-        }, 280);
-        // Keep selected during animation to prevent layout jump
-        return guideId;
-      }
-      // Opening a new one: close old with animation if exists
-      if (prev) {
-        setClosingGuideId(prev);
-        setTimeout(() => setClosingGuideId(null), 280);
-      }
-      return guideId;
-    });
+    setSelectedGuideId(prev => prev === guideId ? null : guideId);
     onActiveTabChange?.(guideId === mainGuide.id ? 'main' : guideId);
   }, [mainGuide.id, ensureGuideSections, onActiveTabChange]);
 
@@ -286,26 +269,28 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
 
   const isMainExpanded = selectedGuideId === mainGuide.id;
 
-  const renderGuideContent = (guideId: string, title: string, isClosing: boolean, audioUrl?: string, imageUrl?: string) => {
+  const renderGuideContent = (guideId: string, title: string, isExpanded: boolean, audioUrl?: string, imageUrl?: string) => {
     const sections = guideId === mainGuide.id ? mainSections : (sectionsByGuide[guideId] || []);
     return (
       <div
         className={cn(
-          "mt-2 mb-2 transition-opacity duration-280 ease-out",
-          isClosing
-            ? "opacity-0 pointer-events-none"
-            : "opacity-100 animate-in fade-in duration-300"
+          "grid transition-all duration-150 ease-out",
+          isExpanded
+            ? "grid-rows-[1fr] opacity-100 mt-2 mb-2"
+            : "grid-rows-[0fr] opacity-0"
         )}
       >
-        <NewSectionAudioPlayer
-          key={guideId}
-          guideId={guideId}
-          guideTitle={title}
-          sections={sections}
-          mainAudioUrl={audioUrl}
-          guideImageUrl={imageUrl}
-          lang={languageByGuide[guideId] || languageCode}
-        />
+        <div className="overflow-hidden">
+          <NewSectionAudioPlayer
+            key={guideId}
+            guideId={guideId}
+            guideTitle={title}
+            sections={sections}
+            mainAudioUrl={audioUrl}
+            guideImageUrl={imageUrl}
+            lang={languageByGuide[guideId] || languageCode}
+          />
+        </div>
       </div>
     );
   };
@@ -334,7 +319,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
               : <ChevronDown className="w-4 h-4 shrink-0 opacity-50" />
             }
           </button>
-          {(isMainExpanded || closingGuideId === mainGuide.id) && renderGuideContent(mainGuide.id, mainGuide.title, closingGuideId === mainGuide.id, mainGuide.audio_url, guideImageUrl)}
+          {renderGuideContent(mainGuide.id, mainGuide.title, isMainExpanded, mainGuide.audio_url, guideImageUrl)}
         </div>
 
         {/* Linked guides */}
@@ -361,10 +346,10 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
                   : <ChevronDown className="w-4 h-4 shrink-0 opacity-50" />
                 }
               </button>
-              {(isExpanded || closingGuideId === guide.guide_id) && renderGuideContent(
+              {renderGuideContent(
                 guide.guide_id,
                 guide.custom_title || guide.title,
-                closingGuideId === guide.guide_id,
+                isExpanded,
                 undefined,
                 guide.image_url || guideImageUrl
               )}
