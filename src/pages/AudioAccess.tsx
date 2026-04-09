@@ -44,9 +44,8 @@ export default function AudioAccess() {
   const sessionId = searchParams.get('session_id');
   const openGuideId = searchParams.get('open_guide_id');
 
-  // Only re-verify when guideId, accessCode, or sessionId changes
-  const hasLoadedRef = useRef(false);
-  const loadingRef = useRef(false);
+  // Only load once per guideId+accessCode combination
+  const loadedKeyRef = useRef('');
 
   useEffect(() => {
     if (!guideId) {
@@ -55,12 +54,11 @@ export default function AudioAccess() {
       return;
     }
 
-    // Prevent double-load (React StrictMode or rapid re-renders)
-    if (hasLoadedRef.current && hasAccess && guide) return;
-    if (loadingRef.current) return;
+    const loadKey = `${guideId}_${accessCode}_${sessionId}`;
+    if (loadedKeyRef.current === loadKey) return;
+    loadedKeyRef.current = loadKey;
 
-    loadingRef.current = true;
-    verifyAccessAndLoadGuide().finally(() => { loadingRef.current = false; });
+    verifyAccessAndLoadGuide();
   }, [guideId, accessCode, sessionId]);
 
   // Refresh when ?refresh=1 is present
@@ -191,7 +189,7 @@ export default function AudioAccess() {
       setGuide(transformedGuide);
       setHasAccess(true);
       setAccessGranted(true);
-      hasLoadedRef.current = true;
+      // Guide loaded successfully - loadedKeyRef prevents re-fetch
 
       // Auto-detect and fetch sections in available language
       await detectAvailableLanguages(guideId);
