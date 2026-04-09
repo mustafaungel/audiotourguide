@@ -18,15 +18,21 @@ serve(async (req) => {
     }
 
     const authHeader = req.headers.get('Authorization')!;
-    const supabaseClient = createClient(
+    // Auth client with anon key to verify user
+    const authClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     );
-
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(authHeader.replace('Bearer ', ''));
+    const { data: { user }, error: authError } = await authClient.auth.getUser(authHeader.replace('Bearer ', ''));
     if (authError || !user) {
       throw new Error('Unauthorized');
     }
+
+    // Service role client for storage uploads (bypasses RLS)
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
 
     const { text, voiceId, modelId, isPreview } = await req.json();
 
