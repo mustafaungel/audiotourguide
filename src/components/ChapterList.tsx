@@ -184,7 +184,7 @@ export const ChapterList: React.FC<ChapterListProps> = ({
             </div>
           )}
         </CardHeader>
-        <CardContent className="space-y-3 px-4 pb-4">
+        <CardContent className="space-y-1.5 px-4 pb-4">
         {sections.map((section, index) => {
           const isCurrent = index === currentSectionIndex;
           const progress = isCurrent ? (currentTime / duration) * 100 : 0;
@@ -201,7 +201,7 @@ export const ChapterList: React.FC<ChapterListProps> = ({
                 }
               }}
               className={cn(
-                "w-full text-left rounded-xl p-4 transition-all min-h-[72px] touch-manipulation group/chapter",
+                "w-full text-left rounded-xl p-3 transition-all min-h-[64px] touch-manipulation group/chapter",
                 "hover:bg-primary/5 active:scale-[0.96] active:bg-primary/20 active:shadow-inner",
                 isCurrent 
                   ? "bg-gradient-to-r from-primary/10 to-primary/5 border-2 border-primary/50 border-l-primary shadow-lg shadow-primary/20" 
