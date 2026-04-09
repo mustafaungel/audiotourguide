@@ -125,34 +125,36 @@ export function AddLanguageDialog({ open, onClose, guideId, guideTitle, guideLoc
         throw new Error('No English sections found to translate from');
       }
 
-      const total = origSections!.length;
+      // Filter out sections with empty descriptions (no script to translate)
+      const validSections = origSections!.filter(s => s.description && s.description.length > 50);
+      const total = validSections.length;
       setProgress({ current: 0, total: total * 3, message: 'Starting...' });
+
+      // Clean --- markers from translated text
+      const cleanMarkers = (text: string) => text.replace(/^---\s*/gm, '').replace(/\s*---$/gm, '').replace(/^"""\s*/gm, '').replace(/\s*"""$/gm, '').trim();
 
       const newSections: any[] = [];
 
       for (let i = 0; i < total; i++) {
-        const orig = origSections![i];
+        const orig = validSections[i];
 
         // Step 1: Translate title
         setProgress({ current: i * 3, total: total * 3, message: `Translating section ${i + 1}/${total}...` });
         const { data: titleTrans } = await supabase.functions.invoke('translate-script', {
           body: { script: orig.title, source_language: 'English', target_language: selectedLangName, place: guideTitle, section_title: orig.title }
         });
-        const translatedTitle = titleTrans?.translated_script || orig.title;
+        const translatedTitle = cleanMarkers(titleTrans?.translated_script || orig.title);
 
         // Step 2: Translate description/script
         setProgress({ current: i * 3 + 1, total: total * 3, message: `Translating script ${i + 1}/${total}...` });
-        let translatedDesc = orig.description || '';
-        if (orig.description && orig.description.length > 50) {
-          const { data: descTrans } = await supabase.functions.invoke('translate-script', {
-            body: { script: orig.description, source_language: 'English', target_language: selectedLangName, place: guideTitle, section_title: orig.title }
-          });
-          translatedDesc = descTrans?.translated_script || orig.description;
-        }
+        const { data: descTrans } = await supabase.functions.invoke('translate-script', {
+          body: { script: orig.description, source_language: 'English', target_language: selectedLangName, place: guideTitle, section_title: orig.title }
+        });
+        const translatedDesc = cleanMarkers(descTrans?.translated_script || orig.description);
 
         // Step 3: Generate audio
         setProgress({ current: i * 3 + 2, total: total * 3, message: `Generating audio ${i + 1}/${total}...` });
-        const audioText = translatedDesc.length > 50 ? translatedDesc : translatedTitle;
+        const audioText = translatedDesc;
         const { data: audioData } = await supabase.functions.invoke('generate-audio', {
           body: { text: audioText, voiceId: selectedVoiceId, modelId: 'eleven_multilingual_v2' }
         });

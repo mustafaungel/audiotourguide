@@ -53,11 +53,11 @@ Return ONLY the translated narration text. No explanations, no notes, no metadat
             role: 'user',
             content: `Translate the following audio tour narration for "${section_title || 'a section'}" at ${place || 'a tourist attraction'} from ${source_language || 'English'} to ${target_language}.
 
----
+"""
 ${script}
----
+"""
 
-Translate this narration to ${target_language}. Return ONLY the translated text.`
+Translate this narration to ${target_language}. Return ONLY the translated text, nothing else. No dashes, no markers, no explanations.`
           }
         ],
         max_tokens: 2500,
@@ -71,7 +71,9 @@ Translate this narration to ${target_language}. Return ONLY the translated text.
     }
 
     const data = await response.json();
-    const translated = data.choices[0].message.content.trim();
+    // Clean any --- markers or formatting GPT might add
+    const raw = data.choices[0].message.content.trim();
+    const translated = raw.replace(/^---\s*/gm, '').replace(/\s*---$/gm, '').replace(/^"""\s*/gm, '').replace(/\s*"""$/gm, '').trim();
 
     return new Response(JSON.stringify({ translated_script: translated, target_language }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
