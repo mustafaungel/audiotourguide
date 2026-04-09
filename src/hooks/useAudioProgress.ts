@@ -52,11 +52,13 @@ export const useAudioProgress = ({ guideId }: UseAudioProgressProps) => {
     return completedChapters.includes(chapterIndex);
   };
 
+  const [autoAdvanceEnabled, setAutoAdvanceEnabled] = useState(true);
+
   return {
     completedChapters,
-    autoAdvanceEnabled: false, // Auto-advance is completely removed
+    autoAdvanceEnabled,
     markChapterCompleted,
     isChapterCompleted,
-    setAutoAdvance: () => {} // No-op function for compatibility
+    setAutoAdvance: setAutoAdvanceEnabled,
   };
 };
