@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -30,7 +30,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [userProfile, setUserProfile] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const fetchingProfileRef = useRef(false);
+  const lastProfileUserRef = useRef<string | null>(null);
+
   const fetchUserProfile = async (userId: string) => {
+    // Prevent duplicate fetches for the same user
+    if (fetchingProfileRef.current && lastProfileUserRef.current === userId) return;
+    if (lastProfileUserRef.current === userId && userProfile) return;
+
+    fetchingProfileRef.current = true;
+    lastProfileUserRef.current = userId;
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -46,6 +55,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUserProfile(data);
     } catch (error) {
       console.error('Error fetching profile:', error);
+    } finally {
+      fetchingProfileRef.current = false;
     }
   };
 

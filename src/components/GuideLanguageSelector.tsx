@@ -24,7 +24,7 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
   const [availableLanguages, setAvailableLanguages] = useState<GuideLanguage[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetching, setFetching] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const lastLanguagesRef = useRef<GuideLanguage[]>([]);
   const lastFetchedGuideRef = useRef<string>('');
 

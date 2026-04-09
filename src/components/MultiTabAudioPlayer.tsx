@@ -168,9 +168,14 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
         }));
         setLinkedGuides(processed.sort((a, b) => a.order_index - b.order_index));
       } else {
-        const { data: simple, error: fallbackError } = await supabase
-          .rpc('get_linked_guides_with_access', { p_guide_id: mainGuide.id, p_access_code: accessCode.trim() });
-        if (!fallbackError && simple?.length > 0) {
+        // Fallback RPC may not exist in all environments - handle gracefully
+        let simple: any[] | null = null;
+        try {
+          const fallbackResult = await supabase
+            .rpc('get_linked_guides_with_access', { p_guide_id: mainGuide.id, p_access_code: accessCode.trim() });
+          if (!fallbackResult.error) simple = fallbackResult.data;
+        } catch (_) { /* RPC may not exist */ }
+        if (simple && simple.length > 0) {
           const guideIds = simple.map((g: any) => g.guide_id);
           const { data: guideImages } = await supabase
             .from('audio_guides').select('id, image_url').in('id', guideIds);

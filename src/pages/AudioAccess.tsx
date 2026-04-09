@@ -708,7 +708,7 @@ export default function AudioAccess() {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/60 to-background" />
 
-        <div className="relative px-4 pt-6 pb-5 space-y-4">
+        <div className="relative px-4 pt-6 pb-5 space-y-4 max-w-3xl mx-auto">
           {/* Guide Image — centered */}
           <div className="flex justify-center">
             <div className="relative">
@@ -776,7 +776,7 @@ export default function AudioAccess() {
       </div>
 
       {/* Content area — consistent padding, extra bottom for mini player */}
-      <div className="px-4 pb-28 space-y-4">
+      <div className="px-4 pb-28 space-y-4 max-w-3xl mx-auto">
         {/* Multi-tab Audio Interface */}
         <div>
           <MultiTabAudioPlayer
