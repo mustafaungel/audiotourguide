@@ -11,31 +11,23 @@ import { t } from '@/lib/translations';
 // Spotify/Apple Music style lyrics view
 const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; duration: number; isPlaying: boolean }> = ({ scriptText, currentTime, duration }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const userScrolling = useRef(false);
+  const scrollTimer = useRef<ReturnType<typeof setTimeout>>();
 
-  // Split into ~2-3 sentence groups for balanced tracking
+  // Split by paragraphs (natural text breaks) for clean, uniform blocks
   const lines = useMemo(() => {
     if (!scriptText || duration <= 0) return [];
 
-    // Split by sentences
-    const allSentences = scriptText
-      .replace(/\n\n+/g, ' ')
-      .replace(/\n/g, ' ')
-      .split(/(?<=[.!?])\s+/)
-      .map(s => s.trim())
-      .filter(s => s.length > 5);
+    const paragraphs = scriptText
+      .split(/\n\n+/)
+      .map(p => p.replace(/\n/g, ' ').trim())
+      .filter(p => p.length > 20);
 
-    if (allSentences.length === 0) return [];
+    if (paragraphs.length === 0) return [];
 
-    // Group every 2 sentences together for smoother flow
-    const groups: string[] = [];
-    for (let i = 0; i < allSentences.length; i += 2) {
-      const chunk = allSentences.slice(i, i + 2).join(' ');
-      if (chunk.length > 5) groups.push(chunk);
-    }
-
-    const totalChars = groups.reduce((sum, g) => sum + g.length, 0);
+    const totalChars = paragraphs.reduce((sum, p) => sum + p.length, 0);
     let cumChars = 0;
-    return groups.map(text => {
+    return paragraphs.map(text => {
       const startPct = cumChars / totalChars;
       cumChars += text.length;
       return { text, startTime: startPct * duration };
@@ -50,45 +42,51 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
     return 0;
   }, [currentTime, lines, duration]);
 
+  // Auto-scroll to active, but pause if user is manually scrolling
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (userScrolling.current || !containerRef.current) return;
     const el = containerRef.current.querySelector(`[data-line="${activeIdx}"]`) as HTMLElement;
     if (el) {
       const container = containerRef.current;
-      const target = el.offsetTop - container.clientHeight * 0.35;
+      const target = el.offsetTop - container.clientHeight * 0.3;
       container.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
     }
   }, [activeIdx]);
 
+  const handleUserScroll = () => {
+    userScrolling.current = true;
+    clearTimeout(scrollTimer.current);
+    scrollTimer.current = setTimeout(() => { userScrolling.current = false; }, 4000);
+  };
+
   return (
     <div className="h-full relative">
-      <div ref={containerRef} className="h-full overflow-hidden" style={{ touchAction: 'none' }}>
-        <div className="px-3 pt-[25vh] pb-[50vh]">
+      {/* Scrollable script area — user CAN scroll freely */}
+      <div
+        ref={containerRef}
+        className="h-full overflow-y-auto overscroll-contain"
+        onTouchStart={handleUserScroll}
+        onTouchEnd={() => { scrollTimer.current = setTimeout(() => { userScrolling.current = false; }, 4000); }}
+      >
+        <div className="px-5 pt-[20vh] pb-[45vh]">
           {lines.map((line, i) => {
             const isActive = i === activeIdx;
-            const distance = i - activeIdx;
-            const isPast = distance < 0;
-            const absDist = Math.abs(distance);
-
-            // Apple Music style: active line bright, everything else fades progressively
-            const opacity = isActive ? 1 : Math.max(0.06, 0.35 - absDist * 0.08);
-            const blurPx = isActive ? 0 : Math.min(absDist * 0.6, 3);
-            const scale = isActive ? 1 : 0.97;
+            const absDist = Math.abs(i - activeIdx);
+            const opacity = isActive ? 1 : Math.max(0.08, 0.4 - absDist * 0.1);
+            const blurPx = isActive ? 0 : Math.min(absDist * 0.5, 2.5);
 
             return (
               <p
                 key={i}
                 data-line={i}
-                className="py-2 font-bold transition-all duration-600 ease-out"
+                className="mb-5 font-semibold transition-all duration-500 ease-out"
                 style={{
-                  fontSize: isActive ? '21px' : '19px',
-                  lineHeight: '1.55',
-                  color: isActive ? 'var(--foreground)' : 'var(--foreground)',
+                  fontSize: isActive ? '18px' : '17px',
+                  lineHeight: '1.65',
                   opacity,
                   filter: blurPx > 0 ? `blur(${blurPx}px)` : 'none',
-                  transform: `scale(${scale})`,
+                  transform: isActive ? 'scale(1)' : 'scale(0.98)',
                   transformOrigin: 'left center',
-                  textShadow: isActive ? '0 0 30px rgba(var(--primary-rgb, 232, 98, 44), 0.15)' : 'none',
                 }}
               >
                 {line.text}
@@ -97,9 +95,9 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
           })}
         </div>
       </div>
-      {/* Cinematic gradient fades matching blurred background */}
-      <div className="absolute top-0 left-0 right-0 h-[28vh] bg-gradient-to-b from-background/95 via-background/60 to-transparent pointer-events-none z-10" />
-      <div className="absolute bottom-0 left-0 right-0 h-[25vh] bg-gradient-to-t from-background/95 via-background/60 to-transparent pointer-events-none z-10" />
+      {/* Gradient fades */}
+      <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-background/90 to-transparent pointer-events-none z-10" />
+      <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-background/90 to-transparent pointer-events-none z-10" />
     </div>
   );
 };
@@ -206,23 +204,23 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
           setDragY(0);
         }}
       >
-        {/* Blurred background image — visible behind lyrics */}
+        {/* Blurred background image — clearly visible behind lyrics */}
         {imageUrl && (
           <>
             <div
-              className="absolute inset-0 scale-110 will-change-transform"
+              className="absolute inset-0 scale-125 will-change-transform"
               style={{
                 backgroundImage: `url(${imageUrl})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                filter: 'blur(40px) saturate(1.5)',
-                opacity: 0.35,
+                filter: 'blur(30px) saturate(1.8) brightness(0.8)',
+                opacity: 0.5,
               }}
             />
-            <div className="absolute inset-0 bg-background/60" />
+            <div className="absolute inset-0 bg-background/50 backdrop-blur-sm" />
           </>
         )}
-        {!imageUrl && <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-background to-background" />}
+        {!imageUrl && <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-background to-primary/5" />}
 
         {/* Content */}
         <div className="relative flex flex-col h-full safe-area-top safe-area-bottom">
