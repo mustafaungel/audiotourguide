@@ -8,11 +8,10 @@ import { cn } from '@/lib/utils';
 import { haptics } from '@/lib/haptics';
 import { t } from '@/lib/translations';
 
-// Paragraph-tracking lyrics view (no manual scroll, auto-follow only)
+// Karaoke-style lyrics: only active paragraph visible, reveals as audio progresses
 const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; duration: number; isPlaying: boolean }> = ({ scriptText, currentTime, duration }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Split into paragraphs and assign time ranges based on word count
   const paragraphs = useMemo(() => {
     const parts = scriptText.split(/\n\n+/).map(p => p.trim()).filter(p => p.length > 0);
     if (parts.length === 0) return [];
@@ -26,7 +25,6 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
     });
   }, [scriptText, duration]);
 
-  // Find active paragraph index
   const activeIdx = useMemo(() => {
     if (duration <= 0) return 0;
     for (let i = paragraphs.length - 1; i >= 0; i--) {
@@ -35,47 +33,54 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
     return 0;
   }, [currentTime, paragraphs, duration]);
 
-  // Auto-scroll to active paragraph
+  // Auto-scroll active paragraph into view
   useEffect(() => {
     if (!containerRef.current) return;
     const el = containerRef.current.querySelector(`[data-para="${activeIdx}"]`) as HTMLElement;
     if (el) {
       const container = containerRef.current;
-      const targetScroll = el.offsetTop - container.clientHeight / 3;
-      container.scrollTo({ top: Math.max(0, targetScroll), behavior: 'smooth' });
+      const target = el.offsetTop - 24;
+      container.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
     }
   }, [activeIdx]);
 
   return (
     <div className="h-full relative">
-      {/* No manual scroll - overflow hidden, only auto-scroll via JS */}
-      <div
-        ref={containerRef}
-        className="h-full overflow-hidden"
-        style={{ touchAction: 'none' }}
-      >
-        <div className="px-2 pt-8 pb-32 space-y-5">
-          {paragraphs.map((p, i) => (
-            <p
-              key={i}
-              data-para={i}
-              className={cn(
-                "text-[15px] leading-[1.7] transition-all duration-700 ease-out",
-                i === activeIdx
-                  ? "text-foreground opacity-100"
-                  : i < activeIdx
-                    ? "text-foreground/30 opacity-60"
-                    : "text-foreground/20 opacity-40"
-              )}
-            >
-              {p.text}
-            </p>
-          ))}
+      <div ref={containerRef} className="h-full overflow-hidden" style={{ touchAction: 'none' }}>
+        <div className="px-2 py-4">
+          {paragraphs.map((p, i) => {
+            // Only show active paragraph and the one right before it (fading out)
+            const isActive = i === activeIdx;
+            const isPast = i < activeIdx;
+            const isFuture = i > activeIdx;
+            const isNearActive = Math.abs(i - activeIdx) <= 1;
+
+            return (
+              <div
+                key={i}
+                data-para={i}
+                className={cn(
+                  "transition-all duration-700 ease-out mb-6",
+                  isActive && "opacity-100",
+                  isPast && isNearActive && "opacity-20",
+                  isPast && !isNearActive && "opacity-0 h-0 overflow-hidden mb-0",
+                  isFuture && "opacity-0 h-0 overflow-hidden mb-0"
+                )}
+              >
+                <p className={cn(
+                  "text-[16px] leading-[1.8]",
+                  isActive ? "text-foreground" : "text-foreground/40"
+                )}>
+                  {p.text}
+                </p>
+              </div>
+            );
+          })}
         </div>
       </div>
-      {/* Strong fade gradients */}
-      <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-background via-background/80 to-transparent pointer-events-none z-10" />
-      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none z-10" />
+      {/* Subtle top/bottom fades */}
+      <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-background to-transparent pointer-events-none z-10" />
+      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent pointer-events-none z-10" />
     </div>
   );
 };
@@ -130,6 +135,8 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
   lang = 'en',
 }) => {
   const [showSpeedSheet, setShowSpeedSheet] = useState(false);
+  const [dragY, setDragY] = useState(0);
+  const dragStartRef = useRef(0);
   const [shouldRender, setShouldRender] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
@@ -145,36 +152,41 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
   useEffect(() => {
     if (open) {
       setShouldRender(true);
-      // Lock body scroll when expanded player is open
       document.body.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
-      document.body.style.top = `-${window.scrollY}px`;
       requestAnimationFrame(() => {
         requestAnimationFrame(() => setIsVisible(true));
       });
     } else {
-      // Restore body scroll
-      const scrollY = document.body.style.top;
       document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-      document.body.style.top = '';
-      window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      setDragY(0);
       setIsVisible(false);
       const timer = setTimeout(() => setShouldRender(false), 300);
       return () => clearTimeout(timer);
     }
+    return () => { document.body.style.overflow = ''; };
   }, [open]);
 
   if (!shouldRender) return null;
 
   const content = (
     <>
-      <div className={cn(
-        "fixed inset-0 z-[70] bg-background flex flex-col transition-all duration-300 ease-out",
-        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-full"
-      )}>
+      <div
+        className={cn(
+          "fixed inset-0 z-[70] bg-background flex flex-col",
+          dragY > 0 ? "" : "transition-all duration-300 ease-out",
+          isVisible ? "opacity-100" : "opacity-0 translate-y-full"
+        )}
+        style={dragY > 0 ? { transform: `translateY(${dragY}px)`, opacity: Math.max(0.3, 1 - dragY / 400) } : undefined}
+        onTouchStart={(e) => { dragStartRef.current = e.touches[0].clientY; }}
+        onTouchMove={(e) => {
+          const diff = e.touches[0].clientY - dragStartRef.current;
+          if (diff > 0) setDragY(diff);
+        }}
+        onTouchEnd={() => {
+          if (dragY > 120) { onClose(); }
+          setDragY(0);
+        }}
+      >
         {/* Blurred background */}
         {imageUrl && (
           <>
@@ -192,8 +204,12 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
 
         {/* Content */}
         <div className="relative flex flex-col h-full safe-area-top safe-area-bottom">
+          {/* Drag indicator */}
+          <div className="flex justify-center pt-2 pb-1">
+            <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+          </div>
           {/* Header — collapse button */}
-          <div className="flex items-center justify-between px-4 pt-3 pb-2">
+          <div className="flex items-center justify-between px-4 pb-2">
             <button
               onClick={() => { haptics.light(); onClose(); }}
               className="w-10 h-10 flex items-center justify-center text-muted-foreground active:opacity-60"
