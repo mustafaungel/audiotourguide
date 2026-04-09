@@ -73,8 +73,10 @@ Critical rules:
 - Target exactly ${wordCount} words (approximately ${estimatedMinutes} minutes when spoken at natural pace)
 - Write for SPOKEN delivery — this will be read aloud by a professional voice
 - Use contractions and natural speech patterns appropriate for ${lang}
-- No markdown, no headers, no bullet points, no asterisks — pure narration text only
-- NEVER use quotation marks (" " ' ') in the script — they cause problems in text-to-speech. Rephrase quoted speech as indirect speech instead
+- No markdown, no headers, no bullet points, no asterisks, no em-dashes (—), no en-dashes (–). Use commas or periods instead
+- NEVER use quotation marks (" " ' ') in the script. Rephrase quoted speech as indirect speech
+- NEVER use abbreviations like "AD", "BC", "St.", "Mt." — always write full forms: "in the year 537", "Saint Basil", "Mount Erciyes"
+- Structure the script in clear SHORT paragraphs of 2-3 sentences each, separated by blank lines. Never write a wall of text. Each paragraph should be a distinct thought or scene
 - Every historical fact must be accurate and verifiable for ${place} in ${city}, ${country}`
           },
           {
@@ -103,11 +105,13 @@ Write a compelling, factually accurate narration that makes the visitor feel the
     }
 
     const data = await response.json();
-    // Clean quotes that cause TTS issues
+    // Clean characters that cause TTS issues
     const script = data.choices[0].message.content.trim()
       .replace(/[""]/g, '')
       .replace(/['']/g, "'")
       .replace(/["]/g, '')
+      .replace(/[—]/g, ', ')
+      .replace(/[–]/g, ', ')
       .replace(/\s{2,}/g, ' ');
 
     return new Response(JSON.stringify({ script, section_title: section.title, language: lang }), {
