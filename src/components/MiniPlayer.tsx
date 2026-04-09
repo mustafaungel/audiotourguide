@@ -98,23 +98,21 @@ export const MiniPlayer = React.memo<MiniPlayerProps>(({
             />
           )}
 
-          {/* Controls - centered */}
+          {/* Controls - centered, always same layout */}
           <div className="flex-1 flex items-center justify-center gap-0.5">
-            {/* Previous section */}
-            {onPrevious && (
-              <button data-play-btn onClick={(e) => { e.stopPropagation(); haptics.light(); onPrevious(); }}
-                className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground active:scale-90 transition-all">
-                <SkipBack className="w-4 h-4" fill="currentColor" />
-              </button>
-            )}
+            {/* Previous section - always visible, disabled when at first */}
+            <button data-play-btn disabled={!onPrevious}
+              onClick={(e) => { e.stopPropagation(); if (onPrevious) { haptics.light(); onPrevious(); } }}
+              className={cn("w-9 h-9 rounded-full flex items-center justify-center active:scale-90 transition-all", onPrevious ? "text-muted-foreground" : "text-muted-foreground/20")}>
+              <SkipBack className="w-4 h-4" fill="currentColor" />
+            </button>
 
             {/* Skip -15s */}
-            {onSkipBack && (
-              <button data-play-btn onClick={(e) => { e.stopPropagation(); haptics.light(); onSkipBack(); }}
-                className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground/60 active:scale-90 transition-all">
-                <span className="text-[10px] font-bold">-15</span>
-              </button>
-            )}
+            <button data-play-btn
+              onClick={(e) => { e.stopPropagation(); haptics.light(); onSkipBack?.(); }}
+              className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground/50 active:scale-90 transition-all">
+              <span className="text-[10px] font-bold">-15</span>
+            </button>
 
             {/* Play/Pause */}
             <button data-play-btn onClick={(e) => { e.stopPropagation(); haptics.medium(); onTogglePlay(); }}
@@ -124,20 +122,18 @@ export const MiniPlayer = React.memo<MiniPlayerProps>(({
             </button>
 
             {/* Skip +15s */}
-            {onSkipForward && (
-              <button data-play-btn onClick={(e) => { e.stopPropagation(); haptics.light(); onSkipForward(); }}
-                className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground/60 active:scale-90 transition-all">
-                <span className="text-[10px] font-bold">+15</span>
-              </button>
-            )}
+            <button data-play-btn
+              onClick={(e) => { e.stopPropagation(); haptics.light(); onSkipForward?.(); }}
+              className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground/50 active:scale-90 transition-all">
+              <span className="text-[10px] font-bold">+15</span>
+            </button>
 
-            {/* Next section */}
-            {onNext && (
-              <button data-play-btn onClick={(e) => { e.stopPropagation(); haptics.light(); onNext(); }}
-                className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground active:scale-90 transition-all">
-                <SkipForward className="w-4 h-4" fill="currentColor" />
-              </button>
-            )}
+            {/* Next section - always visible, disabled when at last */}
+            <button data-play-btn disabled={!onNext}
+              onClick={(e) => { e.stopPropagation(); if (onNext) { haptics.light(); onNext(); } }}
+              className={cn("w-9 h-9 rounded-full flex items-center justify-center active:scale-90 transition-all", onNext ? "text-muted-foreground" : "text-muted-foreground/20")}>
+              <SkipForward className="w-4 h-4" fill="currentColor" />
+            </button>
           </div>
 
           {/* Speed */}

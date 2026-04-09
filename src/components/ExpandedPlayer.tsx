@@ -211,7 +211,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
           setDragY(0);
         }}
       >
-        {/* Blurred background image */}
+        {/* Blurred background image - theme aware */}
         {imageUrl && (
           <>
             <div
@@ -220,14 +220,15 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
                 backgroundImage: `url(${imageUrl})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                filter: 'blur(30px) saturate(1.4) brightness(1.1)',
-                opacity: 0.4,
+                filter: 'blur(25px) saturate(1.6)',
+                opacity: 0.45,
               }}
             />
-            <div className="absolute inset-0 bg-background/55" />
+            {/* Light mode: lighter overlay. Dark mode: darker overlay */}
+            <div className="absolute inset-0 bg-background/50 dark:bg-background/65" />
           </>
         )}
-        {!imageUrl && <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-primary/5" />}
+        {!imageUrl && <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-background to-primary/5" />}
 
         {/* Content */}
         <div className="relative flex flex-col h-full safe-area-top safe-area-bottom">
