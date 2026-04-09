@@ -67,8 +67,8 @@ Section details:
 - Key topics to cover: ${(section.key_topics || []).join(', ')}
 - Mood/tone: ${section.mood || 'engaging'}
 - Fun fact to include: ${section.fun_fact || ''}
-${previous_ending ? `\nThe previous section ended with: "${previous_ending}"\nEnsure a smooth transition from that context.` : '\nThis is the first section of the tour.'}
-${next_title ? `\nThe next section is: "${next_title}"\nBuild anticipation for what comes next.` : '\nThis is the final section of the tour. End with a memorable reflection.'}
+${previous_ending ? `\nCONTINUITY - The previous section ended with:\n"${previous_ending}"\n\nCRITICAL: This section MUST feel like a natural continuation of the tour. Reference what was just discussed, use a connecting phrase, and build upon the narrative thread. Do NOT start as if this is a new, disconnected story. The listener just heard the previous section — continue the journey seamlessly.` : '\nThis is the OPENING section of the tour. Set the scene, create excitement, and give the visitor a reason to listen to every section.'}
+${next_title ? `\nThe next section is: "${next_title}"\nEnd by naturally leading the visitor toward the next stop. Create anticipation without being forced.` : '\nThis is the FINAL section of the tour. End with a memorable reflection, recommend the best photo spots, mention what to see nearby, and thank the listener for joining the tour.'}
 
 Write a compelling, factually accurate narration that makes the visitor feel the magic and significance of this place. Remember: approximately ${wordCount} words, in ${lang}, pure narration text only.`
           }

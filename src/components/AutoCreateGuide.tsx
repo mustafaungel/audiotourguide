@@ -192,7 +192,7 @@ export function AutoCreateGuide() {
       if (planError || !planData?.sections) throw new Error('Failed to plan sections');
       const sections: PlannedSection[] = planData.sections;
 
-      // Step 2: Generate scripts for each section
+      // Step 2: Generate scripts for each section (each builds on the previous)
       const scripts: string[] = [];
       for (let i = 0; i < sections.length; i++) {
         setProgress({
@@ -200,11 +200,15 @@ export function AutoCreateGuide() {
           message: `Writing narration scripts...`,
           detail: `${i + 1}/${sections.length} sections complete`
         });
+
+        // Send the full previous script ending (last 500 chars) for continuity
+        const previousEnding = i > 0 ? scripts[i - 1].slice(-500) : null;
+
         const { data: scriptData, error: scriptError } = await supabase.functions.invoke('generate-section-script', {
           body: {
             country, city: finalCity, place: finalPlace,
             section: sections[i],
-            previous_ending: i > 0 ? scripts[i - 1]?.slice(-200) : null,
+            previous_ending: previousEnding,
             next_title: i < sections.length - 1 ? sections[i + 1].title : null,
             language: primaryLangName
           }
@@ -289,10 +293,14 @@ export function AutoCreateGuide() {
       const allSections = [...primarySections, ...additionalSections];
       const totalDuration = primarySections.reduce((sum, s) => sum + s.duration_seconds, 0);
 
+      // SEO-friendly title and description
+      const guideTitle = `${finalCity} : ${finalPlace}`;
+      const guideDescription = `Explore ${finalPlace} in ${finalCity}, ${country}. Professional audio tour guide with ${sections.length} stops covering history, culture, and hidden stories.`;
+
       const { data: guideData, error: guideError } = await supabase.functions.invoke('create-guide', {
         body: {
-          title: `${finalCity} : ${finalPlace}`,
-          description: `Explore ${finalPlace} in ${finalCity}, ${country}`,
+          title: guideTitle,
+          description: guideDescription,
           location: `${finalCity}, ${country}`,
           category: category || 'Historical',
           duration: Math.ceil(totalDuration / 60),
@@ -301,7 +309,7 @@ export function AutoCreateGuide() {
           price_usd: parseInt(priceUsd) || 499,
           image_urls: imageUrl ? [imageUrl] : [],
           sections: allSections,
-          is_published: false,
+          is_published: true,
           is_featured: false
         }
       });

@@ -139,7 +139,8 @@ serve(async (req) => {
         best_time,
         sections: JSON.stringify(sections),
         is_approved: true, // Auto-approve for now
-        is_published: is_published // Use the passed parameter
+        is_published: is_published, // Use the passed parameter
+        is_standalone: true // Make visible in content management and listings
       })
       .select()
       .single();
