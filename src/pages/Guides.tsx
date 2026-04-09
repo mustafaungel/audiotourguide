@@ -170,8 +170,8 @@ const Guides = () => {
   return (
     <div className="mobile-viewport bg-background">
       <SEO 
-        title="All Audio Tour Guides | Museums, Cities & Historical Sites Worldwide"
-        description="Browse 50+ expert-narrated audio tour guides for UNESCO World Heritage sites, museums, cities, and cultural landmarks. Available in multiple languages with offline access and immersive storytelling."
+        title="Browse Audio Guides | Museums, Cities & Heritage Sites"
+        description="Browse expert-narrated audio guides for UNESCO sites, museums, and cultural landmarks worldwide. Multi-language support."
         canonicalUrl="https://guided-sound-ai.lovable.app/guides"
         structuredData={schemas}
       />

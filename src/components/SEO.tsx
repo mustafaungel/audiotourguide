@@ -1,5 +1,10 @@
 import { Helmet } from 'react-helmet-async';
 
+interface HreflangLink {
+  lang: string;
+  url: string;
+}
+
 interface SEOProps {
   title: string;
   description: string;
@@ -10,6 +15,10 @@ interface SEOProps {
   noindex?: boolean;
   locale?: string;
   author?: string;
+  hreflangLinks?: HreflangLink[];
+  geoPlaceName?: string;
+  geoRegion?: string;
+  geoPosition?: string;
 }
 
 export const SEO: React.FC<SEOProps> = ({
@@ -21,23 +30,40 @@ export const SEO: React.FC<SEOProps> = ({
   structuredData,
   noindex = false,
   locale = 'en_US',
-  author
+  author,
+  hreflangLinks,
+  geoPlaceName,
+  geoRegion,
 }) => {
   const fullTitle = `${title} | Audio Tour Guides`;
   const siteUrl = 'https://guided-sound-ai.lovable.app';
   const fullCanonicalUrl = canonicalUrl || siteUrl;
+  // Truncate description to 155 chars for SERP display
+  const safeDescription = description.length > 155 ? description.substring(0, 152) + '...' : description;
 
   return (
     <Helmet>
       {/* Basic Meta Tags */}
       <title>{fullTitle}</title>
-      <meta name="description" content={description} />
+      <meta name="description" content={safeDescription} />
       <link rel="canonical" href={fullCanonicalUrl} />
       {noindex && <meta name="robots" content="noindex, follow" />}
 
+      {/* Geo Meta Tags (for local SEO) */}
+      {geoPlaceName && <meta name="geo.placename" content={geoPlaceName} />}
+      {geoRegion && <meta name="geo.region" content={geoRegion} />}
+
+      {/* Hreflang Tags (multi-language SEO) */}
+      {hreflangLinks && hreflangLinks.map((link) => (
+        <link key={link.lang} rel="alternate" hrefLang={link.lang} href={link.url} />
+      ))}
+      {hreflangLinks && hreflangLinks.length > 0 && (
+        <link rel="alternate" hrefLang="x-default" href={fullCanonicalUrl} />
+      )}
+
       {/* Open Graph Meta Tags */}
       <meta property="og:title" content={fullTitle} />
-      <meta property="og:description" content={description} />
+      <meta property="og:description" content={safeDescription} />
       <meta property="og:type" content={type} />
       <meta property="og:url" content={fullCanonicalUrl} />
       <meta property="og:image" content={image} />
@@ -48,7 +74,7 @@ export const SEO: React.FC<SEOProps> = ({
       {/* Twitter Card Meta Tags */}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={fullTitle} />
-      <meta name="twitter:description" content={description} />
+      <meta name="twitter:description" content={safeDescription} />
       <meta name="twitter:image" content={image} />
 
       {/* Structured Data (JSON-LD) */}

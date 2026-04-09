@@ -78,8 +78,8 @@ const Countries = () => {
   return (
     <div className="mobile-viewport bg-background">
       <SEO 
-        title="Audio Tour Guides by Country | Cultural Heritage & Travel Destinations"
-        description="Browse audio guides from 20+ countries worldwide. Explore UNESCO World Heritage sites, cultural landmarks, museums, and hidden gems with expert-narrated immersive audio tours available in multiple languages."
+        title="Audio Guides by Country | Destinations Worldwide"
+        description="Browse audio guides from 20+ countries. Explore UNESCO sites, museums, and cultural landmarks with expert narration."
         canonicalUrl="https://guided-sound-ai.lovable.app/country"
         structuredData={breadcrumbSchema}
       />

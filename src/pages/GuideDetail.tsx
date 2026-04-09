@@ -635,30 +635,28 @@ const GuideDetail = () => {
     );
   }
 
+  // SEO: Extract location parts
+  const guideCity = guide?.location?.split(',')[0]?.trim() || '';
+  const guideCountry = guide?.location?.split(',').pop()?.trim() || '';
+  const guideImage = guide?.image_urls?.[0] || guide?.image_url || guide?.image;
+  const seoTitle = guide ? `${guide.title} in ${guide.location}` : '';
+
+  // Hreflang links for multi-language guides
+  const hreflangLinks = guide?.languages?.length > 1 ? guide.languages.map((lang: string) => {
+    const langCode = lang === 'English' ? 'en' : lang === 'Spanish' ? 'es' : lang === 'French' ? 'fr' : lang === 'German' ? 'de' : lang === 'Italian' ? 'it' : lang === 'Portuguese' ? 'pt' : lang === 'Japanese' ? 'ja' : lang === 'Korean' ? 'ko' : lang === 'Chinese' ? 'zh' : lang === 'Russian' ? 'ru' : lang === 'Turkish' ? 'tr' : lang === 'Arabic' ? 'ar' : lang.substring(0, 2).toLowerCase();
+    return { lang: langCode, url: `https://guided-sound-ai.lovable.app/guide/${slug}` };
+  }) : undefined;
+
   // Create structured data for the guide
   const guideStructuredData = guide ? [
     {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
       "itemListElement": [
-        {
-          "@type": "ListItem",
-          "position": 1,
-          "name": "Home",
-          "item": "https://guided-sound-ai.lovable.app"
-        },
-        {
-          "@type": "ListItem",
-          "position": 2,
-          "name": "Guides",
-          "item": "https://guided-sound-ai.lovable.app/guides"
-        },
-        {
-          "@type": "ListItem",
-          "position": 3,
-          "name": guide.title,
-          "item": `https://guided-sound-ai.lovable.app/guide/${slug}`
-        }
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://guided-sound-ai.lovable.app" },
+        { "@type": "ListItem", "position": 2, "name": "Guides", "item": "https://guided-sound-ai.lovable.app/guides" },
+        ...(guideCountry ? [{ "@type": "ListItem", "position": 3, "name": `${guideCountry} Guides`, "item": `https://guided-sound-ai.lovable.app/country/${guideCountry.toLowerCase().replace(/\s+/g, '-')}` }] : []),
+        { "@type": "ListItem", "position": guideCountry ? 4 : 3, "name": guide.title, "item": `https://guided-sound-ai.lovable.app/guide/${slug}` }
       ]
     },
     {
@@ -666,36 +664,57 @@ const GuideDetail = () => {
       "@type": "TouristAttraction",
       "name": guide.title,
       "description": guide.description,
-      "image": guide.image_urls?.[0] || guide.image_url || guide.image,
+      "image": guideImage,
+      "url": `https://guided-sound-ai.lovable.app/guide/${slug}`,
       "address": {
         "@type": "PostalAddress",
-        "addressLocality": guide.location?.split(',')[0] || guide.location,
-        "addressCountry": guide.location?.split(',').pop()?.trim() || ""
+        "addressLocality": guideCity,
+        "addressCountry": guideCountry
       },
+      ...(guide.languages?.length > 0 ? { "availableLanguage": guide.languages.map((l: string) => ({ "@type": "Language", "name": l })) } : {}),
       "offers": guide.price_usd ? {
         "@type": "Offer",
         "price": (guide.price_usd / 100).toFixed(2),
-        "priceCurrency": "USD"
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock"
       } : undefined,
       "aggregateRating": guide.rating ? {
         "@type": "AggregateRating",
         "ratingValue": guide.rating,
         "reviewCount": guide.total_reviews || guide.totalReviews || 0
       } : undefined
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": `${guide.title} Audio Guide`,
+      "description": guide.description,
+      "image": guideImage,
+      "brand": { "@type": "Brand", "name": "Audio Tour Guides" },
+      "offers": {
+        "@type": "Offer",
+        "price": guide.price_usd ? (guide.price_usd / 100).toFixed(2) : "0.00",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock"
+      },
+      ...(guide.rating ? { "aggregateRating": { "@type": "AggregateRating", "ratingValue": guide.rating, "reviewCount": guide.total_reviews || 0 } } : {})
     }
   ] : undefined;
 
   return (
     <div className="min-h-screen bg-background">
       {guide && (
-        <SEO 
-          title={guide.title}
-          description={guide.description?.substring(0, 160) || `Discover ${guide.title} with our immersive audio guide`}
+        <SEO
+          title={seoTitle}
+          description={guide.description || `Discover ${guide.title} with our immersive audio guide in ${guide.location}`}
           canonicalUrl={`https://guided-sound-ai.lovable.app/guide/${slug}`}
-          image={guide.image_urls?.[0] || guide.image_url || guide.image}
+          image={guideImage}
           type="article"
           structuredData={guideStructuredData}
           noindex={!!hasAccessParam}
+          hreflangLinks={hreflangLinks}
+          geoPlaceName={guideCity}
+          geoRegion={guideCountry}
         />
       )}
       <Navigation />
@@ -718,7 +737,7 @@ const GuideDetail = () => {
                     ? (guide.image_urls?.[0] || guide.image_url)
                     : (guide.image_urls?.[0] || guide.image_url) || guide.image || '/hero-audio-guide.jpg'
                 } 
-                alt={guide.title}
+                alt={`${guide.title} - Audio tour guide in ${guide.location}`}
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   e.currentTarget.src = '/hero-audio-guide.jpg';
