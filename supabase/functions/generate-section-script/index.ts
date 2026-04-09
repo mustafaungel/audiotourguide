@@ -105,14 +105,15 @@ Write a compelling, factually accurate narration that makes the visitor feel the
     }
 
     const data = await response.json();
-    // Clean characters that cause TTS issues
+    // Clean characters that cause TTS issues, preserve paragraph breaks
     const script = data.choices[0].message.content.trim()
       .replace(/[""]/g, '')
       .replace(/['']/g, "'")
       .replace(/["]/g, '')
       .replace(/[—]/g, ', ')
       .replace(/[–]/g, ', ')
-      .replace(/\s{2,}/g, ' ');
+      .replace(/[ \t]{2,}/g, ' ')
+      .replace(/\n{3,}/g, '\n\n');
 
     return new Response(JSON.stringify({ script, section_title: section.title, language: lang }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
