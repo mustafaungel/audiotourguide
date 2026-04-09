@@ -168,18 +168,20 @@ export const MiniPlayer = React.memo<MiniPlayerProps>(({
           </div>
 
           {/* Speed + Auto */}
-          <div className="flex items-center gap-1 shrink-0">
+          <div className="flex items-center gap-1.5 shrink-0">
             {onSpeedChange && (
               <button data-play-btn onClick={(e) => { e.stopPropagation(); cycleSpeed(); }}
-                className="h-7 px-2 rounded-md flex items-center justify-center text-[10px] font-bold text-muted-foreground bg-muted/40 active:scale-90 transition-transform tabular-nums">
+                className="h-8 min-w-[36px] px-2.5 rounded-lg flex items-center justify-center text-[11px] font-bold text-foreground bg-muted/60 border border-border/30 active:scale-90 active:bg-muted transition-all tabular-nums">
                 {playbackSpeed}x
               </button>
             )}
             {onToggleAutoAdvance && (
-              <button data-play-btn onClick={(e) => { e.stopPropagation(); haptics.light(); onToggleAutoAdvance(); }}
-                className={cn("h-7 px-1.5 rounded-md flex items-center justify-center text-[9px] font-bold active:scale-90 transition-all",
-                  autoAdvance ? "bg-primary/20 text-primary" : "bg-muted/40 text-muted-foreground/40")}>
-                A
+              <button data-play-btn onClick={(e) => { e.stopPropagation(); haptics.medium(); onToggleAutoAdvance(); }}
+                className={cn("h-8 min-w-[36px] px-2.5 rounded-lg flex items-center justify-center text-[11px] font-bold border active:scale-90 transition-all",
+                  autoAdvance
+                    ? "bg-primary text-primary-foreground border-primary shadow-sm shadow-primary/20"
+                    : "bg-muted/60 text-muted-foreground border-border/30")}>
+                {autoAdvance ? '▶' : '▶'}
               </button>
             )}
           </div>

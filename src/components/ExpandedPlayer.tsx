@@ -79,19 +79,20 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
                 key={i}
                 data-line={i}
                 className={cn(
-                  "mb-7 text-center",
+                  "mb-8 text-center",
                   "transition-[opacity,transform,color] duration-700 ease-out",
                   isActive
-                    ? "text-foreground"
-                    : "text-muted-foreground"
+                    ? "text-foreground font-medium"
+                    : "text-muted-foreground font-light"
                 )}
                 style={{
-                  fontFamily: "'Playfair Display', Georgia, 'Times New Roman', serif",
-                  fontSize: isActive ? '16px' : '14.5px',
-                  lineHeight: '2',
-                  letterSpacing: '0.01em',
+                  fontFamily: "'Playfair Display', Georgia, serif",
+                  fontSize: isActive ? '15.5px' : '14px',
+                  lineHeight: '2.1',
+                  letterSpacing: '0.015em',
                   opacity,
-                  transform: isActive ? 'translateY(0)' : `translateY(${i > activeIdx ? '3px' : '-1px'})`,
+                  transform: isActive ? 'translateY(0) scale(1.01)' : `translateY(${i > activeIdx ? '3px' : '-1px'}) scale(0.99)`,
+                  transformOrigin: 'center center',
                 }}
               >
                 {line.text}
@@ -351,31 +352,30 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
           </div>
 
           {/* Speed control */}
-          <div className="flex justify-center gap-2.5 pb-6">
+          <div className="flex justify-center gap-3 pb-6">
             {/* Speed control pill */}
             <button
               onClick={() => { haptics.medium(); setShowSpeedSheet(true); }}
-              className="h-9 px-4 rounded-full bg-foreground/10 backdrop-blur-sm border border-foreground/5 flex items-center gap-1.5 active:scale-95 transition-all"
+              className="h-10 px-5 rounded-full bg-foreground/10 backdrop-blur-sm border border-foreground/10 flex items-center gap-2 active:scale-95 active:bg-foreground/20 transition-all"
             >
-              <svg className="w-3.5 h-3.5 text-foreground/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              <span className="text-xs font-bold text-foreground tabular-nums">
+              <span className="text-sm font-bold text-foreground tabular-nums">
                 {playbackSpeed === 1.0 ? '1.0×' : `${playbackSpeed}×`}
               </span>
+              <span className="text-xs text-foreground/50">Speed</span>
             </button>
 
             {/* Auto-advance pill */}
             {onToggleAutoAdvance && (
               <button
-                onClick={() => { haptics.light(); onToggleAutoAdvance(); }}
+                onClick={() => { haptics.medium(); onToggleAutoAdvance(); }}
                 className={cn(
-                  "h-9 px-4 rounded-full backdrop-blur-sm border flex items-center gap-1.5 active:scale-95 transition-all",
+                  "h-10 px-5 rounded-full backdrop-blur-sm border flex items-center gap-2 active:scale-95 transition-all",
                   autoAdvance
-                    ? "bg-primary/15 border-primary/30 text-primary"
-                    : "bg-foreground/10 border-foreground/5 text-foreground/50"
+                    ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/25"
+                    : "bg-foreground/10 border-foreground/10 text-foreground/50 active:bg-foreground/20"
                 )}
               >
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
-                <span className="text-xs font-bold">Auto</span>
+                <span className="text-sm font-bold">{autoAdvance ? '▶ Auto' : 'Auto'}</span>
               </button>
             )}
           </div>
