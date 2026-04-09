@@ -15,9 +15,7 @@ export const FaviconUpdater: React.FC = () => {
       link.href = branding.faviconUrl;
     }
 
-    if (branding.companyName) {
-      document.title = `${branding.companyName} - Discover World Heritage`;
-    }
+    // Don't override document.title - let React Helmet handle page-specific titles
   }, [branding.faviconUrl, branding.companyName]);
 
   return null;
