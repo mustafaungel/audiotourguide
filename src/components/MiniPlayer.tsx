@@ -27,15 +27,22 @@ const MarqueeText: React.FC<{ text: string; className?: string }> = ({ text, cla
 
   return (
     <div ref={containerRef} className={cn("overflow-hidden", className)}>
-      <div
-        ref={innerRef}
-        className={cn("whitespace-nowrap", shouldScroll && "animate-marquee inline-block")}
-        style={shouldScroll ? { animationDuration: `${Math.max(10, text.length * 0.3)}s` } : undefined}
-      >
-        <span>{text}</span>
-        {shouldScroll && <span className="mx-16 text-muted-foreground/20">•</span>}
-        {shouldScroll && <span>{text}</span>}
-      </div>
+      {shouldScroll ? (
+        <div
+          ref={innerRef}
+          className="whitespace-nowrap inline-flex"
+          style={{
+            animation: `marquee ${Math.max(12, text.length * 0.35)}s linear infinite`,
+          }}
+        >
+          <span className="shrink-0">{text}</span>
+          <span className="shrink-0 w-24" />
+          <span className="shrink-0">{text}</span>
+          <span className="shrink-0 w-24" />
+        </div>
+      ) : (
+        <div ref={innerRef} className="whitespace-nowrap truncate">{text}</div>
+      )}
     </div>
   );
 };
