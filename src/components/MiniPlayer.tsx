@@ -1,7 +1,34 @@
-import React from 'react';
-import { Play, Pause, ChevronUp, SkipBack, SkipForward, Headphones, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useRef, useEffect, useState } from 'react';
+import { Play, Pause, ChevronUp, SkipBack, SkipForward, Headphones } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { haptics } from '@/lib/haptics';
+
+// Marquee component for long titles
+const MarqueeText: React.FC<{ text: string; className?: string }> = ({ text, className }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLSpanElement>(null);
+  const [shouldScroll, setShouldScroll] = useState(false);
+
+  useEffect(() => {
+    if (containerRef.current && textRef.current) {
+      setShouldScroll(textRef.current.scrollWidth > containerRef.current.clientWidth + 5);
+    }
+  }, [text]);
+
+  return (
+    <div ref={containerRef} className={cn("overflow-hidden whitespace-nowrap", className)}>
+      <span
+        ref={textRef}
+        className={cn(shouldScroll && "inline-block animate-marquee")}
+        style={shouldScroll ? { animationDuration: `${Math.max(8, text.length * 0.25)}s` } : undefined}
+      >
+        {text}
+        {shouldScroll && <span className="mx-12 text-muted-foreground/30">•</span>}
+        {shouldScroll && text}
+      </span>
+    </div>
+  );
+};
 
 interface MiniPlayerProps {
   title: string;
@@ -21,7 +48,7 @@ interface MiniPlayerProps {
   onNext?: () => void;
 }
 
-const SPEED_OPTIONS = [1, 1.5, 2];
+const SPEED_OPTIONS = [0.75, 1, 1.25, 1.5, 2];
 
 export const MiniPlayer = React.memo<MiniPlayerProps>(({
   title,
@@ -73,7 +100,7 @@ export const MiniPlayer = React.memo<MiniPlayerProps>(({
         {/* Row 1: Now Playing title + time + expand */}
         <div className="flex items-center gap-2 px-4 pt-2.5 pb-1">
           <Headphones className="w-3.5 h-3.5 text-primary shrink-0" />
-          <p className="text-sm font-semibold text-foreground truncate flex-1">{title}</p>
+          <MarqueeText text={title} className="text-sm font-semibold text-foreground flex-1" />
           <span className="text-xs text-muted-foreground tabular-nums shrink-0">
             {formatTime(currentTime)} / {formatTime(duration)}
           </span>

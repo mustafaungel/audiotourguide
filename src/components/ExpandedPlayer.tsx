@@ -79,13 +79,14 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
                 key={i}
                 data-line={i}
                 className={cn(
-                  "mb-5 font-semibold text-center",
+                  "mb-5 text-center",
                   "transition-[opacity,transform,color] duration-700 ease-out",
                   isActive
-                    ? "text-foreground"
+                    ? "text-foreground font-medium"
                     : "text-muted-foreground"
                 )}
                 style={{
+                  fontFamily: "'Playfair Display', serif",
                   fontSize: isActive ? '17px' : '15px',
                   lineHeight: '1.75',
                   opacity,
