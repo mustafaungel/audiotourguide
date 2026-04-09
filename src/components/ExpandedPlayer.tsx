@@ -68,23 +68,28 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
         onTouchStart={handleUserScroll}
         onTouchEnd={() => { scrollTimer.current = setTimeout(() => { userScrolling.current = false; }, 4000); }}
       >
-        <div className="px-6 pt-[15vh] pb-[10vh] max-w-md mx-auto">
+        <div className="px-6 pt-6 pb-8 max-w-md mx-auto">
           {lines.map((line, i) => {
             const isActive = i === activeIdx;
             const absDist = Math.abs(i - activeIdx);
-            const opacity = isActive ? 1 : Math.max(0.15, 0.5 - absDist * 0.1);
-            const blurPx = isActive ? 0 : Math.min(absDist * 0.4, 1.5);
+            const opacity = isActive ? 1 : Math.max(0.2, 0.55 - absDist * 0.1);
 
             return (
               <p
                 key={i}
                 data-line={i}
-                className="mb-6 font-semibold text-center transition-all duration-500 ease-out"
+                className={cn(
+                  "mb-5 font-semibold text-center",
+                  "transition-[opacity,transform,color] duration-700 ease-out",
+                  isActive
+                    ? "text-foreground"
+                    : "text-muted-foreground"
+                )}
                 style={{
-                  fontSize: isActive ? '18px' : '16px',
-                  lineHeight: '1.7',
+                  fontSize: isActive ? '17px' : '15px',
+                  lineHeight: '1.75',
                   opacity,
-                  filter: blurPx > 0 ? `blur(${blurPx}px)` : 'none',
+                  transform: isActive ? 'translateY(0)' : `translateY(${i > activeIdx ? '4px' : '-2px'})`,
                 }}
               >
                 {line.text}
