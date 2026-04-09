@@ -83,7 +83,7 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
                   "transition-[opacity,transform,color] duration-500 ease-out will-change-[opacity,transform]",
                   isActive
                     ? "text-foreground font-medium"
-                    : "text-muted-foreground font-light"
+                    : "text-foreground/40 dark:text-foreground/30 font-normal"
                 )}
                 style={{
                   fontFamily: "'Playfair Display', Georgia, serif",
@@ -223,15 +223,15 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
                 backgroundImage: `url(${imageUrl})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                filter: 'blur(25px) saturate(1.6)',
-                opacity: 0.45,
+                filter: 'blur(25px) saturate(1.4)',
+                opacity: 0.3,
               }}
             />
-            {/* Light mode: lighter overlay. Dark mode: darker overlay */}
-            <div className="absolute inset-0 bg-background/50 dark:bg-background/65" />
+            {/* Light: strong white overlay for readability. Dark: strong dark overlay */}
+            <div className="absolute inset-0 bg-background/75 dark:bg-background/70" />
           </>
         )}
-        {!imageUrl && <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-background to-primary/5" />}
+        {!imageUrl && <div className="absolute inset-0 bg-background" />}
 
         {/* Content */}
         <div className="relative flex flex-col h-full safe-area-top safe-area-bottom">
