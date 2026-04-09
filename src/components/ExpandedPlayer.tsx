@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Play, Pause, SkipBack, SkipForward, ChevronDown, X } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
-import { BottomSheet } from '@/components/ui/bottom-sheet';
+// BottomSheet removed - using inline speed picker (z-index conflict with expanded player)
 import { cn } from '@/lib/utils';
 import { haptics } from '@/lib/haptics';
 import { t } from '@/lib/translations';
@@ -161,7 +161,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
   onToggleAutoAdvance,
   lang = 'en',
 }) => {
-  const [showSpeedSheet, setShowSpeedSheet] = useState(false);
+  const [showSpeedPicker, setShowSpeedPicker] = useState(false);
   const [dragY, setDragY] = useState(0);
   const dragStartRef = useRef(0);
   const [shouldRender, setShouldRender] = useState(false);
@@ -353,16 +353,36 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
 
           {/* Speed control */}
           <div className="flex justify-center gap-3 pb-6">
-            {/* Speed control pill */}
-            <button
-              onClick={() => { haptics.medium(); setShowSpeedSheet(true); }}
-              className="h-10 px-5 rounded-full bg-foreground/10 backdrop-blur-sm border border-foreground/10 flex items-center gap-2 active:scale-95 active:bg-foreground/20 transition-all"
-            >
-              <span className="text-sm font-bold text-foreground tabular-nums">
-                {playbackSpeed === 1.0 ? '1.0×' : `${playbackSpeed}×`}
-              </span>
-              <span className="text-xs text-foreground/50">Speed</span>
-            </button>
+            {/* Speed control - inline toggle */}
+            <div className="relative">
+              <button
+                onClick={() => { haptics.medium(); setShowSpeedPicker(!showSpeedPicker); }}
+                className="h-10 px-5 rounded-full bg-foreground/10 backdrop-blur-sm border border-foreground/10 flex items-center gap-2 active:scale-95 active:bg-foreground/20 transition-all"
+              >
+                <span className="text-sm font-bold text-foreground tabular-nums">
+                  {playbackSpeed === 1.0 ? '1.0×' : `${playbackSpeed}×`}
+                </span>
+                <span className="text-xs text-foreground/50">Speed</span>
+              </button>
+              {showSpeedPicker && (
+                <div className="absolute bottom-12 left-1/2 -translate-x-1/2 bg-background/95 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl p-2 flex gap-1 z-[80]">
+                  {speedOptions.map((speed) => (
+                    <button
+                      key={speed}
+                      onClick={() => { haptics.selection(); onSpeedChange(speed); setShowSpeedPicker(false); }}
+                      className={cn(
+                        "h-9 px-3 rounded-xl text-sm font-bold transition-all active:scale-90",
+                        playbackSpeed === speed
+                          ? "bg-primary text-primary-foreground shadow-sm"
+                          : "text-foreground/70 hover:bg-foreground/10"
+                      )}
+                    >
+                      {speed}×
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* Auto-advance pill */}
             {onToggleAutoAdvance && (
@@ -382,34 +402,10 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
         </div>
       </div>
 
-      {/* Speed bottom sheet */}
-      <BottomSheet
-        open={showSpeedSheet}
-        onOpenChange={setShowSpeedSheet}
-        title={t('playbackSpeed', lang)}
-        defaultSnap="mini"
-      >
-        <div className="pb-6 space-y-1">
-          {speedOptions.map((speed) => (
-            <button
-              key={speed}
-              onClick={() => {
-                haptics.selection();
-                onSpeedChange(speed);
-                setTimeout(() => setShowSpeedSheet(false), 200);
-              }}
-              className={cn(
-                "w-full h-12 flex items-center justify-center rounded-lg transition-all touch-manipulation",
-                playbackSpeed === speed ? "font-bold text-primary scale-105" : "text-muted-foreground"
-              )}
-            >
-              <span className={cn("text-base", playbackSpeed === speed && "text-lg font-semibold")}>
-                {speed === 1.0 ? t('normal', lang) : `${speed}×`}
-              </span>
-            </button>
-          ))}
-        </div>
-      </BottomSheet>
+      {/* Speed picker backdrop - closes on tap outside */}
+      {showSpeedPicker && (
+        <div className="fixed inset-0 z-[75]" onClick={() => setShowSpeedPicker(false)} />
+      )}
     </>
   );
 

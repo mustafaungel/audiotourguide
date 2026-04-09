@@ -10,9 +10,13 @@ const MarqueeText: React.FC<{ text: string; className?: string }> = ({ text, cla
   const [shouldScroll, setShouldScroll] = useState(false);
 
   useEffect(() => {
-    if (containerRef.current && textRef.current) {
-      setShouldScroll(textRef.current.scrollWidth > containerRef.current.clientWidth + 5);
-    }
+    // Delay measurement to ensure portal is mounted
+    const timer = setTimeout(() => {
+      if (containerRef.current && textRef.current) {
+        setShouldScroll(textRef.current.scrollWidth > containerRef.current.clientWidth + 5);
+      }
+    }, 100);
+    return () => clearTimeout(timer);
   }, [text]);
 
   return (
