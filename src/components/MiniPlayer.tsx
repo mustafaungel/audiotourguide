@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Pause, ChevronUp, SkipBack, SkipForward, Headphones } from 'lucide-react';
+import { Play, Pause, ChevronUp, SkipBack, SkipForward, Headphones, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { haptics } from '@/lib/haptics';
 
@@ -17,6 +17,8 @@ interface MiniPlayerProps {
   onSkipBack?: () => void;
   onSkipForward?: () => void;
   onSpeedChange?: (speed: number) => void;
+  onPrevious?: () => void;
+  onNext?: () => void;
 }
 
 const SPEED_OPTIONS = [1, 1.5, 2];
@@ -33,6 +35,8 @@ export const MiniPlayer = React.memo<MiniPlayerProps>(({
   onSkipBack,
   onSkipForward,
   onSpeedChange,
+  onPrevious,
+  onNext,
   playbackSpeed = 1,
   variant = 'fixed',
 }) => {
@@ -95,48 +99,51 @@ export const MiniPlayer = React.memo<MiniPlayerProps>(({
           )}
 
           {/* Controls - centered */}
-          <div className="flex-1 flex items-center justify-center gap-1">
-            {onSkipBack && (
-              <button
-                data-play-btn
-                onClick={(e) => { e.stopPropagation(); haptics.light(); onSkipBack(); }}
-                className="w-10 h-10 rounded-full flex items-center justify-center text-muted-foreground active:scale-90 active:bg-muted/60 transition-all"
-              >
-                <SkipBack className="w-4.5 h-4.5" fill="currentColor" />
+          <div className="flex-1 flex items-center justify-center gap-0.5">
+            {/* Previous section */}
+            {onPrevious && (
+              <button data-play-btn onClick={(e) => { e.stopPropagation(); haptics.light(); onPrevious(); }}
+                className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground active:scale-90 transition-all">
+                <SkipBack className="w-4 h-4" fill="currentColor" />
               </button>
             )}
 
-            <button
-              data-play-btn
-              onClick={(e) => { e.stopPropagation(); haptics.medium(); onTogglePlay(); }}
+            {/* Skip -15s */}
+            {onSkipBack && (
+              <button data-play-btn onClick={(e) => { e.stopPropagation(); haptics.light(); onSkipBack(); }}
+                className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground/60 active:scale-90 transition-all">
+                <span className="text-[10px] font-bold">-15</span>
+              </button>
+            )}
+
+            {/* Play/Pause */}
+            <button data-play-btn onClick={(e) => { e.stopPropagation(); haptics.medium(); onTogglePlay(); }}
               className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90 bg-primary text-primary-foreground shadow-lg shadow-primary/25"
-              disabled={loading}
-            >
-              {isPlaying ? (
-                <Pause className="w-5 h-5" fill="currentColor" />
-              ) : (
-                <Play className="w-5 h-5 ml-0.5" fill="currentColor" />
-              )}
+              disabled={loading}>
+              {isPlaying ? <Pause className="w-5 h-5" fill="currentColor" /> : <Play className="w-5 h-5 ml-0.5" fill="currentColor" />}
             </button>
 
+            {/* Skip +15s */}
             {onSkipForward && (
-              <button
-                data-play-btn
-                onClick={(e) => { e.stopPropagation(); haptics.light(); onSkipForward(); }}
-                className="w-10 h-10 rounded-full flex items-center justify-center text-muted-foreground active:scale-90 active:bg-muted/60 transition-all"
-              >
-                <SkipForward className="w-4.5 h-4.5" fill="currentColor" />
+              <button data-play-btn onClick={(e) => { e.stopPropagation(); haptics.light(); onSkipForward(); }}
+                className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground/60 active:scale-90 transition-all">
+                <span className="text-[10px] font-bold">+15</span>
+              </button>
+            )}
+
+            {/* Next section */}
+            {onNext && (
+              <button data-play-btn onClick={(e) => { e.stopPropagation(); haptics.light(); onNext(); }}
+                className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground active:scale-90 transition-all">
+                <SkipForward className="w-4 h-4" fill="currentColor" />
               </button>
             )}
           </div>
 
           {/* Speed */}
           {onSpeedChange && (
-            <button
-              data-play-btn
-              onClick={(e) => { e.stopPropagation(); cycleSpeed(); }}
-              className="h-7 px-2 rounded-md flex items-center justify-center shrink-0 text-xs font-bold text-muted-foreground bg-muted/50 active:scale-90 transition-transform tabular-nums"
-            >
+            <button data-play-btn onClick={(e) => { e.stopPropagation(); cycleSpeed(); }}
+              className="h-7 px-2 rounded-md flex items-center justify-center shrink-0 text-[10px] font-bold text-muted-foreground bg-muted/50 active:scale-90 transition-transform tabular-nums">
               {playbackSpeed}x
             </button>
           )}

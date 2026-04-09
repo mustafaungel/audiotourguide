@@ -368,6 +368,8 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
       onSkipBack={() => skip(-15)}
       onSkipForward={() => skip(15)}
       onSpeedChange={handleSpeedChange}
+      onPrevious={currentSectionIndex > 0 ? () => playSection(currentSectionIndex - 1) : undefined}
+      onNext={currentSectionIndex < displaySections.length - 1 ? () => playSection(currentSectionIndex + 1) : undefined}
     />,
     document.body
   ) : null;
@@ -395,6 +397,8 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
       onPrevious={previousSection}
       onNext={nextSection}
       onSpeedChange={handleSpeedChange}
+      autoAdvance={autoAdvanceEnabled}
+      onToggleAutoAdvance={() => setAutoAdvance(!autoAdvanceEnabled)}
       lang={lang}
     />
   ) : null;

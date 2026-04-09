@@ -127,6 +127,8 @@ interface ExpandedPlayerProps {
   onPrevious: () => void;
   onNext: () => void;
   onSpeedChange: (speed: number) => void;
+  autoAdvance?: boolean;
+  onToggleAutoAdvance?: () => void;
   lang?: string;
 }
 
@@ -152,6 +154,8 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
   onPrevious,
   onNext,
   onSpeedChange,
+  autoAdvance,
+  onToggleAutoAdvance,
   lang = 'en',
 }) => {
   const [showSpeedSheet, setShowSpeedSheet] = useState(false);
@@ -344,13 +348,24 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
           </div>
 
           {/* Speed control */}
-          <div className="flex justify-center pb-6">
+          <div className="flex justify-center gap-3 pb-6">
             <button
               onClick={() => { haptics.medium(); setShowSpeedSheet(true); }}
               className="px-4 py-2 rounded-full bg-muted/50 text-sm font-semibold text-foreground active:scale-95 transition-transform"
             >
               {playbackSpeed === 1.0 ? t('normal', lang) : `${playbackSpeed}×`}
             </button>
+            {onToggleAutoAdvance && (
+              <button
+                onClick={() => { haptics.light(); onToggleAutoAdvance(); }}
+                className={cn(
+                  "px-4 py-2 rounded-full text-sm font-semibold active:scale-95 transition-all",
+                  autoAdvance ? "bg-primary/15 text-primary" : "bg-muted/50 text-muted-foreground"
+                )}
+              >
+                Auto ▶
+              </button>
+            )}
           </div>
         </div>
       </div>
