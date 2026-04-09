@@ -63,29 +63,32 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
   return (
     <div className="h-full relative">
       <div ref={containerRef} className="h-full overflow-hidden" style={{ touchAction: 'none' }}>
-        <div className="px-1 pt-[30vh] pb-[50vh]">
+        <div className="px-3 pt-[25vh] pb-[50vh]">
           {lines.map((line, i) => {
             const isActive = i === activeIdx;
             const distance = i - activeIdx;
             const isPast = distance < 0;
-            const isFar = Math.abs(distance) > 3;
+            const absDist = Math.abs(distance);
+
+            // Apple Music style: active line bright, everything else fades progressively
+            const opacity = isActive ? 1 : Math.max(0.06, 0.35 - absDist * 0.08);
+            const blurPx = isActive ? 0 : Math.min(absDist * 0.6, 3);
+            const scale = isActive ? 1 : 0.97;
 
             return (
               <p
                 key={i}
                 data-line={i}
-                className={cn(
-                  "py-1.5 font-semibold transition-all duration-500 ease-out",
-                  isActive && "text-[22px] leading-[1.5] text-foreground",
-                  !isActive && isPast && !isFar && "text-[20px] leading-[1.5] text-foreground/25",
-                  !isActive && !isPast && !isFar && "text-[20px] leading-[1.5] text-foreground/20",
-                  isFar && isPast && "text-[20px] leading-[1.5] text-foreground/10",
-                  isFar && !isPast && "text-[20px] leading-[1.5] text-foreground/8",
-                )}
+                className="py-2 font-bold transition-all duration-600 ease-out"
                 style={{
-                  filter: isActive ? 'none' : `blur(${Math.min(Math.abs(distance) * 0.4, 2)}px)`,
-                  transform: isActive ? 'scale(1.02)' : 'scale(1)',
+                  fontSize: isActive ? '21px' : '19px',
+                  lineHeight: '1.55',
+                  color: isActive ? 'var(--foreground)' : 'var(--foreground)',
+                  opacity,
+                  filter: blurPx > 0 ? `blur(${blurPx}px)` : 'none',
+                  transform: `scale(${scale})`,
                   transformOrigin: 'left center',
+                  textShadow: isActive ? '0 0 30px rgba(var(--primary-rgb, 232, 98, 44), 0.15)' : 'none',
                 }}
               >
                 {line.text}
@@ -94,9 +97,9 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
           })}
         </div>
       </div>
-      {/* Immersive gradient fades */}
-      <div className="absolute top-0 left-0 right-0 h-[35vh] bg-gradient-to-b from-background via-background/70 to-transparent pointer-events-none z-10" />
-      <div className="absolute bottom-0 left-0 right-0 h-[30vh] bg-gradient-to-t from-background via-background/70 to-transparent pointer-events-none z-10" />
+      {/* Cinematic gradient fades matching blurred background */}
+      <div className="absolute top-0 left-0 right-0 h-[28vh] bg-gradient-to-b from-background/95 via-background/60 to-transparent pointer-events-none z-10" />
+      <div className="absolute bottom-0 left-0 right-0 h-[25vh] bg-gradient-to-t from-background/95 via-background/60 to-transparent pointer-events-none z-10" />
     </div>
   );
 };
@@ -203,20 +206,23 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
           setDragY(0);
         }}
       >
-        {/* Blurred background */}
+        {/* Blurred background image — visible behind lyrics */}
         {imageUrl && (
           <>
             <div
-              className="absolute inset-0 scale-110 blur-3xl opacity-20 will-change-transform"
+              className="absolute inset-0 scale-110 will-change-transform"
               style={{
                 backgroundImage: `url(${imageUrl})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
+                filter: 'blur(40px) saturate(1.5)',
+                opacity: 0.35,
               }}
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/80 to-background" />
+            <div className="absolute inset-0 bg-background/60" />
           </>
         )}
+        {!imageUrl && <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-background to-background" />}
 
         {/* Content */}
         <div className="relative flex flex-col h-full safe-area-top safe-area-bottom">
