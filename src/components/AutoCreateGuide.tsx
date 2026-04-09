@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Globe, MapPin, Landmark, Languages, DollarSign, Mic, Loader2, CheckCircle, Music, Image, Save, Copy } from 'lucide-react';
+import { Globe, MapPin, Landmark, Languages, DollarSign, Mic, Loader2, CheckCircle, Music, Image, Save, Copy, ChevronDown } from 'lucide-react';
 import { ALL_COUNTRIES, ELEVENLABS_LANGUAGES, GUIDE_CATEGORIES } from '@/data/countries-full';
 import { toast } from 'sonner';
 
@@ -44,7 +44,7 @@ interface Voice {
   preview_url: string | null;
 }
 
-type Step = 'form' | 'plan_review' | 'creating' | 'done_review' | 'published';
+type Step = 'form' | 'plan_review' | 'generating_scripts' | 'script_review' | 'creating' | 'done_review' | 'published';
 
 interface CreationProgress {
   step: number;
@@ -82,6 +82,9 @@ export function AutoCreateGuide() {
 
   // Plan review state
   const [plannedSections, setPlannedSections] = useState<PlannedSection[]>([]);
+  // Script review state
+  const [generatedScripts, setGeneratedScripts] = useState<string[]>([]);
+  const [expandedScript, setExpandedScript] = useState<number | null>(null);
 
   // Voice preview
   const [previewAudio, setPreviewAudio] = useState<HTMLAudioElement | null>(null);
@@ -268,29 +271,26 @@ export function AutoCreateGuide() {
   };
 
   // === STEP 2: CREATE GUIDE (after plan approval) ===
-  const handleStartCreation = async () => {
+  // === STEP 2B: GENERATE SCRIPTS (after plan approval, before audio) ===
+  const handleGenerateScripts = async () => {
     const finalCity = city || cityInput;
     const finalPlace = place || placeInput;
     if (!country || !finalCity || !finalPlace) return;
 
-    setCurrentStep('creating');
-    const defaultVoice = voiceGender === 'female' ? '9BWtsMINqrJLrRacOk9x' : 'pNInz6obpgDQGcFmaJgB';
+    setCurrentStep('generating_scripts');
     const primaryLang = selectedLanguages[0];
-    const getVoiceForLang = (langCode: string) => voiceByLanguage[langCode] || defaultVoice;
     const primaryLangName = ELEVENLABS_LANGUAGES.find(l => l.code === primaryLang)?.name || 'English';
     const sections = plannedSections;
 
     try {
-      // Step 2: Generate scripts for each section (each builds on the previous)
       const scripts: string[] = [];
       for (let i = 0; i < sections.length; i++) {
         setProgress({
-          step: 2, totalSteps: 6,
+          step: 1, totalSteps: 1,
           message: `Writing narration scripts...`,
           detail: `${i + 1}/${sections.length} sections complete`
         });
 
-        // Send previous script context: ending for continuity + first sentence to avoid repeating opening style
         const prevScript = i > 0 ? scripts[i - 1] : null;
         const previousEnding = prevScript ? prevScript.slice(-500) : null;
         const previousOpening = prevScript ? prevScript.split('.')[0] + '.' : null;
@@ -308,9 +308,31 @@ export function AutoCreateGuide() {
         if (scriptError || !scriptData?.script) throw new Error(`Failed to generate script for section ${i + 1}`);
         scripts.push(scriptData.script);
       }
+      setGeneratedScripts(scripts);
+      setCurrentStep('script_review');
+    } catch (error: any) {
+      toast.error(`Script generation failed: ${error.message}`);
+      setCurrentStep('plan_review');
+    }
+  };
 
-      // Step 3: Generate cover image
-      setProgress({ step: 3, totalSteps: 6, message: 'Generating cover image...' });
+  // === STEP 3: CREATE AUDIO + IMAGE (after script approval) ===
+  const handleStartCreation = async () => {
+    const finalCity = city || cityInput;
+    const finalPlace = place || placeInput;
+    if (!country || !finalCity || !finalPlace) return;
+
+    setCurrentStep('creating');
+    const defaultVoice = voiceGender === 'female' ? '9BWtsMINqrJLrRacOk9x' : 'pNInz6obpgDQGcFmaJgB';
+    const primaryLang = selectedLanguages[0];
+    const getVoiceForLang = (langCode: string) => voiceByLanguage[langCode] || defaultVoice;
+    const primaryLangName = ELEVENLABS_LANGUAGES.find(l => l.code === primaryLang)?.name || 'English';
+    const sections = plannedSections;
+    const scripts = generatedScripts;
+
+    try {
+      // Step 1: Generate cover image
+      setProgress({ step: 1, totalSteps: 4, message: 'Generating cover image...' });
       const { data: imageData } = await supabase.functions.invoke('generate-image', {
         body: {
           title: finalPlace,
@@ -326,7 +348,7 @@ export function AutoCreateGuide() {
       const primarySections: { title: string; description: string; audio_url: string; duration_seconds: number; language: string; language_code: string; order_index: number }[] = [];
       for (let i = 0; i < sections.length; i++) {
         setProgress({
-          step: 4, totalSteps: 6,
+          step: 2, totalSteps: 4,
           message: `Producing audio files...`,
           detail: `${primaryLangName}: ${i + 1}/${sections.length}`
         });
@@ -352,7 +374,7 @@ export function AutoCreateGuide() {
         const langName = ELEVENLABS_LANGUAGES.find(l => l.code === langCode)?.name || langCode;
         for (let i = 0; i < sections.length; i++) {
           setProgress({
-            step: 5, totalSteps: 6,
+            step: 3, totalSteps: 4,
             message: `Producing multilingual audio...`,
             detail: `${langName}: ${i + 1}/${sections.length}`
           });
@@ -384,7 +406,7 @@ export function AutoCreateGuide() {
       }
 
       // Step 6: Create guide in database
-      setProgress({ step: 6, totalSteps: 6, message: 'Saving guide...' });
+      setProgress({ step: 4, totalSteps: 4, message: 'Saving guide...' });
       const allSections = [...primarySections, ...additionalSections];
       const totalDuration = primarySections.reduce((sum, s) => sum + s.duration_seconds, 0);
 
@@ -669,11 +691,87 @@ export function AutoCreateGuide() {
               ))}
             </div>
             <div className="flex gap-2 pt-2">
-              <Button onClick={handleStartCreation} className="flex-1">
-                Approve & Start Creating ({plannedSections.length} sections, {selectedLanguages.length} language{selectedLanguages.length > 1 ? 's' : ''})
+              <Button onClick={handleGenerateScripts} className="flex-1">
+                Approve & Generate Scripts ({plannedSections.length} sections)
               </Button>
               <Button variant="outline" onClick={() => { setCurrentStep('form'); setPlannedSections([]); }}>
                 Back to Form
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // === RENDER: GENERATING SCRIPTS ===
+  if (currentStep === 'generating_scripts') {
+    return (
+      <div className="max-w-xl mx-auto">
+        <Card>
+          <CardContent className="py-12 text-center space-y-6">
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+              <Music className="w-8 h-8 text-primary animate-pulse" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold mb-1">Generating Scripts</h2>
+              <p className="text-muted-foreground text-sm">{place || placeInput} — {city || cityInput}, {country}</p>
+            </div>
+            <Progress value={progress.detail ? (parseInt(progress.detail) / plannedSections.length) * 100 : 0} className="h-2" />
+            <p className="text-sm font-medium">{progress.message}</p>
+            {progress.detail && <p className="text-xs text-muted-foreground">{progress.detail}</p>}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // === RENDER: SCRIPT REVIEW ===
+  if (currentStep === 'script_review') {
+    const primaryLangName = ELEVENLABS_LANGUAGES.find(l => l.code === selectedLanguages[0])?.name || 'English';
+    const totalWords = generatedScripts.reduce((sum, s) => sum + s.split(/\s+/).length, 0);
+    const totalMinutes = Math.round(totalWords / 150);
+
+    return (
+      <div className="max-w-3xl">
+        <Card>
+          <CardHeader>
+            <CardTitle>Review Scripts — {generatedScripts.length} Sections ({totalMinutes} min, ~{totalWords} words)</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              {place || placeInput} — {city || cityInput}, {country} • {primaryLangName}
+            </p>
+            <div className="max-h-[500px] overflow-y-auto space-y-2 border rounded-lg p-3">
+              {generatedScripts.map((script, i) => (
+                <div key={i} className="border rounded-lg overflow-hidden">
+                  <button
+                    onClick={() => setExpandedScript(expandedScript === i ? null : i)}
+                    className="w-full flex items-center gap-3 p-3 text-left hover:bg-muted/50 transition-colors"
+                  >
+                    <span className="text-xs font-bold text-primary bg-primary/10 rounded-full w-6 h-6 flex items-center justify-center shrink-0">{i + 1}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{plannedSections[i]?.title}</p>
+                      <p className="text-xs text-muted-foreground">{script.split(/\s+/).length} words • ~{Math.round(script.split(/\s+/).length / 150)} min</p>
+                    </div>
+                    <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${expandedScript === i ? 'rotate-180' : ''}`} />
+                  </button>
+                  {expandedScript === i && (
+                    <div className="px-3 pb-3 border-t">
+                      <p className="text-sm leading-relaxed text-foreground/80 whitespace-pre-line max-h-[300px] overflow-y-auto pt-2">
+                        {script}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-2 pt-2">
+              <Button onClick={handleStartCreation} className="flex-1">
+                Approve Scripts & Start Audio Production ({selectedLanguages.length} language{selectedLanguages.length > 1 ? 's' : ''})
+              </Button>
+              <Button variant="outline" onClick={() => { setCurrentStep('plan_review'); setGeneratedScripts([]); }}>
+                Back
               </Button>
             </div>
           </CardContent>
