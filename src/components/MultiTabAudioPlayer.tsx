@@ -60,7 +60,7 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     [mainGuide.id]: languageCode
   });
   const [selectedGuideId, setSelectedGuideId] = useState<string | null>(null);
-  // closingGuideId removed — using CSS grid-rows animation instead
+  const [activePlayingGuideId, setActivePlayingGuideId] = useState<string | null>(null);
   const fetchingRef = useRef<Set<string>>(new Set());
 
   // Sync parent on mount so activeGuideId matches the auto-expanded main guide
@@ -263,6 +263,8 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
         sections={mainSections} mainAudioUrl={mainGuide.audio_url}
         guideImageUrl={guideImageUrl}
         lang={languageByGuide[mainGuide.id] || languageCode}
+        onPlayStart={() => setActivePlayingGuideId(mainGuide.id)}
+        shouldStop={activePlayingGuideId !== null && activePlayingGuideId !== mainGuide.id}
       />
     );
   }
@@ -288,6 +290,8 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
             sections={sections}
             mainAudioUrl={audioUrl}
             guideImageUrl={imageUrl}
+            onPlayStart={() => setActivePlayingGuideId(guideId)}
+            shouldStop={activePlayingGuideId !== null && activePlayingGuideId !== guideId}
             lang={languageByGuide[guideId] || languageCode}
           />
         </div>

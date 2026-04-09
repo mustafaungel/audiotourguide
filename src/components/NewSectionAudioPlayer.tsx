@@ -28,6 +28,8 @@ interface NewSectionAudioPlayerProps {
   guideImageUrl?: string;
   insideSheet?: boolean;
   lang?: string;
+  onPlayStart?: () => void;
+  shouldStop?: boolean;
 }
 
 export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
@@ -37,7 +39,9 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   mainAudioUrl,
   guideImageUrl,
   insideSheet = false,
-  lang = 'en'
+  lang = 'en',
+  onPlayStart,
+  shouldStop,
 }) => {
   const [currentSectionIndex, setCurrentSectionIndex] = useState(-1);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -62,6 +66,14 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const { markChapterCompleted, isChapterCompleted, autoAdvanceEnabled, setAutoAdvance } = useAudioProgress({ guideId });
+
+  // Stop playback when another guide starts playing (linked guides)
+  useEffect(() => {
+    if (shouldStop && isPlaying && audioRef.current) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    }
+  }, [shouldStop]);
 
   // Track last valid sections
   useEffect(() => {
@@ -229,6 +241,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
         .then(() => {
           setIsPlaying(true);
           setLoading(false);
+          onPlayStart?.();
           toast({
             title: t('nowPlaying', lang),
             description: displaySections[sectionIndex]?.title || guideTitle,

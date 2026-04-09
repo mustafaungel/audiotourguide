@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Pause, ChevronUp, SkipBack, SkipForward } from 'lucide-react';
+import { Play, Pause, ChevronUp, SkipBack, SkipForward, Headphones } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { haptics } from '@/lib/haptics';
 
@@ -21,7 +21,7 @@ interface MiniPlayerProps {
 
 const SPEED_OPTIONS = [1, 1.5, 2];
 
-export const MiniPlayer: React.FC<MiniPlayerProps> = ({
+export const MiniPlayer = React.memo<MiniPlayerProps>(({
   title,
   currentTime,
   duration,
@@ -58,120 +58,100 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({
         ? "fixed bottom-0 left-0 right-0 z-50 safe-area-bottom"
         : "w-full z-10"
     )}>
-      {/* Progress bar on top edge */}
-      <div className="h-[3px] bg-muted/30 w-full">
-        <div
-          className="h-full bg-gradient-to-r from-primary/70 via-primary to-primary/80"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
-
       <div
-        className="bg-background/95 border-t border-border/30 px-4 py-3.5 shadow-[0_-4px_20px_-4px_hsl(var(--primary)/0.15)]"
+        className="bg-background/95 backdrop-blur-lg border-t border-border/30 shadow-[0_-4px_24px_-4px_hsl(var(--primary)/0.2)]"
         onClick={(e) => {
           if ((e.target as HTMLElement).closest('[data-play-btn]')) return;
           haptics.light();
           onExpand();
         }}
       >
-        <div className="flex items-center gap-2">
-          {/* Album art thumbnail */}
+        {/* Row 1: Now Playing title + time + expand */}
+        <div className="flex items-center gap-2 px-4 pt-2.5 pb-1">
+          <Headphones className="w-3.5 h-3.5 text-primary shrink-0" />
+          <p className="text-sm font-semibold text-foreground truncate flex-1">{title}</p>
+          <span className="text-xs text-muted-foreground tabular-nums shrink-0">
+            {formatTime(currentTime)} / {formatTime(duration)}
+          </span>
+          <button
+            data-play-btn
+            onClick={(e) => { e.stopPropagation(); haptics.light(); onExpand(); }}
+            className="w-8 h-8 flex items-center justify-center text-muted-foreground shrink-0"
+          >
+            <ChevronUp className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Row 2: Album art + controls */}
+        <div className="flex items-center gap-1.5 px-4 pb-2">
+          {/* Album art */}
           {imageUrl && (
             <img
               src={imageUrl}
               alt=""
-              className="w-14 h-14 rounded-xl object-cover shadow-md ring-1 ring-border/20 shrink-0"
+              className="w-11 h-11 rounded-lg object-cover shadow-md ring-1 ring-border/20 shrink-0"
               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
             />
           )}
 
-          {/* Track info */}
-          <div className="flex-1 min-w-0">
-            <p className="text-base font-semibold text-foreground truncate">{title}</p>
-            <p className="text-xs text-muted-foreground tabular-nums">
-              {formatTime(currentTime)} / {formatTime(duration)}
-            </p>
+          {/* Controls - centered */}
+          <div className="flex-1 flex items-center justify-center gap-1">
+            {onSkipBack && (
+              <button
+                data-play-btn
+                onClick={(e) => { e.stopPropagation(); haptics.light(); onSkipBack(); }}
+                className="w-10 h-10 rounded-full flex items-center justify-center text-muted-foreground active:scale-90 active:bg-muted/60 transition-all"
+              >
+                <SkipBack className="w-4.5 h-4.5" fill="currentColor" />
+              </button>
+            )}
+
+            <button
+              data-play-btn
+              onClick={(e) => { e.stopPropagation(); haptics.medium(); onTogglePlay(); }}
+              className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90 bg-primary text-primary-foreground shadow-lg shadow-primary/25"
+              disabled={loading}
+            >
+              {isPlaying ? (
+                <Pause className="w-5 h-5" fill="currentColor" />
+              ) : (
+                <Play className="w-5 h-5 ml-0.5" fill="currentColor" />
+              )}
+            </button>
+
+            {onSkipForward && (
+              <button
+                data-play-btn
+                onClick={(e) => { e.stopPropagation(); haptics.light(); onSkipForward(); }}
+                className="w-10 h-10 rounded-full flex items-center justify-center text-muted-foreground active:scale-90 active:bg-muted/60 transition-all"
+              >
+                <SkipForward className="w-4.5 h-4.5" fill="currentColor" />
+              </button>
+            )}
           </div>
 
-          {/* Skip Back */}
-          {onSkipBack && (
-            <button
-              data-play-btn
-              onClick={(e) => {
-                e.stopPropagation();
-                haptics.light();
-                onSkipBack();
-              }}
-              className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-muted-foreground active:scale-90 active:bg-muted/60 transition-all"
-            >
-              <SkipBack className="w-5 h-5" fill="currentColor" />
-            </button>
-          )}
-
-          {/* Play/Pause */}
-          <button
-            data-play-btn
-            onClick={(e) => {
-              e.stopPropagation();
-              haptics.medium();
-              onTogglePlay();
-            }}
-            className={cn(
-              "w-14 h-14 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90",
-              "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
-            )}
-            disabled={loading}
-          >
-            {isPlaying ? (
-              <Pause className="w-6 h-6" fill="currentColor" />
-            ) : (
-              <Play className="w-6 h-6 ml-0.5" fill="currentColor" />
-            )}
-          </button>
-
-          {/* Skip Forward */}
-          {onSkipForward && (
-            <button
-              data-play-btn
-              onClick={(e) => {
-                e.stopPropagation();
-                haptics.light();
-                onSkipForward();
-              }}
-              className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-muted-foreground active:scale-90 active:bg-muted/60 transition-all"
-            >
-              <SkipForward className="w-5 h-5" fill="currentColor" />
-            </button>
-          )}
-
-          {/* Speed toggle */}
+          {/* Speed */}
           {onSpeedChange && (
             <button
               data-play-btn
-              onClick={(e) => {
-                e.stopPropagation();
-                cycleSpeed();
-              }}
-              className="h-7 px-1.5 rounded-md flex items-center justify-center shrink-0 text-xs font-semibold text-muted-foreground bg-muted/50 active:scale-90 transition-transform tabular-nums"
+              onClick={(e) => { e.stopPropagation(); cycleSpeed(); }}
+              className="h-7 px-2 rounded-md flex items-center justify-center shrink-0 text-xs font-bold text-muted-foreground bg-muted/50 active:scale-90 transition-transform tabular-nums"
             >
               {playbackSpeed}x
             </button>
           )}
+        </div>
 
-          {/* Expand arrow */}
-          <button
-            data-play-btn
-            onClick={(e) => {
-              e.stopPropagation();
-              haptics.light();
-              onExpand();
-            }}
-            className="w-10 h-10 flex items-center justify-center text-muted-foreground shrink-0"
-          >
-            <ChevronUp className="w-5 h-5" />
-          </button>
+        {/* Progress bar at bottom */}
+        <div className="h-[4px] bg-muted/30 w-full">
+          <div
+            className="h-full bg-gradient-to-r from-primary/70 via-primary to-primary/80 transition-[width] duration-300"
+            style={{ width: `${progress}%` }}
+          />
         </div>
       </div>
     </div>
   );
-};
+});
+
+MiniPlayer.displayName = 'MiniPlayer';
