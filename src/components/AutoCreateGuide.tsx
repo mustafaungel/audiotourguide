@@ -195,14 +195,51 @@ export function AutoCreateGuide() {
     });
   }, [filteredVoices, voiceByLanguage]);
 
-  // Voice preview
-  const playVoicePreview = useCallback((voiceId: string, previewUrl: string | null) => {
+  // Live voice preview in selected language
+  const PREVIEW_SENTENCES: Record<string, string> = {
+    en: 'Welcome to this audio tour. Let me guide you through centuries of history and culture.',
+    es: 'Bienvenidos a este recorrido de audio. Permítanme guiarles a través de siglos de historia y cultura.',
+    fr: 'Bienvenue dans cette visite audio. Laissez-moi vous guider à travers des siècles d\'histoire et de culture.',
+    de: 'Willkommen zu dieser Audio-Tour. Lassen Sie mich Sie durch Jahrhunderte von Geschichte und Kultur führen.',
+    it: 'Benvenuti in questo tour audio. Lasciate che vi guidi attraverso secoli di storia e cultura.',
+    pt: 'Bem-vindos a este passeio de áudio. Deixem-me guiá-los através de séculos de história e cultura.',
+    zh: '欢迎来到这次语音导览。让我带您穿越几个世纪的历史和文化。',
+    ja: 'このオーディオツアーへようこそ。何世紀にもわたる歴史と文化をご案内させていただきます。',
+    ko: '이 오디오 투어에 오신 것을 환영합니다. 수세기에 걸친 역사와 문화를 안내해 드리겠습니다.',
+    hi: 'इस ऑडियो टूर में आपका स्वागत है। मुझे सदियों के इतिहास और संस्कृति के माध्यम से आपका मार्गदर्शन करने दें।',
+    ar: 'مرحبًا بكم في هذه الجولة الصوتية. دعوني أرشدكم عبر قرون من التاريخ والثقافة.',
+    ru: 'Добро пожаловать в этот аудиотур. Позвольте мне провести вас сквозь века истории и культуры.',
+    nl: 'Welkom bij deze audiotour. Laat mij u door eeuwen van geschiedenis en cultuur leiden.',
+    pl: 'Witamy w tej wycieczce audio. Pozwólcie, że oprowadzę was przez wieki historii i kultury.',
+    sv: 'Välkommen till denna audiotur. Låt mig guida dig genom århundraden av historia och kultur.',
+    tr: 'Bu sesli tura hoş geldiniz. Yüzyıllar boyunca süregelen tarih ve kültür boyunca size rehberlik edeyim.',
+  };
+  const [generatingPreview, setGeneratingPreview] = useState<string | null>(null);
+
+  const playVoicePreview = useCallback(async (voiceId: string, langCode: string) => {
     if (previewAudio) { previewAudio.pause(); setPreviewAudio(null); }
-    if (playingPreview === voiceId) { setPlayingPreview(null); return; }
-    if (!previewUrl) return;
-    const audio = new Audio(previewUrl);
-    audio.onended = () => { setPlayingPreview(null); setPreviewAudio(null); };
-    audio.play().then(() => { setPlayingPreview(voiceId); setPreviewAudio(audio); }).catch(() => {});
+    if (playingPreview === `${voiceId}_${langCode}`) { setPlayingPreview(null); return; }
+
+    const previewKey = `${voiceId}_${langCode}`;
+    setGeneratingPreview(previewKey);
+
+    try {
+      const text = PREVIEW_SENTENCES[langCode] || PREVIEW_SENTENCES.en;
+      const { data, error } = await supabase.functions.invoke('generate-audio', {
+        body: { text, voiceId, modelId: 'eleven_multilingual_v2', isPreview: true }
+      });
+      if (error || !data?.audio_url) { toast.error('Preview failed'); return; }
+
+      const audio = new Audio(data.audio_url);
+      audio.onended = () => { setPlayingPreview(null); setPreviewAudio(null); };
+      await audio.play();
+      setPlayingPreview(previewKey);
+      setPreviewAudio(audio);
+    } catch {
+      toast.error('Preview failed');
+    } finally {
+      setGeneratingPreview(null);
+    }
   }, [previewAudio, playingPreview]);
 
   // Form validation
@@ -569,8 +606,9 @@ export function AutoCreateGuide() {
                           </Select>
                           {selectedVoice && (
                             <Button variant="ghost" size="sm" className="shrink-0 px-2"
-                              onClick={() => { const v = voices.find(x => x.voice_id === selectedVoice); if (v) playVoicePreview(v.voice_id, v.preview_url); }}>
-                              {playingPreview === selectedVoice ? '⏹' : '▶'}
+                              disabled={generatingPreview === `${selectedVoice}_${langCode}`}
+                              onClick={() => playVoicePreview(selectedVoice, langCode)}>
+                              {generatingPreview === `${selectedVoice}_${langCode}` ? <Loader2 className="w-3 h-3 animate-spin" /> : playingPreview === `${selectedVoice}_${langCode}` ? '⏹' : '▶'}
                             </Button>
                           )}
                         </div>
