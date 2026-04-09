@@ -372,6 +372,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
       isPlaying={isPlaying}
       loading={loading}
       imageUrl={guideImageUrl}
+      scriptText={currentSectionIndex >= 0 ? displaySections[currentSectionIndex]?.description : undefined}
       playbackSpeed={playbackSpeed}
       canGoNext={currentSectionIndex < displaySections.length - 1}
       canGoPrevious={currentSectionIndex > 0}

@@ -330,10 +330,6 @@ export const AdminGuideOrderManager = ({ onCreateNew, onEdit }: { onCreateNew?: 
       const { data, error } = await supabase
         .from('audio_guides')
         .select('id, title, location, is_published, is_approved, is_standalone, price_usd, display_order, languages, slug, master_access_code')
-        .eq('is_published', true)
-        .eq('is_approved', true)
-        .eq('is_standalone', true)
-        .order('display_order', { ascending: true })
         .order('created_at', { ascending: false });
 
       if (error) throw error;

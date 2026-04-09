@@ -132,7 +132,7 @@ serve(async (req) => {
         price_usd: price_usd >= 0 ? price_usd : 0, // Allow free guides (0 cents)
         audio_url: audioUrl,
         transcript: script,
-        image_url: imageUrl,
+        image_url: imageUrl || (image_urls?.length > 0 ? image_urls[0] : null),
         image_urls: image_urls,
         preview_url: previewUrl,
         creator_id: user.id,

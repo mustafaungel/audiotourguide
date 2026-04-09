@@ -78,7 +78,7 @@ serve(async (req) => {
 
     // Upload to Supabase Storage
     const imageBuffer = Uint8Array.from(atob(imageBase64), c => c.charCodeAt(0));
-    const fileName = `guide-images/generated-${Date.now()}-${crypto.randomUUID()}.webp`;
+    const fileName = `generated-${Date.now()}-${crypto.randomUUID()}.webp`;
 
     const { error: uploadError } = await supabaseClient.storage
       .from('guide-images')

@@ -233,14 +233,17 @@ export function AutoCreateGuide() {
           detail: `${i + 1}/${sections.length} sections complete`
         });
 
-        // Send the full previous script ending (last 500 chars) for continuity
-        const previousEnding = i > 0 ? scripts[i - 1].slice(-500) : null;
+        // Send previous script context: ending for continuity + first sentence to avoid repeating opening style
+        const prevScript = i > 0 ? scripts[i - 1] : null;
+        const previousEnding = prevScript ? prevScript.slice(-500) : null;
+        const previousOpening = prevScript ? prevScript.split('.')[0] + '.' : null;
 
         const { data: scriptData, error: scriptError } = await supabase.functions.invoke('generate-section-script', {
           body: {
             country, city: finalCity, place: finalPlace,
             section: sections[i],
             previous_ending: previousEnding,
+            previous_opening: previousOpening,
             next_title: i < sections.length - 1 ? sections[i + 1].title : null,
             language: primaryLangName
           }
@@ -276,7 +279,7 @@ export function AutoCreateGuide() {
         if (audioError || !audioData?.audio_url) throw new Error(`Failed to generate audio for section ${i + 1}`);
         primarySections.push({
           title: sections[i].title,
-          description: scripts[i].substring(0, 200) + '...',
+          description: scripts[i],
           audio_url: audioData.audio_url,
           duration_seconds: audioData.duration_seconds || sections[i].estimated_minutes * 60,
           language: primaryLangName,
@@ -313,7 +316,7 @@ export function AutoCreateGuide() {
           });
           additionalSections.push({
             title: sections[i].title,
-            description: translatedScript.substring(0, 200) + '...',
+            description: translatedScript,
             audio_url: audioData?.audio_url || '',
             duration_seconds: audioData?.duration_seconds || sections[i].estimated_minutes * 60,
             language: langName,
@@ -342,6 +345,7 @@ export function AutoCreateGuide() {
           difficulty: 'Easy',
           languages: selectedLanguages.map(c => ELEVENLABS_LANGUAGES.find(l => l.code === c)?.name || c),
           price_usd: parseInt(priceUsd) || 499,
+          image_content: null,
           image_urls: imageUrl ? [imageUrl] : [],
           sections: allSections,
           is_published: false,

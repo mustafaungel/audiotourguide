@@ -20,6 +20,7 @@ interface ExpandedPlayerProps {
   isPlaying: boolean;
   loading?: boolean;
   imageUrl?: string;
+  scriptText?: string;
   playbackSpeed: number;
   canGoNext: boolean;
   canGoPrevious: boolean;
@@ -44,6 +45,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
   isPlaying,
   loading,
   imageUrl,
+  scriptText,
   playbackSpeed,
   canGoNext,
   canGoPrevious,
@@ -120,22 +122,37 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
             <div className="w-10" /> {/* Spacer */}
           </div>
 
-          {/* Album art */}
-          <div className="flex-1 flex items-center justify-center px-8 py-4">
-            <div className="w-full max-w-[280px] aspect-square">
-              {imageUrl ? (
+          {/* Script Lyrics View (Spotify-style) */}
+          <div className="flex-1 relative overflow-hidden px-6 py-4">
+            {scriptText ? (
+              <div className="h-full flex flex-col">
+                <div className="flex-1 overflow-y-auto overscroll-contain">
+                  <div className="relative">
+                    <p className="text-base leading-relaxed text-foreground/85 whitespace-pre-line">
+                      {scriptText}
+                    </p>
+                  </div>
+                </div>
+                {/* Top/bottom fade gradients */}
+                <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-background to-transparent pointer-events-none z-10" />
+                <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-background to-transparent pointer-events-none z-10" />
+              </div>
+            ) : imageUrl ? (
+              <div className="h-full flex items-center justify-center">
                 <img
                   src={imageUrl}
                   alt={title}
-                  className="w-full h-full rounded-2xl object-cover shadow-2xl ring-1 ring-border/10"
+                  className="w-full max-w-[280px] aspect-square rounded-2xl object-cover shadow-2xl ring-1 ring-border/10"
                   onError={(e) => { (e.target as HTMLImageElement).src = '/hero-audio-guide.jpg'; }}
                 />
-              ) : (
-                <div className="w-full h-full rounded-2xl bg-muted/30 flex items-center justify-center">
+              </div>
+            ) : (
+              <div className="h-full flex items-center justify-center">
+                <div className="w-full max-w-[280px] aspect-square rounded-2xl bg-muted/30 flex items-center justify-center">
                   <Play className="w-16 h-16 text-muted-foreground/30" />
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Track info */}
