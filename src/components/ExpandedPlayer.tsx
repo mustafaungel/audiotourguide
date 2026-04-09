@@ -68,12 +68,12 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
         onTouchStart={handleUserScroll}
         onTouchEnd={() => { scrollTimer.current = setTimeout(() => { userScrolling.current = false; }, 4000); }}
       >
-        <div className="px-6 pt-[20vh] pb-[45vh] max-w-md mx-auto">
+        <div className="px-6 pt-[15vh] pb-[10vh] max-w-md mx-auto">
           {lines.map((line, i) => {
             const isActive = i === activeIdx;
             const absDist = Math.abs(i - activeIdx);
-            const opacity = isActive ? 1 : Math.max(0.08, 0.4 - absDist * 0.1);
-            const blurPx = isActive ? 0 : Math.min(absDist * 0.5, 2.5);
+            const opacity = isActive ? 1 : Math.max(0.15, 0.5 - absDist * 0.1);
+            const blurPx = isActive ? 0 : Math.min(absDist * 0.4, 1.5);
 
             return (
               <p
@@ -202,7 +202,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
           setDragY(0);
         }}
       >
-        {/* Blurred background image — clearly visible behind lyrics */}
+        {/* Blurred background image */}
         {imageUrl && (
           <>
             <div
@@ -211,14 +211,14 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
                 backgroundImage: `url(${imageUrl})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                filter: 'blur(30px) saturate(1.8) brightness(0.8)',
-                opacity: 0.5,
+                filter: 'blur(30px) saturate(1.4) brightness(1.1)',
+                opacity: 0.4,
               }}
             />
-            <div className="absolute inset-0 bg-background/50 backdrop-blur-sm" />
+            <div className="absolute inset-0 bg-background/55" />
           </>
         )}
-        {!imageUrl && <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-background to-primary/5" />}
+        {!imageUrl && <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-primary/5" />}
 
         {/* Content */}
         <div className="relative flex flex-col h-full safe-area-top safe-area-bottom">
