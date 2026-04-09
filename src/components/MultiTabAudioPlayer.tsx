@@ -199,6 +199,17 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     }
   };
 
+  // Prefetch linked guide sections in background after they load
+  useEffect(() => {
+    if (linkedGuides.length > 0 && accessCode) {
+      // Small delay to not compete with main content rendering
+      const timer = setTimeout(() => {
+        linkedGuides.forEach(g => ensureGuideSections(g.guide_id));
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [linkedGuides, accessCode]);
+
   // Listen for openLinkedGuide events
   useEffect(() => {
     const handleOpenLinkedGuide = (event: CustomEvent) => {
