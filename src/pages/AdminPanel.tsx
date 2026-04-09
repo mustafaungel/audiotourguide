@@ -27,6 +27,7 @@ import { AdminMobileNavigation } from '@/components/AdminMobileNavigation';
 import { CountrySelector } from '@/components/CountrySelector';
 import { AudioGuideSectionManager } from '@/components/AudioGuideSectionManager';
 import { AdminGuideEditForm } from '@/components/AdminGuideEditForm';
+import { AutoCreateGuide } from '@/components/AutoCreateGuide';
 
 import { AdminGuideOrderManager } from '@/components/AdminGuideOrderManager';
 
@@ -351,6 +352,7 @@ const AdminPanel = () => {
           <SegmentedControl
             items={[
               { value: 'dashboard', label: 'Dashboard', icon: BarChart3 },
+              { value: 'auto-create', label: 'Auto Create', icon: Plus },
               { value: 'content-management', label: 'Content', icon: FileText },
             ]}
             value={activeTab}
@@ -363,6 +365,10 @@ const AdminPanel = () => {
 
           <TabsContent value="dashboard">
             <AdminDashboard />
+          </TabsContent>
+
+          <TabsContent value="auto-create">
+            <AutoCreateGuide />
           </TabsContent>
 
           <TabsContent value="content-management">

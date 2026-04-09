@@ -1,6 +1,6 @@
 import React from 'react';
 import { SegmentedControl, SegmentItem } from '@/components/ui/segmented-control';
-import { BarChart3, FileText } from 'lucide-react';
+import { BarChart3, FileText, Plus } from 'lucide-react';
 
 interface AdminMobileNavigationProps {
   activeTab: string;
@@ -9,6 +9,7 @@ interface AdminMobileNavigationProps {
 
 const adminSegments: SegmentItem[] = [
   { value: 'dashboard', label: 'Dashboard', icon: BarChart3 },
+  { value: 'auto-create', label: 'Auto Create', icon: Plus },
   { value: 'content-management', label: 'Content', icon: FileText },
 ];
 
