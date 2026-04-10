@@ -96,7 +96,7 @@ export function AutoCreateGuide() {
     (async () => {
       setLoadingVoices(true);
       try {
-        const { data, error } = await supabase.functions.invoke('list-voices', { body: {} });
+        const { data, error } = await supabase.functions.invoke('list-voices', { body: { language: 'english' } });
         if (!error && data?.voices) {
           setVoices(data.voices);
           // Auto-assign first female voice to default language (English)

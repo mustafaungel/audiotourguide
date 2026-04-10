@@ -56,16 +56,25 @@ export function AddLanguageDialog({ open, onClose, guideId, guideTitle, guideLoc
       if (data) setExistingLanguages(data.map((l: any) => l.language_code));
     })();
 
-    // Fetch voices
+    // Voices fetched when language is selected (below)
+  }, [open, guideId]);
+
+  // Fetch voices filtered by selected language
+  useEffect(() => {
+    if (!selectedLang) return;
+    const langName = ELEVENLABS_LANGUAGES.find(l => l.code === selectedLang)?.name;
     (async () => {
       setLoadingVoices(true);
+      setSelectedVoiceId('');
       try {
-        const { data } = await supabase.functions.invoke('list-voices', { body: {} });
+        const { data } = await supabase.functions.invoke('list-voices', {
+          body: { language: langName || selectedLang }
+        });
         if (data?.voices) setVoices(data.voices);
       } catch { /* silent */ }
       finally { setLoadingVoices(false); }
     })();
-  }, [open, guideId]);
+  }, [selectedLang]);
 
   const filteredVoices = voices.filter(v => v.gender === voiceGender);
   const availableLanguages = ELEVENLABS_LANGUAGES.filter(l => !existingLanguages.includes(l.code));
