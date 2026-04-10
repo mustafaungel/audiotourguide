@@ -1,58 +1,71 @@
 
 
-## ElevenLabs Ses Listesi Sorunları ve Çözüm
+## Topkapı Sarayı Audio Guide Oluşturma Sorunları ve Çözüm
 
 ### Tespit Edilen Sorunlar
 
-Edge function'ı Türkçe ile test ettim. Üç kritik sorun var:
+Session replay ve edge function loglarından analiz:
 
-1. **Dil filtresi çalışmıyor**: `language=Turkish` gönderilmesine rağmen dönen shared seslerinin tamamı `languages: ["en"]` — yani hepsi İngilizce. ElevenLabs shared-voices API'si muhtemelen `"tr"` gibi ISO kodu bekliyor, `"Turkish"` değil.
+1. **18 bölüm planlandı** — Topkapı Sarayı için `plan-guide-sections` 18 bölüm çıkardı. Her bölüm için sırasıyla script üretimi (~7s) + audio üretimi (~30s) yapılıyor. Toplam: ~11 dakika sadece İngilizce audio için.
 
-2. **Kalite filtresi tamamen bozuk**: Tüm shared sesler `usage_count: 0` ile dönüyor. Bu, API'nin `usage_character_count` alanını bu endpoint'te döndürmediği veya farklı bir alan adı kullandığı anlamına geliyor. Dolayısıyla `>= 1000` filtresi hiçbir şeyi filtrelemiyor — tüm düşük kaliteli sesler listeleniyor.
+2. **Section 9'da hata** — 8 bölümün audiosu başarıyla üretildi (loglardan doğrulandı), section 9 için edge function çağrısı yapıldı ama yanıt gelmedi (shutdown logları var, error logu yok). Bu, **edge function timeout** (Supabase free tier: 150s, paid: 400s) veya ElevenLabs API rate limit olasılığını gösteriyor.
 
-3. **Kategori filtresi kullanılmıyor**: ElevenLabs shared-voices API'si `category=professional` ve `category=high_quality` parametrelerini destekliyor ama biz bunları kullanmıyoruz.
+3. **Retry mekanizması yok** — Tek bir bölüm başarısız olunca `throw new Error()` ile tüm süreç iptal ediliyor, daha önce başarıyla üretilen 8 audio da boşa gidiyor.
+
+4. **Sıralı (sequential) işlem** — Tüm audio'lar birer birer üretiliyor, paralel işlem yok.
 
 ### Çözüm
 
-**`supabase/functions/list-voices/index.ts`** güncellenecek:
+**3 dosyada değişiklik:**
 
-1. **Dil kodu dönüştürme**: Frontend'den gelen `"Turkish"` gibi dil isimlerini ElevenLabs'in beklediği ISO koduna (`"tr"`) çeviren bir mapping ekle
-2. **Kategori filtresi**: `category=professional` veya `category=high_quality` kullanarak sadece kaliteli sesleri getir — trending sort ile birleştir
-3. **Çift istek stratejisi**: İlk olarak `category=professional` ile, sonra da genel `trending` ile iki ayrı istek at. Professional sesler listenin başında, trending sesler altında gösterilsin
-4. **Gereksiz kalite filtresini kaldır**: `usage_character_count` filtresi zaten çalışmıyor, bunun yerine ElevenLabs'in kendi `category` ve `sort` parametrelerine güven
-5. **Sayfa boyutunu artır**: Professional sesler az olabilir, 100'e çıkar
+#### 1. `src/components/AutoCreateGuide.tsx` — Audio üretim döngüsüne retry + parallelism ekle
 
-### Teknik Detay
-
-```text
-Mevcut akış:
-  Frontend → "Turkish" → list-voices → /v1/shared-voices?language=Turkish&sort=trending
-  Sonuç: Hepsi İngilizce, hepsi usage_count=0 → kalite filtresi bypass
-
-Yeni akış:
-  Frontend → "Turkish" → list-voices → dil kodu dönüşümü ("Turkish" → "tr")
-  → İstek 1: /v1/shared-voices?language=tr&category=professional&page_size=50
-  → İstek 2: /v1/shared-voices?language=tr&sort=trending&page_size=50
-  → Birleştir: ★ Own sesler + Professional sesler + Trending sesler (deduplicate)
-```
-
-### Dil Kodu Mapping
+- **Retry mantığı**: Her audio üretimi için 2 retry denemesi ekle (toplam 3 deneme). Araya 3 saniye bekleme koy (rate limit koruması).
+- **Hata toleransı**: Tek bir bölüm başarısız olursa tüm süreci iptal etme, o bölümü "failed" olarak işaretle ve devam et. Sonunda kullanıcıya kaç bölümün başarısız olduğunu göster.
+- **2'li paralel üretim**: Aynı anda 2 audio üretimi başlat (ElevenLabs rate limit'e takılmamak için 2 ile sınırla).
 
 ```typescript
-const LANG_NAME_TO_CODE: Record<string, string> = {
-  'English': 'en', 'Turkish': 'tr', 'Russian': 'ru',
-  'German': 'de', 'French': 'fr', 'Spanish': 'es',
-  'Italian': 'it', 'Portuguese': 'pt', 'Arabic': 'ar',
-  'Chinese': 'zh', 'Japanese': 'ja', 'Korean': 'ko',
-  'Hindi': 'hi', 'Dutch': 'nl', 'Polish': 'pl',
-  'Greek': 'el', 'Czech': 'cs', 'Romanian': 'ro',
-  // ... diğer diller
+// Retry helper
+const generateAudioWithRetry = async (text, voiceId, maxRetries = 2) => {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-audio', {
+        body: { text, voiceId, modelId: 'eleven_multilingual_v2' }
+      });
+      if (!error && data?.audio_url) return data;
+      if (attempt < maxRetries) await new Promise(r => setTimeout(r, 3000));
+    } catch { 
+      if (attempt < maxRetries) await new Promise(r => setTimeout(r, 3000));
+    }
+  }
+  return null; // Failed after retries
 };
+
+// 2'li paralel batch üretimi
+for (let i = 0; i < sections.length; i += 2) {
+  const batch = sections.slice(i, i + 2);
+  const results = await Promise.all(batch.map(...));
+  // ...
+}
 ```
 
-### Değişiklik
+#### 2. `supabase/functions/generate-audio/index.ts` — Script uzunluk limitini artır
 
-| Dosya | Değişiklik |
-|-------|-----------|
-| `supabase/functions/list-voices/index.ts` | Dil ismi → ISO kod dönüşümü ekle, `category=professional` filtresi ekle, çift istek stratejisi, bozuk usage_count filtresini kaldır |
+- Mevcut limit 5000 karakter — bazı detaylı bölümler bunu aşabiliyor
+- **Limiti 8000 karaktere çıkar** (ElevenLabs API'si 5000+ karakteri destekliyor)
+
+#### 3. `supabase/functions/plan-guide-sections/index.ts` — Bölüm sayısını makul tut
+
+- Mevcut prompt "15-25 sections" diyor — bu çok fazla audio üretim süresi demek
+- **Maksimum 12 bölümle sınırla**: prompt'u "8-12 sections for major sites, 4-8 for smaller ones" olarak güncelle
+- Bu tek başına süreyi ~%40 azaltır
+
+### Özet
+
+| Sorun | Çözüm | Etki |
+|-------|-------|------|
+| 18 bölüm = 11+ dk | Maks 12 bölüm | ~%40 hız artışı |
+| Sıralı audio üretimi | 2'li paralel batch | ~%50 hız artışı |
+| Tek hata = tümü iptal | Retry + hata toleransı | Güvenilirlik |
+| 5000 char script limiti | 8000 char'a çıkar | Uzun script desteği |
 
