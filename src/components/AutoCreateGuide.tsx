@@ -288,7 +288,7 @@ export function AutoCreateGuide() {
     const finalPlace = place || placeInput;
     if (!country || !finalCity || !finalPlace) return;
 
-    setCurrentStep('creating');
+    setCurrentStep('generating_scripts');
     setProgress({ step: 1, totalSteps: 1, message: 'Researching location and planning sections...' });
 
     try {
@@ -1050,9 +1050,14 @@ export function AutoCreateGuide() {
                   Back to Scripts
                 </Button>
               )}
-              {creationError.step === 'creation' && generatedScripts.length > 0 && (
-                <Button onClick={() => { setCreationError(null); handleStartCreation(); }}>
-                  Retry Creation
+              {(creationError.step === 'audio' || creationError.step === 'creation') && generatedScripts.length > 0 && (
+                <Button onClick={() => { setCreationError(null); handleStartAudioCreation(); }}>
+                  Retry Audio
+                </Button>
+              )}
+              {creationError.step === 'finalize' && generatedAudio.length > 0 && (
+                <Button onClick={() => { setCreationError(null); handleFinalize(); }}>
+                  Retry Finalize
                 </Button>
               )}
               {creationError.step === 'planning' && (
