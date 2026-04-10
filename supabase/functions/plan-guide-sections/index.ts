@@ -59,7 +59,9 @@ Return ONLY a valid JSON array.`
 Location type: ${place_type || 'tourist attraction'}
 Category: ${category || 'Historical'}
 
-IMPORTANT: Research this specific location thoroughly. Include EVERY notable point of interest, artwork, architectural feature, and historical marker that a visitor would encounter. Professional audio guides for this type of location typically have 15-25 stops. Your plan should be at least as comprehensive.
+CRITICAL: You MUST create a MINIMUM of 15 sections for major landmarks like palaces, museums, and large complexes. Topkapi Palace for example has: Imperial Gate, First Courtyard, Gate of Salutation, Second Courtyard, Palace Kitchens, Divan (Council Chamber), Tower of Justice, Gate of Felicity, Third Courtyard, Audience Chamber, Library of Ahmed III, Treasury, Sacred Relics (Privy Chamber), Circumcision Room, Baghdad Kiosk, Fourth Courtyard, Terrace with Bosphorus views, Harem entrance, Harem corridors, Sultan's private chambers, Valide Sultan quarters, and more — each deserving its own section.
+
+Research this specific location thoroughly. Include EVERY notable room, courtyard, gate, building, artwork, architectural feature, and historical marker that a visitor would encounter on the actual walking route. Do NOT merge distinct areas into one section.
 
 For each section provide:
 {
