@@ -67,6 +67,13 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   const isMobile = useIsMobile();
   const { markChapterCompleted, isChapterCompleted, autoAdvanceEnabled, setAutoAdvance } = useAudioProgress({ guideId });
 
+  // Refs so event listeners always read the latest values (avoids stale closure in ended handler)
+  const autoAdvanceRef = useRef(autoAdvanceEnabled);
+  const currentSectionRef = useRef(currentSectionIndex);
+  const displaySectionsRef = useRef<Section[]>([]);
+  useEffect(() => { autoAdvanceRef.current = autoAdvanceEnabled; }, [autoAdvanceEnabled]);
+  useEffect(() => { currentSectionRef.current = currentSectionIndex; }, [currentSectionIndex]);
+
   // Stop playback when another guide starts playing (linked guides)
   useEffect(() => {
     if (shouldStop && isPlaying && audioRef.current) {
@@ -112,6 +119,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
 
   // Use current sections if available, otherwise show last valid ones
   const displaySections = sections.length > 0 ? sections : lastValidSectionsRef.current;
+  displaySectionsRef.current = displaySections; // keep ref in sync for event listeners
 
   const hasIndividualSections = displaySections.some(section => section.audio_url);
   const audioMode = hasIndividualSections ? 'sections' : 'main';
@@ -119,11 +127,12 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   const setupAudioElement = (audioElement: HTMLAudioElement) => {
     audioElement.addEventListener('timeupdate', () => {
       setCurrentTime(audioElement.currentTime);
-      
-      if (currentSectionIndex >= 0 && audioElement.duration > 0) {
+
+      const idx = currentSectionRef.current;
+      if (idx >= 0 && audioElement.duration > 0) {
         const progress = audioElement.currentTime / audioElement.duration;
-        if (progress >= 0.9 && !isChapterCompleted(currentSectionIndex)) {
-          markChapterCompleted(currentSectionIndex);
+        if (progress >= 0.9 && !isChapterCompleted(idx)) {
+          markChapterCompleted(idx);
         }
       }
     });
@@ -134,25 +143,30 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     
     audioElement.addEventListener('ended', () => {
       setIsPlaying(false);
-      
-      if (currentSectionIndex >= 0) {
-        markChapterCompleted(currentSectionIndex);
+
+      // Read latest values from refs (not stale closure)
+      const idx = currentSectionRef.current;
+      const sections = displaySectionsRef.current;
+      const shouldAutoAdvance = autoAdvanceRef.current;
+
+      if (idx >= 0) {
+        markChapterCompleted(idx);
       }
-      
-      if (audioMode === 'sections' && currentSectionIndex < displaySections.length - 1) {
-        if (autoAdvanceEnabled) {
+
+      if (audioMode === 'sections' && idx < sections.length - 1) {
+        if (shouldAutoAdvance) {
           setTimeout(() => {
-            playSection(currentSectionIndex + 1);
+            playSection(idx + 1);
           }, 500);
         } else {
-          const nextChapterTitle = displaySections[currentSectionIndex + 1]?.title || t('playNext', lang);
+          const nextChapterTitle = sections[idx + 1]?.title || t('playNext', lang);
           toast({
             title: t('chapterCompleted', lang),
             description: `${t('readyToPlay', lang)}: ${nextChapterTitle}`,
             action: (
               <Button
                 size="sm"
-                onClick={() => playSection(currentSectionIndex + 1)}
+                onClick={() => playSection(idx + 1)}
                 className="ml-2"
               >
                 {t('playNext', lang)}
@@ -160,7 +174,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
             ),
           });
         }
-      } else if (currentSectionIndex >= displaySections.length - 1) {
+      } else if (idx >= sections.length - 1) {
         toast({
           title: t('guideCompleted', lang),
           description: t('allChaptersFinished', lang),
