@@ -5,6 +5,36 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const LANG_NAME_TO_CODE: Record<string, string> = {
+  'English': 'en', 'Turkish': 'tr', 'Russian': 'ru',
+  'German': 'de', 'French': 'fr', 'Spanish': 'es',
+  'Italian': 'it', 'Portuguese': 'pt', 'Arabic': 'ar',
+  'Chinese': 'zh', 'Japanese': 'ja', 'Korean': 'ko',
+  'Hindi': 'hi', 'Dutch': 'nl', 'Polish': 'pl',
+  'Greek': 'el', 'Czech': 'cs', 'Romanian': 'ro',
+  'Swedish': 'sv', 'Norwegian': 'no', 'Danish': 'da',
+  'Finnish': 'fi', 'Hungarian': 'hu', 'Ukrainian': 'uk',
+  'Indonesian': 'id', 'Malay': 'ms', 'Thai': 'th',
+  'Vietnamese': 'vi', 'Filipino': 'fil', 'Bulgarian': 'bg',
+  'Croatian': 'hr', 'Slovak': 'sk', 'Slovenian': 'sl',
+  'Serbian': 'sr', 'Hebrew': 'he', 'Persian': 'fa',
+  'Tamil': 'ta', 'Telugu': 'te', 'Bengali': 'bn',
+  'Urdu': 'ur', 'Swahili': 'sw', 'Catalan': 'ca',
+  'Galician': 'gl', 'Basque': 'eu', 'Welsh': 'cy',
+  'Irish': 'ga', 'Afrikaans': 'af', 'Albanian': 'sq',
+  'Azerbaijani': 'az', 'Georgian': 'ka', 'Kazakh': 'kk',
+  'Latvian': 'lv', 'Lithuanian': 'lt', 'Macedonian': 'mk',
+  'Mongolian': 'mn', 'Nepali': 'ne',
+};
+
+function resolveLanguageCode(language: string): string {
+  if (!language) return '';
+  // Already an ISO code (2-3 chars)
+  if (language.length <= 3 && language === language.toLowerCase()) return language;
+  // Look up mapping
+  return LANG_NAME_TO_CODE[language] || language.toLowerCase().slice(0, 2);
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -17,6 +47,7 @@ serve(async (req) => {
     }
 
     const { language } = await req.json().catch(() => ({}));
+    const langCode = resolveLanguageCode(language || '');
 
     // 1. Fetch own/premade voices
     const ownResponse = await fetch('https://api.elevenlabs.io/v1/voices', {
@@ -36,36 +67,58 @@ serve(async (req) => {
         preview_url: v.preview_url || null,
         languages: ['multilingual'],
         source: 'own',
-        usage_count: 999999,
+        tier: 'own',
       }));
     }
 
-    // 2. Fetch shared voices with language filter and trending sort
-    let sharedVoices: any[] = [];
-    const sharedParams = new URLSearchParams({
-      page_size: '50',
-      sort: 'trending',
-    });
-    if (language) {
-      sharedParams.set('language', language);
+    // 2. Fetch professional shared voices for the language
+    let professionalVoices: any[] = [];
+    if (langCode) {
+      const profParams = new URLSearchParams({
+        page_size: '50',
+        language: langCode,
+        category: 'professional',
+      });
+
+      const profResponse = await fetch(
+        `https://api.elevenlabs.io/v1/shared-voices?${profParams.toString()}`,
+        { headers: { 'xi-api-key': elevenlabsApiKey } }
+      );
+
+      if (profResponse.ok) {
+        const profData = await profResponse.json();
+        professionalVoices = (profData.voices || []).map((v: any) => ({
+          voice_id: v.voice_id,
+          name: v.name,
+          category: 'professional',
+          gender: v.gender || 'unknown',
+          accent: v.accent || 'unknown',
+          description: v.description || '',
+          preview_url: v.preview_url || null,
+          languages: [v.language || langCode],
+          source: 'library',
+          tier: 'professional',
+        }));
+      }
     }
 
-    const sharedResponse = await fetch(
-      `https://api.elevenlabs.io/v1/shared-voices?${sharedParams.toString()}`,
-      { headers: { 'xi-api-key': elevenlabsApiKey } }
-    );
+    // 3. Fetch trending shared voices for the language
+    let trendingVoices: any[] = [];
+    if (langCode) {
+      const trendParams = new URLSearchParams({
+        page_size: '50',
+        language: langCode,
+        sort: 'trending',
+      });
 
-    if (sharedResponse.ok) {
-      const sharedData = await sharedResponse.json();
-      const rawVoices = sharedData.voices || [];
+      const trendResponse = await fetch(
+        `https://api.elevenlabs.io/v1/shared-voices?${trendParams.toString()}`,
+        { headers: { 'xi-api-key': elevenlabsApiKey } }
+      );
 
-      // Quality filter: only voices with significant usage
-      sharedVoices = rawVoices
-        .filter((v: any) =>
-          (v.usage_character_count || 0) >= 1000 ||
-          (v.cloned_by_count || 0) >= 50
-        )
-        .map((v: any) => ({
+      if (trendResponse.ok) {
+        const trendData = await trendResponse.json();
+        trendingVoices = (trendData.voices || []).map((v: any) => ({
           voice_id: v.voice_id,
           name: v.name,
           category: 'shared',
@@ -73,19 +126,20 @@ serve(async (req) => {
           accent: v.accent || 'unknown',
           description: v.description || '',
           preview_url: v.preview_url || null,
-          languages: [v.language || language || 'en'],
+          languages: [v.language || langCode],
           source: 'library',
-          usage_count: v.usage_character_count || 0,
+          tier: 'trending',
         }));
+      }
     }
 
-    // 3. Merge: premade (starred) always first, then quality shared voices
+    // 4. Merge: ★ Own → Professional → Trending (deduplicated)
     const allVoices = [
       ...ownVoices.map(v => ({ ...v, name: `★ ${v.name}` })),
-      ...sharedVoices,
+      ...professionalVoices,
+      ...trendingVoices,
     ];
 
-    // Deduplicate by voice_id
     const seen = new Set();
     const unique = allVoices.filter(v => {
       if (seen.has(v.voice_id)) return false;
