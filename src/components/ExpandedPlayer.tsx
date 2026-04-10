@@ -14,6 +14,8 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
   const userScrolling = useRef(false);
   const scrollTimer = useRef<ReturnType<typeof setTimeout>>();
   const rafRef = useRef<number>(0);
+  const isAutoScrolling = useRef(false);
+  const lastActiveIdx = useRef(-1);
 
   // Split by paragraphs, map each to a start time based on character ratio
   const lines = useMemo(() => {
@@ -28,7 +30,7 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
 
     const totalChars = paragraphs.reduce((sum, p) => sum + p.length, 0);
     let cumChars = 0;
-    return paragraphs.map((text, i) => {
+    return paragraphs.map((text) => {
       const startTime = (cumChars / totalChars) * duration;
       cumChars += text.length;
       const endTime = (cumChars / totalChars) * duration;
@@ -44,45 +46,62 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
     return 0;
   }, [currentTime, lines, duration]);
 
-  // Smooth continuous auto-scroll using rAF
+  // Detect user scroll via scroll event (not touch — touch fires on every tap)
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const onScroll = () => {
+      if (isAutoScrolling.current) return; // ignore our own scroll
+      userScrolling.current = true;
+      clearTimeout(scrollTimer.current);
+      scrollTimer.current = setTimeout(() => { userScrolling.current = false; }, 5000);
+    };
+    container.addEventListener('scroll', onScroll, { passive: true });
+    return () => container.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Smooth auto-scroll using rAF — triggers on activeIdx change
   useEffect(() => {
     if (userScrolling.current || !containerRef.current) return;
+    if (activeIdx === lastActiveIdx.current) return;
+    lastActiveIdx.current = activeIdx;
+
     const el = containerRef.current.querySelector(`[data-line="${activeIdx}"]`) as HTMLElement;
     if (!el) return;
 
     const container = containerRef.current;
-    const target = el.offsetTop - container.clientHeight * 0.35;
-
-    // Smooth interpolation scroll
-    const scrollTo = Math.max(0, target);
+    const targetTop = el.offsetTop - container.clientHeight * 0.3;
+    const scrollTarget = Math.max(0, targetTop);
     const startScroll = container.scrollTop;
-    const diff = scrollTo - startScroll;
-    if (Math.abs(diff) < 2) return;
+    const diff = scrollTarget - startScroll;
+    if (Math.abs(diff) < 3) return;
 
-    const scrollDuration = Math.min(600, Math.abs(diff) * 1.5);
-    let startTime: number | null = null;
+    // Longer duration for smoother feel, proportional to distance
+    const animDuration = Math.min(1200, Math.max(400, Math.abs(diff) * 2));
+    let animStart: number | null = null;
 
     cancelAnimationFrame(rafRef.current);
+    isAutoScrolling.current = true;
+
     const animate = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
-      const elapsed = timestamp - startTime;
-      const progress = Math.min(1, elapsed / scrollDuration);
-      // Ease-out cubic
-      const eased = 1 - Math.pow(1 - progress, 3);
+      if (!animStart) animStart = timestamp;
+      const elapsed = timestamp - animStart;
+      const progress = Math.min(1, elapsed / animDuration);
+      // Ease-in-out cubic for smooth start and stop
+      const eased = progress < 0.5
+        ? 4 * progress * progress * progress
+        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
       container.scrollTop = startScroll + diff * eased;
-      if (progress < 1) rafRef.current = requestAnimationFrame(animate);
+      if (progress < 1) {
+        rafRef.current = requestAnimationFrame(animate);
+      } else {
+        isAutoScrolling.current = false;
+      }
     };
     rafRef.current = requestAnimationFrame(animate);
 
-    return () => cancelAnimationFrame(rafRef.current);
+    return () => { cancelAnimationFrame(rafRef.current); isAutoScrolling.current = false; };
   }, [activeIdx]);
-
-  const handleUserScroll = () => {
-    userScrolling.current = true;
-    cancelAnimationFrame(rafRef.current);
-    clearTimeout(scrollTimer.current);
-    scrollTimer.current = setTimeout(() => { userScrolling.current = false; }, 4000);
-  };
 
   // Calculate blur + opacity for each paragraph based on time distance
   const getLineStyle = (index: number) => {
@@ -92,41 +111,43 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
     const isActive = index === activeIdx;
     const isPast = index < activeIdx;
     const timeDiff = line.startTime - currentTime; // positive = future, negative = past
+    const idxDist = Math.abs(index - activeIdx);
 
     let blur: number;
     let opacity: number;
     let scale: number;
-    let translateY: number;
 
     if (isActive) {
-      // Active paragraph — crystal clear, slightly enlarged
       blur = 0;
       opacity = 1;
-      scale = 1.02;
-      translateY = 0;
+      scale = 1.015;
     } else if (isPast) {
-      // Past paragraphs — clear but faded
-      const pastDist = Math.abs(index - activeIdx);
+      // Past — clear but faded, more distant = more faded
       blur = 0;
-      opacity = Math.max(0.2, 0.4 - pastDist * 0.05);
-      scale = 0.98;
-      translateY = -2;
+      opacity = Math.max(0.15, 0.35 - idxDist * 0.06);
+      scale = 0.99;
     } else {
-      // Future paragraphs — blur based on time distance, gradual reveal
-      blur = Math.min(4, Math.max(0, timeDiff * 0.15));
-      opacity = Math.max(0.12, Math.min(0.6, 1 - timeDiff * 0.03));
-      scale = Math.max(0.97, 1 - timeDiff * 0.001);
-      translateY = Math.min(6, timeDiff * 0.15);
+      // Future — blur increases with distance, gradual reveal as audio approaches
+      // Use both index distance AND time distance for robust blur
+      const idxBlur = Math.min(5, idxDist * 1.8);
+      const timeBlur = Math.min(5, Math.max(0, timeDiff * 0.25));
+      blur = Math.max(idxBlur, timeBlur);
+      // Opacity: close future = semi-visible, far future = barely visible
+      opacity = Math.max(0.08, Math.min(0.5, 0.6 - idxDist * 0.12));
+      scale = 0.99;
     }
+
+    const filterValue = blur > 0.2 ? `blur(${blur.toFixed(1)}px)` : 'none';
 
     return {
       fontFamily: "'Playfair Display', Georgia, serif",
-      fontSize: isActive ? '15.5px' : '14px',
-      lineHeight: '2.1',
-      letterSpacing: '0.015em',
+      fontSize: isActive ? '16px' : '14.5px',
+      lineHeight: '2.15',
+      letterSpacing: '0.01em',
       opacity,
-      filter: blur > 0.1 ? `blur(${blur.toFixed(1)}px)` : 'none',
-      transform: `translateY(${translateY}px) scale(${scale})`,
+      filter: filterValue,
+      WebkitFilter: filterValue, // Safari support
+      transform: `scale(${scale})`,
       transformOrigin: 'center center',
     };
   };
@@ -135,25 +156,27 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
     <div className="h-full relative">
       <div
         ref={containerRef}
-        className="h-full overflow-y-auto overscroll-contain scroll-smooth"
-        onTouchStart={handleUserScroll}
-        onTouchEnd={() => { clearTimeout(scrollTimer.current); scrollTimer.current = setTimeout(() => { userScrolling.current = false; }, 4000); }}
+        className="h-full overflow-y-auto overscroll-contain"
+        style={{ WebkitOverflowScrolling: 'touch' }}
       >
-        <div className="px-6 pt-6 pb-8 max-w-md mx-auto">
+        {/* Top spacer so first paragraph can scroll to center */}
+        <div className="h-[35vh]" />
+        <div className="px-6 pb-8 max-w-md mx-auto">
           {lines.map((line, i) => {
             const isActive = i === activeIdx;
+            const isPast = i < activeIdx;
             return (
               <p
                 key={i}
                 data-line={i}
                 className={cn(
-                  "mb-8 text-center",
-                  "transition-[filter,opacity,transform,color] duration-700 ease-out will-change-[filter,opacity,transform]",
+                  "mb-7 text-center",
+                  "transition-[filter,opacity,transform] duration-[800ms] ease-out",
                   isActive
-                    ? "text-foreground font-medium"
-                    : i < activeIdx
-                      ? "text-foreground/35 dark:text-foreground/25 font-normal"
-                      : "text-foreground/50 dark:text-foreground/40 font-normal"
+                    ? "text-foreground dark:text-white font-semibold"
+                    : isPast
+                      ? "text-foreground/30 dark:text-white/20 font-normal"
+                      : "text-foreground/45 dark:text-white/35 font-normal"
                 )}
                 style={getLineStyle(i)}
               >
@@ -162,10 +185,12 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
             );
           })}
         </div>
+        {/* Bottom spacer so last paragraph can scroll to center */}
+        <div className="h-[40vh]" />
       </div>
-      {/* Gradient fades — taller for better blur blending */}
-      <div className="absolute top-0 left-0 right-0 h-28 bg-gradient-to-b from-background/95 to-transparent pointer-events-none z-10" />
-      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background/95 to-transparent pointer-events-none z-10" />
+      {/* Gradient fades — strong edges for polished look */}
+      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-background via-background/80 to-transparent pointer-events-none z-10" />
+      <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none z-10" />
     </div>
   );
 };
