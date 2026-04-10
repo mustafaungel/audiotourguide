@@ -72,10 +72,15 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
     loadLinkedGuides();
   }, [mainGuide.id, accessCode]);
 
-  // Sync main guide language from parent — do NOT eagerly fetch linked guides
+  // Sync ALL guides to parent language when it changes (main + linked)
   useEffect(() => {
-    setLanguageByGuide(prev => ({ ...prev, [mainGuide.id]: languageCode }));
-  }, [languageCode, mainGuide.id]);
+    setLanguageByGuide(prev => {
+      const updated: Record<string, string> = { [mainGuide.id]: languageCode };
+      // Sync linked guides to same language
+      linkedGuides.forEach(g => { updated[g.guide_id] = languageCode; });
+      return { ...prev, ...updated };
+    });
+  }, [languageCode, mainGuide.id, linkedGuides]);
 
   const ensureGuideSections = useCallback(async (guideId: string, overrideLanguage?: string) => {
     const effectiveLang = overrideLanguage || languageByGuide[guideId] || languageCode;

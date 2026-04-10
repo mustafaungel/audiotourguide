@@ -46,6 +46,15 @@ Critical translation rules:
 - Match the word count approximately to maintain the same narration duration
 - Preserve paragraph breaks and natural speech rhythm
 
+CULTURAL AND LINGUISTIC AUTHENTICITY for ${target_language}:
+- You are translating for native ${target_language} speakers who will LISTEN to this as an audio guide while visiting the location
+- Use the appropriate level of formality standard for audio tour guides in ${target_language}-speaking countries
+- For languages with honorifics or formal/informal registers, use the polite form appropriate for a professional guide addressing tourists
+- Apply the natural rhythm, sentence structure, and storytelling conventions of ${target_language}
+- Local expressions, proverbs, or cultural analogies from ${target_language} culture should replace English-specific references where appropriate
+- Preserve the emotional impact: if the original evokes wonder, the translation must evoke equal wonder in ${target_language}
+- The listener should FEEL the guide is a native ${target_language} speaker who loves sharing their knowledge of this place
+
 Do NOT add, remove, or editorialize content. Translate faithfully while adapting naturally for ${target_language} speakers.
 Return ONLY the translated narration text. No explanations, no notes, no metadata.`
           },

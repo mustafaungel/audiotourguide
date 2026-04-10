@@ -305,8 +305,13 @@ export default function AudioAccess() {
 
       if (languages && languages.length > 0) {
         setAvailableLanguages(languages);
+
+        // Device language detection: match browser locale to available languages
+        const deviceLang = (navigator.language || navigator.languages?.[0] || 'en').substring(0, 2).toLowerCase();
+        const deviceMatch = languages.find((l: any) => l.language_code === deviceLang);
         const enLang = languages.find((l: any) => l.language_code === 'en');
-        const selectedLang = enLang ? 'en' : languages[0].language_code;
+        // Priority: device language > English > first available
+        const selectedLang = deviceMatch ? deviceLang : (enLang ? 'en' : languages[0].language_code);
         setSelectedLanguage(selectedLang);
         await fetchSectionsForLanguage(guideId, selectedLang);
 
