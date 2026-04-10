@@ -21,32 +21,45 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
   const lines = useMemo(() => {
     if (!scriptText || duration <= 0) return [];
 
-    // First split by paragraphs, then by sentences within each
-    const sentences: string[] = [];
+    // Split by paragraphs first, then sentences — track paragraph breaks for pause timing
+    const sentenceData: { text: string; paraBreakBefore: boolean }[] = [];
     const paragraphs = scriptText.split(/\n\n+/);
 
-    for (const para of paragraphs) {
-      const cleaned = para.replace(/\n/g, ' ').trim();
+    for (let pi = 0; pi < paragraphs.length; pi++) {
+      const cleaned = paragraphs[pi].replace(/\n/g, ' ').trim();
       if (cleaned.length < 15) continue;
 
       // Split by sentence boundaries — language-agnostic
-      // Handles: Latin (EN/TR/ES/FR/DE/IT/PT), Cyrillic (RU), Arabic, CJK (ZH/JA/KO)
       const parts = cleaned.split(/(?<=[.!?。！？])\s+/);
+      let isFirst = true;
       for (const part of parts) {
         const s = part.trim();
-        if (s.length > 10) sentences.push(s);
+        if (s.length > 10) {
+          sentenceData.push({
+            text: s,
+            paraBreakBefore: isFirst && sentenceData.length > 0, // paragraph gap before this sentence
+          });
+          isFirst = false;
+        }
       }
     }
 
-    if (sentences.length === 0) return [];
+    if (sentenceData.length === 0) return [];
 
-    // Map each sentence to a time window based on character count
-    const totalChars = sentences.reduce((sum, s) => sum + s.length, 0);
-    let cumChars = 0;
-    return sentences.map((text) => {
-      const startTime = (cumChars / totalChars) * duration;
-      cumChars += text.length;
-      const endTime = (cumChars / totalChars) * duration;
+    // TTS pauses ~0.8s between paragraphs — add virtual chars to account for this
+    const PAUSE_WEIGHT = 40; // ~0.8s worth of characters at ~150 wpm
+    const TRACKING_DELAY = 1.2; // seconds — tracker stays slightly behind audio (feels more natural)
+
+    const totalWeight = sentenceData.reduce(
+      (sum, s) => sum + s.text.length + (s.paraBreakBefore ? PAUSE_WEIGHT : 0), 0
+    );
+
+    let cumWeight = 0;
+    return sentenceData.map(({ text, paraBreakBefore }) => {
+      if (paraBreakBefore) cumWeight += PAUSE_WEIGHT;
+      const startTime = Math.min(duration, (cumWeight / totalWeight) * duration + TRACKING_DELAY);
+      cumWeight += text.length;
+      const endTime = Math.min(duration, (cumWeight / totalWeight) * duration + TRACKING_DELAY);
       return { text, startTime, endTime };
     });
   }, [scriptText, duration]);
