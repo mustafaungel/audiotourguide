@@ -66,8 +66,8 @@ serve(async (req) => {
       .trim();
 
     // Safety: reject overly long scripts (prevents ElevenLabs credit waste)
-    if (!isPreview && cleanedText.length > 5000) {
-      throw new Error(`Script too long (${cleanedText.length} chars). Maximum 5000 characters per section. Please shorten the script.`);
+    if (!isPreview && cleanedText.length > 8000) {
+      throw new Error(`Script too long (${cleanedText.length} chars). Maximum 8000 characters per section. Please shorten the script.`);
     }
 
     // Use default professional voice if not specified
