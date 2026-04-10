@@ -1,16 +1,41 @@
 
 
-## Supabase Linklerini Sitemap'ten Kaldırma
+## Bug Fix: AutoCreateGuide ses listesini seçilen dile göre dinamik çekme
 
 ### Sorun
-Sitemap'teki `<image:loc>` etiketlerinde Supabase Storage URL'leri (`https://dsaqlgxajdnwoqvtsrqd.supabase.co/...`) bulunuyor. Google bu görselleri farklı domain olarak görüyor ve sitemap doğrulamasında sorun çıkarabiliyor.
+`AutoCreateGuide.tsx` satır 99'da `list-voices` edge function'ı sabit `{ language: 'english' }` ile çağrılıyor. Kullanıcı Türkçe veya Rusça seçse bile ses listesi hep İngilizce sesleri gösteriyor.
 
 ### Çözüm
-Tüm `<image:image>` bloklarını sitemap'ten kaldır. Google zaten guide sayfalarındaki `<meta property="og:image">` ve JSON-LD structured data üzerinden görselleri keşfedip indexliyor. Sitemap'te image tag'i zorunlu değil.
+`useEffect`'in dependency'sine `selectedLanguages[0]`'ı (primary language) ekle. Primary dil değiştiğinde `list-voices`'ı o dilin adıyla (`ELEVENLABS_LANGUAGES` lookup) tekrar çağır.
 
 ### Değişiklik
 
-**`public/sitemap.xml`**: Her guide URL'sindeki `<image:image>...</image:image>` bloklarını tamamen sil. Sadece `<loc>`, `<lastmod>`, `<changefreq>`, `<priority>` kalsın.
+**`src/components/AutoCreateGuide.tsx`** — satır 94-111 arası:
 
-Ayrıca **`supabase/functions/generate-sitemap/index.ts`** edge function'ındaki image section üretim kodunu da kaldır — böylece ileride sitemap yeniden oluşturulursa Supabase linkleri tekrar eklenmez.
+```typescript
+// Load voices when primary language changes
+const primaryLangCode = selectedLanguages[0] || 'en';
+const primaryLangNameForVoices = ELEVENLABS_LANGUAGES.find(l => l.code === primaryLangCode)?.name || 'English';
+
+useEffect(() => {
+  (async () => {
+    setLoadingVoices(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('list-voices', { 
+        body: { language: primaryLangNameForVoices } 
+      });
+      if (!error && data?.voices) {
+        setVoices(data.voices);
+        const firstFemale = data.voices.find((v: Voice) => v.gender === 'female');
+        if (firstFemale) {
+          setVoiceByLanguage(prev => ({ ...prev, [primaryLangCode]: prev[primaryLangCode] || firstFemale.voice_id }));
+        }
+      }
+    } catch { /* silent */ }
+    finally { setLoadingVoices(false); }
+  })();
+}, [primaryLangNameForVoices]);
+```
+
+Tek dosya, tek değişiklik. Artık dil seçildiğinde ElevenLabs'ten o dile uygun sesler gelecek.
 
