@@ -70,11 +70,17 @@ serve(async (req) => {
       }));
     }
 
-    // 3. Merge: own first (★ multilingual), then shared (language-specific)
-    const allVoices = [
-      ...ownVoices.map(v => ({ ...v, name: `★ ${v.name}` })),
-      ...sharedVoices,
-    ];
+    // 3. Merge: native speakers FIRST, then multilingual premade voices
+    // When a language is specified, show shared (native) voices on top
+    const allVoices = language
+      ? [
+          ...sharedVoices, // Native speakers first (searched by language)
+          ...ownVoices.map(v => ({ ...v, name: `★ ${v.name}` })), // Multilingual premade after
+        ]
+      : [
+          ...ownVoices.map(v => ({ ...v, name: `★ ${v.name}` })), // Default: premade first
+          ...sharedVoices,
+        ];
 
     // Deduplicate by voice_id
     const seen = new Set();
