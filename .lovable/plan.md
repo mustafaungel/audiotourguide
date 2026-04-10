@@ -1,28 +1,63 @@
 
 
-## Plan: Fix 3 Issues (Build Error, Favicon, OG Images)
+## Analiz Sonuçları
 
-### Problem 1: Build Error
-`AdminGuideOrderManager.tsx` line 275 calls `fetchGuides()` which is not in scope inside `SortableGuideRow`.
+### Kritik SEO Sorunu: Yanlış Domain
+Kodun büyük bir kısmı hala eski `guided-sound-ai.lovable.app` domain'ini kullanıyor. Gerçek domain `audiotourguide.app`. Bu, Google'ın sitenizi doğru indexlememesinin **ana sebebi**.
 
-**Fix:** Add `onDelete` callback prop to `SortableGuideRow`, pass `fetchGuides` from parent.
+**Etkilenen dosyalar (143+ yanlış URL):**
+- `src/components/SEO.tsx` — siteUrl olarak `guided-sound-ai.lovable.app` kullanıyor
+- `src/pages/Index.tsx` — structured data ve canonical URL'ler
+- `src/pages/Guides.tsx` — canonical URL ve breadcrumb
+- `src/pages/Countries.tsx` — canonical URL ve breadcrumb
+- `src/pages/CountryDetail.tsx` — canonical URL ve breadcrumb
+- `src/pages/GuideDetail.tsx` — canonical URL, breadcrumb, hreflang
+- `public/robots.txt` — sitemap URL'leri yanlış domain'e işaret ediyor
+- `public/sitemap.xml` — tüm URL'ler yanlış domain
+- `supabase/functions/generate-sitemap/index.ts` — baseUrl yanlış
 
-### Problem 2: Favicon Not Showing
-`FaviconUpdater.tsx` only sets favicon when `branding.faviconUrl` exists. If the database value is empty, no favicon is set and the browser may lose the default one.
+### Google Search Console Doğrulama Eksik
+`google-site-verification` meta tag'i `index.html`'de yok. Google Search Console'a siteyi eklemek ve doğrulamak için bu gerekli.
 
-**Fix:** Add fallback to `/logo-audio-tour-guides.png` when `branding.faviconUrl` is falsy.
+### Favicon Cache Sorunu
+`BrandingContext` favicon'u `localStorage` key'i `site_branding_cache` ile cache'liyor. Eğer database'de favicon URL boşsa, cache'deki eski değer kullanılıyor olabilir.
 
-### Problem 3: Social Media OG Images Not Showing
-- `ShareLink.tsx` already correctly uses the edge function URL -- no changes needed there.
-- `SocialShare.tsx` uses `window.location.href` as the share URL, which means crawlers hit the SPA and get generic OG tags instead of guide-specific ones.
+---
 
-**Fix:** Update `SocialShare.tsx` to accept a `guideId` and build the edge function URL (same pattern as `ShareLink.tsx`) when a guide is provided.
+## Uygulama Planı
 
-### Files to Change
-1. `src/components/AdminGuideOrderManager.tsx` -- add `onDelete` prop, wire fetchGuides
-2. `src/components/FaviconUpdater.tsx` -- add fallback favicon
-3. `src/components/SocialShare.tsx` -- use edge function URL for guide sharing
+### Adım 1: Tüm URL'leri `audiotourguide.app`'e güncelle
+- `src/components/SEO.tsx` — `siteUrl` değişkenini `https://audiotourguide.app` yap
+- `src/pages/Index.tsx` — structured data URL'lerini güncelle
+- `src/pages/Guides.tsx` — canonical ve breadcrumb URL'lerini güncelle
+- `src/pages/Countries.tsx` — aynı şekilde
+- `src/pages/CountryDetail.tsx` — aynı şekilde
+- `src/pages/GuideDetail.tsx` — aynı şekilde
+- `public/robots.txt` — sitemap URL'lerini `audiotourguide.app` olarak güncelle
+- `public/sitemap.xml` — tüm URL'leri güncelle
+- `supabase/functions/generate-sitemap/index.ts` — baseUrl'i güncelle
 
-### Access Links Impact
-**No change to existing access links.** `buildAccessUrl` stays untouched. Only the social share URL generation changes, and the edge function redirects users to the exact same access URL.
+### Adım 2: Google Search Console verification tag ekle
+- `index.html`'e `<meta name="google-site-verification" content="...">` ekle
+- (Kullanıcıdan verification kodunu almam gerekecek)
+
+### Adım 3: Favicon cache temizliğini otomatikleştir
+- `FaviconUpdater.tsx`'te cache-busting ekle (timestamp query param)
+- `BrandingContext`'te cache versiyonu ekleyerek eski cache'lerin otomatik geçersiz kılınmasını sağla
+
+### Adım 4: Edge function sitemap'i redeploy et
+- `generate-sitemap` fonksiyonundaki baseUrl düzeltmesi sonrası redeploy gerekecek
+
+---
+
+## SEO Özeti
+
+| Sorun | Etki | Durum |
+|-------|------|-------|
+| Yanlış domain (143+ URL) | Google yanlış siteyi indexliyor | Kritik |
+| Google verification eksik | Search Console kullanılamıyor | Yüksek |
+| robots.txt yanlış sitemap | Google sitemap bulamıyor | Yüksek |
+| Favicon cache | Tarayıcıda logo gözükmüyor | Orta |
+
+**Sonuç:** "cappadocia audio guide" gibi aramalarla bulunamamanızın ana sebebi, tüm canonical URL'lerin, sitemap'lerin ve structured data'nın yanlış domain'e (`guided-sound-ai.lovable.app`) işaret etmesi. Bu düzeltilince ve Google Search Console'a doğru domain eklendikten sonra, indexleme başlayacaktır.
 
