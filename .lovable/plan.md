@@ -1,44 +1,58 @@
 
 
-## ElevenLabs Ses Listesini İyileştirme
+## ElevenLabs Ses Listesi Sorunları ve Çözüm
 
-### Sorun
-1. `list-voices` edge function eski `/v1/shared-voices` endpoint'ini kullanıyor — bu endpoint `search` parametresiyle metin araması yapıyor, dil bazlı filtreleme yok
-2. Kalite filtresi yok — düşük kaliteli/az kullanılan sesler de listeleniyor
-3. Sonuç olarak seçilen dile uygun olmayan veya kalitesiz sesler gösteriliyor
+### Tespit Edilen Sorunlar
+
+Edge function'ı Türkçe ile test ettim. Üç kritik sorun var:
+
+1. **Dil filtresi çalışmıyor**: `language=Turkish` gönderilmesine rağmen dönen shared seslerinin tamamı `languages: ["en"]` — yani hepsi İngilizce. ElevenLabs shared-voices API'si muhtemelen `"tr"` gibi ISO kodu bekliyor, `"Turkish"` değil.
+
+2. **Kalite filtresi tamamen bozuk**: Tüm shared sesler `usage_count: 0` ile dönüyor. Bu, API'nin `usage_character_count` alanını bu endpoint'te döndürmediği veya farklı bir alan adı kullandığı anlamına geliyor. Dolayısıyla `>= 1000` filtresi hiçbir şeyi filtrelemiyor — tüm düşük kaliteli sesler listeleniyor.
+
+3. **Kategori filtresi kullanılmıyor**: ElevenLabs shared-voices API'si `category=professional` ve `category=high_quality` parametrelerini destekliyor ama biz bunları kullanmıyoruz.
 
 ### Çözüm
 
-**`supabase/functions/list-voices/index.ts`** tamamen yeniden yazılacak:
+**`supabase/functions/list-voices/index.ts`** güncellenecek:
 
-1. **Yeni API endpoint**: `/v1/shared-voices` yerine `/v1/shared-voices` endpoint'inin `language` ve `sort` parametrelerini kullanarak dile göre filtreleme yap (ElevenLabs shared-voices API'si `language` parametresini destekliyor — şu an sadece `search` kullanılıyor)
-2. **Kalite filtresi**: Dönen sesleri `usage_character_count` veya `cloned_by_count` (kullanım sayısı) bazında filtrele — minimum 1000+ kullanımı olan sesleri getir. Bu, topluluk tarafından kanıtlanmış kaliteli sesleri garantiler
-3. **Sıralama**: `usage_character_count` veya popülerliğe göre azalan sıra ile en kaliteli sesleri üste getir
-4. **Premade sesler**: Hesaptaki kendi/premade sesler (multilingual) her zaman listenin başında ★ ile gösterilmeye devam edecek
-5. **Sayfa boyutu**: 50 ile sınırla (100 yerine) — kalite filtresi sayesinde daha az ama daha iyi sonuçlar
-
-### Değişiklikler
-
-| Dosya | Değişiklik |
-|-------|-----------|
-| `supabase/functions/list-voices/index.ts` | Shared voices API çağrısını `language` parametresi ile filtrele, `sort=trending` veya kullanım sayısına göre sırala, düşük kaliteli sesleri (`usage_character_count < 1000`) filtrele |
+1. **Dil kodu dönüştürme**: Frontend'den gelen `"Turkish"` gibi dil isimlerini ElevenLabs'in beklediği ISO koduna (`"tr"`) çeviren bir mapping ekle
+2. **Kategori filtresi**: `category=professional` veya `category=high_quality` kullanarak sadece kaliteli sesleri getir — trending sort ile birleştir
+3. **Çift istek stratejisi**: İlk olarak `category=professional` ile, sonra da genel `trending` ile iki ayrı istek at. Professional sesler listenin başında, trending sesler altında gösterilsin
+4. **Gereksiz kalite filtresini kaldır**: `usage_character_count` filtresi zaten çalışmıyor, bunun yerine ElevenLabs'in kendi `category` ve `sort` parametrelerine güven
+5. **Sayfa boyutunu artır**: Professional sesler az olabilir, 100'e çıkar
 
 ### Teknik Detay
 
-```typescript
-// Shared voices API — dil filtreli, popülerliğe göre sıralı
-const sharedParams = new URLSearchParams({
-  page_size: '50',
-  sort: 'trending',        // En popüler sesler önce
-  language: language || '', // Dil bazlı filtreleme
-});
+```text
+Mevcut akış:
+  Frontend → "Turkish" → list-voices → /v1/shared-voices?language=Turkish&sort=trending
+  Sonuç: Hepsi İngilizce, hepsi usage_count=0 → kalite filtresi bypass
 
-// Kalite filtresi — sadece 1000+ kullanımlı sesler
-sharedVoices = rawVoices.filter(v => 
-  (v.usage_character_count || 0) >= 1000 || 
-  (v.cloned_by_count || 0) >= 50
-);
+Yeni akış:
+  Frontend → "Turkish" → list-voices → dil kodu dönüşümü ("Turkish" → "tr")
+  → İstek 1: /v1/shared-voices?language=tr&category=professional&page_size=50
+  → İstek 2: /v1/shared-voices?language=tr&sort=trending&page_size=50
+  → Birleştir: ★ Own sesler + Professional sesler + Trending sesler (deduplicate)
 ```
 
-TTS tarafı zaten `eleven_multilingual_v2` (en güncel multilingual model) kullanıyor — değişiklik gerekmez.
+### Dil Kodu Mapping
+
+```typescript
+const LANG_NAME_TO_CODE: Record<string, string> = {
+  'English': 'en', 'Turkish': 'tr', 'Russian': 'ru',
+  'German': 'de', 'French': 'fr', 'Spanish': 'es',
+  'Italian': 'it', 'Portuguese': 'pt', 'Arabic': 'ar',
+  'Chinese': 'zh', 'Japanese': 'ja', 'Korean': 'ko',
+  'Hindi': 'hi', 'Dutch': 'nl', 'Polish': 'pl',
+  'Greek': 'el', 'Czech': 'cs', 'Romanian': 'ro',
+  // ... diğer diller
+};
+```
+
+### Değişiklik
+
+| Dosya | Değişiklik |
+|-------|-----------|
+| `supabase/functions/list-voices/index.ts` | Dil ismi → ISO kod dönüşümü ekle, `category=professional` filtresi ekle, çift istek stratejisi, bozuk usage_count filtresini kaldır |
 
