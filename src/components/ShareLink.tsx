@@ -29,8 +29,9 @@ export const ShareLink: React.FC<ShareLinkProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
 
-  // Construct the share URL for access page with access code if available
-  const shareUrl = `https://audiotourguide.app/access/${guideId}${accessCode ? `?access_code=${accessCode}` : ''}`;
+  // Share URL goes through edge function for proper OG meta tags (WhatsApp/Telegram previews)
+  // The edge function returns OG tags to crawlers and redirects real users to the SPA
+  const shareUrl = `https://dsaqlgxajdnwoqvtsrqd.supabase.co/functions/v1/og-image?id=${guideId}${accessCode ? `&access_code=${accessCode}` : ''}`;
 
   const handleCopy = async () => {
     try {

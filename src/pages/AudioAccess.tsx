@@ -783,8 +783,26 @@ export default function AudioAccess() {
       </div>
 
       {/* Content area — bottom padding for fixed mini player clearance */}
-      <div className="px-4 pb-20 space-y-4 max-w-3xl mx-auto">
-        {/* Collapsible Guest Feedback Section */}
+      <div className="px-4 pb-24 space-y-4 max-w-3xl mx-auto">
+        {/* Multi-tab Audio Interface */}
+        <div>
+          <MultiTabAudioPlayer
+            mainGuide={{
+              id: guide.id,
+              title: guide.title,
+              description: guide.description,
+              audio_url: guide.audio_url,
+              image_url: guide.image_url,
+            }}
+            mainSections={sections}
+            accessCode={accessCode || undefined}
+            languageCode={selectedLanguage}
+            guideImageUrl={guideImageUrl}
+            onActiveTabChange={setActiveGuideId}
+          />
+        </div>
+
+        {/* Guest Feedback — below sections, above mini player */}
         <div>
           {!showReviewForm ? (
              <button
@@ -809,25 +827,6 @@ export default function AudioAccess() {
             </div>
           )}
         </div>
-
-        {/* Multi-tab Audio Interface */}
-        <div>
-          <MultiTabAudioPlayer
-            mainGuide={{
-              id: guide.id,
-              title: guide.title,
-              description: guide.description,
-              audio_url: guide.audio_url,
-              image_url: guide.image_url,
-            }}
-            mainSections={sections}
-            accessCode={accessCode || undefined}
-            languageCode={selectedLanguage}
-            guideImageUrl={guideImageUrl}
-            onActiveTabChange={setActiveGuideId}
-          />
-        </div>
-
       </div>
     </div>
   );
