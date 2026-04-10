@@ -78,6 +78,9 @@ ABSOLUTE OPENING RULES (VIOLATION = FAILURE):
 - PRACTICAL: Naturally weave in useful tips — best photo angles, what details to look for, where to stand for the best acoustics or view.
 - TRANSITIONS: End with a smooth, natural lead-in that makes the listener eager to continue to the next section.
 - PACING: Use varied sentence lengths. Short punchy facts create drama. Then longer, flowing descriptions let the atmosphere sink in. This rhythm keeps listeners engaged.
+- PHYSICAL GUIDANCE: Naturally guide the visitor's attention to what they can see RIGHT NOW. Use directions like: "Look up at the ceiling above you", "Notice the carvings on the column to your right", "Turn around and see the view behind you", "Step closer to the wall and feel the texture of the stone". This makes the visitor feel physically guided, not just lectured.
+- BREATHING ROOM: After sharing a powerful fact or emotional moment, leave a beat. Use a very short sentence to let it sink in. For example: "That was nearly five hundred years ago." or "And yet, it still stands." These pauses create emotional impact.
+- ENGAGEMENT: Keep the narration conversational and warm. The listener should never feel bored or lectured at. Vary between informative passages, sensory descriptions, personal anecdotes, and moments of wonder. If a section starts feeling like a textbook, add a surprising detail or a local story to bring it back to life.
 
 Critical rules:
 - Write in ${lang}
@@ -105,7 +108,7 @@ ${next_title ? `\nThe next section is: "${next_title}"\nEnd by naturally leading
 Write a compelling, factually accurate narration that makes the visitor feel the magic and significance of this place. Remember: approximately ${wordCount} words, in ${lang}, pure narration text only.`
           }
         ],
-        max_tokens: 2000,
+        max_tokens: 2500,
         temperature: 0.7,
       }),
     });

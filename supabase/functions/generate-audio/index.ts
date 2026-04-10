@@ -95,10 +95,11 @@ serve(async (req) => {
         text: textToConvert,
         model_id: selectedModelId,
         voice_settings: {
-          stability: 0.5,
+          stability: 0.4,
           similarity_boost: 0.75,
-          style: 0.0,
-          use_speaker_boost: true
+          style: 0.35,
+          use_speaker_boost: true,
+          speed: 0.95,
         }
       }),
     });
