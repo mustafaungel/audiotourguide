@@ -265,7 +265,7 @@ const Index = () => {
               className="w-full"
             >
               <CarouselComponents.CarouselContent className="-ml-3 items-stretch">
-                {filteredGuides.map(guide => {
+                {filteredGuides.map((guide, idx) => {
                   const isPurchased = userPurchases.includes(guide.id);
                   return (
                     <CarouselComponents.CarouselItem key={guide.id} className="pl-3 basis-[85%] sm:basis-1/2 lg:basis-1/3 xl:basis-1/4 2xl:basis-1/5 flex">
@@ -283,6 +283,7 @@ const Index = () => {
                         imageUrl={guide.image_urls?.[0] || guide.image_url}
                         totalPurchases={guide.total_purchases || 0}
                         languages={guide.languages}
+                        imageLoading={idx < 3 ? 'eager' : 'lazy'}
                         creatorName="Audio Tour Guides"
                         isProcessingPayment={processingPayment === guide.id}
                         onViewGuide={() => {

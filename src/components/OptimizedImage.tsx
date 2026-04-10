@@ -24,6 +24,7 @@ export function OptimizedImage({
     getOptimizedImageUrl(src, { width, height, quality })
   );
   const [hasError, setHasError] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   const directUrl = getDirectImageUrl(src);
 
@@ -38,18 +39,26 @@ export function OptimizedImage({
   useEffect(() => {
     setImgSrc(getOptimizedImageUrl(src, { width, height, quality }));
     setHasError(false);
+    setLoaded(false);
   }, [src, width, height, quality]);
 
   return (
-    <img
-      src={imgSrc}
-      alt={alt}
-      width={width}
-      height={height}
-      className={`bg-muted ${className || ''}`}
-      loading={loading}
-      decoding="async"
-      onError={handleError}
-    />
+    <div className="relative overflow-hidden" style={{ width, height }}>
+      {/* Shimmer placeholder — visible until image loads */}
+      {!loaded && (
+        <div className="absolute inset-0 bg-muted animate-pulse" />
+      )}
+      <img
+        src={imgSrc}
+        alt={alt}
+        width={width}
+        height={height}
+        className={`${loaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300 ${className || ''}`}
+        loading={loading}
+        decoding="async"
+        onLoad={() => setLoaded(true)}
+        onError={handleError}
+      />
+    </div>
   );
 }

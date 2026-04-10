@@ -26,6 +26,7 @@ interface GuideCardProps {
   creatorAvatar?: string;
   creatorId?: string;
   languages?: string[];
+  imageLoading?: 'lazy' | 'eager';
   isProcessingPayment?: boolean;
   onViewGuide?: () => void;
 }
@@ -41,6 +42,7 @@ export function GuideCard({
   category,
   imageUrl,
   languages,
+  imageLoading = 'lazy',
   isProcessingPayment = false,
 }: GuideCardProps) {
   const { toast } = useToast();
@@ -102,7 +104,7 @@ export function GuideCard({
             width={400}
             height={300}
             quality={75}
-            loading="lazy"
+            loading={imageLoading}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
           {/* Gradient overlay */}
