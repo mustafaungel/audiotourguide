@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useViralTracking } from "@/hooks/useViralTracking";
 import { useNavigate } from "react-router-dom";
 import { OptimizedImage } from "@/components/OptimizedImage";
+import { ELEVENLABS_LANGUAGES } from "@/data/countries-full";
 
 interface GuideCardProps {
   id: string;
@@ -24,6 +25,7 @@ interface GuideCardProps {
   creatorName?: string;
   creatorAvatar?: string;
   creatorId?: string;
+  languages?: string[];
   isProcessingPayment?: boolean;
   onViewGuide?: () => void;
 }
@@ -38,6 +40,7 @@ export function GuideCard({
   duration,
   category,
   imageUrl,
+  languages,
   isProcessingPayment = false,
 }: GuideCardProps) {
   const { toast } = useToast();
@@ -168,6 +171,19 @@ export function GuideCard({
             <Clock className="h-3 w-3 shrink-0 mr-1" />
             <span className="whitespace-nowrap">{Math.floor(duration / 60)} min</span>
           </div>
+
+          {/* Language flags */}
+          {languages && languages.length > 0 && (
+            <div className="flex items-center gap-1 pt-1">
+              {languages.slice(0, 6).map((lang, i) => {
+                const match = ELEVENLABS_LANGUAGES.find(l => l.name === lang || l.code === lang);
+                return match ? <span key={i} className="text-sm" title={match.name}>{match.flag}</span> : null;
+              })}
+              {languages.length > 6 && (
+                <span className="text-[10px] text-muted-foreground font-medium">+{languages.length - 6}</span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Price + CTA row */}
