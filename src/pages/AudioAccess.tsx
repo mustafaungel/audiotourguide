@@ -784,6 +784,32 @@ export default function AudioAccess() {
 
       {/* Content area — bottom padding for fixed mini player clearance */}
       <div className="px-4 pb-20 space-y-4 max-w-3xl mx-auto">
+        {/* Collapsible Guest Feedback Section */}
+        <div>
+          {!showReviewForm ? (
+             <button
+              onClick={() => setShowReviewForm(true)}
+              className="w-full flex items-center justify-center gap-2 min-h-[48px] py-3.5 rounded-2xl bg-primary/5 border border-primary/20 text-sm font-medium text-foreground active:scale-[0.98] active:bg-primary/10 active:shadow-inner shadow-sm hover:shadow-md transition-all duration-200"
+            >
+              <Star className="w-4 h-4 text-yellow-500" />
+              {t('leaveFeedback', selectedLanguage)}
+            </button>
+          ) : (
+            <div className="transition-all duration-300 ease-out">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-semibold text-foreground">{t('leaveFeedback', selectedLanguage)}</span>
+                <button
+                  onClick={() => setShowReviewForm(false)}
+                  className="text-xs text-muted-foreground active:opacity-60"
+                >
+                  {t('close', selectedLanguage)}
+                </button>
+              </div>
+              <GuestReviewForm guideId={guide.id} lang={selectedLanguage} />
+            </div>
+          )}
+        </div>
+
         {/* Multi-tab Audio Interface */}
         <div>
           <MultiTabAudioPlayer
@@ -802,31 +828,6 @@ export default function AudioAccess() {
           />
         </div>
 
-        {/* Collapsible Guest Review Section */}
-        <div>
-          {!showReviewForm ? (
-             <button
-              onClick={() => setShowReviewForm(true)}
-              className="w-full flex items-center justify-center gap-2 min-h-[48px] py-3.5 rounded-2xl bg-primary/5 border border-primary/20 text-sm font-medium text-foreground active:scale-[0.98] active:bg-primary/10 active:shadow-inner shadow-sm hover:shadow-md transition-all duration-200"
-            >
-              <Star className="w-4 h-4 text-yellow-500" />
-              {t('leaveReview', selectedLanguage)}
-            </button>
-          ) : (
-            <div className="transition-all duration-300 ease-out">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-semibold text-foreground">{t('leaveReview', selectedLanguage)}</span>
-                <button
-                  onClick={() => setShowReviewForm(false)}
-                  className="text-xs text-muted-foreground active:opacity-60"
-                >
-                  {t('close', selectedLanguage)}
-                </button>
-              </div>
-              <GuestReviewForm guideId={guide.id} lang={selectedLanguage} />
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );

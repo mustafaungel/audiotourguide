@@ -1,12 +1,14 @@
 type TranslationKeys = {
   // ChapterList
   upNext: string;
+  listenBelow: string;
   playbackSpeed: string;
   normal: string;
   // GuideLanguageSelector
   language: string;
   // GuestReviewForm
   leaveReview: string;
+  leaveFeedback: string;
   reviewDescription: string;
   name: string;
   email: string;
@@ -77,10 +79,12 @@ type TranslationKeys = {
 const translations: Record<string, TranslationKeys> = {
   en: {
     upNext: 'Up Next',
+    listenBelow: 'You can listen to each section below',
     playbackSpeed: 'Playback Speed',
     normal: 'Normal',
     language: 'Language',
     leaveReview: 'Leave a Review',
+    leaveFeedback: 'Leave Feedback',
     reviewDescription: 'Share your experience with this audio guide. Your review will be visible after approval.',
     name: 'Name',
     email: 'Email',
@@ -144,10 +148,12 @@ const translations: Record<string, TranslationKeys> = {
   },
   tr: {
     upNext: 'Sıradaki',
+    listenBelow: 'Bölümleri aşağıdan dinleyebilirsiniz',
     playbackSpeed: 'Oynatma Hızı',
     normal: 'Normal',
     language: 'Dil',
     leaveReview: 'Yorum Bırak',
+    leaveFeedback: 'Geri Bildirim Bırak',
     reviewDescription: 'Bu sesli rehberle ilgili deneyiminizi paylaşın. Yorumunuz onaylandıktan sonra görünür olacaktır.',
     name: 'Ad',
     email: 'E-posta',
@@ -211,10 +217,12 @@ const translations: Record<string, TranslationKeys> = {
   },
   es: {
     upNext: 'A continuación',
+    listenBelow: 'Puedes escuchar cada sección a continuación',
     playbackSpeed: 'Velocidad',
     normal: 'Normal',
     language: 'Idioma',
     leaveReview: 'Dejar una reseña',
+    leaveFeedback: 'Dejar un comentario',
     reviewDescription: 'Comparta su experiencia con esta audioguía. Su reseña será visible tras la aprobación.',
     name: 'Nombre',
     email: 'Correo electrónico',
@@ -278,10 +286,12 @@ const translations: Record<string, TranslationKeys> = {
   },
   fr: {
     upNext: 'À suivre',
+    listenBelow: 'Vous pouvez écouter chaque section ci-dessous',
     playbackSpeed: 'Vitesse',
     normal: 'Normal',
     language: 'Langue',
     leaveReview: 'Laisser un avis',
+    leaveFeedback: 'Laisser un commentaire',
     reviewDescription: 'Partagez votre expérience avec ce guide audio. Votre avis sera visible après approbation.',
     name: 'Nom',
     email: 'E-mail',
@@ -345,10 +355,12 @@ const translations: Record<string, TranslationKeys> = {
   },
   de: {
     upNext: 'Als Nächstes',
+    listenBelow: 'Sie können jeden Abschnitt unten anhören',
     playbackSpeed: 'Geschwindigkeit',
     normal: 'Normal',
     language: 'Sprache',
     leaveReview: 'Bewertung abgeben',
+    leaveFeedback: 'Feedback hinterlassen',
     reviewDescription: 'Teilen Sie Ihre Erfahrung mit diesem Audioguide. Ihre Bewertung wird nach Genehmigung sichtbar.',
     name: 'Name',
     email: 'E-Mail',
@@ -412,10 +424,12 @@ const translations: Record<string, TranslationKeys> = {
   },
   it: {
     upNext: 'Prossimo',
+    listenBelow: 'Puoi ascoltare ogni sezione qui sotto',
     playbackSpeed: 'Velocità',
     normal: 'Normale',
     language: 'Lingua',
     leaveReview: 'Lascia una recensione',
+    leaveFeedback: 'Lascia un feedback',
     reviewDescription: 'Condividi la tua esperienza con questa audioguida. La tua recensione sarà visibile dopo l\'approvazione.',
     name: 'Nome',
     email: 'E-mail',
@@ -479,10 +493,12 @@ const translations: Record<string, TranslationKeys> = {
   },
   pt: {
     upNext: 'A seguir',
+    listenBelow: 'Você pode ouvir cada seção abaixo',
     playbackSpeed: 'Velocidade',
     normal: 'Normal',
     language: 'Idioma',
     leaveReview: 'Deixar uma avaliação',
+    leaveFeedback: 'Deixar um feedback',
     reviewDescription: 'Compartilhe sua experiência com este guia de áudio. Sua avaliação será visível após aprovação.',
     name: 'Nome',
     email: 'E-mail',
@@ -546,10 +562,12 @@ const translations: Record<string, TranslationKeys> = {
   },
   ru: {
     upNext: 'Далее',
+    listenBelow: 'Вы можете прослушать каждый раздел ниже',
     playbackSpeed: 'Скорость',
     normal: 'Обычная',
     language: 'Язык',
     leaveReview: 'Оставить отзыв',
+    leaveFeedback: 'Оставить отзыв',
     reviewDescription: 'Поделитесь впечатлениями об этом аудиогиде. Ваш отзыв будет виден после одобрения.',
     name: 'Имя',
     email: 'Эл. почта',
@@ -613,10 +631,12 @@ const translations: Record<string, TranslationKeys> = {
   },
   zh: {
     upNext: '下一个',
+    listenBelow: '您可以在下方收听每个部分',
     playbackSpeed: '播放速度',
     normal: '正常',
     language: '语言',
     leaveReview: '留下评价',
+    leaveFeedback: '留下反馈',
     reviewDescription: '分享您对这个音频导览的体验。您的评价将在审核后显示。',
     name: '姓名',
     email: '电子邮件',
@@ -680,10 +700,12 @@ const translations: Record<string, TranslationKeys> = {
   },
   ja: {
     upNext: '次の再生',
+    listenBelow: '以下の各セクションを聴くことができます',
     playbackSpeed: '再生速度',
     normal: '通常',
     language: '言語',
     leaveReview: 'レビューを残す',
+    leaveFeedback: 'フィードバックを残す',
     reviewDescription: 'このオーディオガイドの体験を共有してください。レビューは承認後に表示されます。',
     name: '名前',
     email: 'メール',
@@ -747,10 +769,12 @@ const translations: Record<string, TranslationKeys> = {
   },
   ko: {
     upNext: '다음 재생',
+    listenBelow: '아래에서 각 섹션을 들을 수 있습니다',
     playbackSpeed: '재생 속도',
     normal: '보통',
     language: '언어',
     leaveReview: '리뷰 남기기',
+    leaveFeedback: '피드백 남기기',
     reviewDescription: '이 오디오 가이드에 대한 경험을 공유해 주세요. 승인 후 리뷰가 표시됩니다.',
     name: '이름',
     email: '이메일',
@@ -814,10 +838,12 @@ const translations: Record<string, TranslationKeys> = {
   },
   ar: {
     upNext: 'التالي',
+    listenBelow: 'يمكنك الاستماع إلى كل قسم أدناه',
     playbackSpeed: 'سرعة التشغيل',
     normal: 'عادي',
     language: 'اللغة',
     leaveReview: 'اترك تقييمًا',
+    leaveFeedback: 'اترك ملاحظاتك',
     reviewDescription: 'شارك تجربتك مع هذا الدليل الصوتي. سيكون تقييمك مرئيًا بعد الموافقة.',
     name: 'الاسم',
     email: 'البريد الإلكتروني',

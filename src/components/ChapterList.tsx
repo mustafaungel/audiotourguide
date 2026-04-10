@@ -91,7 +91,8 @@ export const ChapterList: React.FC<ChapterListProps> = ({
   return (
     <>
       <Card className={cn("audio-card-glow border-border/30 bg-card/50", className?.includes('in-sheet') && "border-0 shadow-none bg-transparent", className)}>
-        <CardHeader className="pb-4 flex flex-row items-center justify-between space-y-0">
+        <CardHeader className="pb-4 space-y-1.5">
+          <div className="flex flex-row items-center justify-between">
           <CardTitle className="text-lg font-semibold flex items-center gap-2">
             <Headphones className="w-4 h-4 text-primary" />
             {t('upNext', lang)}
@@ -183,6 +184,8 @@ export const ChapterList: React.FC<ChapterListProps> = ({
               )}
             </div>
           )}
+          </div>
+          <p className="text-xs text-muted-foreground">{t('listenBelow', lang)}</p>
         </CardHeader>
         <CardContent className="space-y-1.5 px-4 pb-4">
         {sections.map((section, index) => {
