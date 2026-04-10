@@ -22,6 +22,20 @@ serve(async (req) => {
       throw new Error('Script and target_language are required');
     }
 
+    // Strip header/title lines before translating (they shouldn't be in the narration)
+    let cleanScript = script;
+    const lines = script.split('\n');
+    let startIdx = 0;
+    for (let i = 0; i < Math.min(lines.length, 5); i++) {
+      const line = lines[i].trim();
+      if (!line) { startIdx = i + 1; continue; }
+      if (line.length < 80 && /[–—]/.test(line)) { startIdx = i + 1; continue; }
+      if (/^(Description|Script|Title|Section|Chapter|Introduction)\s*\*?$/i.test(line)) { startIdx = i + 1; continue; }
+      if (line.startsWith('*"') || line.startsWith('Description ')) { startIdx = i + 1; continue; }
+      break;
+    }
+    if (startIdx > 0) cleanScript = lines.slice(startIdx).join('\n').trim();
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -63,7 +77,7 @@ Return ONLY the translated narration text. No explanations, no notes, no metadat
             content: `Translate the following audio tour narration for "${section_title || 'a section'}" at ${place || 'a tourist attraction'} from ${source_language || 'English'} to ${target_language}.
 
 """
-${script}
+${cleanScript}
 """
 
 Translate this narration to ${target_language}. Return ONLY the translated text, nothing else. No dashes, no markers, no explanations.`

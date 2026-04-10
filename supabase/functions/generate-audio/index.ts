@@ -40,10 +40,28 @@ serve(async (req) => {
       throw new Error('Text is required');
     }
 
+    // Strip header/title lines that shouldn't be read aloud by TTS
+    // Matches patterns like: "Place Name – Section Title" or "Description" at the start
+    const stripHeaders = (t: string): string => {
+      const lines = t.split('\n');
+      let startIdx = 0;
+      for (let i = 0; i < Math.min(lines.length, 5); i++) {
+        const line = lines[i].trim();
+        // Skip empty lines, short title-like lines with dashes, "Description" labels
+        if (!line) { startIdx = i + 1; continue; }
+        if (line.length < 80 && /[–—]/.test(line)) { startIdx = i + 1; continue; }
+        if (/^(Description|Script|Title|Section|Chapter|Introduction)\s*\*?$/i.test(line)) { startIdx = i + 1; continue; }
+        if (line.startsWith('*"') || line.startsWith('Description ')) { startIdx = i + 1; continue; }
+        break; // First real content line found
+      }
+      return lines.slice(startIdx).join('\n').trim();
+    };
+
     // Clean TTS-problematic characters before sending to ElevenLabs
-    const cleanedText = text
+    const cleanedText = stripHeaders(text)
       .replace(/[—]/g, ', ').replace(/[–]/g, ', ')
       .replace(/[""]/g, '').replace(/["]/g, '')
+      .replace(/^\*"/gm, '').replace(/^Description\s*\*?/im, '')
       .replace(/[ \t]{2,}/g, ' ')
       .trim();
 
