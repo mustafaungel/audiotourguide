@@ -47,19 +47,29 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
 
     if (sentenceData.length === 0) return [];
 
-    // TTS pauses ~0.8s between paragraphs — add virtual chars to account for this
-    const PAUSE_WEIGHT = 40; // ~0.8s worth of characters at ~150 wpm
-    const TRACKING_DELAY = 1.2; // seconds — tracker stays slightly behind audio (feels more natural)
+    // Word-based timing — more accurate than character-based for TTS
+    // TTS speaks at ~150 words/min, pauses at punctuation and paragraph breaks
+    const PARA_PAUSE = 6;     // ~0.8s pause between paragraphs (in word-equivalents)
+    const COMMA_WEIGHT = 0.3; // each comma/semicolon adds ~0.2s pause
+    const PERIOD_WEIGHT = 0.5; // sentence-ending punctuation adds ~0.3s pause
+    const TRACKING_DELAY = 1.0; // seconds — tracker stays slightly behind audio
+
+    const getWeight = (text: string, hasParagraphBreak: boolean) => {
+      const words = text.split(/\s+/).length;
+      const commas = (text.match(/[,;:]/g) || []).length;
+      const periods = (text.match(/[.!?]/g) || []).length;
+      return words + commas * COMMA_WEIGHT + periods * PERIOD_WEIGHT + (hasParagraphBreak ? PARA_PAUSE : 0);
+    };
 
     const totalWeight = sentenceData.reduce(
-      (sum, s) => sum + s.text.length + (s.paraBreakBefore ? PAUSE_WEIGHT : 0), 0
+      (sum, s) => sum + getWeight(s.text, s.paraBreakBefore), 0
     );
 
     let cumWeight = 0;
     return sentenceData.map(({ text, paraBreakBefore }) => {
-      if (paraBreakBefore) cumWeight += PAUSE_WEIGHT;
+      if (paraBreakBefore) cumWeight += PARA_PAUSE;
       const startTime = Math.min(duration, (cumWeight / totalWeight) * duration + TRACKING_DELAY);
-      cumWeight += text.length;
+      cumWeight += getWeight(text, false);
       const endTime = Math.min(duration, (cumWeight / totalWeight) * duration + TRACKING_DELAY);
       return { text, startTime, endTime };
     });
