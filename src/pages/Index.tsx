@@ -36,7 +36,7 @@ const Index = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('audio_guides')
-        .select('id, title, slug, description, duration, location, rating, category, price_usd, difficulty, image_urls, image_url, total_purchases, display_order, is_featured')
+        .select('id, title, slug, description, duration, location, rating, category, price_usd, difficulty, image_urls, image_url, total_purchases, display_order, is_featured, languages')
         .eq('is_published', true)
         .eq('is_approved', true)
         .order('display_order', { ascending: true });
