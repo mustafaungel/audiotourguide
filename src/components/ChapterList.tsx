@@ -252,7 +252,12 @@ export const ChapterList: React.FC<ChapterListProps> = ({
                   
                   {section.description && (
                     <p className="text-xs text-muted-foreground line-clamp-2">
-                      {section.description.length > 150 ? section.description.substring(0, 150) + '...' : section.description}
+                      {(() => {
+                        const clean = section.description
+                          .replace(/^\*"/g, '').replace(/^Description\s*\*?/i, '')
+                          .replace(/^[–—]\s*/g, '').replace(/^[""\s]+/g, '').trim();
+                        return clean.length > 150 ? clean.substring(0, 150) + '...' : clean;
+                      })()}
                     </p>
                   )}
 

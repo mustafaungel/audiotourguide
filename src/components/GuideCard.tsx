@@ -115,7 +115,7 @@ export function GuideCard({
 
         {/* Category badge */}
         <div className="absolute top-3 left-3">
-          <Badge className={`${getCategoryColor(category)} text-[10px] font-medium px-2 py-0.5 audio-premium-badge`}>
+          <Badge className={`${getCategoryColor(category)} text-[10px] font-medium px-2 py-0.5 audio-premium-badge capitalize`}>
             {category}
           </Badge>
         </div>

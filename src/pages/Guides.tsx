@@ -260,7 +260,7 @@ const Guides = () => {
                     difficulty={guide.difficulty}
                     imageUrl={guide.image_urls?.[0] || guide.image_url}
                     totalPurchases={guide.total_purchases || 0}
-                    creatorName="Guide Creator"
+                    creatorName="Audio Tour Guides"
                     isProcessingPayment={processingPayment === guide.id}
                     onViewGuide={() => {
                       if (isPurchased || guide.price_usd === 0) {

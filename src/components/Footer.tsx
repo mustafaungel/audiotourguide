@@ -32,17 +32,8 @@ export const Footer = () => {
               Popular Destinations
             </h3>
             <nav className="flex flex-col gap-2">
-              <Link to="/country/peru" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                Peru
-              </Link>
-              <Link to="/country/italy" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                Italy
-              </Link>
-              <Link to="/country/japan" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                Japan
-              </Link>
-              <Link to="/country/greece" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                Greece
+              <Link to="/country/turkey" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                Turkey
               </Link>
             </nav>
           </div>

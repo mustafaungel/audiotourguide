@@ -289,7 +289,7 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
         <CardContent className="space-y-3">
           <div className="bg-muted/50 p-3 rounded-lg">
             <h3 className="font-medium text-sm mb-1">{guide.title}</h3>
-            {guide.creator_name && guide.creator_name !== 'Anonymous Creator' && (
+            {guide.creator_name && guide.creator_name !== 'Audio Tour Guides' && (
               <p className="text-xs text-muted-foreground">by {guide.creator_name}</p>
             )}
           </div>
@@ -331,7 +331,7 @@ export const EmbeddedCheckout: React.FC<EmbeddedCheckoutProps> = ({ guide, onSuc
         {/* Guide Summary */}
         <div className="bg-muted/50 p-3 rounded-lg">
           <h3 className="font-medium text-sm mb-1">{guide.title}</h3>
-          {guide.creator_name && guide.creator_name !== 'Anonymous Creator' && (
+          {guide.creator_name && guide.creator_name !== 'Audio Tour Guides' && (
             <p className="text-xs text-muted-foreground">by {guide.creator_name}</p>
           )}
         </div>

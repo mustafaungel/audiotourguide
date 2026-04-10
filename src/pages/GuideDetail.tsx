@@ -248,7 +248,7 @@ const GuideDetail = () => {
       const transformedData = {
         ...guideData,
         creator: {
-          name: 'Anonymous Creator',
+          name: 'Audio Tour Guides',
           avatar: '',
           bio: ''
         },
@@ -428,7 +428,7 @@ const GuideDetail = () => {
         slug: guide.slug,
         title: guide.title,
         location: guide.location,
-        creator: 'Anonymous Creator',
+        creator: 'Audio Tour Guides',
         rating: guide.rating || 0,
         price: (guide.price_usd || 0) / 100,
         image: guide.image_urls?.[0] || guide.image_url || '/hero-audio-guide.jpg'
@@ -1011,7 +1011,7 @@ const GuideDetail = () => {
                       id: guide.id,
                       title: guide.title,
                       price_usd: guide.price_usd,
-                      creator_name: guide.creator?.name !== 'Anonymous Creator' ? guide.creator?.name : undefined,
+                      creator_name: guide.creator?.name !== 'Audio Tour Guides' ? guide.creator?.name : undefined,
                       image_url: guide.image_url
                     }}
                     onSuccess={handlePaymentSuccess}

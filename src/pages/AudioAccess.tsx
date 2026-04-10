@@ -193,7 +193,7 @@ export default function AudioAccess() {
       const transformedGuide = {
         ...guide,
         creator: {
-          name: 'Anonymous Creator',
+          name: 'Audio Tour Guides',
           avatar: '',
           bio: ''
         }
@@ -263,7 +263,7 @@ export default function AudioAccess() {
       const transformedGuide = {
         ...guideData,
         creator: {
-          name: 'Anonymous Creator',
+          name: 'Audio Tour Guides',
           avatar: '',
           bio: ''
         }
@@ -536,7 +536,7 @@ export default function AudioAccess() {
       const transformedGuide = {
         ...guideData,
         creator: {
-          name: 'Anonymous Creator',
+          name: 'Audio Tour Guides',
           avatar: '',
           bio: ''
         }

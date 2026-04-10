@@ -47,7 +47,7 @@ const CountryDetail = () => {
         .select('*')
         .eq('is_published', true)
         .eq('is_approved', true)
-        .order('created_at', { ascending: false });
+        .order('display_order', { ascending: true });
 
       if (error) throw error;
 
@@ -239,7 +239,7 @@ const CountryDetail = () => {
                     difficulty={guide.difficulty}
                     imageUrl={guide.image_urls?.[0] || guide.image_url}
                     totalPurchases={guide.total_purchases || 0}
-                    creatorName="Guide Creator"
+                    creatorName="Audio Tour Guides"
                     isProcessingPayment={processingPayment === guide.id}
                     onViewGuide={() => {
                       if (isPurchased || guide.price_usd === 0) {
