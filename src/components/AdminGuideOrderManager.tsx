@@ -21,8 +21,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { buildAccessUrl, getBaseUrl } from '@/lib/url-utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { GripVertical, Save, Loader2, Pencil, ExternalLink, Eye, EyeOff, Link2, ChevronDown, Copy, Plus, Trash2, MapPin, Globe } from 'lucide-react';
+import { GripVertical, Save, Loader2, Pencil, ExternalLink, Eye, EyeOff, Link2, ChevronDown, Copy, Plus, Trash2, MapPin, Globe, FileText } from 'lucide-react';
 import { AddLanguageDialog } from '@/components/AddLanguageDialog';
+import { AdminScriptEditor } from '@/components/AdminScriptEditor';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { getLanguageFlag, getLanguageName } from '@/lib/language-utils';
@@ -57,6 +58,7 @@ const SortableGuideRow = ({
   onTogglePublish,
   onEdit,
   onAddLanguage,
+  onEditScripts,
   togglingId,
   linkedGuides,
   guideTitles,
@@ -66,6 +68,7 @@ const SortableGuideRow = ({
   onTogglePublish: (id: string, current: boolean) => void;
   onEdit: (id: string) => void;
   onAddLanguage: (guide: { id: string; title: string; location: string }) => void;
+  onEditScripts: (guide: { id: string; title: string }) => void;
   togglingId: string | null;
   linkedGuides: LinkedGuideInfo[];
   guideTitles: Record<string, string>;
@@ -250,6 +253,19 @@ const SortableGuideRow = ({
               <Button
                 variant="ghost"
                 size="icon-sm"
+                className="h-7 w-7 text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-950"
+                onClick={() => onEditScripts({ id: guide.id, title: guide.title })}
+              >
+                <FileText className="h-3.5 w-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-xs">Edit Scripts</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-sm"
                 className="h-7 w-7 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
                 onClick={async () => {
                   if (!confirm('Delete this guide and all its sections permanently?')) return;
@@ -325,6 +341,7 @@ export const AdminGuideOrderManager = ({ onCreateNew, onEdit }: { onCreateNew?: 
   const [guideTitles, setGuideTitles] = useState<Record<string, string>>({});
   const [filterCountry, setFilterCountry] = useState('');
   const [addLangGuide, setAddLangGuide] = useState<{ id: string; title: string; location: string } | null>(null);
+  const [scriptEditorGuide, setScriptEditorGuide] = useState<{ id: string; title: string } | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -572,6 +589,7 @@ export const AdminGuideOrderManager = ({ onCreateNew, onEdit }: { onCreateNew?: 
                   onTogglePublish={handleTogglePublish}
                   onEdit={handleEdit}
                   onAddLanguage={setAddLangGuide}
+                  onEditScripts={setScriptEditorGuide}
                   togglingId={togglingId}
                   linkedGuides={collections[guide.id] || []}
                   guideTitles={guideTitles}
@@ -596,6 +614,16 @@ export const AdminGuideOrderManager = ({ onCreateNew, onEdit }: { onCreateNew?: 
           guideId={addLangGuide.id}
           guideTitle={addLangGuide.title}
           guideLocation={addLangGuide.location}
+        />
+      )}
+
+      {/* Script Editor Dialog */}
+      {scriptEditorGuide && (
+        <AdminScriptEditor
+          open={!!scriptEditorGuide}
+          onClose={() => setScriptEditorGuide(null)}
+          guideId={scriptEditorGuide.id}
+          guideTitle={scriptEditorGuide.title}
         />
       )}
     </TooltipProvider>

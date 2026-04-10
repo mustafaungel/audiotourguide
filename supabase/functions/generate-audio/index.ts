@@ -65,6 +65,11 @@ serve(async (req) => {
       .replace(/[ \t]{2,}/g, ' ')
       .trim();
 
+    // Safety: reject overly long scripts (prevents ElevenLabs credit waste)
+    if (!isPreview && cleanedText.length > 5000) {
+      throw new Error(`Script too long (${cleanedText.length} chars). Maximum 5000 characters per section. Please shorten the script.`);
+    }
+
     // Use default professional voice if not specified
     const selectedVoiceId = voiceId || '9BWtsMINqrJLrRacOk9x'; // Aria voice
     const selectedModelId = modelId || 'eleven_multilingual_v2';
