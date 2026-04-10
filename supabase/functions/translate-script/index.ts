@@ -82,7 +82,13 @@ Translate this narration to ${target_language}. Return ONLY the translated text,
     const data = await response.json();
     // Clean any --- markers or formatting GPT might add
     const raw = data.choices[0].message.content.trim();
-    const translated = raw.replace(/^---\s*/gm, '').replace(/\s*---$/gm, '').replace(/^"""\s*/gm, '').replace(/\s*"""$/gm, '').trim();
+    const translated = raw
+      .replace(/^---\s*/gm, '').replace(/\s*---$/gm, '')
+      .replace(/^"""\s*/gm, '').replace(/\s*"""$/gm, '')
+      .replace(/[—]/g, ', ').replace(/[–]/g, ', ')
+      .replace(/[""]/g, '').replace(/["]/g, '')
+      .replace(/[ \t]{2,}/g, ' ')
+      .trim();
 
     return new Response(JSON.stringify({ translated_script: translated, target_language }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

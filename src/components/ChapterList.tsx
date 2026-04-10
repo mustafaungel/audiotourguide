@@ -93,10 +93,9 @@ export const ChapterList: React.FC<ChapterListProps> = ({
       <Card className={cn("audio-card-glow border-border/30 bg-card/50", className?.includes('in-sheet') && "border-0 shadow-none bg-transparent", className)}>
         <CardHeader className="pb-4 space-y-1.5">
           <div className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
+          <span className="text-lg font-semibold flex items-center gap-2">
             <Headphones className="w-4 h-4 text-primary" />
-            {t('upNext', lang)}
-          </CardTitle>
+          </span>
           
           {/* Playback Controls — hidden on mobile when mini player is active */}
           {currentSectionIndex >= 0 && !hideMobileControls && (

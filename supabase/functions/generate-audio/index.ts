@@ -40,6 +40,13 @@ serve(async (req) => {
       throw new Error('Text is required');
     }
 
+    // Clean TTS-problematic characters before sending to ElevenLabs
+    const cleanedText = text
+      .replace(/[—]/g, ', ').replace(/[–]/g, ', ')
+      .replace(/[""]/g, '').replace(/["]/g, '')
+      .replace(/[ \t]{2,}/g, ' ')
+      .trim();
+
     // Use default professional voice if not specified
     const selectedVoiceId = voiceId || '9BWtsMINqrJLrRacOk9x'; // Aria voice
     const selectedModelId = modelId || 'eleven_multilingual_v2';
@@ -52,7 +59,7 @@ serve(async (req) => {
     });
 
     // For preview, limit text to first 200 characters
-    const textToConvert = isPreview ? text.substring(0, 200) + '...' : text;
+    const textToConvert = isPreview ? cleanedText.substring(0, 200) + '...' : cleanedText;
 
     const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${selectedVoiceId}`, {
       method: 'POST',
