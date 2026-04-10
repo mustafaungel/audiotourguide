@@ -42,15 +42,14 @@ Your planning principles:
 4. DEPTH: Go beyond surface-level facts. Include expert-level insights, architectural details, artistic significance, and cultural context that visitors cannot get from a simple guidebook.
 5. ENGAGEMENT: Each section must have a "wow factor" — a surprising fact, hidden detail, dramatic story, or compelling narrative that visitors would completely miss without a guide.
 
-Section count: Create a focused, high-quality tour that covers the MOST important and iconic points of interest. Quality over quantity — each section should be rich and memorable rather than rushing through too many stops.
+Section count: Create a comprehensive tour that covers ALL important and notable points of interest. The number of sections should match the actual size and richness of the location — do NOT artificially limit the count.
 
-- Major museums, cathedrals, palaces, open-air museums: 8-12 sections (group related features into cohesive stops)
-- Medium sites (valleys, smaller museums, historical complexes): 6-10 sections
-- Small monuments, viewpoints, single structures: 4-6 sections
+- Grand palaces, major museums, large complexes (Topkapi, Louvre, Vatican): 15-25 sections
+- Major cathedrals, mosques, open-air museums (Hagia Sophia, Goreme): 10-19 sections
+- Medium sites (valleys, smaller museums, historical complexes): 8-14 sections
+- Small monuments, viewpoints, single structures: 4-8 sections
 
-For example, Hagia Sophia should have 10-12 sections: exterior and approach, Imperial Gate and narthex, main nave and central dome, apse and mihrab area, sultan's loge and minbar, Weeping Column, gallery mosaics (Deisis, Empress Zoe, Comnenus grouped), seraphim angels and architectural details, Viking runes and hidden stories, conclusion.
-
-IMPORTANT: Keep the total section count between 4 and 12. Never exceed 12 sections. Group related nearby features into single cohesive sections rather than creating separate sections for each minor detail.
+EVERY notable room, courtyard, artwork, architectural feature, and historical marker that a visitor would encounter deserves its own section. Do NOT group unrelated features together just to reduce the count. Quality AND completeness — each section should be rich and the tour should cover the entire visitor experience.
 
 Return ONLY a valid JSON array.`
           },
