@@ -592,6 +592,7 @@ export const AdminGuideOrderManager = ({ onCreateNew, onEdit }: { onCreateNew?: 
                   onEdit={handleEdit}
                   onAddLanguage={setAddLangGuide}
                   onEditScripts={setScriptEditorGuide}
+                  onDelete={fetchGuides}
                   togglingId={togglingId}
                   linkedGuides={collections[guide.id] || []}
                   guideTitles={guideTitles}
