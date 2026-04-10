@@ -141,13 +141,13 @@ const Guides = () => {
         "@type": "ListItem",
         "position": 1,
         "name": "Home",
-        "item": "https://guided-sound-ai.lovable.app"
+        "item": "https://audiotourguide.app"
       },
       {
         "@type": "ListItem",
         "position": 2,
         "name": "Audio Guides",
-        "item": "https://guided-sound-ai.lovable.app/guides"
+        "item": "https://audiotourguide.app/guides"
       }
     ]
   };
@@ -159,7 +159,7 @@ const Guides = () => {
       "@type": "ListItem",
       "position": index + 1,
       "name": guide.title,
-      "item": `https://guided-sound-ai.lovable.app/guides/${guide.slug}`
+      "item": `https://audiotourguide.app/guides/${guide.slug}`
     }))
   } : null;
 
@@ -171,7 +171,7 @@ const Guides = () => {
       <SEO 
         title="Browse Audio Guides | Museums, Cities & Heritage Sites"
         description="Browse expert-narrated audio guides for UNESCO sites, museums, and cultural landmarks worldwide. Multi-language support."
-        canonicalUrl="https://guided-sound-ai.lovable.app/guides"
+        canonicalUrl="https://audiotourguide.app/guides"
         structuredData={schemas}
       />
       <Navigation />

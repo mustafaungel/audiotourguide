@@ -64,13 +64,13 @@ const Countries = () => {
         "@type": "ListItem",
         "position": 1,
         "name": "Home",
-        "item": "https://guided-sound-ai.lovable.app"
+        "item": "https://audiotourguide.app"
       },
       {
         "@type": "ListItem",
         "position": 2,
         "name": "Countries",
-        "item": "https://guided-sound-ai.lovable.app/country"
+        "item": "https://audiotourguide.app/country"
       }
     ]
   };
@@ -80,7 +80,7 @@ const Countries = () => {
       <SEO 
         title="Audio Guides by Country | Destinations Worldwide"
         description="Browse audio guides from 20+ countries. Explore UNESCO sites, museums, and cultural landmarks with expert narration."
-        canonicalUrl="https://guided-sound-ai.lovable.app/country"
+        canonicalUrl="https://audiotourguide.app/country"
         structuredData={breadcrumbSchema}
       />
       <Navigation />

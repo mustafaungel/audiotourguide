@@ -36,7 +36,7 @@ export const SEO: React.FC<SEOProps> = ({
   geoRegion,
 }) => {
   const fullTitle = `${title} | Audio Tour Guides`;
-  const siteUrl = 'https://guided-sound-ai.lovable.app';
+  const siteUrl = 'https://audiotourguide.app';
   const fullCanonicalUrl = canonicalUrl || siteUrl;
   // Truncate description to 155 chars for SERP display
   const safeDescription = description.length > 155 ? description.substring(0, 152) + '...' : description;

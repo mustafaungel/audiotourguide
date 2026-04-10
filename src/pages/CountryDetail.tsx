@@ -147,19 +147,19 @@ const CountryDetail = () => {
         "@type": "ListItem",
         "position": 1,
         "name": "Home",
-        "item": "https://guided-sound-ai.lovable.app"
+        "item": "https://audiotourguide.app"
       },
       {
         "@type": "ListItem",
         "position": 2,
         "name": "Countries",
-        "item": "https://guided-sound-ai.lovable.app/country"
+        "item": "https://audiotourguide.app/country"
       },
       {
         "@type": "ListItem",
         "position": 3,
         "name": country,
-        "item": `https://guided-sound-ai.lovable.app/country/${countrySlug}`
+        "item": `https://audiotourguide.app/country/${countrySlug}`
       }
     ]
   };
@@ -169,7 +169,7 @@ const CountryDetail = () => {
       <SEO 
         title={`${country} Audio Tour Guides | ${guides.length} UNESCO Sites & Cultural Heritage Tours`}
         description={`Explore ${guides.length} professional audio guides in ${country}. Discover UNESCO World Heritage sites, iconic landmarks, museums, and cultural treasures with expert-narrated immersive audio tours in multiple languages.`}
-        canonicalUrl={`https://guided-sound-ai.lovable.app/country/${countrySlug}`}
+        canonicalUrl={`https://audiotourguide.app/country/${countrySlug}`}
         structuredData={breadcrumbSchema}
       />
       <Navigation />

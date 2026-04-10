@@ -17,6 +17,8 @@ interface BrandingContextType {
 }
 
 const BRANDING_CACHE_KEY = 'site_branding_cache';
+const BRANDING_CACHE_VERSION_KEY = 'site_branding_cache_version';
+const CURRENT_CACHE_VERSION = '2';
 
 const defaultBranding: SiteBranding = {
   logoUrl: null,
@@ -27,6 +29,12 @@ const defaultBranding: SiteBranding = {
 
 const getCachedBranding = (): SiteBranding => {
   try {
+    const version = localStorage.getItem(BRANDING_CACHE_VERSION_KEY);
+    if (version !== CURRENT_CACHE_VERSION) {
+      localStorage.removeItem(BRANDING_CACHE_KEY);
+      localStorage.setItem(BRANDING_CACHE_VERSION_KEY, CURRENT_CACHE_VERSION);
+      return defaultBranding;
+    }
     const cached = localStorage.getItem(BRANDING_CACHE_KEY);
     if (cached) {
       return JSON.parse(cached);
