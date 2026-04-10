@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { haptics } from '@/lib/haptics';
 import { t } from '@/lib/translations';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 // Apple Music style lyrics view — sentence-level tracking with audio
 const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; duration: number; isPlaying: boolean }> = ({ scriptText, currentTime, duration }) => {
@@ -345,7 +346,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
               {t('nowPlaying', lang)}
             </span>
-            <div className="w-10" /> {/* Spacer */}
+            <ThemeToggle />
           </div>
 
           {/* Script Lyrics View (Spotify-style with paragraph tracking) */}
