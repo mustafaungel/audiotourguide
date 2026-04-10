@@ -178,7 +178,7 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
                       : "text-muted-foreground/50 dark:text-white/20 font-normal"
                 )}
                 style={{
-                  fontFamily: "'Playfair Display', Georgia, serif",
+                  fontFamily: "'Lora', 'Playfair Display', Georgia, serif",
                   fontSize: isActive ? '17px' : '14.5px',
                   lineHeight: isActive ? '2.0' : '1.9',
                   letterSpacing: '0.01em',
