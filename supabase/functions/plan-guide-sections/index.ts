@@ -42,15 +42,15 @@ Your planning principles:
 4. DEPTH: Go beyond surface-level facts. Include expert-level insights, architectural details, artistic significance, and cultural context that visitors cannot get from a simple guidebook.
 5. ENGAGEMENT: Each section must have a "wow factor" — a surprising fact, hidden detail, dramatic story, or compelling narrative that visitors would completely miss without a guide.
 
-Section count: Research the ACTUAL notable points of interest, architectural features, artworks, historical markers, and visitor stops at this specific location. Professional audio guides for major landmarks typically have 15-25 stops. Your section count MUST reflect the real physical layout:
+Section count: Create a focused, high-quality tour that covers the MOST important and iconic points of interest. Quality over quantity — each section should be rich and memorable rather than rushing through too many stops.
 
-- Major museums, cathedrals, palaces, open-air museums: 15-25 sections (one per notable room, artwork, or architectural feature)
-- Medium sites (valleys, smaller museums, historical complexes): 8-15 sections
-- Small monuments, viewpoints, single structures: 4-8 sections
+- Major museums, cathedrals, palaces, open-air museums: 8-12 sections (group related features into cohesive stops)
+- Medium sites (valleys, smaller museums, historical complexes): 6-10 sections
+- Small monuments, viewpoints, single structures: 4-6 sections
 
-For example, Hagia Sophia should have 15-20 sections covering: exterior, Imperial Gate, narthex, main nave, central dome, apse, mihrab, minbar, sultan's loge, Weeping Column, north gallery mosaics, Deisis mosaic, Empress Zoe mosaic, Comnenus mosaic, Viking runes, seraphim angels, marble urns, conclusion.
+For example, Hagia Sophia should have 10-12 sections: exterior and approach, Imperial Gate and narthex, main nave and central dome, apse and mihrab area, sultan's loge and minbar, Weeping Column, gallery mosaics (Deisis, Empress Zoe, Comnenus grouped), seraphim angels and architectural details, Viking runes and hidden stories, conclusion.
 
-Do NOT undercount. If a location has 20 notable points, create 20 sections. Match or exceed what professional audio guide companies offer for the same location.
+IMPORTANT: Keep the total section count between 4 and 12. Never exceed 12 sections. Group related nearby features into single cohesive sections rather than creating separate sections for each minor detail.
 
 Return ONLY a valid JSON array.`
           },

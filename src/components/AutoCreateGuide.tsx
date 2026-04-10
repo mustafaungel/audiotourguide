@@ -354,64 +354,100 @@ export function AutoCreateGuide() {
       });
       const imageUrl = imageData?.image_url || null;
 
-      // Step 4: Generate audio for primary language
+      // Retry helper for audio generation
+      const generateAudioWithRetry = async (text: string, voiceId: string, maxRetries = 2): Promise<{ audio_url: string; duration_seconds: number } | null> => {
+        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+          try {
+            const { data, error } = await supabase.functions.invoke('generate-audio', {
+              body: { text, voiceId, modelId: 'eleven_multilingual_v2' }
+            });
+            if (!error && data?.audio_url) return data;
+            console.warn(`Audio attempt ${attempt + 1} failed:`, error || data?.error);
+            if (attempt < maxRetries) await new Promise(r => setTimeout(r, 3000));
+          } catch (e) {
+            console.warn(`Audio attempt ${attempt + 1} exception:`, e);
+            if (attempt < maxRetries) await new Promise(r => setTimeout(r, 3000));
+          }
+        }
+        return null;
+      };
+
+      // Generate audio for primary language — 2-batch parallel with retry
       const primarySections: { title: string; description: string; audio_url: string; duration_seconds: number; language: string; language_code: string; order_index: number }[] = [];
-      for (let i = 0; i < sections.length; i++) {
+      let failedCount = 0;
+      for (let i = 0; i < sections.length; i += 2) {
+        const batch = sections.slice(i, Math.min(i + 2, sections.length));
         setProgress({
           step: 2, totalSteps: 4,
           message: `Producing audio files...`,
-          detail: `${primaryLangName}: ${i + 1}/${sections.length}`
+          detail: `${primaryLangName}: ${Math.min(i + 2, sections.length)}/${sections.length}`
         });
-        const { data: audioData, error: audioError } = await supabase.functions.invoke('generate-audio', {
-          body: { text: scripts[i], voiceId: getVoiceForLang(primaryLang), modelId: 'eleven_multilingual_v2' }
-        });
-        if (audioError || !audioData?.audio_url) throw new Error(`Failed to generate audio for section ${i + 1}`);
-        primarySections.push({
-          title: sections[i].title,
-          description: scripts[i],
-          audio_url: audioData.audio_url,
-          duration_seconds: audioData.duration_seconds || sections[i].estimated_minutes * 60,
-          language: primaryLangName,
-          language_code: primaryLang,
-          order_index: i
-        });
+        const results = await Promise.all(batch.map((section, batchIdx) => {
+          const idx = i + batchIdx;
+          return generateAudioWithRetry(scripts[idx], getVoiceForLang(primaryLang));
+        }));
+        for (let j = 0; j < batch.length; j++) {
+          const idx = i + j;
+          const audioData = results[j];
+          if (audioData) {
+            primarySections.push({
+              title: sections[idx].title,
+              description: scripts[idx],
+              audio_url: audioData.audio_url,
+              duration_seconds: audioData.duration_seconds || sections[idx].estimated_minutes * 60,
+              language: primaryLangName,
+              language_code: primaryLang,
+              order_index: idx
+            });
+          } else {
+            failedCount++;
+            console.error(`Section ${idx + 1} audio failed after retries, skipping`);
+          }
+        }
       }
+      if (failedCount > 0) {
+        toast.warning(`${failedCount} section(s) failed audio generation and were skipped.`);
+      }
+      if (primarySections.length === 0) throw new Error('All audio generation failed. Please try again.');
 
       // Step 5: Generate translations + audio for other languages
       const additionalSections: typeof primarySections = [];
       const otherLangs = selectedLanguages.filter(l => l !== primaryLang);
       for (const langCode of otherLangs) {
         const langName = ELEVENLABS_LANGUAGES.find(l => l.code === langCode)?.name || langCode;
-        for (let i = 0; i < sections.length; i++) {
+        for (let i = 0; i < sections.length; i += 2) {
+          const batch = sections.slice(i, Math.min(i + 2, sections.length));
           setProgress({
             step: 3, totalSteps: 4,
             message: `Producing multilingual audio...`,
-            detail: `${langName}: ${i + 1}/${sections.length}`
+            detail: `${langName}: ${Math.min(i + 2, sections.length)}/${sections.length}`
           });
-          // Translate
-          const { data: transData } = await supabase.functions.invoke('translate-script', {
-            body: {
-              script: scripts[i],
-              source_language: primaryLangName,
-              target_language: langName,
-              place: finalPlace,
-              section_title: sections[i].title
-            }
-          });
-          const translatedScript = transData?.translated_script || scripts[i];
-          // Generate audio
-          const { data: audioData } = await supabase.functions.invoke('generate-audio', {
-            body: { text: translatedScript, voiceId: getVoiceForLang(langCode), modelId: 'eleven_multilingual_v2' }
-          });
-          additionalSections.push({
-            title: sections[i].title,
-            description: translatedScript,
-            audio_url: audioData?.audio_url || '',
-            duration_seconds: audioData?.duration_seconds || sections[i].estimated_minutes * 60,
-            language: langName,
-            language_code: langCode,
-            order_index: i
-          });
+          const batchResults = await Promise.all(batch.map(async (section, batchIdx) => {
+            const idx = i + batchIdx;
+            // Translate
+            const { data: transData } = await supabase.functions.invoke('translate-script', {
+              body: {
+                script: scripts[idx],
+                source_language: primaryLangName,
+                target_language: langName,
+                place: finalPlace,
+                section_title: sections[idx].title
+              }
+            });
+            const translatedScript = transData?.translated_script || scripts[idx];
+            // Generate audio with retry
+            const audioData = await generateAudioWithRetry(translatedScript, getVoiceForLang(langCode));
+            return {
+              title: sections[idx].title,
+              description: translatedScript,
+              audio_url: audioData?.audio_url || '',
+              duration_seconds: audioData?.duration_seconds || sections[idx].estimated_minutes * 60,
+              language: langName,
+              language_code: langCode,
+              order_index: idx
+            };
+          }));
+          additionalSections.push(...batchResults);
         }
       }
 
