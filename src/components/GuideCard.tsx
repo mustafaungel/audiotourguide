@@ -172,16 +172,13 @@ export function GuideCard({
             <span className="whitespace-nowrap">{Math.floor(duration / 60)} min</span>
           </div>
 
-          {/* Language flags */}
+          {/* Language flags — all languages shown */}
           {languages && languages.length > 0 && (
-            <div className="flex items-center gap-1 pt-1">
-              {languages.slice(0, 6).map((lang, i) => {
+            <div className="flex flex-wrap items-center gap-1 pt-1">
+              {languages.map((lang, i) => {
                 const match = ELEVENLABS_LANGUAGES.find(l => l.name === lang || l.code === lang);
                 return match ? <span key={i} className="text-sm" title={match.name}>{match.flag}</span> : null;
               })}
-              {languages.length > 6 && (
-                <span className="text-[10px] text-muted-foreground font-medium">+{languages.length - 6}</span>
-              )}
             </div>
           )}
         </div>
