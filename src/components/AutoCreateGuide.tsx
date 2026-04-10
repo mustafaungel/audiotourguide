@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -208,26 +208,43 @@ export function AutoCreateGuide() {
     });
   }, [filteredVoices, voiceByLanguage]);
 
-  // Live voice preview in selected language
-  const PREVIEW_SENTENCES: Record<string, string> = {
-    en: 'Welcome to this audio tour. Let me guide you through centuries of history and culture.',
-    es: 'Bienvenidos a este recorrido de audio. Permítanme guiarles a través de siglos de historia y cultura.',
-    fr: 'Bienvenue dans cette visite audio. Laissez-moi vous guider à travers des siècles d\'histoire et de culture.',
-    de: 'Willkommen zu dieser Audio-Tour. Lassen Sie mich Sie durch Jahrhunderte von Geschichte und Kultur führen.',
-    it: 'Benvenuti in questo tour audio. Lasciate che vi guidi attraverso secoli di storia e cultura.',
-    pt: 'Bem-vindos a este passeio de áudio. Deixem-me guiá-los através de séculos de história e cultura.',
-    zh: '欢迎来到这次语音导览。让我带您穿越几个世纪的历史和文化。',
-    ja: 'このオーディオツアーへようこそ。何世紀にもわたる歴史と文化をご案内させていただきます。',
-    ko: '이 오디오 투어에 오신 것을 환영합니다. 수세기에 걸친 역사와 문화를 안내해 드리겠습니다.',
-    hi: 'इस ऑडियो टूर में आपका स्वागत है। मुझे सदियों के इतिहास और संस्कृति के माध्यम से आपका मार्गदर्शन करने दें।',
-    ar: 'مرحبًا بكم في هذه الجولة الصوتية. دعوني أرشدكم عبر قرون من التاريخ والثقافة.',
-    ru: 'Добро пожаловать в этот аудиотур. Позвольте мне провести вас сквозь века истории и культуры.',
-    nl: 'Welkom bij deze audiotour. Laat mij u door eeuwen van geschiedenis en cultuur leiden.',
-    pl: 'Witamy w tej wycieczce audio. Pozwólcie, że oprowadzę was przez wieki historii i kultury.',
-    sv: 'Välkommen till denna audiotur. Låt mig guida dig genom århundraden av historia och kultur.',
-    tr: 'Bu sesli tura hoş geldiniz. Yüzyıllar boyunca süregelen tarih ve kültür boyunca size rehberlik edeyim.',
-  };
+  // Location-specific preview script — generated once, cached, reused across voice changes
+  const previewScriptCache = useRef<Record<string, string>>({});
   const [generatingPreview, setGeneratingPreview] = useState<string | null>(null);
+
+  const getPreviewScript = async (langCode: string): Promise<string> => {
+    const finalPlace = place || placeInput;
+    const finalCity = city || cityInput;
+    const cacheKey = `${finalPlace}_${finalCity}_${langCode}`;
+
+    if (previewScriptCache.current[cacheKey]) return previewScriptCache.current[cacheKey];
+
+    const langName = ELEVENLABS_LANGUAGES.find(l => l.code === langCode)?.name || 'English';
+
+    // Generate a 30-second location-specific preview script via GPT
+    const { data, error } = await supabase.functions.invoke('generate-section-script', {
+      body: {
+        country: country || '', city: finalCity || '', place: finalPlace || '',
+        section: {
+          title: `Preview of ${finalPlace}`,
+          subtitle: 'A captivating 30-second introduction',
+          key_topics: [finalPlace, finalCity, 'welcome'],
+          estimated_minutes: 0.5,
+          mood: 'awe-inspiring',
+          fun_fact: ''
+        },
+        language: langName
+      }
+    });
+
+    const script = data?.script || `Welcome to ${finalPlace} in ${finalCity}. This stunning location awaits your discovery.`;
+    // Trim to ~80 words for 30 seconds
+    const words = script.split(/\s+/);
+    const trimmed = words.slice(0, 80).join(' ') + (words.length > 80 ? '...' : '');
+
+    previewScriptCache.current[cacheKey] = trimmed;
+    return trimmed;
+  };
 
   const playVoicePreview = useCallback(async (voiceId: string, langCode: string) => {
     if (previewAudio) { previewAudio.pause(); setPreviewAudio(null); }
@@ -237,24 +254,19 @@ export function AutoCreateGuide() {
     setGeneratingPreview(previewKey);
 
     try {
-      // Use ElevenLabs preview_url if available (instant, no API credits used)
-      const voice = voices.find(v => v.voice_id === voiceId);
-      let audioUrl = voice?.preview_url;
+      // Get location-specific preview script (cached after first generation)
+      const previewText = await getPreviewScript(langCode);
 
-      if (!audioUrl) {
-        // Fallback: generate preview via edge function
-        const text = PREVIEW_SENTENCES[langCode] || PREVIEW_SENTENCES.en;
-        const { data, error } = await supabase.functions.invoke('generate-audio', {
-          body: { text, voiceId, modelId: 'eleven_multilingual_v2', isPreview: true }
-        });
-        if (error || !data?.audio_url) {
-          toast.error(`Preview failed: ${error?.message || data?.error || 'No audio URL'}`);
-          return;
-        }
-        audioUrl = data.audio_url;
+      // Generate audio with this voice
+      const { data, error } = await supabase.functions.invoke('generate-audio', {
+        body: { text: previewText, voiceId, modelId: 'eleven_multilingual_v2', isPreview: true }
+      });
+      if (error || !data?.audio_url) {
+        toast.error(`Preview failed: ${error?.message || data?.error || 'No audio URL'}`);
+        return;
       }
 
-      const audio = new Audio(audioUrl);
+      const audio = new Audio(data.audio_url);
       audio.onended = () => { setPlayingPreview(null); setPreviewAudio(null); };
       audio.onerror = () => { toast.error('Audio playback failed'); setPlayingPreview(null); setGeneratingPreview(null); };
       await audio.play();
@@ -265,7 +277,7 @@ export function AutoCreateGuide() {
     } finally {
       setGeneratingPreview(null);
     }
-  }, [previewAudio, playingPreview, voices]);
+  }, [previewAudio, playingPreview, country, city, cityInput, place, placeInput]);
 
   // Form validation
   const isFormValid = country && (city || cityInput) && (place || placeInput) && selectedLanguages.length > 0;

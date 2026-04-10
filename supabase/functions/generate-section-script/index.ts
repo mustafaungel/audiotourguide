@@ -86,7 +86,9 @@ ABSOLUTE OPENING RULES (VIOLATION = FAILURE):
 Critical rules:
 - Write in ${lang}
 - Target exactly ${wordCount} words (approximately ${estimatedMinutes} minutes when spoken at natural pace)
-- Write for SPOKEN delivery — this will be read aloud by a professional voice
+- Write for SPOKEN delivery — this will be read aloud by a professional AI voice with emotional expression capability
+- The TTS engine responds to sentence structure: short sentences create dramatic pauses, questions create rising intonation, exclamations add energy. USE THIS deliberately to create an emotional, human-like narration
+- Vary rhythm: follow a complex sentence with a very short one for impact. Example: "The dome rises fifty-six meters above the marble floor, supported by forty massive ribs that converge at a single golden point. Breathtaking." The short word at the end creates a natural pause and emotional weight
 - Use contractions and natural speech patterns appropriate for ${lang}
 - No markdown, no headers, no bullet points, no asterisks, no em-dashes (—), no en-dashes (–). Use commas or periods instead
 - NEVER use quotation marks (" " ' ') in the script. Rephrase quoted speech as indirect speech
