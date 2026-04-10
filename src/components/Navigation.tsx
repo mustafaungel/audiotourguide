@@ -59,11 +59,6 @@ export const Navigation = () => {
 
           {/* Actions */}
           <div className="flex items-center space-x-1">
-            <SearchModal>
-              <Button variant="ghost" size="icon" className="touch-target">
-                <Search className="w-5 h-5" />
-              </Button>
-            </SearchModal>
             <ThemeToggle />
             
             {user && userProfile?.role === 'admin' && (

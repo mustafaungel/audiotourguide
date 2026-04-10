@@ -25,7 +25,7 @@ export const SEO: React.FC<SEOProps> = ({
   title,
   description,
   canonicalUrl,
-  image = 'https://guided-sound-ai.lovable.app/logo-audio-tour-guides.png',
+  image = 'https://audiotourguide.app/logo-audio-tour-guides.png',
   type = 'website',
   structuredData,
   noindex = false,

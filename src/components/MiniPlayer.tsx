@@ -125,30 +125,31 @@ export const MiniPlayer = React.memo<MiniPlayerProps>(({
           onExpand();
         }}
       >
-        {/* Row 1: Now Playing title + time + expand */}
-        <div className="flex items-center gap-2 px-4 pt-2.5 pb-1">
-          <Headphones className="w-3.5 h-3.5 text-primary shrink-0" />
-          <MarqueeText text={title} className="text-sm font-semibold text-foreground flex-1" />
+        {/* Row 1: Now Playing title + time + expand hint */}
+        <div className="flex items-center gap-2 px-4 pt-3 pb-1.5">
+          <Headphones className="w-4 h-4 text-primary shrink-0" />
+          <MarqueeText text={title} className="text-[15px] font-semibold text-foreground flex-1" />
           <span className="text-xs text-muted-foreground tabular-nums shrink-0">
             {formatTime(currentTime)} / {formatTime(duration)}
           </span>
           <button
             data-play-btn
             onClick={(e) => { e.stopPropagation(); haptics.light(); onExpand(); }}
-            className="w-8 h-8 flex items-center justify-center text-muted-foreground shrink-0"
+            className="w-9 h-9 flex items-center justify-center text-primary shrink-0 animate-pulse"
+            aria-label="Expand player"
           >
-            <ChevronUp className="w-4 h-4" />
+            <ChevronUp className="w-5 h-5" />
           </button>
         </div>
 
         {/* Row 2: Album art + controls */}
-        <div className="flex items-center gap-1.5 px-4 pb-2">
+        <div className="flex items-center gap-2 px-4 pb-3">
           {/* Album art */}
           {imageUrl && (
             <img
               src={imageUrl}
               alt=""
-              className="w-11 h-11 rounded-lg object-cover shadow-md ring-1 ring-border/20 shrink-0"
+              className="w-12 h-12 rounded-lg object-cover shadow-md ring-1 ring-border/20 shrink-0"
               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
             />
           )}
@@ -171,9 +172,10 @@ export const MiniPlayer = React.memo<MiniPlayerProps>(({
 
             {/* Play/Pause */}
             <button data-play-btn onClick={(e) => { e.stopPropagation(); haptics.medium(); onTogglePlay(); }}
-              className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90 bg-primary text-primary-foreground shadow-lg shadow-primary/25"
+              className="w-13 h-13 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90 bg-primary text-primary-foreground shadow-lg shadow-primary/25"
+              style={{ width: '52px', height: '52px' }}
               disabled={loading}>
-              {isPlaying ? <Pause className="w-5 h-5" fill="currentColor" /> : <Play className="w-5 h-5 ml-0.5" fill="currentColor" />}
+              {isPlaying ? <Pause className="w-5.5 h-5.5" style={{ width: '22px', height: '22px' }} fill="currentColor" /> : <Play className="w-5.5 h-5.5 ml-0.5" style={{ width: '22px', height: '22px' }} fill="currentColor" />}
             </button>
 
             {/* Skip +15s */}
@@ -214,7 +216,7 @@ export const MiniPlayer = React.memo<MiniPlayerProps>(({
         </div>
 
         {/* Progress bar at bottom */}
-        <div className="h-[4px] bg-muted/30 w-full">
+        <div className="h-[5px] bg-muted/30 w-full">
           <div
             className="h-full bg-gradient-to-r from-primary/70 via-primary to-primary/80 transition-[width] duration-300"
             style={{ width: `${progress}%` }}
