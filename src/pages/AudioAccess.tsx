@@ -782,8 +782,8 @@ export default function AudioAccess() {
         </div>
       </div>
 
-      {/* Content area — consistent padding, extra bottom for mini player */}
-      <div className="px-4 pb-36 space-y-4 max-w-3xl mx-auto">
+      {/* Content area — bottom padding for fixed mini player clearance */}
+      <div className="px-4 pb-20 space-y-4 max-w-3xl mx-auto">
         {/* Multi-tab Audio Interface */}
         <div>
           <MultiTabAudioPlayer
