@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -40,6 +40,8 @@ export function AddLanguageDialog({ open, onClose, guideId, guideTitle, guideLoc
   const [previewAudio, setPreviewAudio] = useState<HTMLAudioElement | null>(null);
   const [playingPreview, setPlayingPreview] = useState(false);
   const [generatingPreview, setGeneratingPreview] = useState(false);
+  // Cache translated preview text per language (avoid re-translating on voice change)
+  const translatedPreviewRef = useRef<Record<string, string>>({});
 
   // Load existing languages and voices on open
   useEffect(() => {
@@ -92,24 +94,28 @@ export function AddLanguageDialog({ open, onClose, guideId, guideTitle, guideLoc
 
     setGeneratingPreview(true);
     try {
-      // Get real guide script for authentic preview
-      let previewText = PREVIEW[selectedLang] || PREVIEW.en;
-      const { data: sections } = await supabase.from('guide_sections')
-        .select('description')
-        .eq('guide_id', guideId)
-        .eq('language_code', 'en')
-        .order('order_index')
-        .limit(1);
+      // Check cache first - avoid re-translating for same language
+      let previewText = translatedPreviewRef.current[selectedLang];
 
-      if (sections?.[0]?.description && sections[0].description.length > 100) {
-        // Translate first ~300 chars of real script for authentic preview
-        const snippet = sections[0].description.substring(0, 300);
-        const { data: transData } = await supabase.functions.invoke('translate-script', {
-          body: { script: snippet, source_language: 'English', target_language: selectedLangName, place: guideTitle }
-        });
-        if (transData?.translated_script) {
-          previewText = transData.translated_script.replace(/^---\s*/gm, '').replace(/\s*---$/gm, '').trim();
+      if (!previewText) {
+        // First preview for this language - translate once
+        const { data: sections } = await supabase.from('guide_sections')
+          .select('description')
+          .eq('guide_id', guideId)
+          .eq('language_code', 'en')
+          .order('order_index')
+          .limit(1);
+
+        if (sections?.[0]?.description && sections[0].description.length > 100) {
+          const snippet = sections[0].description.substring(0, 300);
+          const { data: transData } = await supabase.functions.invoke('translate-script', {
+            body: { script: snippet, source_language: 'English', target_language: selectedLangName, place: guideTitle }
+          });
+          previewText = transData?.translated_script?.replace(/^---\s*/gm, '').replace(/\s*---$/gm, '').trim() || '';
         }
+        if (!previewText) previewText = PREVIEW[selectedLang] || PREVIEW.en;
+        // Cache for next voice change
+        translatedPreviewRef.current[selectedLang] = previewText;
       }
 
       const { data, error } = await supabase.functions.invoke('generate-audio', {

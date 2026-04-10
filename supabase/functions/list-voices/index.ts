@@ -42,8 +42,7 @@ serve(async (req) => {
     // 2. Fetch shared voices from Voice Library (high quality, language-filtered)
     let sharedVoices: any[] = [];
     const sharedParams = new URLSearchParams({
-      page_size: '50',
-      category: 'professional',
+      page_size: '100',
     });
     if (language) {
       sharedParams.set('language', language);
