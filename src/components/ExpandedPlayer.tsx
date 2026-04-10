@@ -8,8 +8,8 @@ import { cn } from '@/lib/utils';
 import { haptics } from '@/lib/haptics';
 import { t } from '@/lib/translations';
 
-// Apple Music style lyrics view — blur-to-clear animation following audio
-const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; duration: number; isPlaying: boolean }> = ({ scriptText, currentTime, duration, isPlaying }) => {
+// Apple Music style lyrics view — sentence-level tracking with audio
+const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; duration: number; isPlaying: boolean }> = ({ scriptText, currentTime, duration }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const userScrolling = useRef(false);
   const scrollTimer = useRef<ReturnType<typeof setTimeout>>();
@@ -17,20 +17,32 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
   const isAutoScrolling = useRef(false);
   const lastActiveIdx = useRef(-1);
 
-  // Split by paragraphs, map each to a start time based on character ratio
+  // Split into sentences for granular tracking (every ~5-15s)
   const lines = useMemo(() => {
     if (!scriptText || duration <= 0) return [];
 
-    const paragraphs = scriptText
-      .split(/\n\n+/)
-      .map(p => p.replace(/\n/g, ' ').trim())
-      .filter(p => p.length > 20);
+    // First split by paragraphs, then by sentences within each
+    const sentences: string[] = [];
+    const paragraphs = scriptText.split(/\n\n+/);
 
-    if (paragraphs.length === 0) return [];
+    for (const para of paragraphs) {
+      const cleaned = para.replace(/\n/g, ' ').trim();
+      if (cleaned.length < 15) continue;
 
-    const totalChars = paragraphs.reduce((sum, p) => sum + p.length, 0);
+      // Split by sentence boundaries: . ! ? followed by space+uppercase or end
+      const parts = cleaned.split(/(?<=[.!?])\s+(?=[A-ZÀ-ÿА-Я\u0600-\u06FF\u4e00-\u9fff\u3040-\u30ff])/);
+      for (const part of parts) {
+        const s = part.trim();
+        if (s.length > 10) sentences.push(s);
+      }
+    }
+
+    if (sentences.length === 0) return [];
+
+    // Map each sentence to a time window based on character count
+    const totalChars = sentences.reduce((sum, s) => sum + s.length, 0);
     let cumChars = 0;
-    return paragraphs.map((text) => {
+    return sentences.map((text) => {
       const startTime = (cumChars / totalChars) * duration;
       cumChars += text.length;
       const endTime = (cumChars / totalChars) * duration;
@@ -46,12 +58,12 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
     return 0;
   }, [currentTime, lines, duration]);
 
-  // Detect user scroll via scroll event (not touch — touch fires on every tap)
+  // Detect user scroll (ignore our own programmatic scrolls)
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
     const onScroll = () => {
-      if (isAutoScrolling.current) return; // ignore our own scroll
+      if (isAutoScrolling.current) return;
       userScrolling.current = true;
       clearTimeout(scrollTimer.current);
       scrollTimer.current = setTimeout(() => { userScrolling.current = false; }, 5000);
@@ -60,7 +72,7 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
     return () => container.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Smooth auto-scroll using rAF — triggers on activeIdx change
+  // Smooth auto-scroll — triggers on each sentence change
   useEffect(() => {
     if (userScrolling.current || !containerRef.current) return;
     if (activeIdx === lastActiveIdx.current) return;
@@ -70,14 +82,14 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
     if (!el) return;
 
     const container = containerRef.current;
-    const targetTop = el.offsetTop - container.clientHeight * 0.3;
+    const targetTop = el.offsetTop - container.clientHeight * 0.35;
     const scrollTarget = Math.max(0, targetTop);
     const startScroll = container.scrollTop;
     const diff = scrollTarget - startScroll;
-    if (Math.abs(diff) < 3) return;
+    if (Math.abs(diff) < 2) return;
 
-    // Longer duration for smoother feel, proportional to distance
-    const animDuration = Math.min(1200, Math.max(400, Math.abs(diff) * 2));
+    // Smooth duration proportional to distance
+    const animDuration = Math.min(900, Math.max(300, Math.abs(diff) * 1.5));
     let animStart: number | null = null;
 
     cancelAnimationFrame(rafRef.current);
@@ -87,10 +99,8 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
       if (!animStart) animStart = timestamp;
       const elapsed = timestamp - animStart;
       const progress = Math.min(1, elapsed / animDuration);
-      // Ease-in-out cubic for smooth start and stop
-      const eased = progress < 0.5
-        ? 4 * progress * progress * progress
-        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+      // Ease-out quart — fast start, gentle stop
+      const eased = 1 - Math.pow(1 - progress, 4);
       container.scrollTop = startScroll + diff * eased;
       if (progress < 1) {
         rafRef.current = requestAnimationFrame(animate);
@@ -103,94 +113,67 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
     return () => { cancelAnimationFrame(rafRef.current); isAutoScrolling.current = false; };
   }, [activeIdx]);
 
-  // Calculate blur + opacity for each paragraph based on time distance
-  const getLineStyle = (index: number) => {
-    const line = lines[index];
-    if (!line) return {};
-
-    const isActive = index === activeIdx;
-    const isPast = index < activeIdx;
-    const timeDiff = line.startTime - currentTime; // positive = future, negative = past
-    const idxDist = Math.abs(index - activeIdx);
-
-    let blur: number;
-    let opacity: number;
-    let scale: number;
-
-    if (isActive) {
-      blur = 0;
-      opacity = 1;
-      scale = 1.015;
-    } else if (isPast) {
-      // Past — clear but faded, more distant = more faded
-      blur = 0;
-      opacity = Math.max(0.15, 0.35 - idxDist * 0.06);
-      scale = 0.99;
-    } else {
-      // Future — blur increases with distance, gradual reveal as audio approaches
-      // Use both index distance AND time distance for robust blur
-      const idxBlur = Math.min(5, idxDist * 1.8);
-      const timeBlur = Math.min(5, Math.max(0, timeDiff * 0.25));
-      blur = Math.max(idxBlur, timeBlur);
-      // Opacity: close future = semi-visible, far future = barely visible
-      opacity = Math.max(0.08, Math.min(0.5, 0.6 - idxDist * 0.12));
-      scale = 0.99;
-    }
-
-    const filterValue = blur > 0.2 ? `blur(${blur.toFixed(1)}px)` : 'none';
-
-    return {
-      fontFamily: "'Playfair Display', Georgia, serif",
-      fontSize: isActive ? '16px' : '14.5px',
-      lineHeight: '2.15',
-      letterSpacing: '0.01em',
-      opacity,
-      filter: filterValue,
-      WebkitFilter: filterValue, // Safari support
-      transform: `scale(${scale})`,
-      transformOrigin: 'center center',
-    };
-  };
-
   return (
     <div className="h-full relative">
       <div
         ref={containerRef}
         className="h-full overflow-y-auto overscroll-contain"
-        style={{ WebkitOverflowScrolling: 'touch' }}
+        style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
       >
-        {/* Top spacer so first paragraph can scroll to center */}
-        <div className="h-[35vh]" />
-        <div className="px-6 pb-8 max-w-md mx-auto">
+        {/* Top spacer — pushes first sentence to ~35% from top */}
+        <div className="h-[30vh]" />
+        <div className="px-7 pb-8 max-w-md mx-auto">
           {lines.map((line, i) => {
             const isActive = i === activeIdx;
             const isPast = i < activeIdx;
+            const dist = Math.abs(i - activeIdx);
+
+            // Opacity: strong contrast between active and rest
+            let opacity: number;
+            if (isActive) opacity = 1;
+            else if (isPast) opacity = Math.max(0.12, 0.3 - dist * 0.05);
+            else opacity = Math.max(0.06, 0.25 - dist * 0.04); // future = dimmer
+
+            // Blur: only future sentences, increases with distance
+            const blur = !isActive && !isPast ? Math.min(3.5, dist * 0.9) : 0;
+            const filterVal = blur > 0.3 ? `blur(${blur.toFixed(1)}px)` : 'none';
+
             return (
               <p
                 key={i}
                 data-line={i}
                 className={cn(
-                  "mb-7 text-center",
-                  "transition-[filter,opacity,transform] duration-[800ms] ease-out",
+                  "mb-6 text-center leading-relaxed",
+                  "transition-[filter,opacity,transform] duration-[900ms] ease-out",
                   isActive
                     ? "text-foreground dark:text-white font-semibold"
                     : isPast
-                      ? "text-foreground/30 dark:text-white/20 font-normal"
-                      : "text-foreground/45 dark:text-white/35 font-normal"
+                      ? "text-muted-foreground/60 dark:text-white/25 font-normal"
+                      : "text-muted-foreground/50 dark:text-white/20 font-normal"
                 )}
-                style={getLineStyle(i)}
+                style={{
+                  fontFamily: "'Playfair Display', Georgia, serif",
+                  fontSize: isActive ? '17px' : '14.5px',
+                  lineHeight: isActive ? '2.0' : '1.9',
+                  letterSpacing: '0.01em',
+                  opacity,
+                  filter: filterVal,
+                  WebkitFilter: filterVal,
+                  transform: isActive ? 'scale(1.02)' : 'scale(0.97)',
+                  transformOrigin: 'center center',
+                }}
               >
                 {line.text}
               </p>
             );
           })}
         </div>
-        {/* Bottom spacer so last paragraph can scroll to center */}
-        <div className="h-[40vh]" />
+        {/* Bottom spacer — allows last sentence to center */}
+        <div className="h-[45vh]" />
       </div>
-      {/* Gradient fades — strong edges for polished look */}
-      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-background via-background/80 to-transparent pointer-events-none z-10" />
-      <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none z-10" />
+      {/* Gradient fades */}
+      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-background via-background/70 to-transparent pointer-events-none z-10" />
+      <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-background via-background/70 to-transparent pointer-events-none z-10" />
     </div>
   );
 };
