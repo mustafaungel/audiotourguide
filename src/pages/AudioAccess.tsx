@@ -39,6 +39,19 @@ export default function AudioAccess() {
   const [linkedLanguageByGuide, setLinkedLanguageByGuide] = useState<Record<string, string>>({});
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [hasMiniPlayer, setHasMiniPlayer] = useState(false);
+
+  // Detect MiniPlayer presence in DOM (it's portaled to document.body)
+  useEffect(() => {
+    const check = () => {
+      const mp = document.querySelector('[class*="fixed"][class*="bottom-0"][class*="z-50"]');
+      setHasMiniPlayer(!!mp);
+    };
+    check();
+    const observer = new MutationObserver(check);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
 
   const accessCode = searchParams.get('access_code') || searchParams.get('access');
   const sessionId = searchParams.get('session_id');
@@ -782,8 +795,8 @@ export default function AudioAccess() {
         </div>
       </div>
 
-      {/* Content area — bottom padding for fixed mini player clearance (2-row player ~140px + safe area) */}
-      <div className="px-4 pb-40 space-y-4 max-w-3xl mx-auto">
+      {/* Content area — dynamic bottom padding based on mini player visibility */}
+      <div className={`px-4 ${hasMiniPlayer ? 'pb-40' : 'pb-6'} space-y-4 max-w-3xl mx-auto transition-[padding] duration-300`}>
         {/* Multi-tab Audio Interface */}
         <div>
           <MultiTabAudioPlayer
