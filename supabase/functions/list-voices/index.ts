@@ -31,21 +31,23 @@ serve(async (req) => {
         name: v.name,
         category: v.category || 'premade',
         gender: v.labels?.gender || 'unknown',
-        accent: v.labels?.accent || 'unknown',
+        // Own/premade voices are multilingual (29 languages) — don't show accent to avoid confusion
+        accent: 'multilingual',
         description: v.labels?.description || v.labels?.['use case'] || '',
         preview_url: v.preview_url || null,
-        languages: [v.labels?.language || 'en'],
+        languages: ['multilingual'],
         source: 'own',
       }));
     }
 
-    // 2. Fetch shared voices from Voice Library (high quality, language-filtered)
+    // 2. Fetch shared voices from Voice Library — use search for language filtering
     let sharedVoices: any[] = [];
     const sharedParams = new URLSearchParams({
       page_size: '100',
     });
+    // ElevenLabs shared-voices API: use 'search' param for language matching
     if (language) {
-      sharedParams.set('language', language);
+      sharedParams.set('search', language);
     }
 
     const sharedResponse = await fetch(
@@ -68,7 +70,7 @@ serve(async (req) => {
       }));
     }
 
-    // 3. Merge: own first (starred), then shared
+    // 3. Merge: own first (★ multilingual), then shared (language-specific)
     const allVoices = [
       ...ownVoices.map(v => ({ ...v, name: `★ ${v.name}` })),
       ...sharedVoices,

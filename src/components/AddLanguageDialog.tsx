@@ -302,7 +302,7 @@ export function AddLanguageDialog({ open, onClose, guideId, guideTitle, guideLoc
                       <SelectContent className="max-h-[200px]">
                         {filteredVoices.map(v => (
                           <SelectItem key={v.voice_id} value={v.voice_id}>
-                            {v.name} {v.accent !== 'unknown' ? `(${v.accent})` : ''}
+                            {v.name} {v.accent && v.accent !== 'unknown' && v.accent !== 'multilingual' ? `(${v.accent})` : ''}
                           </SelectItem>
                         ))}
                       </SelectContent>
