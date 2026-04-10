@@ -91,24 +91,26 @@ export function AutoCreateGuide() {
   const [previewAudio, setPreviewAudio] = useState<HTMLAudioElement | null>(null);
   const [playingPreview, setPlayingPreview] = useState<string | null>(null);
 
-  // Load voices on mount
+  // Load voices when primary language changes
+  const primaryLangCode = selectedLanguages[0] || 'en';
+  const primaryLangNameForVoices = ELEVENLABS_LANGUAGES.find(l => l.code === primaryLangCode)?.name || 'English';
+
   useEffect(() => {
     (async () => {
       setLoadingVoices(true);
       try {
-        const { data, error } = await supabase.functions.invoke('list-voices', { body: { language: 'english' } });
+        const { data, error } = await supabase.functions.invoke('list-voices', { body: { language: primaryLangNameForVoices } });
         if (!error && data?.voices) {
           setVoices(data.voices);
-          // Auto-assign first female voice to default language (English)
           const firstFemale = data.voices.find((v: Voice) => v.gender === 'female');
           if (firstFemale) {
-            setVoiceByLanguage(prev => ({ ...prev, en: prev.en || firstFemale.voice_id }));
+            setVoiceByLanguage(prev => ({ ...prev, [primaryLangCode]: prev[primaryLangCode] || firstFemale.voice_id }));
           }
         }
       } catch { /* silent */ }
       finally { setLoadingVoices(false); }
     })();
-  }, []);
+  }, [primaryLangNameForVoices]);
 
   // Filter voices by gender
   const filteredVoices = voices.filter(v => v.gender === voiceGender);
