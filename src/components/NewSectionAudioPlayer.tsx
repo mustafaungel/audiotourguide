@@ -71,6 +71,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   const autoAdvanceRef = useRef(autoAdvanceEnabled);
   const currentSectionRef = useRef(currentSectionIndex);
   const displaySectionsRef = useRef<Section[]>([]);
+  const playSectionRef = useRef<(idx: number) => void>(() => {});
   useEffect(() => { autoAdvanceRef.current = autoAdvanceEnabled; }, [autoAdvanceEnabled]);
   useEffect(() => { currentSectionRef.current = currentSectionIndex; }, [currentSectionIndex]);
 
@@ -156,7 +157,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
       if (audioMode === 'sections' && idx < sections.length - 1) {
         if (shouldAutoAdvance) {
           setTimeout(() => {
-            playSection(idx + 1);
+            playSectionRef.current(idx + 1);
           }, 500);
         } else {
           const nextChapterTitle = sections[idx + 1]?.title || t('playNext', lang);
@@ -166,7 +167,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
             action: (
               <Button
                 size="sm"
-                onClick={() => playSection(idx + 1)}
+                onClick={() => playSectionRef.current(idx + 1)}
                 className="ml-2"
               >
                 {t('playNext', lang)}
@@ -272,6 +273,9 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
         });
     }
   };
+
+  // Keep ref in sync so ended handler can call latest playSection
+  playSectionRef.current = playSection;
 
   const togglePlayPause = () => {
     if (!audioRef.current || currentSectionIndex === -1) return;

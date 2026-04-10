@@ -72,6 +72,17 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
     return 0;
   }, [currentTime, lines, duration]);
 
+  // Reset all scroll state when script changes (new section loaded)
+  useEffect(() => {
+    userScrolling.current = false;
+    isAutoScrolling.current = false;
+    lastActiveIdx.current = -1;
+    cancelAnimationFrame(rafRef.current);
+    clearTimeout(scrollTimer.current);
+    // Scroll to top for new section
+    if (containerRef.current) containerRef.current.scrollTop = 0;
+  }, [scriptText]);
+
   // Detect user scroll (ignore our own programmatic scrolls)
   useEffect(() => {
     const container = containerRef.current;
