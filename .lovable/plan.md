@@ -1,41 +1,44 @@
 
 
-## Bug Fix: AutoCreateGuide ses listesini seçilen dile göre dinamik çekme
+## ElevenLabs Ses Listesini İyileştirme
 
 ### Sorun
-`AutoCreateGuide.tsx` satır 99'da `list-voices` edge function'ı sabit `{ language: 'english' }` ile çağrılıyor. Kullanıcı Türkçe veya Rusça seçse bile ses listesi hep İngilizce sesleri gösteriyor.
+1. `list-voices` edge function eski `/v1/shared-voices` endpoint'ini kullanıyor — bu endpoint `search` parametresiyle metin araması yapıyor, dil bazlı filtreleme yok
+2. Kalite filtresi yok — düşük kaliteli/az kullanılan sesler de listeleniyor
+3. Sonuç olarak seçilen dile uygun olmayan veya kalitesiz sesler gösteriliyor
 
 ### Çözüm
-`useEffect`'in dependency'sine `selectedLanguages[0]`'ı (primary language) ekle. Primary dil değiştiğinde `list-voices`'ı o dilin adıyla (`ELEVENLABS_LANGUAGES` lookup) tekrar çağır.
 
-### Değişiklik
+**`supabase/functions/list-voices/index.ts`** tamamen yeniden yazılacak:
 
-**`src/components/AutoCreateGuide.tsx`** — satır 94-111 arası:
+1. **Yeni API endpoint**: `/v1/shared-voices` yerine `/v1/shared-voices` endpoint'inin `language` ve `sort` parametrelerini kullanarak dile göre filtreleme yap (ElevenLabs shared-voices API'si `language` parametresini destekliyor — şu an sadece `search` kullanılıyor)
+2. **Kalite filtresi**: Dönen sesleri `usage_character_count` veya `cloned_by_count` (kullanım sayısı) bazında filtrele — minimum 1000+ kullanımı olan sesleri getir. Bu, topluluk tarafından kanıtlanmış kaliteli sesleri garantiler
+3. **Sıralama**: `usage_character_count` veya popülerliğe göre azalan sıra ile en kaliteli sesleri üste getir
+4. **Premade sesler**: Hesaptaki kendi/premade sesler (multilingual) her zaman listenin başında ★ ile gösterilmeye devam edecek
+5. **Sayfa boyutu**: 50 ile sınırla (100 yerine) — kalite filtresi sayesinde daha az ama daha iyi sonuçlar
+
+### Değişiklikler
+
+| Dosya | Değişiklik |
+|-------|-----------|
+| `supabase/functions/list-voices/index.ts` | Shared voices API çağrısını `language` parametresi ile filtrele, `sort=trending` veya kullanım sayısına göre sırala, düşük kaliteli sesleri (`usage_character_count < 1000`) filtrele |
+
+### Teknik Detay
 
 ```typescript
-// Load voices when primary language changes
-const primaryLangCode = selectedLanguages[0] || 'en';
-const primaryLangNameForVoices = ELEVENLABS_LANGUAGES.find(l => l.code === primaryLangCode)?.name || 'English';
+// Shared voices API — dil filtreli, popülerliğe göre sıralı
+const sharedParams = new URLSearchParams({
+  page_size: '50',
+  sort: 'trending',        // En popüler sesler önce
+  language: language || '', // Dil bazlı filtreleme
+});
 
-useEffect(() => {
-  (async () => {
-    setLoadingVoices(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('list-voices', { 
-        body: { language: primaryLangNameForVoices } 
-      });
-      if (!error && data?.voices) {
-        setVoices(data.voices);
-        const firstFemale = data.voices.find((v: Voice) => v.gender === 'female');
-        if (firstFemale) {
-          setVoiceByLanguage(prev => ({ ...prev, [primaryLangCode]: prev[primaryLangCode] || firstFemale.voice_id }));
-        }
-      }
-    } catch { /* silent */ }
-    finally { setLoadingVoices(false); }
-  })();
-}, [primaryLangNameForVoices]);
+// Kalite filtresi — sadece 1000+ kullanımlı sesler
+sharedVoices = rawVoices.filter(v => 
+  (v.usage_character_count || 0) >= 1000 || 
+  (v.cloned_by_count || 0) >= 50
+);
 ```
 
-Tek dosya, tek değişiklik. Artık dil seçildiğinde ElevenLabs'ten o dile uygun sesler gelecek.
+TTS tarafı zaten `eleven_multilingual_v2` (en güncel multilingual model) kullanıyor — değişiklik gerekmez.
 
