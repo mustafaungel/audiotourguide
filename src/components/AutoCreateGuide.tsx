@@ -45,7 +45,7 @@ interface Voice {
   languages: string[];
 }
 
-type Step = 'form' | 'plan_review' | 'generating_scripts' | 'script_review' | 'creating' | 'done_review' | 'published';
+type Step = 'form' | 'plan_review' | 'generating_scripts' | 'script_review' | 'creating' | 'done_review' | 'published' | 'error';
 
 interface CreationProgress {
   step: number;
@@ -80,6 +80,7 @@ export function AutoCreateGuide() {
   const [currentStep, setCurrentStep] = useState<Step>('form');
   const [progress, setProgress] = useState<CreationProgress>({ step: 0, totalSteps: 6, message: '' });
   const [result, setResult] = useState<{ shareUrl: string; accessCode: string; guideId: string } | null>(null);
+  const [creationError, setCreationError] = useState<{ message: string; step: string } | null>(null);
 
   // Plan review state
   const [plannedSections, setPlannedSections] = useState<PlannedSection[]>([]);
@@ -271,8 +272,9 @@ export function AutoCreateGuide() {
       setPlannedSections(planData.sections);
       setCurrentStep('plan_review');
     } catch (error: any) {
-      toast.error(`Planning failed: ${error.message}`);
-      setCurrentStep('form');
+      console.error('Planning failed:', error);
+      setCreationError({ message: error.message, step: 'planning' });
+      setCurrentStep('error');
     }
   };
 
@@ -290,11 +292,15 @@ export function AutoCreateGuide() {
 
     try {
       const scripts: string[] = [];
+      const scriptStartTime = Date.now();
       for (let i = 0; i < sections.length; i++) {
+        const elapsed = Math.floor((Date.now() - scriptStartTime) / 1000);
+        const perSection = i > 0 ? elapsed / i : 15;
+        const remaining = Math.ceil((sections.length - i) * perSection);
         setProgress({
           step: 1, totalSteps: 1,
           message: `Writing narration scripts...`,
-          detail: `${i + 1}/${sections.length} sections complete`
+          detail: `Section ${i + 1}/${sections.length} · ~${remaining}s remaining`
         });
 
         const prevScript = i > 0 ? scripts[i - 1] : null;
@@ -321,8 +327,9 @@ export function AutoCreateGuide() {
       setGeneratedScripts(scripts);
       setCurrentStep('script_review');
     } catch (error: any) {
-      toast.error(`Script generation failed: ${error.message}`);
-      setCurrentStep('plan_review');
+      console.error('Script generation failed:', error);
+      setCreationError({ message: error.message, step: 'scripts' });
+      setCurrentStep('error');
     }
   };
 
@@ -372,15 +379,21 @@ export function AutoCreateGuide() {
         return null;
       };
 
-      // Generate audio for primary language — 2-batch parallel with retry
+      // Generate audio for primary language — 3-batch parallel with retry
+      const BATCH_SIZE = 3;
       const primarySections: { title: string; description: string; audio_url: string; duration_seconds: number; language: string; language_code: string; order_index: number }[] = [];
       let failedCount = 0;
-      for (let i = 0; i < sections.length; i += 2) {
-        const batch = sections.slice(i, Math.min(i + 2, sections.length));
+      const audioStartTime = Date.now();
+      for (let i = 0; i < sections.length; i += BATCH_SIZE) {
+        const batch = sections.slice(i, Math.min(i + BATCH_SIZE, sections.length));
+        const done = Math.min(i + BATCH_SIZE, sections.length);
+        const elapsed = Math.floor((Date.now() - audioStartTime) / 1000);
+        const perBatch = i > 0 ? elapsed / (i / BATCH_SIZE) : 20;
+        const remaining = Math.ceil(((sections.length - done) / BATCH_SIZE) * perBatch);
         setProgress({
           step: 2, totalSteps: 4,
           message: `Producing audio files...`,
-          detail: `${primaryLangName}: ${Math.min(i + 2, sections.length)}/${sections.length}`
+          detail: `${primaryLangName}: ${done}/${sections.length} · ~${remaining}s remaining`
         });
         const results = await Promise.all(batch.map((section, batchIdx) => {
           const idx = i + batchIdx;
@@ -415,12 +428,13 @@ export function AutoCreateGuide() {
       const otherLangs = selectedLanguages.filter(l => l !== primaryLang);
       for (const langCode of otherLangs) {
         const langName = ELEVENLABS_LANGUAGES.find(l => l.code === langCode)?.name || langCode;
-        for (let i = 0; i < sections.length; i += 2) {
-          const batch = sections.slice(i, Math.min(i + 2, sections.length));
+        for (let i = 0; i < sections.length; i += BATCH_SIZE) {
+          const batch = sections.slice(i, Math.min(i + BATCH_SIZE, sections.length));
+          const done = Math.min(i + BATCH_SIZE, sections.length);
           setProgress({
             step: 3, totalSteps: 4,
             message: `Producing multilingual audio...`,
-            detail: `${langName}: ${Math.min(i + 2, sections.length)}/${sections.length}`
+            detail: `${langName}: ${done}/${sections.length}`
           });
           const batchResults = await Promise.all(batch.map(async (section, batchIdx) => {
             const idx = i + batchIdx;
@@ -489,8 +503,9 @@ export function AutoCreateGuide() {
       toast.success('Guide created! Review before publishing.');
 
     } catch (error: any) {
-      toast.error(`Creation failed: ${error.message}`);
-      setCurrentStep('form');
+      console.error('Creation failed:', error);
+      setCreationError({ message: error.message, step: 'creation' });
+      setCurrentStep('error');
     }
   };
 
@@ -850,6 +865,50 @@ export function AutoCreateGuide() {
             <div>
               <p className="text-sm font-medium">[Step {progress.step}/{progress.totalSteps}] {progress.message}</p>
               {progress.detail && <p className="text-xs text-muted-foreground mt-1">{progress.detail}</p>}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // === RENDER: ERROR ===
+  if (currentStep === 'error' && creationError) {
+    return (
+      <div className="max-w-xl mx-auto">
+        <Card>
+          <CardContent className="py-10 text-center space-y-6">
+            <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto">
+              <Globe className="w-8 h-8 text-red-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold mb-2">Creation Failed</h2>
+              <p className="text-muted-foreground text-sm mb-3">
+                An error occurred during the <strong>{creationError.step}</strong> step.
+              </p>
+              <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 text-left">
+                <p className="text-sm text-destructive font-mono break-all">{creationError.message}</p>
+              </div>
+            </div>
+            <div className="flex gap-2 justify-center">
+              <Button variant="outline" onClick={() => { setCreationError(null); setCurrentStep('form'); }}>
+                Start Over
+              </Button>
+              {creationError.step === 'scripts' && generatedScripts.length > 0 && (
+                <Button onClick={() => { setCreationError(null); setCurrentStep('script_review'); }}>
+                  Back to Scripts
+                </Button>
+              )}
+              {creationError.step === 'creation' && generatedScripts.length > 0 && (
+                <Button onClick={() => { setCreationError(null); handleStartCreation(); }}>
+                  Retry Creation
+                </Button>
+              )}
+              {creationError.step === 'planning' && (
+                <Button onClick={() => { setCreationError(null); handlePlanSections(); }}>
+                  Retry Planning
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
