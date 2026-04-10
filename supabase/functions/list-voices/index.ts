@@ -31,23 +31,23 @@ serve(async (req) => {
         name: v.name,
         category: v.category || 'premade',
         gender: v.labels?.gender || 'unknown',
-        // Own/premade voices are multilingual (29 languages) — don't show accent to avoid confusion
         accent: 'multilingual',
         description: v.labels?.description || v.labels?.['use case'] || '',
         preview_url: v.preview_url || null,
         languages: ['multilingual'],
         source: 'own',
+        usage_count: 999999,
       }));
     }
 
-    // 2. Fetch shared voices from Voice Library — use search for language filtering
+    // 2. Fetch shared voices with language filter and trending sort
     let sharedVoices: any[] = [];
     const sharedParams = new URLSearchParams({
-      page_size: '100',
+      page_size: '50',
+      sort: 'trending',
     });
-    // ElevenLabs shared-voices API: use 'search' param for language matching
     if (language) {
-      sharedParams.set('search', language);
+      sharedParams.set('language', language);
     }
 
     const sharedResponse = await fetch(
@@ -57,30 +57,33 @@ serve(async (req) => {
 
     if (sharedResponse.ok) {
       const sharedData = await sharedResponse.json();
-      sharedVoices = (sharedData.voices || []).map((v: any) => ({
-        voice_id: v.voice_id,
-        name: v.name,
-        category: 'shared',
-        gender: v.gender || 'unknown',
-        accent: v.accent || 'unknown',
-        description: v.description || '',
-        preview_url: v.preview_url || null,
-        languages: [v.language || language || 'en'],
-        source: 'library',
-      }));
+      const rawVoices = sharedData.voices || [];
+
+      // Quality filter: only voices with significant usage
+      sharedVoices = rawVoices
+        .filter((v: any) =>
+          (v.usage_character_count || 0) >= 1000 ||
+          (v.cloned_by_count || 0) >= 50
+        )
+        .map((v: any) => ({
+          voice_id: v.voice_id,
+          name: v.name,
+          category: 'shared',
+          gender: v.gender || 'unknown',
+          accent: v.accent || 'unknown',
+          description: v.description || '',
+          preview_url: v.preview_url || null,
+          languages: [v.language || language || 'en'],
+          source: 'library',
+          usage_count: v.usage_character_count || 0,
+        }));
     }
 
-    // 3. Merge: native speakers FIRST, then multilingual premade voices
-    // When a language is specified, show shared (native) voices on top
-    const allVoices = language
-      ? [
-          ...sharedVoices, // Native speakers first (searched by language)
-          ...ownVoices.map(v => ({ ...v, name: `★ ${v.name}` })), // Multilingual premade after
-        ]
-      : [
-          ...ownVoices.map(v => ({ ...v, name: `★ ${v.name}` })), // Default: premade first
-          ...sharedVoices,
-        ];
+    // 3. Merge: premade (starred) always first, then quality shared voices
+    const allVoices = [
+      ...ownVoices.map(v => ({ ...v, name: `★ ${v.name}` })),
+      ...sharedVoices,
+    ];
 
     // Deduplicate by voice_id
     const seen = new Set();
