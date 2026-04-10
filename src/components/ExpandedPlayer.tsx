@@ -29,8 +29,9 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
       const cleaned = para.replace(/\n/g, ' ').trim();
       if (cleaned.length < 15) continue;
 
-      // Split by sentence boundaries: . ! ? followed by space+uppercase or end
-      const parts = cleaned.split(/(?<=[.!?])\s+(?=[A-ZÀ-ÿА-Я\u0600-\u06FF\u4e00-\u9fff\u3040-\u30ff])/);
+      // Split by sentence boundaries — language-agnostic
+      // Handles: Latin (EN/TR/ES/FR/DE/IT/PT), Cyrillic (RU), Arabic, CJK (ZH/JA/KO)
+      const parts = cleaned.split(/(?<=[.!?。！？])\s+/);
       for (const part of parts) {
         const s = part.trim();
         if (s.length > 10) sentences.push(s);
@@ -88,8 +89,8 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
     const diff = scrollTarget - startScroll;
     if (Math.abs(diff) < 2) return;
 
-    // Smooth duration proportional to distance
-    const animDuration = Math.min(900, Math.max(300, Math.abs(diff) * 1.5));
+    // Slow, human-eye smooth scroll — longer duration, gentle curve
+    const animDuration = Math.min(1800, Math.max(800, Math.abs(diff) * 3));
     let animStart: number | null = null;
 
     cancelAnimationFrame(rafRef.current);
@@ -99,8 +100,8 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
       if (!animStart) animStart = timestamp;
       const elapsed = timestamp - animStart;
       const progress = Math.min(1, elapsed / animDuration);
-      // Ease-out quart — fast start, gentle stop
-      const eased = 1 - Math.pow(1 - progress, 4);
+      // Ease-in-out sine — natural, gentle acceleration and deceleration
+      const eased = -(Math.cos(Math.PI * progress) - 1) / 2;
       container.scrollTop = startScroll + diff * eased;
       if (progress < 1) {
         rafRef.current = requestAnimationFrame(animate);
@@ -144,7 +145,7 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
                 data-line={i}
                 className={cn(
                   "mb-6 text-center leading-relaxed",
-                  "transition-[filter,opacity,transform] duration-[900ms] ease-out",
+                  "transition-[filter,opacity,transform] duration-[1200ms] ease-in-out",
                   isActive
                     ? "text-foreground dark:text-white font-semibold"
                     : isPast
@@ -284,21 +285,21 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
           setDragY(0);
         }}
       >
-        {/* Blurred background image - theme aware */}
+        {/* Blurred background image — visible but readable */}
         {imageUrl && (
           <>
             <div
-              className="absolute inset-0 scale-125 will-change-transform"
+              className="absolute inset-0 scale-110"
               style={{
                 backgroundImage: `url(${imageUrl})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                filter: 'blur(25px) saturate(1.4)',
-                opacity: 0.3,
+                filter: 'blur(20px) saturate(1.3) brightness(0.9)',
+                opacity: 0.55,
               }}
             />
-            {/* Light: strong white overlay for readability. Dark: strong dark overlay */}
-            <div className="absolute inset-0 bg-background/75 dark:bg-background/70" />
+            {/* Light: semi-transparent overlay. Dark: darker overlay for text contrast */}
+            <div className="absolute inset-0 bg-background/55 dark:bg-background/60" />
           </>
         )}
         {!imageUrl && <div className="absolute inset-0 bg-background" />}
