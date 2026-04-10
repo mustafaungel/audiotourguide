@@ -18,7 +18,7 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Base URL for the site
-    const baseUrl = 'https://guided-sound-ai.lovable.app';
+    const baseUrl = 'https://audiotourguide.app';
 
     // Fetch all published and approved guides
     const { data: guides, error: guidesError } = await supabase

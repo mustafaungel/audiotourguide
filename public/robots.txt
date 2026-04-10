@@ -21,5 +21,5 @@ Disallow: /payment-success
 Disallow: /payment-cancelled
 
 # Sitemap
-Sitemap: https://guided-sound-ai.lovable.app/sitemap.xml
+Sitemap: https://audiotourguide.app/sitemap.xml
 Sitemap: https://dsaqlgxajdnwoqvtsrqd.supabase.co/functions/v1/generate-sitemap

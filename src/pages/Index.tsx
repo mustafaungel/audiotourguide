@@ -158,18 +158,18 @@ const Index = () => {
     "@type": "Organization",
     "name": "Audio Tour Guides",
     "description": "Discover UNESCO World Heritage sites with immersive audio guides",
-    "url": "https://guided-sound-ai.lovable.app",
-    "logo": "https://guided-sound-ai.lovable.app/logo-audio-tour-guides.png"
+    "url": "https://audiotourguide.app",
+    "logo": "https://audiotourguide.app/logo-audio-tour-guides.png"
   };
 
   const websiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "url": "https://guided-sound-ai.lovable.app",
+    "url": "https://audiotourguide.app",
     "name": "Audio Tour Guides",
     "potentialAction": {
       "@type": "SearchAction",
-      "target": "https://guided-sound-ai.lovable.app/guides?search={search_term_string}",
+      "target": "https://audiotourguide.app/guides?search={search_term_string}",
       "query-input": "required name=search_term_string"
     }
   };
@@ -178,7 +178,7 @@ const Index = () => {
       <SEO 
         title="Audio Tour Guides | World Heritage & Cultural Sites"
         description="Discover professional audio tour guides for UNESCO sites, museums, and iconic destinations. Multi-language storytelling with expert narration."
-        canonicalUrl="https://guided-sound-ai.lovable.app"
+        canonicalUrl="https://audiotourguide.app"
         structuredData={[websiteSchema, organizationSchema]}
       />
       <Navigation />

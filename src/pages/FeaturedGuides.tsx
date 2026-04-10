@@ -106,14 +106,14 @@ const FeaturedGuides = () => {
       <SEO
         title="Featured Audio Guides"
         description="Explore our handpicked collection of the best audio tour guides for UNESCO World Heritage sites and cultural attractions worldwide."
-        canonicalUrl="https://guided-sound-ai.lovable.app/featured-guides"
+        canonicalUrl="https://audiotourguide.app/featured-guides"
         structuredData={[
           {
             "@context": "https://schema.org",
             "@type": "BreadcrumbList",
             "itemListElement": [
-              { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://guided-sound-ai.lovable.app" },
-              { "@type": "ListItem", "position": 2, "name": "Featured Guides", "item": "https://guided-sound-ai.lovable.app/featured-guides" }
+              { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://audiotourguide.app" },
+              { "@type": "ListItem", "position": 2, "name": "Featured Guides", "item": "https://audiotourguide.app/featured-guides" }
             ]
           }
         ]}

@@ -644,7 +644,7 @@ const GuideDetail = () => {
   // Hreflang links for multi-language guides
   const hreflangLinks = guide?.languages?.length > 1 ? guide.languages.map((lang: string) => {
     const langCode = lang === 'English' ? 'en' : lang === 'Spanish' ? 'es' : lang === 'French' ? 'fr' : lang === 'German' ? 'de' : lang === 'Italian' ? 'it' : lang === 'Portuguese' ? 'pt' : lang === 'Japanese' ? 'ja' : lang === 'Korean' ? 'ko' : lang === 'Chinese' ? 'zh' : lang === 'Russian' ? 'ru' : lang === 'Turkish' ? 'tr' : lang === 'Arabic' ? 'ar' : lang.substring(0, 2).toLowerCase();
-    return { lang: langCode, url: `https://guided-sound-ai.lovable.app/guide/${slug}` };
+    return { lang: langCode, url: `https://audiotourguide.app/guide/${slug}` };
   }) : undefined;
 
   // Create structured data for the guide
@@ -653,10 +653,10 @@ const GuideDetail = () => {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
       "itemListElement": [
-        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://guided-sound-ai.lovable.app" },
-        { "@type": "ListItem", "position": 2, "name": "Guides", "item": "https://guided-sound-ai.lovable.app/guides" },
-        ...(guideCountry ? [{ "@type": "ListItem", "position": 3, "name": `${guideCountry} Guides`, "item": `https://guided-sound-ai.lovable.app/country/${guideCountry.toLowerCase().replace(/\s+/g, '-')}` }] : []),
-        { "@type": "ListItem", "position": guideCountry ? 4 : 3, "name": guide.title, "item": `https://guided-sound-ai.lovable.app/guide/${slug}` }
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://audiotourguide.app" },
+        { "@type": "ListItem", "position": 2, "name": "Guides", "item": "https://audiotourguide.app/guides" },
+        ...(guideCountry ? [{ "@type": "ListItem", "position": 3, "name": `${guideCountry} Guides`, "item": `https://audiotourguide.app/country/${guideCountry.toLowerCase().replace(/\s+/g, '-')}` }] : []),
+        { "@type": "ListItem", "position": guideCountry ? 4 : 3, "name": guide.title, "item": `https://audiotourguide.app/guide/${slug}` }
       ]
     },
     {
@@ -665,7 +665,7 @@ const GuideDetail = () => {
       "name": guide.title,
       "description": guide.description,
       "image": guideImage,
-      "url": `https://guided-sound-ai.lovable.app/guide/${slug}`,
+      "url": `https://audiotourguide.app/guide/${slug}`,
       "address": {
         "@type": "PostalAddress",
         "addressLocality": guideCity,
@@ -707,7 +707,7 @@ const GuideDetail = () => {
         <SEO
           title={seoTitle}
           description={guide.description || `Discover ${guide.title} with our immersive audio guide in ${guide.location}`}
-          canonicalUrl={`https://guided-sound-ai.lovable.app/guide/${slug}`}
+          canonicalUrl={`https://audiotourguide.app/guide/${slug}`}
           image={guideImage}
           type="article"
           structuredData={guideStructuredData}
