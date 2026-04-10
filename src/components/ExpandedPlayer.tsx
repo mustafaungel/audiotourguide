@@ -8,13 +8,14 @@ import { cn } from '@/lib/utils';
 import { haptics } from '@/lib/haptics';
 import { t } from '@/lib/translations';
 
-// Spotify/Apple Music style lyrics view
-const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; duration: number; isPlaying: boolean }> = ({ scriptText, currentTime, duration }) => {
+// Apple Music style lyrics view — blur-to-clear animation following audio
+const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; duration: number; isPlaying: boolean }> = ({ scriptText, currentTime, duration, isPlaying }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const userScrolling = useRef(false);
   const scrollTimer = useRef<ReturnType<typeof setTimeout>>();
+  const rafRef = useRef<number>(0);
 
-  // Split by paragraphs (natural text breaks) for clean, uniform blocks
+  // Split by paragraphs, map each to a start time based on character ratio
   const lines = useMemo(() => {
     if (!scriptText || duration <= 0) return [];
 
@@ -27,10 +28,11 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
 
     const totalChars = paragraphs.reduce((sum, p) => sum + p.length, 0);
     let cumChars = 0;
-    return paragraphs.map(text => {
-      const startPct = cumChars / totalChars;
+    return paragraphs.map((text, i) => {
+      const startTime = (cumChars / totalChars) * duration;
       cumChars += text.length;
-      return { text, startTime: startPct * duration };
+      const endTime = (cumChars / totalChars) * duration;
+      return { text, startTime, endTime };
     });
   }, [scriptText, duration]);
 
@@ -42,58 +44,118 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
     return 0;
   }, [currentTime, lines, duration]);
 
-  // Auto-scroll to active, but pause if user is manually scrolling
+  // Smooth continuous auto-scroll using rAF
   useEffect(() => {
     if (userScrolling.current || !containerRef.current) return;
     const el = containerRef.current.querySelector(`[data-line="${activeIdx}"]`) as HTMLElement;
-    if (el) {
-      const container = containerRef.current;
-      const target = el.offsetTop - container.clientHeight * 0.3;
-      container.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
-    }
+    if (!el) return;
+
+    const container = containerRef.current;
+    const target = el.offsetTop - container.clientHeight * 0.35;
+
+    // Smooth interpolation scroll
+    const scrollTo = Math.max(0, target);
+    const startScroll = container.scrollTop;
+    const diff = scrollTo - startScroll;
+    if (Math.abs(diff) < 2) return;
+
+    const scrollDuration = Math.min(600, Math.abs(diff) * 1.5);
+    let startTime: number | null = null;
+
+    cancelAnimationFrame(rafRef.current);
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const elapsed = timestamp - startTime;
+      const progress = Math.min(1, elapsed / scrollDuration);
+      // Ease-out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      container.scrollTop = startScroll + diff * eased;
+      if (progress < 1) rafRef.current = requestAnimationFrame(animate);
+    };
+    rafRef.current = requestAnimationFrame(animate);
+
+    return () => cancelAnimationFrame(rafRef.current);
   }, [activeIdx]);
 
   const handleUserScroll = () => {
     userScrolling.current = true;
+    cancelAnimationFrame(rafRef.current);
     clearTimeout(scrollTimer.current);
     scrollTimer.current = setTimeout(() => { userScrolling.current = false; }, 4000);
   };
 
+  // Calculate blur + opacity for each paragraph based on time distance
+  const getLineStyle = (index: number) => {
+    const line = lines[index];
+    if (!line) return {};
+
+    const isActive = index === activeIdx;
+    const isPast = index < activeIdx;
+    const timeDiff = line.startTime - currentTime; // positive = future, negative = past
+
+    let blur: number;
+    let opacity: number;
+    let scale: number;
+    let translateY: number;
+
+    if (isActive) {
+      // Active paragraph — crystal clear, slightly enlarged
+      blur = 0;
+      opacity = 1;
+      scale = 1.02;
+      translateY = 0;
+    } else if (isPast) {
+      // Past paragraphs — clear but faded
+      const pastDist = Math.abs(index - activeIdx);
+      blur = 0;
+      opacity = Math.max(0.2, 0.4 - pastDist * 0.05);
+      scale = 0.98;
+      translateY = -2;
+    } else {
+      // Future paragraphs — blur based on time distance, gradual reveal
+      blur = Math.min(4, Math.max(0, timeDiff * 0.15));
+      opacity = Math.max(0.12, Math.min(0.6, 1 - timeDiff * 0.03));
+      scale = Math.max(0.97, 1 - timeDiff * 0.001);
+      translateY = Math.min(6, timeDiff * 0.15);
+    }
+
+    return {
+      fontFamily: "'Playfair Display', Georgia, serif",
+      fontSize: isActive ? '15.5px' : '14px',
+      lineHeight: '2.1',
+      letterSpacing: '0.015em',
+      opacity,
+      filter: blur > 0.1 ? `blur(${blur.toFixed(1)}px)` : 'none',
+      transform: `translateY(${translateY}px) scale(${scale})`,
+      transformOrigin: 'center center',
+    };
+  };
+
   return (
     <div className="h-full relative">
-      {/* Scrollable script area — user CAN scroll freely */}
       <div
         ref={containerRef}
-        className="h-full overflow-y-auto overscroll-contain"
+        className="h-full overflow-y-auto overscroll-contain scroll-smooth"
         onTouchStart={handleUserScroll}
-        onTouchEnd={() => { scrollTimer.current = setTimeout(() => { userScrolling.current = false; }, 4000); }}
+        onTouchEnd={() => { clearTimeout(scrollTimer.current); scrollTimer.current = setTimeout(() => { userScrolling.current = false; }, 4000); }}
       >
         <div className="px-6 pt-6 pb-8 max-w-md mx-auto">
           {lines.map((line, i) => {
             const isActive = i === activeIdx;
-            const absDist = Math.abs(i - activeIdx);
-            const opacity = isActive ? 1 : Math.max(0.2, 0.55 - absDist * 0.1);
-
             return (
               <p
                 key={i}
                 data-line={i}
                 className={cn(
                   "mb-8 text-center",
-                  "transition-[opacity,transform,color] duration-500 ease-out will-change-[opacity,transform]",
+                  "transition-[filter,opacity,transform,color] duration-700 ease-out will-change-[filter,opacity,transform]",
                   isActive
                     ? "text-foreground font-medium"
-                    : "text-foreground/40 dark:text-foreground/30 font-normal"
+                    : i < activeIdx
+                      ? "text-foreground/35 dark:text-foreground/25 font-normal"
+                      : "text-foreground/50 dark:text-foreground/40 font-normal"
                 )}
-                style={{
-                  fontFamily: "'Playfair Display', Georgia, serif",
-                  fontSize: isActive ? '15.5px' : '14px',
-                  lineHeight: '2.1',
-                  letterSpacing: '0.015em',
-                  opacity,
-                  transform: isActive ? 'translateY(0) scale(1.01)' : `translateY(${i > activeIdx ? '3px' : '-1px'}) scale(0.99)`,
-                  transformOrigin: 'center center',
-                }}
+                style={getLineStyle(i)}
               >
                 {line.text}
               </p>
@@ -101,9 +163,9 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
           })}
         </div>
       </div>
-      {/* Gradient fades */}
-      <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-background/90 to-transparent pointer-events-none z-10" />
-      <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-background/90 to-transparent pointer-events-none z-10" />
+      {/* Gradient fades — taller for better blur blending */}
+      <div className="absolute top-0 left-0 right-0 h-28 bg-gradient-to-b from-background/95 to-transparent pointer-events-none z-10" />
+      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background/95 to-transparent pointer-events-none z-10" />
     </div>
   );
 };
