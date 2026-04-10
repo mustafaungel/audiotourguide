@@ -41,8 +41,8 @@ serve(async (req) => {
 
     console.log('Generating image with Gemini for:', { title, city, country, category });
 
-    // Photorealistic prompt with place name text overlay
-    const imagePrompt = `A stunning ultra-realistic photograph of ${title} in ${city}, ${country}. Golden hour lighting, professional travel photography, National Geographic quality. The text "${title}" is elegantly overlaid at the bottom of the image in a clean white sans-serif font with a subtle dark gradient behind it for readability. Photorealistic, sharp focus, vivid natural colors, cinematic composition, breathtaking view. ${category ? `${category} attraction.` : ''}`;
+    // Photorealistic prompt — award-winning travel photography style
+    const imagePrompt = `Award-winning travel photograph of ${title} in ${city}, ${country}. Shot during golden hour with natural warm lighting. Composition: wide establishing shot showing the most iconic and recognizable view that tourists would see when approaching the site. Style: National Geographic cover quality, professional DSLR, 24-70mm lens. No people in the frame. The text "${title}" is elegantly overlaid at the bottom of the image in a clean white sans-serif font with a subtle dark gradient behind it for readability. Ultra sharp focus, rich natural colors, dramatic sky, cinematic depth of field. ${category ? `${category} landmark.` : ''}`;
 
     // Call Gemini Nano Banana Pro API
     const response = await fetch(

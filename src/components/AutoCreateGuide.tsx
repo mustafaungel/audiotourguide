@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Globe, MapPin, Landmark, Languages, DollarSign, Mic, Loader2, CheckCircle, Music, Image, Save, Copy, ChevronDown } from 'lucide-react';
+import { Globe, MapPin, Landmark, Languages, DollarSign, Mic, Loader2, CheckCircle, Music, Image, Save, Copy, ChevronDown, Play, Pause } from 'lucide-react';
 import { ALL_COUNTRIES, ELEVENLABS_LANGUAGES, GUIDE_CATEGORIES } from '@/data/countries-full';
 import { toast } from 'sonner';
 
@@ -45,7 +45,7 @@ interface Voice {
   languages: string[];
 }
 
-type Step = 'form' | 'plan_review' | 'generating_scripts' | 'script_review' | 'creating' | 'done_review' | 'published' | 'error';
+type Step = 'form' | 'plan_review' | 'generating_scripts' | 'script_review' | 'creating_audio' | 'audio_review' | 'creating_image' | 'done_review' | 'published' | 'error';
 
 interface CreationProgress {
   step: number;
@@ -87,6 +87,13 @@ export function AutoCreateGuide() {
   // Script review state
   const [generatedScripts, setGeneratedScripts] = useState<string[]>([]);
   const [expandedScript, setExpandedScript] = useState<number | null>(null);
+  const [regeneratingScript, setRegeneratingScript] = useState<number | null>(null);
+  // Audio review state
+  const [generatedAudio, setGeneratedAudio] = useState<{ audio_url: string; duration_seconds: number }[]>([]);
+  const [regeneratingAudio, setRegeneratingAudio] = useState<number | null>(null);
+  const [reviewAudio, setReviewAudio] = useState<HTMLAudioElement | null>(null);
+  const [playingSection, setPlayingSection] = useState<number | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
 
   // Voice preview
   const [previewAudio, setPreviewAudio] = useState<HTMLAudioElement | null>(null);
@@ -341,57 +348,104 @@ export function AutoCreateGuide() {
     }
   };
 
-  // === STEP 3: CREATE AUDIO + IMAGE (after script approval) ===
-  const handleStartCreation = async () => {
+  // === REGENERATE SINGLE SCRIPT ===
+  const handleRegenerateScript = async (index: number) => {
     const finalCity = city || cityInput;
     const finalPlace = place || placeInput;
-    if (!country || !finalCity || !finalPlace) return;
-
-    setCurrentStep('creating');
-    const defaultVoice = voiceGender === 'female' ? '9BWtsMINqrJLrRacOk9x' : 'pNInz6obpgDQGcFmaJgB';
     const primaryLang = selectedLanguages[0];
-    const getVoiceForLang = (langCode: string) => voiceByLanguage[langCode] || defaultVoice;
     const primaryLangName = ELEVENLABS_LANGUAGES.find(l => l.code === primaryLang)?.name || 'English';
     const sections = plannedSections;
-    const scripts = generatedScripts;
 
+    setRegeneratingScript(index);
     try {
-      // Step 1: Generate cover image
-      setProgress({ step: 1, totalSteps: 4, message: 'Generating cover image...' });
-      const { data: imageData } = await supabase.functions.invoke('generate-image', {
+      const prevScript = index > 0 ? generatedScripts[index - 1] : null;
+      const allPreviousOpenings = generatedScripts.slice(0, index).map((s, idx) => `Section ${idx + 1}: "${s.split('.')[0]}."`).join('\n');
+
+      const { data, error } = await supabase.functions.invoke('generate-section-script', {
         body: {
-          title: finalPlace,
-          city: finalCity,
-          country,
-          category: category || 'Historical',
-          prompt: `Ultra-realistic professional travel photography of ${finalPlace} in ${finalCity}, ${country}. Golden hour lighting, National Geographic quality, showcasing the most iconic and breathtaking view. Vibrant colors, sharp focus, cinematic composition. No text, no watermarks.`
+          country, city: finalCity, place: finalPlace,
+          section: sections[index],
+          previous_ending: prevScript ? prevScript.slice(-500) : null,
+          previous_opening: prevScript ? prevScript.split('.')[0] + '.' : null,
+          previous_openings_list: allPreviousOpenings || null,
+          next_title: index < sections.length - 1 ? sections[index + 1].title : null,
+          language: primaryLangName
         }
       });
-      const imageUrl = imageData?.image_url || null;
+      if (error || !data?.script) throw new Error('Regeneration failed');
+      setGeneratedScripts(prev => prev.map((s, i) => i === index ? data.script : s));
+      toast.success(`Section ${index + 1} script regenerated`);
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setRegeneratingScript(null);
+    }
+  };
 
-      // Retry helper for audio generation
-      const generateAudioWithRetry = async (text: string, voiceId: string, maxRetries = 2): Promise<{ audio_url: string; duration_seconds: number } | null> => {
-        for (let attempt = 0; attempt <= maxRetries; attempt++) {
-          try {
-            const { data, error } = await supabase.functions.invoke('generate-audio', {
-              body: { text, voiceId, modelId: 'eleven_multilingual_v2' }
-            });
-            if (!error && data?.audio_url) return data;
-            console.warn(`Audio attempt ${attempt + 1} failed:`, error || data?.error);
-            if (attempt < maxRetries) await new Promise(r => setTimeout(r, 3000));
-          } catch (e) {
-            console.warn(`Audio attempt ${attempt + 1} exception:`, e);
-            if (attempt < maxRetries) await new Promise(r => setTimeout(r, 3000));
-          }
-        }
-        return null;
-      };
+  // === REGENERATE SINGLE AUDIO ===
+  const handleRegenerateAudio = async (index: number) => {
+    const primaryLang = selectedLanguages[0];
+    const defaultVoice = voiceGender === 'female' ? '9BWtsMINqrJLrRacOk9x' : 'pNInz6obpgDQGcFmaJgB';
+    const voiceId = voiceByLanguage[primaryLang] || defaultVoice;
 
-      // Generate audio for primary language — 3-batch parallel with retry
-      const BATCH_SIZE = 3;
-      const primarySections: { title: string; description: string; audio_url: string; duration_seconds: number; language: string; language_code: string; order_index: number }[] = [];
-      let failedCount = 0;
+    setRegeneratingAudio(index);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-audio', {
+        body: { text: generatedScripts[index], voiceId, modelId: 'eleven_multilingual_v2' }
+      });
+      if (error || !data?.audio_url) throw new Error('Audio regeneration failed');
+      setGeneratedAudio(prev => prev.map((a, i) => i === index ? { audio_url: data.audio_url, duration_seconds: data.duration_seconds } : a));
+      toast.success(`Section ${index + 1} audio regenerated`);
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setRegeneratingAudio(null);
+    }
+  };
+
+  // === PLAY SECTION AUDIO IN REVIEW ===
+  const playSectionAudio = (index: number) => {
+    if (reviewAudio) { reviewAudio.pause(); setReviewAudio(null); }
+    if (playingSection === index) { setPlayingSection(null); return; }
+    const audio = new Audio(generatedAudio[index]?.audio_url);
+    audio.onended = () => { setPlayingSection(null); setReviewAudio(null); };
+    audio.play();
+    setPlayingSection(index);
+    setReviewAudio(audio);
+  };
+
+  // === RETRY HELPER ===
+  const generateAudioWithRetry = async (text: string, voiceId: string, maxRetries = 2): Promise<{ audio_url: string; duration_seconds: number } | null> => {
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        const { data, error } = await supabase.functions.invoke('generate-audio', {
+          body: { text, voiceId, modelId: 'eleven_multilingual_v2' }
+        });
+        if (!error && data?.audio_url) return data;
+        if (attempt < maxRetries) await new Promise(r => setTimeout(r, 3000));
+      } catch (e) {
+        if (attempt < maxRetries) await new Promise(r => setTimeout(r, 3000));
+      }
+    }
+    return null;
+  };
+
+  // === STEP 3: CREATE AUDIO ONLY (after script approval) ===
+  const handleStartAudioCreation = async () => {
+    if (!country || !(city || cityInput) || !(place || placeInput)) return;
+
+    setCurrentStep('creating_audio');
+    const defaultVoice = voiceGender === 'female' ? '9BWtsMINqrJLrRacOk9x' : 'pNInz6obpgDQGcFmaJgB';
+    const primaryLang = selectedLanguages[0];
+    const voiceId = voiceByLanguage[primaryLang] || defaultVoice;
+    const sections = plannedSections;
+    const scripts = generatedScripts;
+    const BATCH_SIZE = 3;
+
+    try {
+      const audioResults: { audio_url: string; duration_seconds: number }[] = [];
       const audioStartTime = Date.now();
+
       for (let i = 0; i < sections.length; i += BATCH_SIZE) {
         const batch = sections.slice(i, Math.min(i + BATCH_SIZE, sections.length));
         const done = Math.min(i + BATCH_SIZE, sections.length);
@@ -399,120 +453,112 @@ export function AutoCreateGuide() {
         const perBatch = i > 0 ? elapsed / (i / BATCH_SIZE) : 20;
         const remaining = Math.ceil(((sections.length - done) / BATCH_SIZE) * perBatch);
         setProgress({
-          step: 2, totalSteps: 4,
+          step: 1, totalSteps: 2,
           message: `Producing audio files...`,
-          detail: `${primaryLangName}: ${done}/${sections.length} · ~${remaining}s remaining`
+          detail: `${done}/${sections.length} · ~${remaining}s remaining`
         });
-        const results = await Promise.all(batch.map((section, batchIdx) => {
+        const results = await Promise.all(batch.map((_, batchIdx) => {
           const idx = i + batchIdx;
-          return generateAudioWithRetry(scripts[idx], getVoiceForLang(primaryLang));
+          return generateAudioWithRetry(scripts[idx], voiceId);
         }));
-        for (let j = 0; j < batch.length; j++) {
-          const idx = i + j;
-          const audioData = results[j];
-          if (audioData) {
-            primarySections.push({
-              title: sections[idx].title,
-              description: scripts[idx],
-              audio_url: audioData.audio_url,
-              duration_seconds: audioData.duration_seconds || sections[idx].estimated_minutes * 60,
-              language: primaryLangName,
-              language_code: primaryLang,
-              order_index: idx
-            });
-          } else {
-            failedCount++;
-            console.error(`Section ${idx + 1} audio failed after retries, skipping`);
-          }
+        for (const r of results) {
+          audioResults.push(r || { audio_url: '', duration_seconds: 0 });
         }
       }
-      if (failedCount > 0) {
-        toast.warning(`${failedCount} section(s) failed audio generation and were skipped.`);
-      }
-      if (primarySections.length === 0) throw new Error('All audio generation failed. Please try again.');
 
-      // Step 5: Generate translations + audio for other languages
+      setGeneratedAudio(audioResults);
+      setCurrentStep('audio_review');
+      toast.success('Audio generated! Review each section.');
+    } catch (error: any) {
+      setCreationError({ message: error.message, step: 'audio' });
+      setCurrentStep('error');
+    }
+  };
+
+  // === STEP 4: CREATE IMAGE + SAVE (after audio approval) ===
+  const handleFinalize = async () => {
+    const finalCity = city || cityInput;
+    const finalPlace = place || placeInput;
+    if (!country || !finalCity || !finalPlace) return;
+
+    setCurrentStep('creating_image');
+    const primaryLang = selectedLanguages[0];
+    const primaryLangName = ELEVENLABS_LANGUAGES.find(l => l.code === primaryLang)?.name || 'English';
+    const defaultVoice = voiceGender === 'female' ? '9BWtsMINqrJLrRacOk9x' : 'pNInz6obpgDQGcFmaJgB';
+    const getVoiceForLang = (langCode: string) => voiceByLanguage[langCode] || defaultVoice;
+    const sections = plannedSections;
+    const scripts = generatedScripts;
+    const BATCH_SIZE = 3;
+
+    try {
+      // Generate cover image
+      setProgress({ step: 1, totalSteps: 3, message: 'Generating cover image...' });
+      const { data: imgData } = await supabase.functions.invoke('generate-image', {
+        body: {
+          title: finalPlace, city: finalCity, country,
+          category: category || 'Historical',
+          prompt: `Award-winning travel photograph of ${finalPlace} in ${finalCity}, ${country}. Shot during golden hour with natural warm lighting. Composition: wide establishing shot showing the most iconic and recognizable view that tourists would see when approaching the site. Style: National Geographic cover quality, Canon EOS R5, 24-70mm f/2.8 lens. No people in the frame. No text, no watermarks, no logos, no overlays. Ultra sharp focus, rich natural colors, dramatic sky. Category: ${category || 'Historical'}.`
+        }
+      });
+      setImageUrl(imgData?.image_url || null);
+
+      // Build primary sections from approved audio
+      const primarySections = sections.map((section, idx) => ({
+        title: section.title,
+        description: scripts[idx],
+        audio_url: generatedAudio[idx]?.audio_url || '',
+        duration_seconds: generatedAudio[idx]?.duration_seconds || section.estimated_minutes * 60,
+        language: primaryLangName,
+        language_code: primaryLang,
+        order_index: idx
+      }));
+
+      // Generate translations + audio for other languages
       const additionalSections: typeof primarySections = [];
       const otherLangs = selectedLanguages.filter(l => l !== primaryLang);
       for (const langCode of otherLangs) {
         const langName = ELEVENLABS_LANGUAGES.find(l => l.code === langCode)?.name || langCode;
         for (let i = 0; i < sections.length; i += BATCH_SIZE) {
           const batch = sections.slice(i, Math.min(i + BATCH_SIZE, sections.length));
-          const done = Math.min(i + BATCH_SIZE, sections.length);
-          setProgress({
-            step: 3, totalSteps: 4,
-            message: `Producing multilingual audio...`,
-            detail: `${langName}: ${done}/${sections.length}`
-          });
-          const batchResults = await Promise.all(batch.map(async (section, batchIdx) => {
+          setProgress({ step: 2, totalSteps: 3, message: `Translating to ${langName}...`, detail: `${Math.min(i + BATCH_SIZE, sections.length)}/${sections.length}` });
+          const batchResults = await Promise.all(batch.map(async (_, batchIdx) => {
             const idx = i + batchIdx;
-            // Translate
             const { data: transData } = await supabase.functions.invoke('translate-script', {
-              body: {
-                script: scripts[idx],
-                source_language: primaryLangName,
-                target_language: langName,
-                place: finalPlace,
-                section_title: sections[idx].title
-              }
+              body: { script: scripts[idx], source_language: primaryLangName, target_language: langName, place: finalPlace, section_title: sections[idx].title }
             });
-            const translatedScript = transData?.translated_script || scripts[idx];
-            // Generate audio with retry
-            const audioData = await generateAudioWithRetry(translatedScript, getVoiceForLang(langCode));
-            return {
-              title: sections[idx].title,
-              description: translatedScript,
-              audio_url: audioData?.audio_url || '',
-              duration_seconds: audioData?.duration_seconds || sections[idx].estimated_minutes * 60,
-              language: langName,
-              language_code: langCode,
-              order_index: idx
-            };
+            const translated = transData?.translated_script || scripts[idx];
+            const audioData = await generateAudioWithRetry(translated, getVoiceForLang(langCode));
+            return { title: sections[idx].title, description: translated, audio_url: audioData?.audio_url || '', duration_seconds: audioData?.duration_seconds || sections[idx].estimated_minutes * 60, language: langName, language_code: langCode, order_index: idx };
           }));
           additionalSections.push(...batchResults);
         }
       }
 
-      // Step 6: Create guide in database
-      setProgress({ step: 4, totalSteps: 4, message: 'Saving guide...' });
+      // Save to database
+      setProgress({ step: 3, totalSteps: 3, message: 'Saving guide...' });
       const allSections = [...primarySections, ...additionalSections];
       const totalDuration = primarySections.reduce((sum, s) => sum + s.duration_seconds, 0);
-
-      // SEO-friendly title and description
       const guideTitle = `${finalPlace} Audio Guide`;
       const guideDescription = `Explore ${finalPlace} in ${finalCity}, ${country}. Professional audio tour guide with ${sections.length} stops covering history, culture, and hidden stories.`;
 
       const { data: guideData, error: guideError } = await supabase.functions.invoke('create-guide', {
         body: {
-          title: guideTitle,
-          description: guideDescription,
-          location: `${finalCity}, ${country}`,
-          category: category || 'Historical',
-          duration: Math.ceil(totalDuration / 60),
-          difficulty: 'Easy',
+          title: guideTitle, description: guideDescription,
+          location: `${finalCity}, ${country}`, category: category || 'Historical',
+          duration: Math.ceil(totalDuration / 60), difficulty: 'Easy',
           languages: selectedLanguages.map(c => ELEVENLABS_LANGUAGES.find(l => l.code === c)?.name || c),
           price_usd: parseInt(priceUsd) || 499,
-          image_content: null,
-          image_urls: imageUrl ? [imageUrl] : [],
-          sections: allSections,
-          is_published: false,
-          is_featured: false
+          image_content: null, image_urls: imgData?.image_url ? [imgData.image_url] : [],
+          sections: allSections, is_published: false, is_featured: false
         }
       });
 
       if (guideError || !guideData?.guide) throw new Error('Failed to create guide');
-
-      setResult({
-        shareUrl: guideData.guide.share_url || '',
-        accessCode: guideData.guide.master_access_code || '',
-        guideId: guideData.guide.id
-      });
+      setResult({ shareUrl: guideData.guide.share_url || '', accessCode: guideData.guide.master_access_code || '', guideId: guideData.guide.id });
       setCurrentStep('done_review');
       toast.success('Guide created! Review before publishing.');
-
     } catch (error: any) {
-      console.error('Creation failed:', error);
-      setCreationError({ message: error.message, step: 'creation' });
+      setCreationError({ message: error.message, step: 'finalize' });
       setCurrentStep('error');
     }
   };
@@ -812,35 +858,57 @@ export function AutoCreateGuide() {
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-sm text-muted-foreground">
-              {place || placeInput} — {city || cityInput}, {country} • {primaryLangName}
+              {place || placeInput} — {city || cityInput}, {country} • {primaryLangName} • Edit scripts below, then approve
             </p>
-            <div className="max-h-[500px] overflow-y-auto space-y-2 border rounded-lg p-3">
-              {generatedScripts.map((script, i) => (
-                <div key={i} className="border rounded-lg overflow-hidden">
-                  <button
-                    onClick={() => setExpandedScript(expandedScript === i ? null : i)}
-                    className="w-full flex items-center gap-3 p-3 text-left hover:bg-muted/50 transition-colors"
-                  >
-                    <span className="text-xs font-bold text-primary bg-primary/10 rounded-full w-6 h-6 flex items-center justify-center shrink-0">{i + 1}</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{plannedSections[i]?.title}</p>
-                      <p className="text-xs text-muted-foreground">{script.split(/\s+/).length} words • ~{Math.round(script.split(/\s+/).length / 150)} min</p>
-                    </div>
-                    <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${expandedScript === i ? 'rotate-180' : ''}`} />
-                  </button>
-                  {expandedScript === i && (
-                    <div className="px-3 pb-3 border-t">
-                      <p className="text-sm leading-relaxed text-foreground/80 whitespace-pre-line max-h-[300px] overflow-y-auto pt-2">
-                        {script}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              ))}
+            <div className="max-h-[600px] overflow-y-auto space-y-2 border rounded-lg p-3">
+              {generatedScripts.map((script, i) => {
+                const words = script.split(/\s+/).length;
+                const chars = script.length;
+                const isLong = chars > 4000;
+                return (
+                  <div key={i} className="border rounded-lg overflow-hidden">
+                    <button
+                      onClick={() => setExpandedScript(expandedScript === i ? null : i)}
+                      className="w-full flex items-center gap-3 p-3 text-left hover:bg-muted/50 transition-colors"
+                    >
+                      <span className="text-xs font-bold text-primary bg-primary/10 rounded-full w-6 h-6 flex items-center justify-center shrink-0">{i + 1}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{plannedSections[i]?.title}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {words} words · ~{Math.round(words / 150)} min
+                          {isLong && <span className="text-destructive ml-1">⚠ too long</span>}
+                        </p>
+                      </div>
+                      {regeneratingScript === i && <Loader2 className="w-4 h-4 animate-spin text-primary shrink-0" />}
+                      <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${expandedScript === i ? 'rotate-180' : ''}`} />
+                    </button>
+                    {expandedScript === i && (
+                      <div className="px-3 pb-3 border-t space-y-2">
+                        <textarea
+                          value={script}
+                          onChange={(e) => setGeneratedScripts(prev => prev.map((s, idx) => idx === i ? e.target.value : s))}
+                          className="w-full min-h-[200px] max-h-[400px] rounded-md border border-input bg-background px-3 py-2 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-ring mt-2"
+                        />
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">{chars} chars · {words} words</span>
+                          <Button
+                            size="sm" variant="outline"
+                            disabled={regeneratingScript !== null}
+                            onClick={() => handleRegenerateScript(i)}
+                          >
+                            {regeneratingScript === i ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <Music className="w-3.5 h-3.5 mr-1" />}
+                            Regenerate
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
             <div className="flex gap-2 pt-2">
-              <Button onClick={handleStartCreation} className="flex-1">
-                Approve Scripts & Start Audio Production ({selectedLanguages.length} language{selectedLanguages.length > 1 ? 's' : ''})
+              <Button onClick={handleStartAudioCreation} className="flex-1">
+                Approve Scripts & Generate Audio
               </Button>
               <Button variant="outline" onClick={() => { setCurrentStep('plan_review'); setGeneratedScripts([]); }}>
                 Back
@@ -852,28 +920,91 @@ export function AutoCreateGuide() {
     );
   }
 
-  // === RENDER: CREATING ===
-  if (currentStep === 'creating') {
+  // === RENDER: CREATING AUDIO ===
+  if (currentStep === 'creating_audio') {
     const pct = Math.round((progress.step / progress.totalSteps) * 100);
-    const stepIcons = [null, Globe, Music, Image, Mic, Languages, Save];
-    const StepIcon = stepIcons[progress.step] || Loader2;
-
     return (
       <div className="max-w-xl mx-auto">
         <Card>
           <CardContent className="py-12 text-center space-y-6">
             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-              <StepIcon className="w-8 h-8 text-primary animate-pulse" />
+              <Mic className="w-8 h-8 text-primary animate-pulse" />
             </div>
             <div>
-              <h2 className="text-xl font-bold mb-1">Creating Audio Guide</h2>
+              <h2 className="text-xl font-bold mb-1">Generating Audio</h2>
               <p className="text-muted-foreground text-sm">{place || placeInput} — {city || cityInput}, {country}</p>
             </div>
             <Progress value={pct} className="h-2" />
-            <div>
-              <p className="text-sm font-medium">[Step {progress.step}/{progress.totalSteps}] {progress.message}</p>
-              {progress.detail && <p className="text-xs text-muted-foreground mt-1">{progress.detail}</p>}
+            <p className="text-sm font-medium">{progress.message}</p>
+            {progress.detail && <p className="text-xs text-muted-foreground">{progress.detail}</p>}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // === RENDER: AUDIO REVIEW ===
+  if (currentStep === 'audio_review') {
+    const totalDur = generatedAudio.reduce((sum, a) => sum + (a.duration_seconds || 0), 0);
+    return (
+      <div className="max-w-3xl">
+        <Card>
+          <CardHeader>
+            <CardTitle>Review Audio — {generatedAudio.length} Sections ({Math.floor(totalDur / 60)} min)</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">Listen to each section. Regenerate any you don't like.</p>
+            <div className="max-h-[500px] overflow-y-auto space-y-2 border rounded-lg p-3">
+              {generatedAudio.map((audio, i) => (
+                <div key={i} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 border">
+                  <span className="text-xs font-bold text-primary bg-primary/10 rounded-full w-6 h-6 flex items-center justify-center shrink-0">{i + 1}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{plannedSections[i]?.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {Math.floor(audio.duration_seconds / 60)}:{String(Math.floor(audio.duration_seconds % 60)).padStart(2, '0')}
+                      {!audio.audio_url && <span className="text-destructive ml-1">⚠ failed</span>}
+                    </p>
+                  </div>
+                  <Button size="sm" variant="ghost" onClick={() => playSectionAudio(i)} disabled={!audio.audio_url}>
+                    {playingSection === i ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                  </Button>
+                  <Button size="sm" variant="outline" disabled={regeneratingAudio !== null} onClick={() => handleRegenerateAudio(i)}>
+                    {regeneratingAudio === i ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Music className="w-3.5 h-3.5" />}
+                  </Button>
+                </div>
+              ))}
             </div>
+            <div className="flex gap-2 pt-2">
+              <Button onClick={handleFinalize} className="flex-1">
+                Approve Audio & Finalize Guide
+              </Button>
+              <Button variant="outline" onClick={() => setCurrentStep('script_review')}>
+                Back to Scripts
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // === RENDER: CREATING IMAGE ===
+  if (currentStep === 'creating_image') {
+    const pct = Math.round((progress.step / progress.totalSteps) * 100);
+    return (
+      <div className="max-w-xl mx-auto">
+        <Card>
+          <CardContent className="py-12 text-center space-y-6">
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+              <Image className="w-8 h-8 text-primary animate-pulse" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold mb-1">Finalizing Guide</h2>
+              <p className="text-muted-foreground text-sm">{place || placeInput} — {city || cityInput}, {country}</p>
+            </div>
+            <Progress value={pct} className="h-2" />
+            <p className="text-sm font-medium">{progress.message}</p>
+            {progress.detail && <p className="text-xs text-muted-foreground">{progress.detail}</p>}
           </CardContent>
         </Card>
       </div>
