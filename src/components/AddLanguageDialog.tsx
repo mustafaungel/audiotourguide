@@ -92,9 +92,28 @@ export function AddLanguageDialog({ open, onClose, guideId, guideTitle, guideLoc
 
     setGeneratingPreview(true);
     try {
-      const text = PREVIEW[selectedLang] || PREVIEW.en;
+      // Get real guide script for authentic preview
+      let previewText = PREVIEW[selectedLang] || PREVIEW.en;
+      const { data: sections } = await supabase.from('guide_sections')
+        .select('description')
+        .eq('guide_id', guideId)
+        .eq('language_code', 'en')
+        .order('order_index')
+        .limit(1);
+
+      if (sections?.[0]?.description && sections[0].description.length > 100) {
+        // Translate first ~300 chars of real script for authentic preview
+        const snippet = sections[0].description.substring(0, 300);
+        const { data: transData } = await supabase.functions.invoke('translate-script', {
+          body: { script: snippet, source_language: 'English', target_language: selectedLangName, place: guideTitle }
+        });
+        if (transData?.translated_script) {
+          previewText = transData.translated_script.replace(/^---\s*/gm, '').replace(/\s*---$/gm, '').trim();
+        }
+      }
+
       const { data, error } = await supabase.functions.invoke('generate-audio', {
-        body: { text, voiceId: selectedVoiceId, modelId: 'eleven_multilingual_v2', isPreview: true }
+        body: { text: previewText, voiceId: selectedVoiceId, modelId: 'eleven_multilingual_v2', isPreview: true }
       });
       if (error || !data?.audio_url) {
         toast.error(`Preview failed: ${error?.message || data?.error || 'No audio URL'}`);
