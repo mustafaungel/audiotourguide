@@ -230,18 +230,26 @@ export function AutoCreateGuide() {
     setGeneratingPreview(previewKey);
 
     try {
-      const text = PREVIEW_SENTENCES[langCode] || PREVIEW_SENTENCES.en;
-      const { data, error } = await supabase.functions.invoke('generate-audio', {
-        body: { text, voiceId, modelId: 'eleven_multilingual_v2', isPreview: true }
-      });
-      if (error || !data?.audio_url) {
-        toast.error(`Preview failed: ${error?.message || data?.error || 'No audio URL'}`);
-        return;
+      // Use ElevenLabs preview_url if available (instant, no API credits used)
+      const voice = voices.find(v => v.voice_id === voiceId);
+      let audioUrl = voice?.preview_url;
+
+      if (!audioUrl) {
+        // Fallback: generate preview via edge function
+        const text = PREVIEW_SENTENCES[langCode] || PREVIEW_SENTENCES.en;
+        const { data, error } = await supabase.functions.invoke('generate-audio', {
+          body: { text, voiceId, modelId: 'eleven_multilingual_v2', isPreview: true }
+        });
+        if (error || !data?.audio_url) {
+          toast.error(`Preview failed: ${error?.message || data?.error || 'No audio URL'}`);
+          return;
+        }
+        audioUrl = data.audio_url;
       }
 
-      const audio = new Audio(data.audio_url);
+      const audio = new Audio(audioUrl);
       audio.onended = () => { setPlayingPreview(null); setPreviewAudio(null); };
-      audio.onerror = () => { toast.error('Audio playback failed'); setPlayingPreview(null); };
+      audio.onerror = () => { toast.error('Audio playback failed'); setPlayingPreview(null); setGeneratingPreview(null); };
       await audio.play();
       setPlayingPreview(previewKey);
       setPreviewAudio(audio);
@@ -250,7 +258,7 @@ export function AutoCreateGuide() {
     } finally {
       setGeneratingPreview(null);
     }
-  }, [previewAudio, playingPreview]);
+  }, [previewAudio, playingPreview, voices]);
 
   // Form validation
   const isFormValid = country && (city || cityInput) && (place || placeInput) && selectedLanguages.length > 0;

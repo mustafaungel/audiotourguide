@@ -127,14 +127,22 @@ export function AddLanguageDialog({ open, onClose, guideId, guideTitle, guideLoc
         translatedPreviewRef.current[selectedLang] = previewText;
       }
 
-      const { data, error } = await supabase.functions.invoke('generate-audio', {
-        body: { text: previewText, voiceId: selectedVoiceId, modelId: 'eleven_multilingual_v2', isPreview: true }
-      });
-      if (error || !data?.audio_url) {
-        toast.error(`Preview failed: ${error?.message || data?.error || 'No audio URL'}`);
-        return;
+      // Try ElevenLabs preview_url first (instant, free), then generate
+      const voice = filteredVoices.find((v: any) => v.voice_id === selectedVoiceId);
+      let audioUrl = voice?.preview_url;
+
+      if (!audioUrl) {
+        const { data, error } = await supabase.functions.invoke('generate-audio', {
+          body: { text: previewText, voiceId: selectedVoiceId, modelId: 'eleven_multilingual_v2', isPreview: true }
+        });
+        if (error || !data?.audio_url) {
+          toast.error(`Preview failed: ${error?.message || data?.error || 'No audio URL'}`);
+          return;
+        }
+        audioUrl = data.audio_url;
       }
-      const audio = new Audio(data.audio_url);
+
+      const audio = new Audio(audioUrl);
       audio.onended = () => { setPlayingPreview(false); setPreviewAudio(null); };
       audio.onerror = () => { toast.error('Audio playback failed'); setPlayingPreview(false); };
       await audio.play();
