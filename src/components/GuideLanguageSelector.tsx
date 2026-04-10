@@ -69,7 +69,11 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
 
   const handleLanguageSelect = (languageCode: string) => {
     haptics.selection();
-    if (languageCode === selectedLanguage) return;
+    if (languageCode === selectedLanguage && collapsed) {
+      setCollapsed(false);
+      return;
+    }
+    setCollapsed(true);
     requestAnimationFrame(() => {
       const isInMultiTab = !!activeGuideId;
       const isLinkedGuide = isInMultiTab && activeGuideId !== guideId;
@@ -107,43 +111,64 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
   }
 
   return (
-    <div className={cn("space-y-3 transition-opacity duration-200", fetching && "opacity-70 pointer-events-none")}>
-      {/* Header */}
+    <div className={cn("space-y-2 transition-opacity duration-200", fetching && "opacity-70 pointer-events-none")}>
+      {/* Header with selected language badge */}
       <div className="flex items-center gap-2 px-1">
         <Globe className="h-4 w-4 text-muted-foreground" />
         <span className="text-sm text-muted-foreground font-medium">{t('language', selectedLanguage)}</span>
+        {collapsed && selectedLangInfo && (
+          <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+            <span>{getLanguageFlag(selectedLanguage)}</span>
+            <span>{selectedLangInfo.native_name}</span>
+          </span>
+        )}
       </div>
+      {(() => {
+        const rowHeight = 52;
+        const gap = 8;
+        const totalRows = Math.ceil(displayLanguages.length / 2);
+        const maxH = collapsed
+          ? rowHeight
+          : totalRows * rowHeight + (totalRows - 1) * gap;
 
-      {/* Circular flag buttons */}
-      <div className="flex flex-wrap items-end justify-center gap-3">
-        {displayLanguages.map((language) => {
-          const isSelected = language.language_code === selectedLanguage;
-          return (
-            <button
-              key={language.language_code}
-              onClick={() => handleLanguageSelect(language.language_code)}
-              className="flex flex-col items-center gap-1 transition-all duration-200 active:scale-90"
-            >
-              <div className={cn(
-                "rounded-full flex items-center justify-center transition-all duration-300",
-                isSelected
-                  ? "w-14 h-14 ring-[3px] ring-primary ring-offset-2 ring-offset-background shadow-lg shadow-primary/20"
-                  : "w-10 h-10 border-2 border-border/50 hover:border-primary/50 hover:scale-110"
-              )}>
-                <span className={cn("select-none", isSelected ? "text-3xl" : "text-xl")}>
-                  {getLanguageFlag(language.language_code)}
-                </span>
-              </div>
-              {isSelected && (
-                <div className="flex flex-col items-center animate-in fade-in slide-in-from-bottom-1 duration-200">
-                  <span className="text-xs font-semibold text-primary">{language.native_name}</span>
-                  <Check className="h-3 w-3 text-primary" />
-                </div>
-              )}
-            </button>
-          );
-        })}
-      </div>
+        return (
+          <div
+            className="grid grid-cols-2 gap-2 overflow-hidden transition-[max-height] duration-300"
+            style={{ maxHeight: `${maxH}px` }}
+          >
+            {displayLanguages.map((language) => {
+              const isSelected = language.language_code === selectedLanguage;
+              const isHidden = collapsed && !isSelected;
+              return (
+                <button
+                  key={language.language_code}
+                  onClick={() => handleLanguageSelect(language.language_code)}
+                  className={cn(
+                    "inline-flex items-center justify-center gap-2 px-3 rounded-xl text-sm font-medium",
+                    "border active:scale-[0.97]",
+                    "transition-[opacity,transform] duration-200 ease-out",
+                    isSelected
+                      ? "bg-primary/15 border-primary text-primary shadow-md ring-2 ring-primary/30 min-h-[44px] opacity-100 scale-100"
+                      : "bg-card border-border text-foreground hover:bg-muted min-h-[44px] opacity-100 scale-100",
+                    isSelected && collapsed && "col-span-2",
+                    isHidden && "hidden"
+                  )}
+                >
+                  <span className="text-lg" aria-hidden="true">
+                    {getLanguageFlag(language.language_code)}
+                  </span>
+                  <span>{language.native_name}</span>
+                  {isSelected && (
+                    <span className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground shrink-0">
+                      <Check className="h-3 w-3" />
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        );
+      })()}
     </div>
   );
 }
