@@ -57,7 +57,7 @@ serve(async (req) => {
     // Generate XML sitemap
     const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+        >
   <!-- Homepage -->
   <url>
     <loc>${baseUrl}/</loc>
@@ -102,17 +102,12 @@ ${Array.from(countries).map(country => {
   <!-- Guide Detail Pages -->
 ${guides?.map(guide => {
   const lastmod = guide.updated_at ? new Date(guide.updated_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
-  const imageSection = guide.image_url ? `
-    <image:image>
-      <image:loc>${guide.image_url}</image:loc>
-      <image:title>${guide.title?.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') || ''}</image:title>
-    </image:image>` : '';
   
   return `  <url>
     <loc>${baseUrl}/guide/${guide.slug}</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>${imageSection}
+    <priority>0.8</priority>
   </url>`;
 }).join('\n')}
 </urlset>`;
