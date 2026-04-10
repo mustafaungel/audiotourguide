@@ -231,15 +231,19 @@ export function AutoCreateGuide() {
       const { data, error } = await supabase.functions.invoke('generate-audio', {
         body: { text, voiceId, modelId: 'eleven_multilingual_v2', isPreview: true }
       });
-      if (error || !data?.audio_url) { toast.error('Preview failed'); return; }
+      if (error || !data?.audio_url) {
+        toast.error(`Preview failed: ${error?.message || data?.error || 'No audio URL'}`);
+        return;
+      }
 
       const audio = new Audio(data.audio_url);
       audio.onended = () => { setPlayingPreview(null); setPreviewAudio(null); };
+      audio.onerror = () => { toast.error('Audio playback failed'); setPlayingPreview(null); };
       await audio.play();
       setPlayingPreview(previewKey);
       setPreviewAudio(audio);
-    } catch {
-      toast.error('Preview failed');
+    } catch (e: any) {
+      toast.error(`Preview error: ${e?.message || 'Unknown'}`);
     } finally {
       setGeneratingPreview(null);
     }
