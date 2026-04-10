@@ -59,6 +59,7 @@ const SortableGuideRow = ({
   onEdit,
   onAddLanguage,
   onEditScripts,
+  onDelete,
   togglingId,
   linkedGuides,
   guideTitles,
@@ -69,6 +70,7 @@ const SortableGuideRow = ({
   onEdit: (id: string) => void;
   onAddLanguage: (guide: { id: string; title: string; location: string }) => void;
   onEditScripts: (guide: { id: string; title: string }) => void;
+  onDelete: () => void;
   togglingId: string | null;
   linkedGuides: LinkedGuideInfo[];
   guideTitles: Record<string, string>;
@@ -272,7 +274,7 @@ const SortableGuideRow = ({
                   const { error } = await supabase.from('audio_guides').delete().eq('id', guide.id);
                   if (error) { toast.error('Failed to delete'); return; }
                   toast.success('Guide deleted');
-                  fetchGuides();
+                  onDelete();
                 }}
               >
                 <Trash2 className="h-3.5 w-3.5" />

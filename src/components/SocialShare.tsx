@@ -20,9 +20,13 @@ interface SocialShareProps {
 export const SocialShare: React.FC<SocialShareProps> = ({ 
   title, 
   description, 
-  url = window.location.href,
+  url: urlProp,
   guide 
 }) => {
+  // Use edge function URL for guide sharing so crawlers get proper OG tags
+  const url = guide?.id
+    ? `https://dsaqlgxajdnwoqvtsrqd.supabase.co/functions/v1/og-image?id=${guide.id}`
+    : (urlProp || window.location.href);
   const { toast } = useToast();
 
   const shareData = {
