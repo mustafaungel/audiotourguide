@@ -43,7 +43,6 @@ export const FeaturedGuides = () => {
         .select('*')
         .eq('is_published', true)
         .eq('is_approved', true)
-        .eq('is_standalone', true)
         .order('display_order', { ascending: true })
         .limit(6);
 

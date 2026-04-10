@@ -39,7 +39,6 @@ const Index = () => {
         .select('id, title, slug, description, duration, location, rating, category, price_usd, difficulty, image_urls, image_url, total_purchases, display_order, is_featured')
         .eq('is_published', true)
         .eq('is_approved', true)
-        .eq('is_standalone', true)
         .order('display_order', { ascending: true });
       if (error) throw error;
       return data || [];
