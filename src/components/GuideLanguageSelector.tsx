@@ -111,35 +111,41 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
   }
 
   return (
-    <div className={cn("space-y-1.5 transition-opacity duration-200", fetching && "opacity-70 pointer-events-none")}>
-      {/* Selected language label */}
-      <div className="flex items-center gap-1.5">
-        <Globe className="h-3.5 w-3.5 text-muted-foreground" />
-        <span className="text-xs text-muted-foreground">{t('language', selectedLanguage)}:</span>
-        {selectedLangInfo && (
-          <span className="text-xs font-semibold text-primary">
-            {getLanguageFlag(selectedLanguage)} {selectedLangInfo.native_name}
-          </span>
-        )}
+    <div className={cn("space-y-2 transition-opacity duration-200", fetching && "opacity-70 pointer-events-none")}>
+      {/* Header */}
+      <div className="flex items-center gap-2 px-1">
+        <Globe className="h-4 w-4 text-muted-foreground" />
+        <span className="text-sm text-muted-foreground font-medium">{t('language', selectedLanguage)}</span>
       </div>
 
-      {/* Horizontal scrollable flag row */}
-      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
+      {/* Grid — collapsed: only selected, expanded: all in 3-4 columns */}
+      <div className={cn(
+        "grid gap-2 overflow-hidden transition-all duration-300",
+        collapsed ? "grid-cols-1" : "grid-cols-3 sm:grid-cols-4"
+      )}>
         {displayLanguages.map((language) => {
           const isSelected = language.language_code === selectedLanguage;
+          if (collapsed && !isSelected) return null;
           return (
             <button
               key={language.language_code}
               onClick={() => handleLanguageSelect(language.language_code)}
               className={cn(
-                "shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-xl transition-all duration-200 active:scale-90",
+                "inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl text-sm font-medium",
+                "border active:scale-[0.97] transition-all duration-200",
                 isSelected
-                  ? "ring-2 ring-primary ring-offset-2 ring-offset-background shadow-md"
-                  : "border border-border/50 hover:border-primary/50 hover:scale-110"
+                  ? "bg-primary/15 border-primary text-primary ring-2 ring-primary/30"
+                  : "bg-card border-border text-foreground hover:bg-muted",
+                isSelected && collapsed && "col-span-full"
               )}
-              title={language.native_name}
             >
-              {getLanguageFlag(language.language_code)}
+              <span className="text-lg">{getLanguageFlag(language.language_code)}</span>
+              <span className="text-xs truncate">{language.native_name}</span>
+              {isSelected && (
+                <span className="flex items-center justify-center h-4 w-4 rounded-full bg-primary text-primary-foreground shrink-0">
+                  <Check className="h-2.5 w-2.5" />
+                </span>
+              )}
             </button>
           );
         })}
