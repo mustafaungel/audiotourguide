@@ -64,6 +64,7 @@ const GuideDetail = () => {
     features: [],
     sections: [],
     languages: [],
+    is_featured: guidePreview.isFeatured || false,
   } : null);
   const [error, setError] = useState<string | null>(null);
   const [relatedGuides, setRelatedGuides] = useState<any[]>([]);
