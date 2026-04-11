@@ -144,7 +144,7 @@ const GuideDetail = () => {
   } : null);
   const [error, setError] = useState<string | null>(null);
   const [relatedGuides, setRelatedGuides] = useState<any[]>([]);
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('');
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
   const [guideSections, setGuideSections] = useState<any[]>([]);
   const [linkedGuides, setLinkedGuides] = useState<any[]>([]);
   const [currentAccessCode, setCurrentAccessCode] = useState<string | null>(null);
