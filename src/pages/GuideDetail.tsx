@@ -751,7 +751,7 @@ const GuideDetail = () => {
                   height={192}
                   quality={80}
                   loading="eager"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover object-bottom"
                 />
                 <Badge className="absolute top-1.5 left-1.5 bg-black/50 text-white border-0 text-[9px] px-1.5 py-0 capitalize backdrop-blur-sm">
                   {guide.category}
