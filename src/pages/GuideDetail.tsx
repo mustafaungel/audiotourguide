@@ -662,12 +662,11 @@ const GuideDetail = () => {
       <Navigation sticky={false} />
       
       {/* Sticky header — below navigation bar */}
-      <div className={`sticky top-0 z-40 backdrop-blur-xl border-b px-3 py-2.5 will-change-transform transform-gpu ${isFeaturedGuide ? 'bg-amber-500/15 dark:bg-amber-900/40 border-amber-500/20' : 'bg-primary/5 dark:bg-primary/10 border-primary/15'}`}>
+      <div className={`sticky top-0 z-40 backdrop-blur-xl border-b px-3 py-2.5 will-change-transform transform-gpu ${isFeaturedGuide ? 'bg-amber-500/15 dark:bg-amber-900/40 border-amber-500/30' : 'bg-primary/5 dark:bg-primary/10 border-primary/25'}`}>
         <div className="flex items-center gap-2.5">
           <button onClick={() => navigate(-1)} className={`w-11 h-11 shrink-0 rounded-full flex items-center justify-center transition-colors active:scale-90 ${isFeaturedGuide ? 'bg-amber-500/15 hover:bg-amber-500/25' : 'bg-primary/15 hover:bg-primary/25'}`}>
             <ChevronLeft className={`w-[22px] h-[22px] ${isFeaturedGuide ? 'text-amber-600 dark:text-amber-400' : 'text-primary'}`} />
           </button>
-          <Headphones className={`w-4 h-4 shrink-0 ${isFeaturedGuide ? 'text-amber-600 dark:text-amber-400' : 'text-primary'}`} />
           <span className="text-sm font-bold font-heading min-w-0 line-clamp-2 leading-tight">{guide.title}</span>
           <span className="text-base ml-0.5 shrink-0">{getLanguageFlag(selectedLanguage)}</span>
         </div>
