@@ -23,7 +23,7 @@ const Index = () => {
   const [processingPayment, setProcessingPayment] = useState<string | null>(null);
   const [selectedCountry, setSelectedCountry] = useState<string>('');
   const [selectedCity, setSelectedCity] = useState<string>('');
-  const [visibleCount, setVisibleCount] = useState(9);
+  const [visibleCount, setVisibleCount] = useState(6);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -151,7 +151,7 @@ const Index = () => {
 
   // Reset visible count when filters change
   useEffect(() => {
-    setVisibleCount(9);
+    setVisibleCount(6);
   }, [selectedCountry, selectedCity]);
 
   const visibleGuides = filteredGuides.slice(0, visibleCount);
@@ -294,7 +294,7 @@ const Index = () => {
           {!loading && remainingCount > 0 && (
             <div className="flex justify-center mt-8">
               <button
-                onClick={() => setVisibleCount(prev => prev + 9)}
+                onClick={() => setVisibleCount(prev => prev + 6)}
                 className="group relative flex items-center gap-3 px-8 py-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10 transition-all duration-300 active:scale-95 touch-target w-full sm:w-auto justify-center"
               >
                 <Headphones className="w-5 h-5 text-amber-500 group-hover:scale-110 transition-transform" />

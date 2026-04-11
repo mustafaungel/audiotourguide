@@ -79,7 +79,7 @@ export function GuideCard({
       {/* Top band */}
       <div className={`px-4 py-2 flex items-center gap-2 ${bandGradient}`}>
         <Headphones className="w-4 h-4 text-primary-foreground shrink-0" />
-        <span className="text-xs font-extrabold font-heading truncate tracking-tight text-primary-foreground">
+        <span className="text-[13px] font-extrabold font-heading truncate tracking-wide uppercase text-primary-foreground">
           {title}
         </span>
       </div>
@@ -98,19 +98,19 @@ export function GuideCard({
             className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-          <Badge className="absolute top-1.5 left-1.5 bg-black/50 text-white border-0 text-[9px] font-medium px-1.5 py-0 capitalize backdrop-blur-sm">
+          <Badge className="absolute top-1.5 left-1.5 bg-black/50 text-white border-0 text-[10px] font-semibold px-1.5 py-0 capitalize backdrop-blur-sm">
             {category}
           </Badge>
         </div>
 
         {/* Content */}
         <div className="flex-1 min-w-0 overflow-hidden flex flex-col justify-center gap-1.5 py-0.5">
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <MapPin className="w-3 h-3 text-primary/60 shrink-0" />
+          <div className="flex items-center gap-1 text-xs font-semibold text-foreground/80">
+            <MapPin className="w-3 h-3 text-primary/70 shrink-0" />
             <span>{location}</span>
           </div>
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Clock className="w-3 h-3 text-primary/60 shrink-0" />
+          <div className="flex items-center gap-1 text-xs font-medium text-foreground/60">
+            <Clock className="w-3 h-3 text-primary/70 shrink-0" />
             <span>{Math.floor(duration / 60)} min</span>
           </div>
           {languages && languages.length > 0 && (
