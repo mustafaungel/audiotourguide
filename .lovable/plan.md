@@ -1,25 +1,21 @@
 
 
-## GuideDetail Sticky Header — Featured Amber Tema Uyumu
+## GuideCard Başlık Bandı ve Kenar Güncellemesi
 
-### Problem
-Featured rehberlerin sticky header'ında `bg-amber-900/40` kullanılıyor. Bu renk koyu kahverengi-amber tonunda ve sayfa genelinde kullanılan parlak altın/amber gradyanlarıyla (ör. `from-amber-500 to-yellow-500`) uyumsuz. Cam efekti çalışıyor ama renk tonu yanlış — sayfadaki diğer amber öğeler sıcak altın tonlarında iken header soğuk/koyu görünüyor.
+### Yapılacaklar
 
-### Çözüm
-Sticky header arka planını featured temanın altın tonlarına uyumlu hale getir:
+**`src/components/GuideCard.tsx`**
 
-**`src/pages/GuideDetail.tsx` (satır 665)**
+1. **Kulaklık ikonunu kaldır** — Satır 81'deki `<Headphones>` bileşeni silinecek.
 
-```
-Önce:  bg-amber-900/40 dark:bg-amber-950/50
-Sonra: bg-amber-500/15 dark:bg-amber-900/40
-```
+2. **Kart kenar renklerini başlık bandıyla uyumlu ve daha belirgin yap:**
+   - Featured: `border-amber-500/30` → `border-amber-500/50`
+   - Normal: `border-border/50` → `border-primary/30`
 
-- Light mode: `bg-amber-500/15` — sıcak altın tonu, düşük opaklık, cam efekti belirgin
-- Dark mode: `bg-amber-900/40` — koyu modda biraz daha yoğun ama yine de şeffaf
-- `backdrop-blur-xl` korunacak
-- Border'ı da featured temaya uyumlu yapmak için: `border-amber-500/20` (featured durumunda)
+3. **Hover durumunda kenar rengi de temaya uyumlu olacak:**
+   - Featured: `hover:border-amber-500/40`
+   - Normal: `hover:border-primary/30` (mevcut `hover:border-primary/20` → `/30`)
 
-### Değişecek dosya
-1. `src/pages/GuideDetail.tsx` — satır 665, featured sticky header renk değerleri
+### Tek dosya değişikliği
+- `src/components/GuideCard.tsx` — 3 satır düzenleme
 
