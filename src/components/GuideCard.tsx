@@ -237,7 +237,8 @@ export function GuideCard({
             className="inline-block w-[3px] bg-primary rounded-full"
             style={{
               height: `${4 + Math.sin(delay * 0.02) * 6}px`,
-              animation: 'none',
+              animation: 'equalizer-bar 2.2s ease-in-out infinite',
+              animationDelay: `${delay}ms`,
             }}
           />
         ))}

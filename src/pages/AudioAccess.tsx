@@ -701,10 +701,10 @@ export default function AudioAccess() {
         <div className="grid grid-cols-[48px_1fr_48px] items-center px-2 min-h-12 h-auto py-1">
           <button
             onClick={() => navigate('/')}
-            className="flex items-center justify-center w-10 h-10 text-primary active:opacity-60 transition-opacity"
+            className="w-10 h-10 shrink-0 rounded-full bg-primary/15 hover:bg-primary/25 flex items-center justify-center transition-colors active:scale-90"
             aria-label={t('back', selectedLanguage)}
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-5 h-5 text-primary" />
           </button>
           <span className="text-sm font-semibold text-foreground text-center px-1 line-clamp-2 break-words inline-flex items-center justify-center gap-1.5">
             <Headphones className="h-3.5 w-3.5 text-primary shrink-0" />
