@@ -1,44 +1,23 @@
 
 
-## GuideDetail Sticky Header Okunabilirlik + Geri Butonu Büyütme + Non-Featured Tema
+## Sticky Header Başlık Taşması Çözümü
 
-### 1. Sticky Header Okunabilirliği (GuideDetail + AudioAccess)
+### Problem
+Uzun rehber başlıkları (ör. "Cappadocia : Goreme Open Air Muse...") sticky header'da `truncate` ile kesiliyor ve okunmuyor. Mobilde (390px) geri butonu (w-11) + ikon (w-4) + bayrak ikonu alan kaplıyor, başlığa az yer kalıyor.
 
-**Problem:** Başlık `text-xs` ve `font-bold` — küçük ekranlarda zor okunuyor.
+### Çözüm
+Başlığı tek satırda kesmek yerine **iki satıra izin ver** — `truncate` yerine `line-clamp-2` kullan. Bu sayede uzun başlıklar 2 satıra yayılır, yine de taşmaz.
 
-**Çözüm:**
-- Başlık font boyutunu `text-xs` → `text-sm` yap
-- Headphones ikonunu `w-3.5 h-3.5` → `w-4 h-4` yap
-- Padding'i `py-2` → `py-2.5` yap (biraz daha nefes alsın)
+### Değişiklik — `src/pages/GuideDetail.tsx` (satır 671)
 
-### 2. Geri Butonu Büyütme (Tüm Sayfalar)
+```
+Önce:  <span className="text-sm font-bold font-heading min-w-0 truncate">
+Sonra: <span className="text-sm font-bold font-heading min-w-0 line-clamp-2 leading-tight">
+```
 
-**Mevcut:** `w-10 h-10`, ikon `w-5 h-5`
+- `line-clamp-2`: Maksimum 2 satır, fazlası `...` ile kesilir
+- `leading-tight`: Satır yüksekliğini sıkıştırarak header'ın çok büyümesini önler
+- Header yüksekliği ~4-6px artar (kabul edilebilir)
 
-**Yeni:** `w-11 h-11`, ikon `w-5.5 h-5.5` (veya `w-[22px] h-[22px]`)
-
-Etkilenen yerler:
-- `src/pages/GuideDetail.tsx` — satır 667
-- `src/pages/AudioAccess.tsx` — satır 704
-
-### 3. Non-Featured Guide'lar İçin Özel Tema
-
-Featured guide'larda amber/altın tonları kullanılıyor. Non-featured guide'lar şu an generic `bg-background/70`, `bg-primary/15`, `border-border/30` kullanıyor — özel bir hissi yok.
-
-**Çözüm:** Non-featured guide'lara primary renk temasını daha belirgin uygula:
-
-| Eleman | Mevcut (non-featured) | Yeni (non-featured) |
-|--------|----------------------|---------------------|
-| Sticky header bg | `bg-background/70` | `bg-primary/5 dark:bg-primary/10` |
-| Sticky header border | `border-border/30` | `border-primary/15` |
-| Geri butonu bg | `bg-primary/15` | `bg-primary/15` (aynı) |
-| Kategori badge | `bg-black/50 text-white` | `bg-primary/80 text-primary-foreground` |
-| Headphones ikon | `text-primary` | `text-primary` (aynı) |
-
-Bu sayede non-featured guide'lar da kendi primary renk temasıyla tutarlı ve özel bir görünüm kazanır — featured'ın amber'ı gibi, ama primary palette'e dayalı.
-
-### Değişecek Dosyalar
-
-1. **`src/pages/GuideDetail.tsx`** — Sticky header okunabilirlik, geri butonu boyutu, non-featured tema renkleri
-2. **`src/pages/AudioAccess.tsx`** — Geri butonu boyutu, sticky header okunabilirlik
+Tek dosya, tek satır değişikliği.
 
