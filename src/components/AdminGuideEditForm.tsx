@@ -504,18 +504,15 @@ export const AdminGuideEditForm = ({ onBack, guideId: propGuideId, onClose }: Ad
                     Short links (maps.app.goo.gl) are not supported — use the full URL.
                   </p>
                 </div>
-                {formData.maps_url && getMapEmbedUrl(formData.maps_url) && (
-                  <div className="rounded-xl overflow-hidden border border-border/50 shadow-sm">
-                    <iframe
-                      src={getMapEmbedUrl(formData.maps_url)!}
-                      width="100%"
-                      height="200"
-                      style={{ border: 0 }}
-                      loading="lazy"
-                      referrerPolicy="no-referrer-when-downgrade"
-                      title="Map preview"
-                    />
-                  </div>
+                {formData.maps_url && (
+                  <a
+                    href={formData.maps_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 p-2 rounded-lg bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 text-sm text-green-700 dark:text-green-400"
+                  >
+                    ✓ Maps link saved — will show on guide detail page
+                  </a>
                 )}
               </CollapsibleContent>
             </Collapsible>

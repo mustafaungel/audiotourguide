@@ -91,7 +91,7 @@ const GuideDetail = () => {
   const currentChapters = guideSections.length > 0 ? guideSections : (guide?.chapters || guide?.sections || []);
   // Calculate duration from actual sections (language-specific)
   const sectionsDuration = currentChapters.reduce((sum: number, ch: any) => sum + (ch.duration_seconds || 0), 0);
-  const displayDuration = sectionsDuration > 0 ? Math.floor(sectionsDuration / 60) : Math.floor(guide.duration / 60);
+  const displayDuration = sectionsDuration > 0 ? Math.floor(sectionsDuration / 60) : Math.floor((guide?.duration || 0) / 60);
 
   // No global audio player - each chapter will manage its own
 
@@ -732,19 +732,23 @@ const GuideDetail = () => {
               {guide.description}
             </p>
 
-            {/* Map embed */}
+            {/* Map link */}
             {guide.maps_url && (
-              <div className="rounded-xl overflow-hidden border border-border/50 shadow-sm">
-                <iframe
-                  src={getMapEmbedUrl(guide.maps_url) || ''}
-                  width="100%"
-                  height="180"
-                  style={{ border: 0 }}
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  title={`${guide.title} location`}
-                />
-              </div>
+              <a
+                href={guide.maps_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 p-3 rounded-xl border border-border/50 bg-muted/30 hover:bg-muted/50 transition-colors group"
+              >
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
+                  <MapPin className="w-5 h-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm font-semibold text-foreground">View on Google Maps</span>
+                  <p className="text-xs text-muted-foreground truncate">{guide.location}</p>
+                </div>
+                <ChevronLeft className="w-4 h-4 text-muted-foreground rotate-180 shrink-0" />
+              </a>
             )}
 
             {/* What's Included — value proposition */}
