@@ -914,14 +914,14 @@ const GuideDetail = () => {
           {/* Sidebar */}
           <div className="space-y-4">
             {/* Purchase — headphone themed */}
-            <div className={`rounded-2xl border overflow-hidden ${isFeaturedGuide ? 'border-amber-500/30 bg-amber-500/5' : 'border-border/40'}`}>
-              <div className={`px-4 py-2 flex items-center justify-center gap-2 ${isFeaturedGuide ? 'bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500' : 'bg-gradient-to-r from-primary via-primary/90 to-primary'}`}>
-                <Headphones className={`w-4 h-4 ${isFeaturedGuide ? 'text-amber-50' : 'text-primary-foreground'}`} />
-                <span className={`text-xs font-bold tracking-wide uppercase ${isFeaturedGuide ? 'text-amber-50' : 'text-primary-foreground'}`}>Get Full Access</span>
+            <div className="rounded-2xl border overflow-hidden border-amber-500/30 bg-amber-500/5">
+              <div className="px-4 py-2 flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500">
+                <Headphones className="w-4 h-4 text-amber-50" />
+                <span className="text-xs font-bold tracking-wide uppercase text-amber-50">Get Full Access</span>
               </div>
               <div className="p-4">
                 {isPurchased ? (
-                  <div className={`flex items-center justify-center gap-2 py-3 ${isFeaturedGuide ? 'text-amber-600' : 'text-green-600'}`}>
+                  <div className="flex items-center justify-center gap-2 py-3 text-amber-600">
                     <Check className="w-5 h-5" />
                     <span className="font-semibold text-sm">Already Purchased</span>
                   </div>
