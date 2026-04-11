@@ -679,36 +679,34 @@ const GuideDetail = () => {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-4">
             {/* Compact Header — image + info side by side */}
-            <div className="space-y-3">
-              <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden shadow-lg">
+            <div className="flex gap-4">
+              <div className="relative w-32 h-32 sm:w-36 sm:h-36 shrink-0 rounded-xl overflow-hidden shadow-lg">
                 <OptimizedImage
                   src={guide.image_urls?.[0] || guide.image_url}
                   alt={`${guide.title} - Audio Guide`}
-                  width={600}
-                  height={338}
+                  width={144}
+                  height={144}
                   quality={80}
                   loading="eager"
                   className="w-full h-full object-cover object-center"
                 />
-                <Badge className={`absolute top-2 left-2 border-0 text-[9px] px-1.5 py-0 capitalize backdrop-blur-sm ${isFeaturedGuide ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-50' : 'bg-primary/80 text-primary-foreground'}`}>
+                <Badge className={`absolute top-1.5 left-1.5 border-0 text-[9px] px-1.5 py-0 capitalize backdrop-blur-sm ${isFeaturedGuide ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-50' : 'bg-primary/80 text-primary-foreground'}`}>
                   {guide.category}
                 </Badge>
               </div>
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <MapPin className="w-3.5 h-3.5 text-primary/60 shrink-0" />
-                    <span>{guide.location}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Clock className="w-3.5 h-3.5 text-primary/60 shrink-0" />
-                    <span>{displayDuration} min</span>
-                    <span>·</span>
-                    <span>{currentChapters.length} stops</span>
-                  </div>
+              <div className="flex-1 min-w-0 flex flex-col justify-center">
+                <LiveListenersBadge guideId={guide.id} />
+                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                  <MapPin className="w-3 h-3 text-primary/60 shrink-0" />
+                  <span>{guide.location}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <LiveListenersBadge guideId={guide.id} size="compact" />
+                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                  <Clock className="w-3 h-3 text-primary/60 shrink-0" />
+                  <span>{displayDuration} min</span>
+                  <span>·</span>
+                  <span>{currentChapters.length} stops</span>
+                </div>
+                <div className="flex items-center gap-2 mt-1.5">
                   {guide?.id && (
                     <GuideLanguageSelector
                       guideId={guide.id}
