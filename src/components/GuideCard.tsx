@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, MapPin, Headphones } from "lucide-react";
+import { Clock, MapPin, Headphones, Play } from "lucide-react";
 import { ButtonLoader } from "@/components/AudioGuideLoader";
 import { useViralTracking } from "@/hooks/useViralTracking";
 import { useNavigate } from "react-router-dom";
@@ -60,13 +60,12 @@ export function GuideCard({
       className="group rounded-2xl overflow-hidden border border-border/40 bg-card shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer active:scale-[0.98]"
       onClick={handleView}
     >
-      {/* Top band — Audio Tour Guide */}
-      <div className="bg-gradient-to-r from-primary via-primary/90 to-primary px-4 py-1.5 flex items-center justify-center gap-2">
-        <Headphones className="w-3.5 h-3.5 text-primary-foreground" />
-        <span className="text-[10px] font-bold text-primary-foreground tracking-widest uppercase font-heading">
-          Audio Tour Guide
+      {/* Top band — Guide title */}
+      <div className="bg-gradient-to-r from-primary via-primary/90 to-primary px-4 py-2 flex items-center gap-2">
+        <Headphones className="w-4 h-4 text-primary-foreground shrink-0" />
+        <span className="text-xs font-bold text-primary-foreground font-heading truncate">
+          {title}
         </span>
-        <Headphones className="w-3.5 h-3.5 text-primary-foreground" />
       </div>
 
       {/* Main content — horizontal layout */}
@@ -83,9 +82,10 @@ export function GuideCard({
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-          {/* Price badge */}
-          <div className="absolute bottom-1.5 right-1.5 bg-primary text-primary-foreground text-[11px] font-bold px-2 py-0.5 rounded-md shadow-lg">
-            ${(price / 100).toFixed(2)}
+          {/* Price badge — headphone shaped */}
+          <div className="absolute bottom-1.5 right-1.5 flex items-center gap-1 bg-primary text-primary-foreground rounded-full shadow-lg pl-1 pr-2 py-0.5">
+            <Headphones className="w-3 h-3" />
+            <span className="text-[10px] font-bold">${(price / 100).toFixed(2)}</span>
           </div>
           {/* Category badge */}
           <Badge className="absolute top-1.5 left-1.5 bg-black/50 text-white border-0 text-[9px] font-medium px-1.5 py-0 capitalize backdrop-blur-sm">
@@ -94,14 +94,9 @@ export function GuideCard({
         </div>
 
         {/* Content */}
-        <div className="flex-1 min-w-0 overflow-hidden flex flex-col justify-between py-0.5">
-          {/* Title — full, no truncation */}
-          <h3 className="font-bold text-[15px] leading-tight font-heading">
-            {title}
-          </h3>
-
-          {/* Location — full, no truncation */}
-          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+        <div className="flex-1 min-w-0 overflow-hidden flex flex-col justify-center gap-1.5 py-0.5">
+          {/* Location */}
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <MapPin className="w-3 h-3 text-primary/60 shrink-0" />
             <span>{location}</span>
           </div>
@@ -122,21 +117,18 @@ export function GuideCard({
             </div>
           )}
 
-          {/* Listen button */}
+          {/* Play button */}
           <Button
             variant="default"
-            size="sm"
-            className="mt-1.5 h-7 w-full text-[11px] font-semibold rounded-full bg-gradient-tourism hover:shadow-tourism gap-1.5 shadow-sm"
+            size="icon"
+            className="mt-1.5 h-9 w-9 rounded-full bg-gradient-tourism hover:shadow-tourism shadow-sm self-end shrink-0"
             disabled={isProcessingPayment}
             onClick={(e) => { e.stopPropagation(); handleView(); }}
           >
             {isProcessingPayment ? (
-              <ButtonLoader text="..." />
+              <ButtonLoader text="" />
             ) : (
-              <>
-                <Headphones className="h-3 w-3" />
-                Listen Now
-              </>
+              <Play className="h-4 w-4 ml-0.5" fill="currentColor" />
             )}
           </Button>
         </div>
