@@ -43,7 +43,7 @@ export function OptimizedImage({
   }, [src, width, height, quality]);
 
   return (
-    <div className="relative overflow-hidden" style={{ width, height }}>
+    <div className="relative overflow-hidden w-full h-full">
       {/* Shimmer placeholder — visible until image loads */}
       {!loaded && (
         <div className="absolute inset-0 bg-muted animate-pulse" />
