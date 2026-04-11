@@ -680,12 +680,6 @@ const GuideDetail = () => {
           <div className="lg:col-span-2 space-y-4">
             {/* Compact Header — image + info side by side */}
             <div className="space-y-3">
-              {/* Location badge — above image */}
-              <span className="inline-flex items-center gap-1.5 w-fit bg-primary/10 text-primary text-xs font-medium rounded-full px-2.5 py-1">
-                <MapPin className="w-3 h-3" />
-                {guide.location}
-              </span>
-
               {/* Image + Language flags side by side */}
               <div className="flex gap-4">
                 <div className="relative w-32 h-32 sm:w-36 sm:h-36 shrink-0 rounded-xl overflow-hidden shadow-lg">
@@ -701,6 +695,10 @@ const GuideDetail = () => {
                   <Badge className={`absolute top-1.5 left-1.5 border-0 text-[9px] px-1.5 py-0 capitalize backdrop-blur-sm ${isFeaturedGuide ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-50' : 'bg-primary/80 text-primary-foreground'}`}>
                     {guide.category}
                   </Badge>
+                  <span className="absolute bottom-1.5 left-1.5 right-1.5 inline-flex items-center gap-1 bg-black/60 backdrop-blur-sm text-white text-[9px] font-medium rounded-md px-1.5 py-0.5">
+                    <MapPin className="w-2.5 h-2.5 shrink-0" />
+                    <span className="truncate">{guide.location}</span>
+                  </span>
                 </div>
                 <div className="flex-1 min-w-0 flex items-start">
                   {guide?.id && (
