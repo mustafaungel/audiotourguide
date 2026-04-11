@@ -742,7 +742,7 @@ const GuideDetail = () => {
           <div className="lg:col-span-2 space-y-4">
             {/* Compact Header — image + info side by side */}
             <div className="flex gap-4">
-              <div className="relative w-28 h-28 sm:w-36 sm:h-36 shrink-0 rounded-xl overflow-hidden shadow-lg">
+              <div className="relative w-32 h-32 sm:w-36 sm:h-36 shrink-0 rounded-xl overflow-hidden shadow-lg">
                 <img
                   src={(guide.image_urls?.[0] || guide.image_url) || '/hero-audio-guide.jpg'}
                   alt={guide.title}
