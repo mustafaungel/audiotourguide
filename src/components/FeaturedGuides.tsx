@@ -1,14 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { MapPin, Clock, Star, Users } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { AudioGuideLoader } from '@/components/AudioGuideLoader';
-import { useViralTracking } from '@/hooks/useViralTracking';
-import { OptimizedImage } from '@/components/OptimizedImage';
+import { GuideCard } from '@/components/GuideCard';
 
 interface AudioGuide {
   id: string;
@@ -29,8 +23,6 @@ interface AudioGuide {
 export const FeaturedGuides = () => {
   const [guides, setGuides] = useState<AudioGuide[]>([]);
   const [loading, setLoading] = useState(true);
-  const { trackEngagement } = useViralTracking();
-  const navigate = useNavigate();
 
   useEffect(() => {
     fetchGuides();
@@ -57,54 +49,6 @@ export const FeaturedGuides = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleGuideClick = (guide: AudioGuide) => {
-    // Fire-and-forget tracking
-    trackEngagement('view', guide.id);
-    navigate(`/guide/${guide.slug || guide.id}`, {
-      state: {
-        guidePreview: {
-          id: guide.id,
-          slug: guide.slug,
-          title: guide.title,
-          description: guide.description,
-          location: guide.location,
-          price: guide.price_usd,
-          duration: guide.duration,
-          category: guide.category,
-          difficulty: guide.difficulty,
-          imageUrl: guide.image_url,
-        }
-      }
-    });
-  };
-
-  const formatPrice = (price: number) => {
-    return `$${(price / 100).toFixed(2)}`;
-  };
-
-  const formatDuration = (durationValue: number) => {
-    // Duration is stored in seconds in the database
-    const minutes = Math.floor(durationValue / 60);
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-    
-    if (hours > 0) {
-      return `${hours}h ${remainingMinutes}m`;
-    }
-    return `${minutes}m`;
-  };
-
-  const getCategoryColor = (category: string) => {
-    const colors = {
-      cultural: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
-      historical: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
-      adventure: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
-      scenic: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
-      urban: 'bg-muted text-muted-foreground',
-    };
-    return colors[category as keyof typeof colors] || 'bg-muted text-muted-foreground';
   };
 
   if (loading) {
@@ -138,81 +82,22 @@ export const FeaturedGuides = () => {
         >
           <CarouselContent className="-ml-2">
             {guides.map((guide) => (
-              <CarouselItem key={guide.id} className="pl-2 basis-[85%] sm:basis-[75%] md:basis-1/2 lg:basis-1/3">{/* Mobile-first carousel items */}
-                <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden mobile-card cursor-pointer" onClick={() => handleGuideClick(guide)}>
-                  <div className="relative aspect-mobile overflow-hidden bg-muted">
-                    <OptimizedImage
-                      src={guide.image_url}
-                      alt={guide.title}
-                      width={600}
-                      quality={80}
-                      loading="lazy"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute top-4 left-4">
-                      <Badge className={getCategoryColor(guide.category)}>
-                        {guide.category}
-                      </Badge>
-                    </div>
-                    <div className="absolute top-4 right-4">
-                      <Badge variant="secondary" className="bg-background/70 backdrop-blur-sm text-foreground">
-                        {formatPrice(guide.price_usd)}
-                      </Badge>
-                    </div>
-                  </div>
-                  
-                  <CardHeader>
-                    <CardTitle className="mobile-subheading line-clamp-2">{guide.title}</CardTitle>
-                    <CardDescription className="mobile-caption line-clamp-2">{guide.description}</CardDescription>
-                  </CardHeader>
-                  
-                  <CardContent className="pt-0">
-                    <div className="mobile-spacing">
-                      <div className="flex items-center gap-4 mobile-caption text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <MapPin className="w-4 h-4" />
-                          <span>{guide.location}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          <span>{formatDuration(guide.duration)}</span>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-4 mobile-caption">
-                        <div className="flex items-center gap-1">
-                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                          <span>{guide.rating || 0}</span>
-                          <span className="text-muted-foreground">({guide.total_reviews || 0})</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Users className="w-4 h-4" />
-                          <span>{guide.languages.length} languages</span>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="mobile-caption">
-                          {guide.difficulty}
-                        </Badge>
-                        <div className="flex gap-1">
-                          {guide.languages.slice(0, 2).map((lang) => (
-                            <Badge key={lang} variant="outline" className="mobile-caption">
-                              {lang}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      <Button 
-                        className="w-full mt-4 touch-target"
-                        onClick={(e) => { e.stopPropagation(); handleGuideClick(guide); }}
-                      >
-                        Explore Guide
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+              <CarouselItem key={guide.id} className="pl-2 basis-[85%] sm:basis-[75%] md:basis-1/2 lg:basis-1/3">
+                <GuideCard
+                  id={guide.id}
+                  slug={guide.slug}
+                  title={guide.title}
+                  description={guide.description}
+                  location={guide.location}
+                  price={guide.price_usd}
+                  rating={guide.rating || 0}
+                  duration={guide.duration}
+                  category={guide.category}
+                  difficulty={guide.difficulty}
+                  imageUrl={guide.image_url}
+                  languages={guide.languages}
+                  isFeatured={true}
+                />
               </CarouselItem>
             ))}
           </CarouselContent>
