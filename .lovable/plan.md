@@ -1,71 +1,68 @@
 
 
-## Topkapı Sarayı Audio Guide Oluşturma Sorunları ve Çözüm
+## Analiz ve Iyilestirme Plani
 
-### Tespit Edilen Sorunlar
+### Mevcut Durum
 
-Session replay ve edge function loglarından analiz:
+Claude uzerinde yapilan son guncellemeleri inceledim. Asagidaki bulgular ve iyilestirme onerileri:
 
-1. **18 bölüm planlandı** — Topkapı Sarayı için `plan-guide-sections` 18 bölüm çıkardı. Her bölüm için sırasıyla script üretimi (~7s) + audio üretimi (~30s) yapılıyor. Toplam: ~11 dakika sadece İngilizce audio için.
+### 1. Border Tutarliligi (Dark Mode)
 
-2. **Section 9'da hata** — 8 bölümün audiosu başarıyla üretildi (loglardan doğrulandı), section 9 için edge function çağrısı yapıldı ama yanıt gelmedi (shutdown logları var, error logu yok). Bu, **edge function timeout** (Supabase free tier: 150s, paid: 400s) veya ElevenLabs API rate limit olasılığını gösteriyor.
+Light mode'da borderlar zaten yumusak (`25 20% 80%` — arka plana yakin). Dark mode'da ise `25 12% 30%` — arka plan `25 20% 6%` oldugu icin kontrast fazla, borderlar belirgin gorunuyor.
 
-3. **Retry mekanizması yok** — Tek bir bölüm başarısız olunca `throw new Error()` ile tüm süreç iptal ediliyor, daha önce başarıyla üretilen 8 audio da boşa gidiyor.
+**Cozum:** Dark mode `--border` degerini `25 12% 18%` gibi daha yumusak bir degere cek. `--input` border'ini da uyumlu hale getir.
 
-4. **Sıralı (sequential) işlem** — Tüm audio'lar birer birer üretiliyor, paralel işlem yok.
+### 2. Yazi Fontlari - Daha Canli Tipografi
 
-### Çözüm
+Suanki durum: Basliklar `Plus Jakarta Sans`, govde `Inter`. Ikisi de geometrik ve notr fontlar — "cansiz" hissi veriyor.
 
-**3 dosyada değişiklik:**
+**Cozum:**
+- Basliklar icin `Plus Jakarta Sans` yerine **`Sora`** veya mevcut `Playfair Display`'i aktif et — daha karakterli
+- Govde fontu `Inter` kalsin (okunabilirlik icin en iyisi)
+- Baslik `letter-spacing`'i `-0.03em`'e artir, `font-weight` 700 → 800 yap
+- `h1` icin ozel bir gradient text efekti ekle (primary → tourism-earth)
 
-#### 1. `src/components/AutoCreateGuide.tsx` — Audio üretim döngüsüne retry + parallelism ekle
+### 3. Featured Guides Sayfasi — Ayni Tasarim Kullanmali
 
-- **Retry mantığı**: Her audio üretimi için 2 retry denemesi ekle (toplam 3 deneme). Araya 3 saniye bekleme koy (rate limit koruması).
-- **Hata toleransı**: Tek bir bölüm başarısız olursa tüm süreci iptal etme, o bölümü "failed" olarak işaretle ve devam et. Sonunda kullanıcıya kaç bölümün başarısız olduğunu göster.
-- **2'li paralel üretim**: Aynı anda 2 audio üretimi başlat (ElevenLabs rate limit'e takılmamak için 2 ile sınırla).
+**Sorun:** `src/pages/FeaturedGuides.tsx` tamamen farkli bir kart tasarimi kullaniyor (dikey Card/CardContent ile). Ana sayfa ve Guides sayfasi ise `GuideCard` bilesenini kullaniyor.
 
-```typescript
-// Retry helper
-const generateAudioWithRetry = async (text, voiceId, maxRetries = 2) => {
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-audio', {
-        body: { text, voiceId, modelId: 'eleven_multilingual_v2' }
-      });
-      if (!error && data?.audio_url) return data;
-      if (attempt < maxRetries) await new Promise(r => setTimeout(r, 3000));
-    } catch { 
-      if (attempt < maxRetries) await new Promise(r => setTimeout(r, 3000));
-    }
-  }
-  return null; // Failed after retries
-};
+**Cozum:** FeaturedGuides sayfasini refactor et:
+- Mevcut ozel kart yapisini kaldir
+- `GuideCard` bilesenini kullan (Index ve Guides ile ayni)
+- Ayni grid yapisini kullan (`grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3`)
+- Sayfa header'ini Guides sayfasiyla uyumlu tut
 
-// 2'li paralel batch üretimi
-for (let i = 0; i < sections.length; i += 2) {
-  const batch = sections.slice(i, i + 2);
-  const results = await Promise.all(batch.map(...));
-  // ...
-}
+### 4. Admin Featured Toggle — Zaten Mevcut
+
+AdminGuideOrderManager'da Star ikonu ile featured toggle zaten var (satir 243-255). Ek bir islem gerekmiyor.
+
+### 5. Featured Badge — Zaten Mevcut
+
+GuideCard'da `isFeatured` prop'u zaten altin rengi top band olarak gosteriliyor (satir 66-81). Ek bir islem gerekmiyor.
+
+---
+
+### Degisiklik Ozeti
+
+| Dosya | Degisiklik |
+|-------|-----------|
+| `src/index.css` | Dark mode `--border` ve `--input` degerlerini yumusalt; baslik font-weight ve letter-spacing artir; gradient text utility ekle |
+| `src/pages/FeaturedGuides.tsx` | Ozel kart yapisini kaldir, `GuideCard` bileseni ile degistir, ayni grid layout kullan |
+| `index.html` | Font import'larini guncelle (eger Sora ekliyorsak) |
+
+### Teknik Detay
+
+```text
+Dark mode border degisikligi:
+  --border: 25 12% 30%  →  25 12% 18%
+  --input:  25 12% 20%  →  25 12% 15%
+
+Baslik tipografi:
+  h1-h4 letter-spacing: -0.02em → -0.03em
+  h1-h4 font-weight: semibold ekle (zaten var, 800'e artir)
+
+FeaturedGuides refactor:
+  Mevcut: Ozel Card/CardContent ile dikey kart
+  Yeni: GuideCard bilesenini import et, ayni props ile kullan
 ```
-
-#### 2. `supabase/functions/generate-audio/index.ts` — Script uzunluk limitini artır
-
-- Mevcut limit 5000 karakter — bazı detaylı bölümler bunu aşabiliyor
-- **Limiti 8000 karaktere çıkar** (ElevenLabs API'si 5000+ karakteri destekliyor)
-
-#### 3. `supabase/functions/plan-guide-sections/index.ts` — Bölüm sayısını makul tut
-
-- Mevcut prompt "15-25 sections" diyor — bu çok fazla audio üretim süresi demek
-- **Maksimum 12 bölümle sınırla**: prompt'u "8-12 sections for major sites, 4-8 for smaller ones" olarak güncelle
-- Bu tek başına süreyi ~%40 azaltır
-
-### Özet
-
-| Sorun | Çözüm | Etki |
-|-------|-------|------|
-| 18 bölüm = 11+ dk | Maks 12 bölüm | ~%40 hız artışı |
-| Sıralı audio üretimi | 2'li paralel batch | ~%50 hız artışı |
-| Tek hata = tümü iptal | Retry + hata toleransı | Güvenilirlik |
-| 5000 char script limiti | 8000 char'a çıkar | Uzun script desteği |
 
