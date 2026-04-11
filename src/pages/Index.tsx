@@ -258,49 +258,31 @@ const Index = () => {
           {/* Loading State */}
           {loading && <AudioGuideLoader variant="card" count={6} />}
 
-          {/* Guides Carousel */}
+          {/* Guides List */}
           {!loading && filteredGuides.length > 0 && (
-            <CarouselComponents.Carousel
-              opts={{ align: "start", loop: true }}
-              className="w-full"
-            >
-              <CarouselComponents.CarouselContent className="-ml-3 items-stretch">
-                {filteredGuides.map((guide, idx) => {
-                  const isPurchased = userPurchases.includes(guide.id);
-                  return (
-                    <CarouselComponents.CarouselItem key={guide.id} className="pl-3 basis-[85%] sm:basis-1/2 lg:basis-1/3 xl:basis-1/4 2xl:basis-1/5 flex">
-                      <GuideCard
-                        id={guide.id}
-                        slug={guide.slug}
-                        title={guide.title}
-                        description={guide.description}
-                        duration={guide.duration}
-                        location={guide.location}
-                        rating={guide.rating || 0}
-                        category={guide.category}
-                        price={guide.price_usd}
-                        difficulty={guide.difficulty}
-                        imageUrl={guide.image_urls?.[0] || guide.image_url}
-                        totalPurchases={guide.total_purchases || 0}
-                        languages={guide.languages}
-                        imageLoading={idx < 3 ? 'eager' : 'lazy'}
-                        creatorName="Audio Tour Guides"
-                        isProcessingPayment={processingPayment === guide.id}
-                        onViewGuide={() => {
-                          if (isPurchased || guide.price_usd === 0) {
-                            handlePlayGuide(guide);
-                          } else {
-                            handlePurchaseGuide(guide.id);
-                          }
-                        }}
-                      />
-                    </CarouselComponents.CarouselItem>
-                  );
-                })}
-              </CarouselComponents.CarouselContent>
-              <CarouselComponents.CarouselPrevious className="flex -left-2 sm:-left-4" />
-              <CarouselComponents.CarouselNext className="flex -right-2 sm:-right-4" />
-            </CarouselComponents.Carousel>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+              {filteredGuides.map((guide, idx) => (
+                <GuideCard
+                  key={guide.id}
+                  id={guide.id}
+                  slug={guide.slug}
+                  title={guide.title}
+                  description={guide.description}
+                  duration={guide.duration}
+                  location={guide.location}
+                  rating={guide.rating || 0}
+                  category={guide.category}
+                  price={guide.price_usd}
+                  difficulty={guide.difficulty}
+                  imageUrl={guide.image_urls?.[0] || guide.image_url}
+                  totalPurchases={guide.total_purchases || 0}
+                  languages={guide.languages}
+                  imageLoading={idx < 4 ? 'eager' : 'lazy'}
+                  creatorName="Audio Tour Guides"
+                  isProcessingPayment={processingPayment === guide.id}
+                />
+              ))}
+            </div>
           )}
 
           {/* No Results */}

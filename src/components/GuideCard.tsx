@@ -1,9 +1,7 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, MapPin, Bookmark, Share2, Play, Headphones } from "lucide-react";
+import { Clock, MapPin, Headphones } from "lucide-react";
 import { ButtonLoader } from "@/components/AudioGuideLoader";
-import { useToast } from "@/hooks/use-toast";
 import { useViralTracking } from "@/hooks/useViralTracking";
 import { useNavigate } from "react-router-dom";
 import { OptimizedImage } from "@/components/OptimizedImage";
@@ -45,30 +43,8 @@ export function GuideCard({
   imageLoading = 'lazy',
   isProcessingPayment = false,
 }: GuideCardProps) {
-  const { toast } = useToast();
   const { trackEngagement } = useViralTracking();
   const navigate = useNavigate();
-
-  const handleShare = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    trackEngagement('share', id, { platform: 'native' });
-    if (navigator.share) {
-      try {
-        await navigator.share({ title, text: description, url: window.location.href });
-      } catch (error) {
-        console.log('Error sharing:', error);
-      }
-    } else {
-      await navigator.clipboard.writeText(window.location.href);
-      toast({ title: "Link copied!", description: "Guide link copied to clipboard" });
-    }
-  };
-
-  const handleBookmark = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    trackEngagement('bookmark', id);
-    toast({ title: "Bookmarked!", description: "Guide saved to your library" });
-  };
 
   const handleView = () => {
     trackEngagement('view', id);
@@ -91,124 +67,81 @@ export function GuideCard({
   };
 
   return (
-    <Card
-      className="group overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer select-none bg-card border-border/30 shadow-card audio-card-glow hover:scale-[1.02] active:scale-[0.98] h-full flex flex-col"
+    <div
+      className="group flex gap-3 p-3 rounded-xl border border-border/30 bg-card shadow-sm hover:shadow-md hover:border-primary/20 transition-all duration-200 cursor-pointer active:scale-[0.98]"
       onClick={handleView}
     >
-      {/* Image Section */}
-      <CardHeader className="p-0 relative">
-        <div className="aspect-[4/3] overflow-hidden bg-muted relative">
-          <OptimizedImage
-            src={imageUrl}
-            alt={`${title} - Audio tour guide in ${location}`}
-            width={400}
-            height={300}
-            quality={75}
-            loading={imageLoading}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-
-          {/* Waveform bars at bottom of image — 11 bars premium */}
-          <div className="card-waveform absolute bottom-0 left-0 right-0 flex items-end justify-center gap-[2px] h-5 px-4 pb-1">
-            {[0, 120, 240, 80, 200, 40, 160, 280, 100, 220, 60].map((delay, i) => (
-              <span key={i} className="waveform-bar" style={{ animationDelay: `${delay}ms` }} />
-            ))}
+      {/* Image — square thumbnail */}
+      <div className="relative w-28 h-28 sm:w-32 sm:h-32 shrink-0 rounded-lg overflow-hidden">
+        <OptimizedImage
+          src={imageUrl}
+          alt={title}
+          width={128}
+          height={128}
+          quality={75}
+          loading={imageLoading}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        />
+        {/* Category badge on image */}
+        <Badge className={`absolute top-1.5 left-1.5 ${getCategoryColor(category)} text-[9px] font-medium px-1.5 py-0 capitalize`}>
+          {category}
+        </Badge>
+        {/* Play overlay on hover */}
+        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          <div className="w-10 h-10 rounded-full bg-primary/90 flex items-center justify-center">
+            <Headphones className="w-4 h-4 text-primary-foreground" />
           </div>
         </div>
+      </div>
 
-        {/* Category badge */}
-        <div className="absolute top-3 left-3">
-          <Badge className={`${getCategoryColor(category)} text-[10px] font-medium px-2 py-0.5 audio-premium-badge capitalize`}>
-            {category}
-          </Badge>
+      {/* Content — right side */}
+      <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+        {/* Title */}
+        <h3 className="font-semibold text-sm leading-snug line-clamp-2">{title}</h3>
+
+        {/* Meta row */}
+        <div className="flex items-center gap-2 text-[11px] text-muted-foreground mt-1">
+          <span className="flex items-center gap-0.5">
+            <MapPin className="w-3 h-3" />
+            <span className="truncate max-w-[100px]">{location}</span>
+          </span>
+          <span className="flex items-center gap-0.5">
+            <Clock className="w-3 h-3" />
+            {Math.floor(duration / 60)} min
+          </span>
         </div>
 
-        {/* Action buttons */}
-        <div className="absolute top-3 right-3 flex gap-1.5">
-          <Button
-            size="icon"
-            variant="secondary"
-            className="h-7 w-7 rounded-full bg-card/60 backdrop-blur-md hover:bg-card border-0 touch-manipulation"
-            onClick={handleBookmark}
-          >
-            <Bookmark className="h-3 w-3" />
-          </Button>
-          <Button
-            size="icon"
-            variant="secondary"
-            className="h-7 w-7 rounded-full bg-card/60 backdrop-blur-md hover:bg-card border-0 touch-manipulation"
-            onClick={handleShare}
-          >
-            <Share2 className="h-3 w-3" />
-          </Button>
-        </div>
-
-        {/* Hover overlay — headphone + sound waves */}
-        <div className="absolute inset-0 bg-background/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center pointer-events-none">
-          <div className="rounded-full h-14 w-14 bg-primary/90 backdrop-blur-sm flex items-center justify-center shadow-lg play-button-glow">
-            <Headphones className="h-6 w-6 text-primary-foreground" />
+        {/* Language flags */}
+        {languages && languages.length > 0 && (
+          <div className="flex flex-wrap items-center gap-0.5 mt-1">
+            {languages.map((lang, i) => {
+              const match = ELEVENLABS_LANGUAGES.find(l => l.name === lang || l.code === lang);
+              return match ? <span key={i} className="text-xs" title={match.name}>{match.flag}</span> : null;
+            })}
           </div>
-        </div>
-      </CardHeader>
+        )}
 
-      {/* Content Section */}
-      <CardContent className="p-4 flex-1 flex flex-col">
-        <div className="flex-1 flex flex-col gap-2">
-          {/* Title with headphone icon */}
-          <div className="flex items-start gap-2">
-            <Headphones className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
-            <h3 className="font-semibold text-sm leading-snug line-clamp-2">{title}</h3>
-          </div>
-
-          {/* Description */}
-          <p className="text-muted-foreground text-xs leading-relaxed line-clamp-2">{description}</p>
-
-          {/* Metadata — single compact line */}
-          <div className="flex items-center text-[11px] text-muted-foreground mt-auto pt-1">
-            <MapPin className="h-3 w-3 shrink-0 mr-1" />
-            <span className="truncate max-w-[60%]">{location}</span>
-            <span className="mx-1.5">·</span>
-            <Clock className="h-3 w-3 shrink-0 mr-1" />
-            <span className="whitespace-nowrap">{Math.floor(duration / 60)} min</span>
-          </div>
-
-          {/* Language flags — all languages shown */}
-          {languages && languages.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1 pt-1">
-              {languages.map((lang, i) => {
-                const match = ELEVENLABS_LANGUAGES.find(l => l.name === lang || l.code === lang);
-                return match ? <span key={i} className="text-sm" title={match.name}>{match.flag}</span> : null;
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Price + CTA row */}
-        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/30">
-          <span className="text-base font-bold">${(price / 100).toFixed(2)}</span>
+        {/* Price + CTA */}
+        <div className="flex items-center gap-2 mt-1.5">
+          <span className="text-sm font-bold">${(price / 100).toFixed(2)}</span>
           <Button
             variant="default"
             size="sm"
-            className="ml-auto bg-gradient-tourism hover:shadow-tourism min-h-[36px] text-xs font-medium touch-manipulation gap-1.5 rounded-full px-4"
+            className="ml-auto h-7 text-[11px] font-medium rounded-full px-3 bg-gradient-tourism hover:shadow-tourism gap-1"
             disabled={isProcessingPayment}
-            onClick={(e) => {
-              e.stopPropagation();
-              if (!isProcessingPayment) handleView();
-            }}
+            onClick={(e) => { e.stopPropagation(); handleView(); }}
           >
             {isProcessingPayment ? (
               <ButtonLoader text="..." />
             ) : (
               <>
-                <Headphones className="h-3.5 w-3.5" />
-                Listen Now
+                <Headphones className="h-3 w-3" />
+                Listen
               </>
             )}
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
