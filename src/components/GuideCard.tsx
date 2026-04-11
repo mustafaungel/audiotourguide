@@ -79,7 +79,7 @@ export function GuideCard({
       {/* Top band */}
       <div className={`px-4 py-2 flex items-center gap-2 ${bandGradient}`}>
         <Headphones className="w-4 h-4 text-primary-foreground shrink-0" />
-        <span className="text-[13px] font-extrabold font-heading truncate tracking-wide uppercase text-primary-foreground">
+        <span className="text-[12px] font-extrabold font-heading truncate tracking-normal uppercase text-primary-foreground drop-shadow-sm">
           {title}
         </span>
       </div>
@@ -105,11 +105,11 @@ export function GuideCard({
 
         {/* Content */}
         <div className="flex-1 min-w-0 overflow-hidden flex flex-col justify-center gap-1.5 py-0.5">
-          <div className="flex items-center gap-1 text-xs font-semibold text-foreground/80">
+          <div className="flex items-center gap-1 text-sm font-semibold text-foreground/80 card-text-primary">
             <MapPin className="w-3 h-3 text-primary/70 shrink-0" />
             <span>{location}</span>
           </div>
-          <div className="flex items-center gap-1 text-xs font-medium text-foreground/60">
+          <div className="flex items-center gap-1 text-xs font-semibold text-foreground/60 card-text-secondary">
             <Clock className="w-3 h-3 text-primary/70 shrink-0" />
             <span>{Math.floor(duration / 60)} min</span>
           </div>
