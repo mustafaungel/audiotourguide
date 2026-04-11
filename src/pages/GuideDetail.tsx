@@ -26,85 +26,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { ChapterPreviewButton } from "@/components/ChapterPreviewButton";
 import { toast } from "sonner";
 
-// Demo guide data
-const guideData = {
-  "machu-picchu-complete": {
-    id: "1",
-    title: "Machu Picchu: Complete Historical Journey",
-    description: "Embark on a comprehensive exploration of the Lost City of the Incas. This immersive audio guide reveals the mysteries, engineering marvels, and spiritual significance of this ancient citadel.",
-    location: "Machu Picchu, Peru",
-    duration: 120,
-    rating: 4.9,
-    totalReviews: 234,
-    price: 12,
-    currency: "USD",
-    image: "/src/assets/machu-picchu.jpg",
-    audioUrl: "/public/tmp/guide1.mp3",
-    category: "Historical",
-    difficulty: "Easy",
-    languages: ["English", "Spanish", "Quechua"],
-    creator: {
-      id: "creator1",
-      name: "Dr. Maria Santos",
-      avatar: "/src/assets/guide-museum.jpg",
-      title: "Archaeological Expert",
-      rating: 4.8,
-      guides: 12,
-      verified: true
-    },
-    chapters: [
-      { title: "Welcome to Machu Picchu", duration: 8, timestamp: 0 },
-      { title: "The Discovery Story", duration: 12, timestamp: 480 },
-      { title: "Inca Engineering Marvels", duration: 15, timestamp: 1200 },
-      { title: "Sacred Spaces & Temples", duration: 18, timestamp: 2100 },
-      { title: "Daily Life in the Citadel", duration: 14, timestamp: 3180 },
-      { title: "Mysteries Yet Unsolved", duration: 16, timestamp: 4020 },
-      { title: "Conservation Efforts", duration: 11, timestamp: 4980 },
-      { title: "Your Journey Continues", duration: 6, timestamp: 5640 }
-    ],
-    highlights: [
-      "Explore the Intihuatana Stone",
-      "Discover the Temple of the Sun", 
-      "Learn about Inca astronomy",
-      "Understand the agricultural terraces"
-    ],
-    included: [
-      "2-hour premium audio guide",
-      "Interactive map with GPS",
-      "Downloadable transcript",
-      "Photo spots recommendations"
-    ]
-  }
-};
-
-const reviews = [
-  {
-    id: 1,
-    user: "Sarah M.",
-    rating: 5,
-    comment: "Absolutely incredible! Dr. Santos brought Machu Picchu to life with fascinating historical details and perfect pacing.",
-    date: "2 days ago",
-    verified: true
-  },
-  {
-    id: 2, 
-    user: "Michael R.",
-    rating: 5,
-    comment: "Best audio guide I've ever used. The storytelling made me feel like I was walking with the Incas themselves.",
-    date: "1 week ago",
-    verified: true
-  },
-  {
-    id: 3,
-    user: "Ana L.",
-    rating: 4,
-    comment: "Great content and very informative. Would love more guides from this creator!",
-    date: "2 weeks ago", 
-    verified: false
-  }
-];
-
-// Related guides will be fetched dynamically
 
 const GuideDetail = () => {
   const { slug } = useParams();
@@ -277,11 +198,11 @@ const GuideDetail = () => {
       setRealGuideData(transformedData);
       setError(null);
       
-      // Fetch linked guides collection
-      await fetchLinkedGuides(guideData.id);
-      
-      // Fetch related guides
-      await fetchRelatedGuides(transformedData.category, transformedData.location, guideData.id);
+      // Fetch linked + related guides in parallel
+      await Promise.all([
+        fetchLinkedGuides(guideData.id),
+        fetchRelatedGuides(transformedData.category, transformedData.location, guideData.id),
+      ]);
       
       // Track guide view once data is loaded
       if (guideData.id) {

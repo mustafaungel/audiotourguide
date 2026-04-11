@@ -1,4 +1,5 @@
 import { Helmet } from 'react-helmet-async';
+import { getProxiedImageUrl } from '@/lib/url-utils';
 
 interface HreflangLink {
   lang: string;
@@ -40,6 +41,8 @@ export const SEO: React.FC<SEOProps> = ({
   const fullCanonicalUrl = canonicalUrl || siteUrl;
   // Truncate description to 155 chars for SERP display
   const safeDescription = description.length > 155 ? description.substring(0, 152) + '...' : description;
+  // Proxy image through main domain for SEO
+  const seoImage = getProxiedImageUrl(image) || image;
 
   return (
     <Helmet>
@@ -66,7 +69,7 @@ export const SEO: React.FC<SEOProps> = ({
       <meta property="og:description" content={safeDescription} />
       <meta property="og:type" content={type} />
       <meta property="og:url" content={fullCanonicalUrl} />
-      <meta property="og:image" content={image} />
+      <meta property="og:image" content={seoImage} />
       <meta property="og:site_name" content="Audio Tour Guides" />
       <meta property="og:locale" content={locale} />
       {author && <meta property="article:author" content={author} />}
@@ -75,7 +78,7 @@ export const SEO: React.FC<SEOProps> = ({
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={safeDescription} />
-      <meta name="twitter:image" content={image} />
+      <meta name="twitter:image" content={seoImage} />
 
       {/* Structured Data (JSON-LD) */}
       {structuredData && (

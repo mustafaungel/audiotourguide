@@ -15,12 +15,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
-import cappadociaImage from '@/assets/cappadocia-goreme.jpg';
-import istanbulImage from '@/assets/istanbul-hagia-sophia.jpg';
-import machupichuImage from '@/assets/machu-picchu.jpg';
-import kyotoImage from '@/assets/kyoto-temple.jpg';
-import parisImage from '@/assets/paris-louvre.jpg';
-import santoriniImage from '@/assets/santorini-greece.jpg';
 const Index = () => {
   const navigate = useNavigate();
   const [selectedGuide, setSelectedGuide] = useState<any>(null);
