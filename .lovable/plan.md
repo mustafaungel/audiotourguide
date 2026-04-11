@@ -1,45 +1,26 @@
 
 
-## Sticky Header'lara Cam (Glass) Efekti Uygula
+## GuideDetail Sticky Header — Cam Efekti Düzeltmesi
 
 ### Problem
-Sticky header'lar şu anda opak veya yarı-opak arka plan kullanıyor. Kullanıcı tüm sticky header'larda tutarlı bir cam/glass efekti istiyor.
+Sticky header'da `bg-amber-950/70` kullanılıyor. `amber-950` çok koyu bir renk (#451a03) olduğundan, %70 opaklıkta bile neredeyse tamamen opak görünüyor. Arka plandaki içerik görünmüyor ve cam/glass efekti hissedilmiyor.
 
-### Etkilenen yerler (3 adet)
-
-| Dosya | Satır | Mevcut |
-|-------|-------|--------|
-| `Navigation.tsx` | 41 | `bg-background/95 backdrop-blur-2xl supports-[backdrop-filter]:bg-background/60` — zaten cam efekti var ✓ |
-| `GuideDetail.tsx` | 665 | Featured: `bg-amber-950/95` / Normal: `bg-background` — opak, cam efekti yok ✗ |
-| `AudioAccess.tsx` | 700 | `bg-background/95` — hafif şeffaf ama backdrop-blur yok ✗ |
+Aynı şekilde normal (featured olmayan) rehberlerde `bg-background/70` doğru çalışıyor olmalı ama featured rehberlerdeki amber sorunu belirgin.
 
 ### Çözüm
+Featured rehberlerde amber tonu çok daha düşük opaklığa çekilmeli. Light modda daha açık bir amber, dark modda daha şeffaf bir amber kullanılmalı:
 
-Navigation bileşeni zaten doğru cam efektine sahip. Diğer iki sticky header'ı aynı mantığa uyduracağız:
+**`src/pages/GuideDetail.tsx` (satır 665)**
 
-**`GuideDetail.tsx` (satır 665)**
 ```
-Önce:  bg-amber-950/95 dark:bg-amber-950/95 : bg-background
-Sonra: bg-background/70 backdrop-blur-xl border-b border-border/30
-       (featured: bg-amber-950/70 backdrop-blur-xl)
-```
-
-**`AudioAccess.tsx` (satır 700)**
-```
-Önce:  bg-background/95 border-b border-border/30 shadow-sm
-Sonra: bg-background/70 backdrop-blur-xl border-b border-border/30 shadow-sm
+Önce:  bg-amber-950/70 dark:bg-amber-950/70
+Sonra: bg-amber-900/40 dark:bg-amber-950/50
 ```
 
-### Cam efekti formülü (tutarlı)
-Tüm sticky header'lar şu pattern'i kullanacak:
-- `bg-background/70` (veya tematik renk `/70`) — %30 şeffaflık
-- `backdrop-blur-xl` — arkadaki içeriği bulanıklaştırma
-- `border-b border-border/30` — ince alt kenarlık
-- Mevcut `shadow-sm` varsa korunacak
+- Featured: `bg-amber-900/40 dark:bg-amber-950/50` — daha şeffaf, cam etkisi hissedilir
+- `backdrop-blur-xl` zaten mevcut, korunacak
+- Normal rehberler: `bg-background/70` zaten doğru, değişmeyecek
 
-### Değişecek dosyalar
-1. `src/pages/GuideDetail.tsx` — sticky header class'ları
-2. `src/pages/AudioAccess.tsx` — sticky header class'ları
-
-Navigation zaten cam efektine sahip, dokunulmayacak.
+### Değişecek dosya
+1. `src/pages/GuideDetail.tsx` — satır 665, sadece featured amber opaklık değeri
 
