@@ -87,13 +87,13 @@ export function GuideCard({
       </div>
 
       {/* Band connectors — vertical side bands from headband to ear cups */}
-      <div className="relative flex justify-between px-[calc(2rem+0.75rem)] sm:px-[calc(2.5rem+0.75rem)]">
-        <div className={`w-[3px] h-5 ${connectorColor} rounded-full -mt-px ml-1`} />
-        <div className={`w-[3px] h-5 ${connectorColor} rounded-full -mt-px mr-1`} />
+      <div className="relative h-5 -mt-px">
+        <div className={`absolute left-[48px] sm:left-[56px] w-[3px] h-full ${connectorColor} rounded-full`} />
+        <div className={`absolute right-[48px] sm:right-[56px] w-[3px] h-full ${connectorColor} rounded-full`} />
       </div>
 
       {/* Main body — ear cups + center metadata */}
-      <div className="flex items-center gap-2 px-1">
+      <div className="flex items-center gap-1 px-1">
         {/* Left Ear Cup — Image */}
         <div className={`relative w-[88px] h-[88px] sm:w-[100px] sm:h-[100px] shrink-0 rounded-[28px] overflow-hidden ring-[3px] ${earCupRing} transition-all duration-300 group-hover:ring-[4px]`}>
           <OptimizedImage
@@ -115,7 +115,7 @@ export function GuideCard({
         <div className="flex-1 min-w-0 overflow-hidden flex flex-col items-center justify-center gap-1 py-1">
           <div className="flex items-center gap-1 text-[11px] font-semibold text-foreground/80">
             <MapPin className="w-3 h-3 text-primary/70 shrink-0" />
-            <span className="truncate">{location}</span>
+            <span className="truncate max-w-full">{location}</span>
           </div>
           <div className="flex items-center gap-1 text-[10px] font-semibold text-foreground/60">
             <Clock className="w-2.5 h-2.5 text-primary/70 shrink-0" />
