@@ -1,65 +1,99 @@
 
 
-## GuideCard ve Featured Guides — Premium Audio Tasarim Yenileme
+## GuideCard, Featured Detail & Back Button — Unified Premium Redesign
 
-### Sorun 1: Inline LiveListenersBadge cok yer kapliyor
+### 4 Ana Degisiklik
 
-Ekran goruntusunde goruldugu gibi, `border border-primary/10` + `px-2 py-0.5` + `rounded-full` cercevesi kartlarda gereksiz alan kapliyor. Cozum: border'i kaldir, sadece ince text olarak goster — ekolayzer + sayi + "listening" yeterli, cerceve gereksiz.
+---
 
-### Sorun 2: FeaturedGuides farkli tasarim kullaniyor
+### 1. Inline LiveListenersBadge — Ekolayzer Kaldir
 
-`FeaturedGuides.tsx` hala eski Card/Carousel yapisi — GuideCard bilesenini kullanmiyor. Tutarsiz gorunum.
+**Dosya:** `LiveListenersBadge.tsx`
 
-### Sorun 3: Featured kartlar icin ozel tasarim
+Inline variant'tan `MiniEqualizer` kaldirilir. Sadece `Headphones` icon + `{count} listening` text kalir. Ekolayzer gorevi kartlarin altindaki waveform'a devredilir.
 
-Featured guide'lar icin gercekten ozel bir deneyim onerisi:
+---
 
-### Degisiklikler
+### 2. Normal Kartlarin Alt Waveform'u Animasyonlu Olsun
 
-**1. `src/components/LiveListenersBadge.tsx` — Inline variant sadele**
-- Border ve background kaldir
-- Sadece: ekolayzer bars + headphones icon + `{count} listening` text
-- `text-[10px] text-muted-foreground font-medium` — cercevesiz, hafif
-- Badge variant ayni kalsin (detay sayfalarinda iyi gorunuyor)
+**Dosya:** `GuideCard.tsx`
 
-**2. `src/components/GuideCard.tsx` — Featured kartlar icin ozel tasarim**
-- `isFeatured` true oldugunda tamamen farkli gorunum:
-  - Ust band: amber gradient yerine **koyu transparan gradient overlay** gorunumlu buyuk gorsel
-  - Gorsel tam genislik, daha yuksek (h-40)
-  - Baslik gorselin uzerine beyaz text olarak overlay
-  - Alt kisimda: konum, sure, dil bayraklari ve listening bilgisi
-  - Altin ince border: `border-amber-500/30`
-  - "Featured" rozeti gorselin ustunde
-  - Waveform alt dekorasyonu animasyonlu hale gelsin (featured icin)
-- Normal kartlar: mevcut yatay layout ayni kalsin, sadece listening border kalkar
+Normal kartlardaki bottom waveform `animation: 'none'` → `animation: 'equalizer-bar 2.2s ease-in-out infinite'` olarak degistirilir. Featured kartlarda zaten animasyonlu — iki kart tipi ayni animasyona sahip olur.
 
-**3. `src/components/FeaturedGuides.tsx` — GuideCard kullan**
-- Carousel yapisi kalsin ama ic kisim `GuideCard` bilesenine gecsin
-- `isFeatured={true}` prop'u ile ozel featured tasarimi aktif olsun
-- Gereksiz Card/CardContent/CardHeader import'lari kaldirilsin
+**Featured ve Normal kart ayni layout'u paylasmali:**
+- Featured kartlar simdi buyuk gorsel + overlay baslik kullanıyor, normal kartlar yatay layout — bunlar farkli boyutlarda gorunuyor
+- Cozum: Featured kartlar da **normal kartlarla ayni yatay layout**'u kullansın
+- Featured farki: amber/gold ince border (`border-amber-500/30`), ust band amber gradient, kucuk `★ Featured` badge'i ust bantta, waveform bar'lari `bg-amber-500/60` renkte
+- Buyuk gorsel + overlay layout tamamen kaldirilir
+
+```text
+Featured kart (yeni):
+┌──────────────────────────────────┐
+│ 🎧 ★ Featured · Guide Title     │  ← amber gradient band
+├──────────────────────────────────┤
+│ [gorsel]  │ 📍 Location          │
+│  144x144  │ ⏱ 66 min             │
+│ Category  │ 🇹🇷🇬🇧🇷🇺               │
+│           │ 🎧 135 listening  ▶  │
+├──────────────────────────────────┤
+│ .,|.|.,|.|.,|.|.,|.|.,          │  ← amber animasyonlu waveform
+└──────────────────────────────────┘
+
+Normal kart (ayni layout, primary renk):
+┌──────────────────────────────────┐
+│ 🎧 Guide Title                  │  ← primary gradient band
+├──────────────────────────────────┤
+│ [gorsel]  │ 📍 Location          │
+│  144x144  │ ⏱ 66 min             │
+│ Category  │ 🇹🇷🇬🇧🇷🇺               │
+│           │ 🎧 135 listening  ▶  │
+├──────────────────────────────────┤
+│ .,|.|.,|.|.,|.|.,|.|.,          │  ← primary animasyonlu waveform
+└──────────────────────────────────┘
+```
+
+---
+
+### 3. Featured Guide Detay Sayfasi — Ozel Amber Tasarim
+
+**Dosya:** `GuideDetail.tsx`
+
+Guide detay sayfasinda `realGuideData?.is_featured` kontrol edilir. Featured ise:
+- Sticky header: `bg-gradient-to-r from-amber-500/10 to-yellow-500/5` arka plan
+- Back button: amber tonu (`bg-amber-500/15 hover:bg-amber-500/25, text-amber-600`)
+- Category badge: amber gradient (`from-amber-500 to-yellow-500`)
+- LiveListenersBadge yanina kucuk `★ Featured` badge'i eklenir
+- Player card'a ince amber border (`border-amber-500/20`)
+
+Non-featured guide'lar mevcut primary tema ile ayni kalir.
+
+---
+
+### 4. Back Button — Tum Sayfalarda Tek Tasarim
+
+**Dosyalar:** `GuideDetail.tsx`, `AudioAccess.tsx`
+
+Mevcut durum:
+- GuideDetail: `w-10 h-10 rounded-full bg-primary/15` (yuvarlak buton)
+- AudioAccess: Duz ikon, stil yok (`flex items-center justify-center w-10 h-10`)
+
+Cozum: Tek tutarli tasarim — GuideDetail'daki yuvarlak buton stili her yerde kullanilir:
+```
+w-10 h-10 rounded-full bg-primary/15 hover:bg-primary/25
+flex items-center justify-center transition-colors active:scale-90
+```
+
+AudioAccess'teki back button bu stile guncellenir.
+
+---
 
 ### Teknik Ozet
 
 ```
-3 dosya:
-  LiveListenersBadge.tsx — inline variant: border/bg kaldir, sade text
-  GuideCard.tsx — isFeatured icin buyuk gorsel + overlay baslik + altin border
-  FeaturedGuides.tsx — GuideCard bileseni kullan, carousel koru
-```
-
-### Featured Kart Gorsel Yapisi
-
-```text
-┌─────────────────────────┐
-│  ★ Featured        $4.99│  ← badge'ler gorselin ustunde
-│                         │
-│    [buyuk gorsel]       │  ← h-40, tam genislik
-│                         │
-│  ▓▓ Guide Basligi ▓▓   │  ← overlay text, beyaz, bold
-└─────────────────────────┘
-│ 📍 Location · ⏱ 66 min │
-│ 🇹🇷🇬🇧🇷🇺  ‖ 🎧 135 listening │
-│ .,|.|.,|.|.,|.|.,|.|.,  │  ← animasyonlu waveform
-└─────────────────────────┘
+4 dosya:
+  LiveListenersBadge.tsx — inline variant: ekolayzer kaldir
+  GuideCard.tsx — featured layout = normal layout + amber aksan, normal waveform animasyonlu
+  GuideDetail.tsx — is_featured kontrolu ile amber tema, back button tutarliligi
+  AudioAccess.tsx — back button stili GuideDetail ile ayni
 ```
 
