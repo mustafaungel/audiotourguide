@@ -1,49 +1,36 @@
 
 
-## Geri Navigasyonda Scroll Pozisyonu Koruma
+## Library Loading Skeleton + GuideDetail Skeleton İyileştirmesi
 
-### Sorun
+### Mevcut Durum
 
-`ScrollToTop` bileşeni her `pathname` değişikliğinde `window.scrollTo(0, 0)` çağırıyor. Bu, tarayıcının geri/ileri butonuyla navigasyonda da çalışıyor — kullanıcı geri döndüğünde sayfa en üstten başlıyor, bıraktığı yerden değil.
+| Sayfa | Themed Skeleton | Durum |
+|-------|----------------|-------|
+| Index | ✅ AudioGuideLoader card | Tamam |
+| Guides | ✅ AudioGuideLoader card | Tamam |
+| FeaturedGuides | ✅ AudioGuideLoader card | Tamam |
+| Countries | ✅ AudioGuideLoader grid | Tamam |
+| CountryDetail | ✅ AudioGuideLoader card | Tamam |
+| AudioAccess | ✅ AudioGuideLoader page | Tamam |
+| GuideDetail | ⚠️ Kısmen themed — sidebar düz gri skeleton | İyileştirilecek |
+| Library | ❌ Loading state yok — `loading=true` iken hiçbir şey gösterilmiyor | Eklenecek |
 
-### Çözüm
+### Yapılacak Değişiklikler
 
-Navigasyon tipini kontrol et: sadece **yeni sayfa açılışlarında** (PUSH) en üste kaydır, **geri/ileri** (POP) navigasyonlarda tarayıcının kendi scroll restoration'ını kullan.
+**1. `src/pages/Library.tsx`**
+- `loading` state'i true iken AudioGuideLoader `variant="card"` göster
+- Kullanıcı verisi yüklenirken boş ekran yerine themed skeleton kartlar görünsün
 
-### Değişiklik
-
-**`src/components/ScrollToTop.tsx`**
-
-```tsx
-import { useEffect } from "react";
-import { useLocation, useNavigationType } from "react-router-dom";
-
-const ScrollToTop = () => {
-  const { pathname } = useLocation();
-  const navigationType = useNavigationType();
-
-  useEffect(() => {
-    // Sadece yeni sayfa açılışlarında (link tıklama, navigate()) en üste kaydır
-    // Geri/ileri (POP) navigasyonlarda tarayıcı scroll pozisyonunu kendisi yönetir
-    if (navigationType !== "POP") {
-      requestAnimationFrame(() => {
-        window.scrollTo({ top: 0, left: 0, behavior: "instant" as ScrollBehavior });
-      });
-    }
-  }, [pathname, navigationType]);
-
-  return null;
-};
-
-export default ScrollToTop;
-```
-
-- `history.scrollRestoration = 'manual'` satırı kaldırılır — tarayıcının POP navigasyonlarda scroll'u geri yüklemesine izin verilir
-- `useNavigationType()` ile PUSH/REPLACE ve POP ayrımı yapılır
+**2. `src/pages/GuideDetail.tsx`** (satır 500-540 arası loading bloğu)
+- Sidebar skeleton'a kulaklık ikonu ve audio wave ekle
+- Düz gri `animate-pulse` divleri AudioGuideLoader tarzı elemanlara dönüştür
+- Tutarlı görünüm: hem ana içerik hem sidebar audio-themed
 
 ### Teknik Özet
 
 ```
-1 dosya: src/components/ScrollToTop.tsx
+2 dosya:
+  src/pages/Library.tsx — loading state için AudioGuideLoader variant="card" ekle
+  src/pages/GuideDetail.tsx — sidebar skeleton'ı audio-themed yap
 ```
 
