@@ -15,7 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Star, MapPin, Clock, Users, Play, Download, Share2, Bookmark, ChevronLeft, Lock, Copy, Check, Link, ShoppingCart, Headphones } from "lucide-react";
+import { Star, MapPin, Clock, Users, Play, Download, Share2, Bookmark, ChevronLeft, Lock, Copy, Check, Link, ShoppingCart, Headphones, Globe } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useViralTracking } from "@/hooks/useViralTracking";
 import { useAuth } from "@/contexts/AuthContext";
@@ -719,101 +719,75 @@ const GuideDetail = () => {
       )}
       <Navigation />
       
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-4 pb-24">
         {/* Back Button */}
-                <Button variant="ghost" size="sm" className="mb-4" onClick={() => navigate('/guides')}>
-                  <ChevronLeft className="w-4 h-4 mr-2" />
-                  Back to Guides
-                </Button>
+        <Button variant="ghost" size="sm" className="mb-3" onClick={() => navigate('/guides')}>
+          <ChevronLeft className="w-4 h-4 mr-1" />
+          Back
+        </Button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Hero Image - Responsive aspect ratio */}
-            <div className="relative aspect-video md:aspect-[16/10] rounded-3xl overflow-hidden shadow-xl min-h-[200px] md:min-h-[300px] bg-muted group">
-              <img
-                src={
-                  (guide.image_urls?.[0] || guide.image_url)?.startsWith('data:image') 
-                    ? (guide.image_urls?.[0] || guide.image_url)
-                    : (guide.image_urls?.[0] || guide.image_url) || guide.image || '/hero-audio-guide.jpg'
-                } 
-                alt={`${guide.title} - Audio tour guide in ${guide.location}`}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.src = '/hero-audio-guide.jpg';
-                }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-              
-              {/* Audio Waveform Overlay */}
-              <div className="absolute bottom-0 left-0 right-0 h-8 flex items-end justify-center gap-[3px] px-4 pb-2 opacity-40 group-hover:opacity-70 transition-opacity">
-                {[...Array(15)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="w-[2px] rounded-full bg-white/80 card-waveform-bar"
-                    style={{
-                      height: `${Math.random() * 60 + 20}%`,
-                      animationDelay: `${i * 0.08}s`,
-                    }}
-                  />
-                ))}
-              </div>
-
-              <div className="absolute bottom-4 left-4 text-white">
-                <Badge className="mb-2 text-sm px-3 py-1.5 audio-premium-badge">
-                  <Headphones className="w-3 h-3 mr-1" />
+          <div className="lg:col-span-2 space-y-4">
+            {/* Compact Header — image + info side by side */}
+            <div className="flex gap-4">
+              <div className="relative w-28 h-28 sm:w-36 sm:h-36 shrink-0 rounded-xl overflow-hidden shadow-lg">
+                <img
+                  src={(guide.image_urls?.[0] || guide.image_url) || '/hero-audio-guide.jpg'}
+                  alt={guide.title}
+                  className="w-full h-full object-cover"
+                  onError={(e) => { e.currentTarget.src = '/hero-audio-guide.jpg'; }}
+                />
+                <Badge className="absolute top-1.5 left-1.5 bg-black/50 text-white border-0 text-[9px] px-1.5 py-0 capitalize backdrop-blur-sm">
                   {guide.category}
                 </Badge>
-                <h1 className="ios-title-large md:text-3xl font-bold text-shadow flex items-center gap-2">
-                  <Headphones className="w-5 h-5 md:w-6 md:h-6 opacity-70" />
-                  {guide.title}
-                </h1>
+              </div>
+              <div className="flex-1 min-w-0 flex flex-col justify-center">
+                <h1 className="font-bold text-lg md:text-2xl leading-tight font-heading">{guide.title}</h1>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1.5">
+                  <MapPin className="w-3 h-3 text-primary/60 shrink-0" />
+                  <span>{guide.location}</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                  <Clock className="w-3 h-3 text-primary/60 shrink-0" />
+                  <span>{Math.floor(guide.duration / 60)} min</span>
+                  <span>·</span>
+                  <span>{currentChapters.length} stops</span>
+                </div>
+                <div className="flex items-center gap-2 mt-1.5">
+                  {guide?.id && (
+                    <GuideLanguageSelector
+                      guideId={guide.id}
+                      selectedLanguage={selectedLanguage}
+                      onLanguageChange={handleLanguageChange}
+                    />
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* Guide Info */}
-            <Card className="audio-card-glow border-border/30">
-              <CardHeader>
-                <div className="flex flex-col gap-4">
-                  {/* Top Row: Location, Duration, Actions */}
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2 text-xs md:text-sm text-muted-foreground">
-                      <MapPin className="w-3.5 h-3.5 md:w-4 md:h-4 shrink-0" />
-                      <span className="truncate max-w-[120px] md:max-w-none">{guide.location}</span>
-                      <span className="text-muted-foreground/40">·</span>
-                      <Clock className="w-3.5 h-3.5 md:w-4 md:h-4 shrink-0" />
-                      <span>{Math.floor(guide.duration / 60)} min</span>
-                    </div>
-                    
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={handleBookmark}>
-                        <Bookmark className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`} />
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={handleShare}>
-                        <Share2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
+            {/* Description — compact */}
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {guide.description}
+            </p>
 
-                  {/* Language Selector - Full Width on Mobile */}
-                  {guide?.id && (
-                    <div className="w-full">
-                      <GuideLanguageSelector
-                        guideId={guide.id}
-                        selectedLanguage={selectedLanguage}
-                        onLanguageChange={handleLanguageChange}
-                      />
-                    </div>
-                  )}
-                </div>
-              </CardHeader>
-              
-              <CardContent>
-                <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
-                  {guide.description}
-                </p>
-              </CardContent>
-            </Card>
+            {/* What's Included — value proposition */}
+            {!isPurchased && !hasAccessCode && (
+              <div className="flex flex-wrap gap-2 text-xs">
+                <span className="flex items-center gap-1 bg-primary/10 text-primary rounded-full px-2.5 py-1">
+                  <Headphones className="w-3 h-3" /> {currentChapters.length} audio stops
+                </span>
+                <span className="flex items-center gap-1 bg-primary/10 text-primary rounded-full px-2.5 py-1">
+                  <Clock className="w-3 h-3" /> {Math.floor(guide.duration / 60)} min
+                </span>
+                <span className="flex items-center gap-1 bg-primary/10 text-primary rounded-full px-2.5 py-1">
+                  <Globe className="w-3 h-3" /> Offline access
+                </span>
+                <span className="flex items-center gap-1 bg-primary/10 text-primary rounded-full px-2.5 py-1">
+                  <Share2 className="w-3 h-3" /> Lifetime access
+                </span>
+              </div>
+            )}
 
             {/* Already Purchased Banner */}
             {isPurchased && (
@@ -897,60 +871,42 @@ const GuideDetail = () => {
                     ))}
                   </div>
                 ) : (
-                  <Card className="p-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="p-2 bg-muted rounded-lg">
-                        <Lock className="w-5 h-5 text-muted-foreground" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold">Chapters Locked</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Full access requires purchase
-                        </p>
-                      </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Headphones className="w-4 h-4 text-primary" />
+                      <span className="text-sm font-semibold">Free Preview Available</span>
                     </div>
-                    
-                    <div className="space-y-2 mb-4">
-                      {currentChapters.slice(0, 3).map((chapter, index) => (
-                        <div key={index} className="flex items-center justify-between gap-2 p-2.5 md:p-3 bg-muted/50 rounded-lg">
-                          <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
-                            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium shrink-0">
-                              {index + 1}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-medium text-xs md:text-sm truncate">{chapter.title}</h4>
-                              <p className="text-xs text-muted-foreground">
-                                {chapter.duration_seconds 
-                                  ? `${Math.floor(chapter.duration_seconds / 60)}:${(chapter.duration_seconds % 60).toString().padStart(2, '0')}`
-                                  : chapter.duration 
-                                    ? `${Math.floor(chapter.duration / 60)}:${((chapter.duration * 60) % 60).toString().padStart(2, '0')}`
-                                    : 'N/A'
-                                } min
-                              </p>
-                            </div>
+                    {currentChapters.slice(0, 3).map((chapter, index) => (
+                      <div key={index} className="flex items-center justify-between gap-2 p-2.5 bg-muted/30 rounded-lg border border-border/30">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary shrink-0">
+                            {index + 1}
                           </div>
-                          <ChapterPreviewButton 
-                            chapter={chapter}
-                            index={index}
-                            guide={guide}
-                            isPurchased={isPurchased}
-                            selectedLanguage={selectedLanguage}
-                          />
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-xs truncate">{chapter.title}</h4>
+                            <p className="text-[10px] text-muted-foreground">
+                              {chapter.duration_seconds
+                                ? `${Math.floor(chapter.duration_seconds / 60)}:${(chapter.duration_seconds % 60).toString().padStart(2, '0')}`
+                                : 'N/A'
+                              }
+                            </p>
+                          </div>
                         </div>
-                      ))}
-                      {currentChapters.length > 3 && (
-                        <p className="text-xs text-muted-foreground text-center">
-                          +{currentChapters.length - 3} more chapters available
-                        </p>
-                      )}
-                    </div>
-                    
-                    <div className="text-center">
-                      <p className="text-sm text-muted-foreground">
-                        → Purchase the full guide in the sidebar for complete access
+                        <ChapterPreviewButton
+                          chapter={chapter}
+                          index={index}
+                          guide={guide}
+                          isPurchased={isPurchased}
+                          selectedLanguage={selectedLanguage}
+                        />
+                      </div>
+                    ))}
+                    {currentChapters.length > 3 && (
+                      <p className="text-[11px] text-muted-foreground text-center py-1">
+                        +{currentChapters.length - 3} more stops with full access
                       </p>
-                    </div>
-                  </Card>
+                    )}
+                  </div>
                 )}
               </TabsContent>
               
