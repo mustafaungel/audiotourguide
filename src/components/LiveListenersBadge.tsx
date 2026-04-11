@@ -29,8 +29,8 @@ export function LiveListenersBadge({ guideId, size = 'default' }: LiveListenersB
   const iconSize = isCompact ? 'w-2.5 h-2.5' : 'w-3 h-3';
 
   return (
-    <div className={`inline-flex w-fit max-w-full self-start rounded-full overflow-hidden bg-gradient-to-r from-primary/20 via-primary/5 to-primary/20 ${outerPadding} shadow-[0_2px_12px_hsl(var(--primary)/0.12)]`}>
-      <div className={`inline-flex w-fit max-w-full items-center gap-1.5 bg-card backdrop-blur-sm ${innerPadding} rounded-full ${fontSize} text-primary`}>
+    <div className={`inline-flex w-fit max-w-full self-start rounded-full overflow-hidden glass-badge ${outerPadding} shadow-[0_2px_12px_hsl(var(--primary)/0.12)]`}>
+      <div className={`inline-flex w-fit max-w-full items-center gap-1.5 ${innerPadding} rounded-full ${fontSize} text-primary`}>
         <Headphones className={`${iconSize} shrink-0 animate-pulse`} />
         <span className="min-w-0 truncate whitespace-nowrap"><span className="min-w-0 truncate whitespace-nowrap"><span className="font-semibold">{count}</span> Listening</span></span>
       </div>

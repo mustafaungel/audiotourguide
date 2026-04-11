@@ -7,9 +7,9 @@ import heroImage from '@/assets/hero-world-travel.jpg';
 export const HeroSection: React.FC = () => {
   const navigate = useNavigate();
   return (
-    <section className="relative min-h-[50vh] md:min-h-[60vh] flex items-center justify-center overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0">
+    <section className="relative min-h-[50vh] md:min-h-[60vh] flex items-center justify-center overflow-hidden hero-depth-container">
+      {/* Background — deepest layer */}
+      <div className="absolute inset-0 hero-depth-bg">
         <img
           src={heroImage}
           alt="World Travel and Cultural Heritage Sites"
@@ -21,18 +21,18 @@ export const HeroSection: React.FC = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-background/40 to-background/60" />
       </div>
 
-      {/* Headphone silhouette background decoration */}
-      <div className="audio-hero-silhouette" />
+      {/* Headphone silhouette background decoration — mid layer */}
+      <div className="audio-hero-silhouette hero-depth-mid" />
 
-      {/* Decorative sound wave lines */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      {/* Decorative sound wave lines — mid layer */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden hero-depth-mid">
         <div className="absolute top-1/3 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/10 to-transparent" />
         <div className="absolute top-1/2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/8 to-transparent" />
         <div className="absolute top-2/3 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/6 to-transparent" />
       </div>
 
       {/* Content */}
-      <div className="relative z-10 text-center max-w-4xl mx-auto mobile-container">
+      <div className="relative z-10 text-center max-w-4xl mx-auto mobile-container hero-depth-front">
         <div className="mobile-spacing">
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full audio-premium-badge">
@@ -52,7 +52,7 @@ export const HeroSection: React.FC = () => {
 
           {/* CTA Buttons */}
           <div className="flex flex-col gap-mobile-padding sm:gap-4 justify-center items-center w-full max-w-sm mx-auto sm:max-w-none sm:flex-row">
-            <Button variant="hero" size="default" className="w-full sm:w-auto px-6 py-3" onClick={() => navigate('/country')}>
+            <Button variant="hero" size="default" className="w-full sm:w-auto px-6 py-3 btn-raised" onClick={() => navigate('/country')}>
               <Headphones className="h-4 w-4 mr-2" />
               Explore Destinations
             </Button>

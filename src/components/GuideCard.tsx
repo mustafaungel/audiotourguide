@@ -72,10 +72,10 @@ export function GuideCard({
   const hoverShadow = isFeaturedCard ? 'hover:shadow-amber-500/10' : 'hover:shadow-primary/5';
 
   return (
-    <div
-      className={`group rounded-2xl overflow-hidden border ${accentBorder} bg-card/80 backdrop-blur-sm shadow-sm hover:shadow-lg ${hoverShadow} ${isFeaturedCard ? 'hover:border-amber-500/60' : 'hover:border-primary/30'} transition-all duration-300 cursor-pointer active:scale-[0.98]`}
-      onClick={handleView}
-    >
+    <div className="card-3d" onClick={handleView}>
+      <div
+        className={`card-3d-inner group rounded-2xl overflow-hidden border ${accentBorder} bg-card/80 backdrop-blur-sm shadow-card hover:shadow-elevated ${hoverShadow} ${isFeaturedCard ? 'hover:border-amber-500/60' : 'hover:border-primary/30'} transition-all duration-300 cursor-pointer active:scale-[0.98]`}
+      >
       {/* Top band */}
       <div className={`px-4 py-2.5 flex items-start ${bandGradient}`}>
         <span className="flex-1 min-w-0 text-[12px] font-extrabold font-heading line-clamp-2 break-words leading-tight tracking-normal text-primary-foreground drop-shadow-sm">
@@ -97,7 +97,7 @@ export function GuideCard({
             className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-          <Badge className="absolute top-1.5 left-1.5 bg-black/50 text-white border-0 text-[10px] font-semibold px-1.5 py-0 capitalize backdrop-blur-sm">
+          <Badge className="absolute top-1.5 left-1.5 glass-badge text-foreground border-0 text-[10px] font-semibold px-1.5 py-0 capitalize">
             {category}
           </Badge>
         </div>
@@ -153,6 +153,7 @@ export function GuideCard({
           />
         ))}
       </div>
+    </div>
     </div>
   );
 }
