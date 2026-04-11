@@ -1,23 +1,24 @@
 
 
-## Sticky Header Başlık Taşması Çözümü
+## Sticky Header: Kulaklık Kaldırma + Border Tutarsızlık Düzeltmesi
 
-### Problem
-Uzun rehber başlıkları (ör. "Cappadocia : Goreme Open Air Muse...") sticky header'da `truncate` ile kesiliyor ve okunmuyor. Mobilde (390px) geri butonu (w-11) + ikon (w-4) + bayrak ikonu alan kaplıyor, başlığa az yer kalıyor.
+### 1. Kulaklık ikonunu kaldır
+Satır 670'deki `<Headphones>` bileşeni silinecek — başlığa daha fazla alan açılacak.
 
-### Çözüm
-Başlığı tek satırda kesmek yerine **iki satıra izin ver** — `truncate` yerine `line-clamp-2` kullan. Bu sayede uzun başlıklar 2 satıra yayılır, yine de taşmaz.
+### 2. Border tutarsızlığı düzeltmesi
+İki görseldeki fark: birinde alt çizgi (border-b) belirgin, diğerinde neredeyse görünmüyor. Sorun `border-primary/15` opaklığının çok düşük olması — arkadaki içeriğe göre bazen görünüp bazen kayboluyormuş gibi duruyor.
 
-### Değişiklik — `src/pages/GuideDetail.tsx` (satır 671)
+**Çözüm:** `border-b` yerine `shadow-sm` veya daha belirgin bir border opaklığı (`border-primary/25`) kullanarak tutarlı görünüm sağlamak. Featured için de `border-amber-500/30` yapılacak.
 
+### Değişiklik — `src/pages/GuideDetail.tsx`
+
+**Satır 665:** Border opaklığını artır
 ```
-Önce:  <span className="text-sm font-bold font-heading min-w-0 truncate">
-Sonra: <span className="text-sm font-bold font-heading min-w-0 line-clamp-2 leading-tight">
+Önce:  border-amber-500/20 ... border-primary/15
+Sonra: border-amber-500/30 ... border-primary/25
 ```
 
-- `line-clamp-2`: Maksimum 2 satır, fazlası `...` ile kesilir
-- `leading-tight`: Satır yüksekliğini sıkıştırarak header'ın çok büyümesini önler
-- Header yüksekliği ~4-6px artar (kabul edilebilir)
+**Satır 670:** Headphones satırını tamamen sil
 
-Tek dosya, tek satır değişikliği.
+Tek dosya, 2 satır değişikliği.
 
