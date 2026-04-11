@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Star, MapPin, Clock, Users, Play, Download, Share2, Bookmark, ChevronLeft, Lock, Copy, Check, Link, ShoppingCart, Headphones, Globe } from "lucide-react";
 import { getLanguageFlag, getLanguageName } from "@/lib/language-utils";
 import { OptimizedImage } from "@/components/OptimizedImage";
+import { getProxiedImageUrl } from "@/lib/url-utils";
 import { LiveListenersBadge } from "@/components/LiveListenersBadge";
 import { useToast } from "@/hooks/use-toast";
 import { useViralTracking } from "@/hooks/useViralTracking";
@@ -568,6 +569,7 @@ const GuideDetail = () => {
   const guideCity = guide?.location?.split(',')[0]?.trim() || '';
   const guideCountry = guide?.location?.split(',').pop()?.trim() || '';
   const guideImage = guide?.image_urls?.[0] || guide?.image_url || guide?.image;
+  const guideImageSeo = getProxiedImageUrl(guideImage);
   const seoTitle = guide ? `${guide.title} in ${guide.location}` : '';
 
   // Hreflang links for multi-language guides
