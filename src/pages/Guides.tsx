@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { AudioGuideLoader } from '@/components/AudioGuideLoader';
 import { useNavigate } from 'react-router-dom';
 import { SEO } from '@/components/SEO';
@@ -17,22 +18,15 @@ const Guides = () => {
   const navigate = useNavigate();
   const [selectedGuide, setSelectedGuide] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [guides, setGuides] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
   const [userPurchases, setUserPurchases] = useState<string[]>([]);
   const [processingPayment, setProcessingPayment] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchGuides();
-    if (user) {
-      fetchUserPurchases();
-    }
-  }, [user]);
-
-  const fetchGuides = async () => {
-    try {
+  // Cached query — no refetch on back navigation
+  const { data: guides = [], isLoading: loading } = useQuery({
+    queryKey: ['guides-page'],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('audio_guides')
         .select('*')
@@ -40,20 +34,15 @@ const Guides = () => {
         .eq('is_approved', true)
         .order('display_order', { ascending: true })
         .order('created_at', { ascending: false });
-
       if (error) throw error;
-      setGuides(data || []);
-    } catch (error) {
-      console.error('Error fetching guides:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load guides",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+      return data || [];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  useEffect(() => {
+    if (user) fetchUserPurchases();
+  }, [user]);
 
   const fetchUserPurchases = async () => {
     if (!user) return;

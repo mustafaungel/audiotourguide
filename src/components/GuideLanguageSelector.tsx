@@ -92,38 +92,10 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
   // Find selected language info for the header badge
   const selectedLangInfo = displayLanguages.find(l => l.language_code === selectedLanguage);
 
-  if (loading && displayLanguages.length === 0) {
-    return (
-      <div className="space-y-2 min-h-[48px]">
-        <div className="flex items-center gap-2 px-1">
-          <Globe className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground font-medium">{t('language', selectedLanguage)}</span>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <div className="h-11 w-24 rounded-xl bg-muted/50 animate-pulse" />
-        </div>
-      </div>
-    );
-  }
-
-  if (displayLanguages.length < 1) {
-    // Show at least the selected language even if RPC returns empty
-    return (
-      <div className="space-y-2">
-        <button className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium border bg-primary/15 border-primary text-primary ring-1 ring-primary/30 w-full">
-          <Headphones className="w-3.5 h-3.5 text-primary shrink-0" />
-          <span className="text-lg shrink-0">{getLanguageFlag(selectedLanguage)}</span>
-          <span className="truncate">{getLanguageName(selectedLanguage)}</span>
-          <Check className="w-3.5 h-3.5 text-primary ml-auto shrink-0" />
-        </button>
-      </div>
-    );
-  }
-
   return (
     <div className={cn("space-y-2 transition-opacity duration-200", fetching && "opacity-70 pointer-events-none")}>
-      {/* Collapsed: selected language with name */}
-      {collapsed && (
+      {/* Collapsed or single language: show selected language button */}
+      {(collapsed || displayLanguages.length <= 1) && (
         <>
           <button
             onClick={() => displayLanguages.length > 1 && setCollapsed(false)}

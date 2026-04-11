@@ -727,8 +727,8 @@ const GuideDetail = () => {
       {/* Sticky header — below navigation bar */}
       <div className="sticky top-14 sm:top-16 z-40 bg-background/95 backdrop-blur-md border-b border-border/30 px-3 py-2">
         <div className="flex items-center gap-2.5">
-          <button onClick={() => navigate('/guides')} className="w-8 h-8 shrink-0 rounded-full bg-primary/15 hover:bg-primary/25 flex items-center justify-center transition-colors active:scale-90">
-            <ChevronLeft className="w-4 h-4 text-primary" />
+          <button onClick={() => navigate(-1)} className="w-10 h-10 shrink-0 rounded-full bg-primary/15 hover:bg-primary/25 flex items-center justify-center transition-colors active:scale-90">
+            <ChevronLeft className="w-5 h-5 text-primary" />
           </button>
           <Headphones className="w-3.5 h-3.5 text-primary shrink-0" />
           <span className="text-xs font-bold font-heading min-w-0 truncate">{guide.title}</span>
