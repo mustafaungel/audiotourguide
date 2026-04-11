@@ -1,45 +1,33 @@
 
 
-## Mobil Scroll + Auto-Zoom Duzeltmeleri
+## Sitemap Güncelleme — Eksik Guide Ekleme
 
-### Sorun 1: Sayfa asagi kayik aciliyor
+### Sorun
 
-`ScrollToTop.tsx`'de `window.scrollTo` kullaniliyor ama mobil tarayicilarin (ozellikle Safari) kendi scroll restoration mekanizmasi bunu gecersiz kilabiliyor.
+`public/sitemap.xml` dosyasında **Grand Bazaar Audio Guide** eksik. Bu guide veritabanında `is_published=true` ve `is_approved=true` olmasına rağmen sitemap'e eklenmemiş.
 
-**Cozum:** `history.scrollRestoration = 'manual'` + `requestAnimationFrame` sarmalayici.
+### Görseller Hakkında
 
-### Sorun 2: Mobilde input/textarea'ya tiklaninca auto-zoom
+Sitemap'te `<image:image>` etiketi kasıtlı olarak kullanılmıyor. Supabase storage URL'leri (`dsaqlgxajdnwoqvtsrqd.supabase.co`) ana domain (`audiotourguide.app`) ile farklı olduğu için Google cross-domain sitemap görsellerini reddediyor. Görseller zaten her sayfanın OG meta etiketleri ve JSON-LD structured data'sı üzerinden Google tarafından indexleniyor — ek aksiyon gerekmiyor.
 
-`index.html` viewport meta tag'inde `maximum-scale=1` yok. iOS Safari, font-size 16px'den kucuk input/textarea'lara odaklandiginda otomatik zoom yapar. Projede `text-sm` (14px) kullaniliyor — bu zoom'u tetikler.
+### Degisiklik
 
-**Cozum:** Viewport meta tag'ine `maximum-scale=1` ekle. Bu, iOS'un otomatik zoom'unu engeller ama kullanicinin pinch-to-zoom'unu da kisitlar. Erisilebilirlik icin alternatif olarak tum input/textarea'larin font-size'ini 16px'e cikarabiliriz — ama bu tasarimda degisiklik yaratir.
+**`public/sitemap.xml`** — Grand Bazaar guide'ını ekle:
 
-En temiz cozum: her ikisini de yapmak — `maximum-scale=1` + input'larda `text-base` (16px) mobilde.
-
-### Degisiklikler
-
-**1. `index.html` — viewport meta tag**
-```html
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+```xml
+<url>
+  <loc>https://audiotourguide.app/guide/grand-bazaar-audio-guide-istanbul-turkey</loc>
+  <lastmod>2026-04-10</lastmod>
+  <changefreq>weekly</changefreq>
+  <priority>0.8</priority>
+</url>
 ```
 
-**2. `src/components/ScrollToTop.tsx` — scroll fix**
-- `history.scrollRestoration = 'manual'` (bir kere, mount'ta)
-- `requestAnimationFrame` icinde `window.scrollTo`
+Guide Detail Pages bölümünün başına (en güncel olduğu için) eklenir.
 
-**3. `src/index.css` — Mobilde input zoom onleme (opsiyonel ek guvenlik)**
-```css
-@media screen and (max-width: 768px) {
-  input, textarea, select { font-size: 16px !important; }
-}
-```
-
-### Teknik Ozet
+### Teknik Özet
 
 ```
-3 dosya:
-  index.html — viewport: maximum-scale=1, user-scalable=no
-  ScrollToTop.tsx — scrollRestoration manual + rAF
-  index.css — mobil input font-size 16px
+1 dosya: public/sitemap.xml — 1 yeni URL eklenir
 ```
 
