@@ -293,13 +293,21 @@ const Guides = () => {
           {/* Load More Button */}
           {!loading && remainingCount > 0 && (
             <div className="flex justify-center mt-8">
-              <Button 
-                variant="outline" 
-                className="w-full sm:w-auto touch-target px-8 py-3"
+              <button
                 onClick={() => setVisibleCount(prev => prev + 9)}
+                className="group relative flex items-center gap-3 px-8 py-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10 transition-all duration-300 active:scale-95 touch-target w-full sm:w-auto justify-center"
               >
-                Show {Math.min(9, remainingCount)} More Guides ({remainingCount} remaining)
-              </Button>
+                <Headphones className="w-5 h-5 text-amber-500 group-hover:scale-110 transition-transform" />
+                <span className="text-sm font-medium text-foreground">Discover More Audio Guides</span>
+                <Badge variant="secondary" className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/20 text-xs">
+                  {remainingCount}
+                </Badge>
+                <div className="flex items-end gap-[3px] h-4 ml-1">
+                  <span className="audio-wave-bar w-[2px] bg-amber-500/40 rounded-full" style={{ animationDelay: '0s' }} />
+                  <span className="audio-wave-bar w-[2px] bg-amber-500/40 rounded-full" style={{ animationDelay: '0.15s' }} />
+                  <span className="audio-wave-bar w-[2px] bg-amber-500/40 rounded-full" style={{ animationDelay: '0.3s' }} />
+                </div>
+              </button>
             </div>
           )}
 
