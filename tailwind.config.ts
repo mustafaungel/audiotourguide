@@ -39,7 +39,7 @@ export default {
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
-        heading: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+        heading: ['Sora', 'Plus Jakarta Sans', 'Inter', 'sans-serif'],
         inter: ['Inter', 'sans-serif'],
         lora: ['Lora', 'Georgia', 'serif'],
         playfair: ['Playfair Display', 'serif'],
