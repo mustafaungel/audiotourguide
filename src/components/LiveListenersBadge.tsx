@@ -3,7 +3,7 @@ import { useLiveListeners } from '@/hooks/useLiveListeners';
 
 interface LiveListenersBadgeProps {
   guideId: string;
-  variant?: 'inline' | 'badge';
+  size?: 'default' | 'compact';
 }
 
 function MiniEqualizer({ small = false }: { small?: boolean }) {
@@ -18,24 +18,21 @@ function MiniEqualizer({ small = false }: { small?: boolean }) {
   );
 }
 
-export function LiveListenersBadge({ guideId, variant = 'badge' }: LiveListenersBadgeProps) {
+export function LiveListenersBadge({ guideId, size = 'default' }: LiveListenersBadgeProps) {
   const count = useLiveListeners(guideId);
 
-  if (variant === 'inline') {
-    return (
-      <span className="inline-flex items-center gap-1 text-[10px] text-primary/70 font-medium">
-        <Headphones className="w-2.5 h-2.5 animate-pulse" />
-        <span className="font-mono tabular-nums">{count}</span>
-        <span className="italic">listening</span>
-      </span>
-    );
-  }
+  const isCompact = size === 'compact';
+
+  const outerPadding = isCompact ? 'p-[1px]' : 'p-[1px]';
+  const innerPadding = isCompact ? 'px-2 py-1' : 'px-3 py-1.5';
+  const fontSize = isCompact ? 'text-[9px]' : 'text-[11px]';
+  const iconSize = isCompact ? 'w-2.5 h-2.5' : 'w-3 h-3';
 
   return (
-    <div className="inline-flex w-fit max-w-full self-start rounded-full overflow-hidden bg-gradient-to-r from-primary/20 via-primary/5 to-primary/20 p-[1px] shadow-[0_2px_12px_hsl(var(--primary)/0.12)]">
-      <div className="inline-flex w-fit max-w-full items-center gap-1.5 bg-card backdrop-blur-sm px-3 py-1.5 rounded-full text-[11px] text-primary">
-        <MiniEqualizer />
-        <Headphones className="w-3 h-3 shrink-0" />
+    <div className={`inline-flex w-fit max-w-full self-start rounded-full overflow-hidden bg-gradient-to-r from-primary/20 via-primary/5 to-primary/20 ${outerPadding} shadow-[0_2px_12px_hsl(var(--primary)/0.12)]`}>
+      <div className={`inline-flex w-fit max-w-full items-center gap-1.5 bg-card backdrop-blur-sm ${innerPadding} rounded-full ${fontSize} text-primary`}>
+        <MiniEqualizer small={isCompact} />
+        <Headphones className={`${iconSize} shrink-0`} />
         <span className="min-w-0 truncate whitespace-nowrap"><span className="font-semibold">{count}</span> listening now</span>
       </div>
     </div>
