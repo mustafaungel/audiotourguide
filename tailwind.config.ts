@@ -38,7 +38,9 @@ export default {
         'touch': '44px',
       },
       fontFamily: {
+        sans: ['Lora', 'Inter', 'sans-serif'],
         inter: ['Inter', 'sans-serif'],
+        lora: ['Lora', 'Georgia', 'serif'],
         playfair: ['Playfair Display', 'serif'],
       },
       fontSize: {
