@@ -79,7 +79,7 @@ export function GuideCard({
       {/* Top band */}
       <div className={`px-4 py-2 flex items-center gap-2 ${bandGradient}`}>
         <Headphones className="w-4 h-4 text-primary-foreground shrink-0" />
-        <span className="text-[12px] font-extrabold font-heading truncate tracking-normal uppercase text-primary-foreground drop-shadow-sm">
+        <span className="text-[12px] font-extrabold font-heading truncate tracking-normal text-primary-foreground drop-shadow-sm">
           {title}
         </span>
       </div>

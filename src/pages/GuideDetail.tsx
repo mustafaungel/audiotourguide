@@ -695,10 +695,7 @@ const GuideDetail = () => {
                 </Badge>
               </div>
               <div className="flex-1 min-w-0 flex flex-col justify-center">
-                <h1 className="font-bold text-lg md:text-2xl leading-tight font-heading">{guide.title}</h1>
-                <div className="mt-1 flex items-center gap-2">
-                  <LiveListenersBadge guideId={guide.id} />
-                </div>
+                <LiveListenersBadge guideId={guide.id} />
                 <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
                   <MapPin className="w-3 h-3 text-primary/60 shrink-0" />
                   <span>{guide.location}</span>
