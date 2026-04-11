@@ -1,54 +1,65 @@
 
 
-## 3 İyileştirme: Görsel Yükleme + Load More Sayısı + Kart Tipografisi
+## 3 Düzeltme: Ekolayzer Hızı + Başlık Taşması + Metin Derinliği
 
-### 1. Görsel Yükleme (Country Detail)
+### 1. Ekolayzer Animasyon Hızı Senkronizasyonu
 
-Kontrol ettim — `/country/turkey` sayfasında görseller düzgün yükleniyor. Zelve kartındaki gecikme lazy loading'den kaynaklanıyordu. Ancak `OptimizedImage` bileşeninde bir iyileştirme yapılabilir: `onError` handler eklenerek kırık görseller için fallback placeholder gösterilecek. Bu, ileride gerçekten bozuk URL'li rehberler olursa sayfanın düzgün görünmesini sağlar.
+**Problem:** GuideCard waveform barları `equalizer-bar 2.2s` animasyonu kullanırken, Load More butonundaki barlar `audio-wave 1s` animasyonu kullanıyor — farklı hız ve keyframe.
 
-### 2. Load More — 9 → 6
-
-Her iki sayfada `visibleCount` başlangıcı 9'dan **6**'ya düşürülecek. Load More'daki artış da 6 olacak.
+**Çözüm:** Load More butonundaki `audio-wave-bar` class'ını kaldırıp, GuideCard ile aynı `equalizer-bar` animasyonunu inline style olarak ver (2.2s, aynı keyframe).
 
 | Dosya | Değişiklik |
 |-------|-----------|
-| `Index.tsx` | `useState(9)` → `useState(6)`, `prev + 9` → `prev + 6` |
-| `Guides.tsx` | `useState(9)` → `useState(6)`, `prev + 9` → `prev + 6` |
+| `Index.tsx` | Load More barlarında `audio-wave-bar` → inline `animation: equalizer-bar 2.2s ease-in-out infinite` |
+| `Guides.tsx` | Aynı değişiklik |
 
-### 3. GuideCard Tipografi — Daha Zengin, Premium Görünüm
+### 2. Üst Band Başlık Taşması
 
-Şu anda kartlardaki metinler çok sade: `text-xs text-muted-foreground` — sönük ve düz. Yapılacak iyileştirmeler:
+**Problem:** `uppercase tracking-wide` ile uzun başlıklar sığmıyor (ekran görüntüsünde "CAPPADOCIA : DISCOVER HIDDEN V..." kesiliyor).
 
-**`GuideCard.tsx`:**
+**Çözüm:**
+- `text-[13px]` → `text-[12px]` küçültme
+- `tracking-wide` → `tracking-normal` harfler arası boşluğu azalt
+- `truncate` zaten var, düzgün kesilecek
 
-- **Lokasyon metni**: `text-xs text-muted-foreground` → `text-xs font-semibold text-foreground/80` — daha koyu ve belirgin
-- **Süre metni**: `text-xs text-muted-foreground` → `text-xs font-medium text-foreground/60` — hafif ama okunabilir
-- **Üst band başlık**: `text-xs font-extrabold` → `text-[13px] font-extrabold tracking-wide uppercase` — daha etkili
-- **Kategori badge**: `text-[9px]` → `text-[10px] font-semibold` — biraz daha okunabilir
-- **Kart hover'da**: hafif `shadow-tourism` efekti eklenerek derinlik hissi
+| Dosya | Değişiklik |
+|-------|-----------|
+| `GuideCard.tsx` | Üst band title: `text-[12px] tracking-normal` |
 
-**`index.css`'e yeni utility (isteğe bağlı):**
-- `.card-text-shadow`: `text-shadow: 0 1px 2px hsl(0 0% 0% / 0.08)` — metin derinlik efekti (açık modda ince, koyu modda güçlü)
+### 3. Metin Derinliği — Text Shadow + Kontrast
+
+**Problem:** Kartlardaki metinler hala düz ve silik. Gölgelendirme yok, derinlik hissi yok.
+
+**Çözüm:**
+- `index.css`'e `.card-text-primary` ve `.card-text-secondary` utility class'ları ekle (text-shadow ile)
+- GuideCard'da lokasyon ve süre metinlerine bu class'ları uygula
+- Üst band başlığa `drop-shadow-sm` ekle
+- Lokasyon font boyutunu `text-xs` → `text-sm` yükselt, daha belirgin olsun
+
+| Dosya | Değişiklik |
+|-------|-----------|
+| `index.css` | `.card-text-primary { text-shadow: 0 1px 3px hsl(0 0% 0% / 0.12) }` ve `.card-text-secondary { text-shadow: 0 1px 2px hsl(0 0% 0% / 0.06) }` ekle. Dark mode'da opaklık artır. |
+| `GuideCard.tsx` | Lokasyon: `text-sm font-semibold card-text-primary`, Süre: `text-xs font-semibold card-text-secondary`, Band başlık: `drop-shadow-sm` ekle |
 
 ### Teknik Özet
 
 ```
 3 dosya:
 
-src/components/OptimizedImage.tsx
-  - onError handler → fallback placeholder
+src/index.css
+  - .card-text-primary ve .card-text-secondary utility class (text-shadow)
+  - Dark mode varyantları
 
 src/components/GuideCard.tsx
-  - Font weight artışları (semibold/medium)
-  - Text renk kontrastı artışı (foreground/80)
-  - Üst band: text-[13px] uppercase tracking-wide
-  - Badge: text-[10px] font-semibold
-  - Hover shadow iyileştirme
+  - Band title: text-[12px] tracking-normal + drop-shadow-sm
+  - Lokasyon: text-sm font-semibold + card-text-primary
+  - Süre: text-xs font-semibold + card-text-secondary
+  - Waveform animasyonu: değişiklik yok (zaten 2.2s equalizer-bar)
 
 src/pages/Index.tsx
-  - visibleCount: 9 → 6
+  - Load More barları: audio-wave-bar class yerine inline style equalizer-bar 2.2s
 
 src/pages/Guides.tsx
-  - visibleCount: 9 → 6
+  - Aynı Load More bar düzeltmesi
 ```
 
