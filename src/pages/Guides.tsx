@@ -116,7 +116,7 @@ const Guides = () => {
 
   // Reset visible count when filters change
   useEffect(() => {
-    setVisibleCount(9);
+    setVisibleCount(6);
   }, [searchTerm, selectedCategory]);
 
   const visibleGuides = filteredGuides.slice(0, visibleCount);
