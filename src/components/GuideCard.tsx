@@ -58,116 +58,33 @@ export function GuideCard({
     });
   };
 
-  if (isFeatured) {
-    return (
-      <div
-        className="group rounded-2xl overflow-hidden border border-amber-500/30 bg-card/80 backdrop-blur-sm shadow-sm hover:shadow-lg hover:shadow-amber-500/10 transition-all duration-300 cursor-pointer active:scale-[0.98]"
-        onClick={handleView}
-      >
-        {/* Large image with overlay */}
-        <div className="relative w-full h-40 overflow-hidden">
-          <OptimizedImage
-            src={imageUrl}
-            alt={title}
-            width={600}
-            height={320}
-            quality={85}
-            loading={imageLoading}
-            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+  // Featured and normal cards share the same horizontal layout
+  // Featured gets amber accents, normal gets primary
+  const isFeaturedCard = isFeatured;
+  const accentBorder = isFeaturedCard ? 'border-amber-500/30' : 'border-border/50';
+  const bandGradient = isFeaturedCard
+    ? 'bg-gradient-to-r from-amber-500 via-amber-500/85 to-yellow-500/70'
+    : 'bg-gradient-to-r from-primary via-primary/85 to-primary/70';
+  const waveColor = isFeaturedCard ? 'bg-amber-500/60' : 'bg-primary';
+  const playBtnClass = isFeaturedCard
+    ? 'bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600'
+    : 'bg-gradient-tourism hover:shadow-tourism';
+  const hoverShadow = isFeaturedCard ? 'hover:shadow-amber-500/10' : 'hover:shadow-primary/5';
 
-          {/* Featured badge */}
-          <div className="absolute top-2.5 left-2.5">
-            <Badge className="bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-50 border-0 text-[10px] font-bold px-2 py-0.5 shadow-md">
-              <Star className="w-3 h-3 mr-1" fill="currentColor" />
-              Featured
-            </Badge>
-          </div>
-
-          {/* Category badge */}
-          <Badge className="absolute top-2.5 right-2.5 bg-black/40 text-white border-0 text-[9px] font-medium px-1.5 py-0 capitalize backdrop-blur-sm">
-            {category}
-          </Badge>
-
-          {/* Title overlay */}
-          <div className="absolute bottom-0 left-0 right-0 px-3 pb-2.5">
-            <h3 className="text-white font-extrabold font-heading text-sm leading-tight line-clamp-2 drop-shadow-md">
-              {title}
-            </h3>
-          </div>
-        </div>
-
-        {/* Metadata */}
-        <div className="px-3 py-2.5 flex flex-col gap-1.5">
-          {/* Location & Duration */}
-          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="inline-flex items-center gap-1">
-              <MapPin className="w-3 h-3 text-primary/60 shrink-0" />
-              {location}
-            </span>
-            <span className="inline-flex items-center gap-1">
-              <Clock className="w-3 h-3 text-primary/60 shrink-0" />
-              {Math.floor(duration / 60)} min
-            </span>
-          </div>
-
-          {/* Flags + Listening */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              {languages && languages.length > 0 && (
-                <div className="flex items-center gap-0.5">
-                  {languages.map((lang, i) => {
-                    const match = ELEVENLABS_LANGUAGES.find(l => l.name === lang || l.code === lang);
-                    return match ? <span key={i} className="text-xs" title={match.name}>{match.flag}</span> : null;
-                  })}
-                </div>
-              )}
-              <LiveListenersBadge guideId={id} variant="inline" />
-            </div>
-            <Button
-              variant="default"
-              size="icon"
-              className="h-8 w-8 rounded-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 shadow-sm shrink-0"
-              disabled={isProcessingPayment}
-              onClick={(e) => { e.stopPropagation(); handleView(); }}
-            >
-              {isProcessingPayment ? (
-                <ButtonLoader text="" />
-              ) : (
-                <Play className="h-3.5 w-3.5 ml-0.5 text-white" fill="currentColor" />
-              )}
-            </Button>
-          </div>
-        </div>
-
-        {/* Animated waveform decoration */}
-        <div className="flex items-end justify-center gap-[2px] h-3 px-4 pb-1.5 opacity-50">
-          {[0, 120, 240, 80, 200, 40, 160, 280, 100, 220, 60, 180, 300, 140, 260].map((delay, i) => (
-            <span
-              key={i}
-              className="inline-block w-[3px] bg-amber-500/60 rounded-full"
-              style={{
-                height: `${4 + Math.sin(delay * 0.02) * 6}px`,
-                animation: 'equalizer-bar 2.2s ease-in-out infinite',
-                animationDelay: `${delay}ms`,
-              }}
-            />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  // Normal card layout
   return (
     <div
-      className="group rounded-2xl overflow-hidden border border-border/50 bg-card/80 backdrop-blur-sm shadow-sm hover:shadow-lg hover:shadow-primary/5 hover:border-primary/20 transition-all duration-300 cursor-pointer active:scale-[0.98]"
+      className={`group rounded-2xl overflow-hidden border ${accentBorder} bg-card/80 backdrop-blur-sm shadow-sm hover:shadow-lg ${hoverShadow} hover:border-primary/20 transition-all duration-300 cursor-pointer active:scale-[0.98]`}
       onClick={handleView}
     >
       {/* Top band */}
-      <div className="px-4 py-2 flex items-center gap-2 bg-gradient-to-r from-primary via-primary/85 to-primary/70">
+      <div className={`px-4 py-2 flex items-center gap-2 ${bandGradient}`}>
         <Headphones className="w-4 h-4 text-primary-foreground shrink-0" />
+        {isFeaturedCard && (
+          <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-amber-50 bg-amber-600/30 rounded-full px-1.5 py-0 shrink-0">
+            <Star className="w-2.5 h-2.5" fill="currentColor" />
+            Featured
+          </span>
+        )}
         <span className="text-xs font-extrabold font-heading truncate tracking-tight text-primary-foreground">
           {title}
         </span>
@@ -215,7 +132,7 @@ export function GuideCard({
             <Button
               variant="default"
               size="icon"
-              className="h-9 w-9 rounded-full bg-gradient-tourism hover:shadow-tourism shadow-sm shrink-0"
+              className={`h-9 w-9 rounded-full ${playBtnClass} shadow-sm shrink-0`}
               disabled={isProcessingPayment}
               onClick={(e) => { e.stopPropagation(); handleView(); }}
             >
@@ -234,7 +151,7 @@ export function GuideCard({
         {[0, 120, 240, 80, 200, 40, 160, 280, 100, 220, 60, 180, 300, 140, 260].map((delay, i) => (
           <span
             key={i}
-            className="inline-block w-[3px] bg-primary rounded-full"
+            className={`inline-block w-[3px] ${waveColor} rounded-full`}
             style={{
               height: `${4 + Math.sin(delay * 0.02) * 6}px`,
               animation: 'equalizer-bar 2.2s ease-in-out infinite',
