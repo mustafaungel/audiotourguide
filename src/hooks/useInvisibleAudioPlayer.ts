@@ -25,6 +25,8 @@ export const useInvisibleAudioPlayer = ({
 
   const PREVIEW_DURATION = isPreview ? 30 : null;
 
+  const instanceId = useRef(`player_${Math.random().toString(36).slice(2)}`);
+
   const stop = () => {
     if (audioRef.current) {
       audioRef.current.pause();
@@ -34,8 +36,23 @@ export const useInvisibleAudioPlayer = ({
     toastRef.current?.dismiss();
   };
 
+  // Listen for other players starting — stop this one
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail !== instanceId.current && isPlaying) {
+        stop();
+      }
+    };
+    window.addEventListener('preview-play', handler);
+    return () => window.removeEventListener('preview-play', handler);
+  }, [isPlaying]);
+
   const play = async () => {
     if (isPlaying) return;
+
+    // Tell all other players to stop
+    window.dispatchEvent(new CustomEvent('preview-play', { detail: instanceId.current }));
 
     try {
       setLoading(true);

@@ -1,6 +1,4 @@
-import { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Play, Square } from "lucide-react";
+import { Play, Pause, Loader2, Headphones } from "lucide-react";
 import { useInvisibleAudioPlayer } from "@/hooks/useInvisibleAudioPlayer";
 
 interface ChapterPreviewButtonProps {
@@ -12,9 +10,8 @@ interface ChapterPreviewButtonProps {
 }
 
 export const ChapterPreviewButton = ({ chapter, index, guide, isPurchased, selectedLanguage }: ChapterPreviewButtonProps) => {
-  // For preview, use chapter-specific audio URL if available, otherwise fallback to guide audio
   const chapterAudioSrc = chapter.audio_url || guide?.audio_url;
-  
+
   const audioPlayer = useInvisibleAudioPlayer({
     guideId: guide?.id,
     audioSrc: chapterAudioSrc,
@@ -32,24 +29,23 @@ export const ChapterPreviewButton = ({ chapter, index, guide, isPurchased, selec
   };
 
   return (
-    <Button 
-      size="sm" 
-      variant="outline"
+    <button
       onClick={handlePlayPause}
       disabled={audioPlayer.loading}
-      className="min-w-[100px]"
+      className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95 ${
+        audioPlayer.isPlaying
+          ? 'bg-primary text-primary-foreground shadow-md'
+          : 'bg-primary/10 text-primary hover:bg-primary/20'
+      }`}
     >
-      {audioPlayer.isPlaying ? (
-        <>
-          <Square className="w-3 h-3 mr-1" />
-          Stop
-        </>
+      {audioPlayer.loading ? (
+        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+      ) : audioPlayer.isPlaying ? (
+        <Pause className="w-3.5 h-3.5" fill="currentColor" />
       ) : (
-        <>
-          <Play className="w-3 h-3 mr-1" />
-          {audioPlayer.loading ? 'Loading...' : '30s Preview'}
-        </>
+        <Headphones className="w-3.5 h-3.5" />
       )}
-    </Button>
+      <span>{audioPlayer.isPlaying ? 'Playing' : audioPlayer.loading ? '' : '30s'}</span>
+    </button>
   );
 };
