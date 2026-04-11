@@ -1,37 +1,26 @@
 
-
-## Düzeltme: Sticky Header Arka Plan Bozukluğu
+## GuideCard'lardaki "listening" badge'ini Guide Detail ile aynı stile güncelle
 
 ### Problem
-
-Sticky header'da arka plan renkleri çok düşük opaklıkta:
-- Featured: `from-amber-500/10 to-yellow-500/5` (neredeyse saydam)
-- Normal: `bg-background/95` (hafif saydam)
-
-Altından scroll eden içerik (görsel, metin, badge) bulanık şekilde görünüyor ve kirli bir efekt yaratıyor.
+- GuideCard'larda `variant="inline"` kullanılıyor → sadece düz metin, kulaklık ikonu + "XX listening"
+- GuideDetail ve AudioAccess'te `variant="badge"` kullanılıyor → gradient border pill, equalizer animasyonu, premium görünüm
+- Kullanıcı tüm sayfalarda aynı badge stilini istiyor
 
 ### Çözüm
+GuideCard'daki `variant="inline"` kullanımını kaldırıp default `badge` varyantını kullan. Ancak kart içinde badge varyantı çok büyük kalacağından, badge varyantına `compact` boyut desteği ekle.
 
-Arka planı tam opak yap:
-- Featured: gradient üzerine solid bir katman ekle → `bg-background dark:bg-[#1a1206]` + gradient overlay
-- Normal: `bg-background/95` → `bg-background`
+### Teknik detay
 
-`backdrop-blur-md` korunabilir ama artık gerekli olmayacak — yine de geçiş yumuşaklığı için kalabilir.
+**`src/components/LiveListenersBadge.tsx`**
+- Yeni prop ekle: `size?: 'default' | 'compact'`
+- `compact` boyutta: daha küçük font (`text-[9px]`), daha küçük padding (`px-2 py-1`), küçük equalizer (`small`), küçük ikon (`w-2.5 h-2.5`)
+- `inline` varyantı tamamen kaldırılacak — artık her yerde badge varyantı kullanılacak
 
-### Teknik
+**`src/components/GuideCard.tsx`**
+- `variant="inline"` → kaldır
+- `size="compact"` ekle → kart içinde sığacak boyutta premium pill badge
 
-```
-src/pages/GuideDetail.tsx (satır 665)
-
-Önce:
-backdrop-blur-md ... bg-gradient-to-r from-amber-500/10 to-yellow-500/5 : bg-background/95
-
-Sonra:
-backdrop-blur-md ... bg-amber-950/95 dark:bg-amber-950/95 : bg-background
-```
-
-Featured guide'lar için `bg-amber-950/95` ile amber tonunu koruyup opaklığı artırıyoruz. Normal guide'lar tam opak `bg-background` olacak. Böylece altından geçen içerik hiçbir koşulda görünmez.
-
-### Değişecek dosya
-- `src/pages/GuideDetail.tsx` — tek satır (665)
-
+### Beklenen sonuç
+- Tüm sayfalarda aynı gradient-border pill + equalizer animasyonlu badge
+- Kart içinde kompakt ama aynı estetik
+- Tutarlı marka deneyimi
