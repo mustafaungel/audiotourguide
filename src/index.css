@@ -139,14 +139,16 @@ All colors MUST be HSL.
     --gradient-earth: linear-gradient(135deg, hsl(28 75% 58%), hsl(15 75% 55%));
     --gradient-overlay: linear-gradient(180deg, transparent 0%, hsl(0 0% 0% / 0.3) 100%);
 
-    /* Enhanced Shadow System */
+    /* Enhanced 3D Shadow System */
     --shadow-elegant: 0 10px 30px -10px hsl(var(--primary) / 0.3);
     --shadow-glow: 0 0 40px hsl(var(--primary-glow) / 0.4);
     --shadow-accent-glow: 0 0 30px hsl(205 88% 48% / 0.2);
-    --shadow-card: 0 4px 20px hsl(25 30% 12% / 0.06);
+    --shadow-card: 0 2px 8px hsl(25 30% 12% / 0.08), 0 8px 24px hsl(25 30% 12% / 0.06), 0 16px 48px hsl(25 30% 12% / 0.04);
     --shadow-tourism: 0 8px 32px hsl(22 88% 52% / 0.18);
-    --shadow-elevated: 0 12px 48px hsl(25 30% 12% / 0.10);
+    --shadow-elevated: 0 4px 12px hsl(25 30% 12% / 0.06), 0 12px 36px hsl(25 30% 12% / 0.08), 0 24px 64px hsl(25 30% 12% / 0.06), 0 32px 80px hsl(25 30% 12% / 0.04);
     --shadow-interactive: 0 6px 24px hsl(22 88% 52% / 0.15);
+    --shadow-raised: 0 2px 4px hsl(0 0% 100% / 0.15), 0 4px 12px hsl(25 30% 12% / 0.1), 0 8px 24px hsl(25 30% 12% / 0.08);
+    --shadow-pressed: inset 0 2px 4px hsl(25 30% 12% / 0.15), 0 1px 2px hsl(25 30% 12% / 0.06);
 
     /* Animation System */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -259,13 +261,15 @@ All colors MUST be HSL.
     --gradient-earth: linear-gradient(135deg, hsl(28 70% 65%), hsl(15 70% 62%));
     --gradient-overlay: linear-gradient(180deg, transparent 0%, hsl(0 0% 0% / 0.8) 100%);
 
-    /* Enhanced Dark Mode Shadow System */
+    /* Enhanced Dark Mode 3D Shadow System */
     --shadow-glow: 0 0 40px hsl(22 85% 65% / 0.35);
     --shadow-accent-glow: 0 0 30px hsl(205 85% 58% / 0.25);
-    --shadow-card: 0 8px 32px hsl(25 20% 3% / 0.5);
+    --shadow-card: 0 2px 8px hsl(25 20% 3% / 0.4), 0 8px 24px hsl(25 20% 3% / 0.35), 0 16px 48px hsl(25 20% 3% / 0.25);
     --shadow-tourism: 0 8px 32px hsl(22 85% 65% / 0.25);
-    --shadow-elevated: 0 12px 48px hsl(25 20% 3% / 0.6);
+    --shadow-elevated: 0 4px 12px hsl(25 20% 3% / 0.4), 0 12px 36px hsl(25 20% 3% / 0.35), 0 24px 64px hsl(25 20% 3% / 0.3), 0 32px 80px hsl(25 20% 3% / 0.2);
     --shadow-interactive: 0 6px 24px hsl(22 85% 65% / 0.2);
+    --shadow-raised: 0 2px 4px hsl(0 0% 100% / 0.05), 0 4px 12px hsl(25 20% 3% / 0.4), 0 8px 24px hsl(25 20% 3% / 0.3);
+    --shadow-pressed: inset 0 2px 4px hsl(25 20% 3% / 0.4), 0 1px 2px hsl(25 20% 3% / 0.2);
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -715,6 +719,74 @@ All colors MUST be HSL.
     text-shadow: 0 1px 3px hsl(0 0% 0% / 0.25);
   }
 
+  /* 3D Card Hover Effect */
+  .card-3d {
+    perspective: 800px;
+    transform-style: preserve-3d;
+  }
+
+  .card-3d-inner {
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+  }
+
+  .card-3d:hover .card-3d-inner {
+    transform: rotateX(-1.5deg) rotateY(1.5deg) translateZ(4px);
+  }
+
+  /* Button Raised/Pressed Effect */
+  .btn-raised {
+    box-shadow: var(--shadow-raised);
+    transition: box-shadow 0.2s ease, transform 0.15s ease;
+  }
+
+  .btn-raised:hover {
+    box-shadow: 0 3px 6px hsl(0 0% 100% / 0.12), 0 6px 16px hsl(25 30% 12% / 0.12), 0 12px 32px hsl(25 30% 12% / 0.1);
+    transform: translateY(-1px);
+  }
+
+  .btn-raised:active {
+    box-shadow: var(--shadow-pressed);
+    transform: translateY(1px);
+  }
+
+  .dark .btn-raised:hover {
+    box-shadow: 0 3px 6px hsl(0 0% 100% / 0.04), 0 6px 16px hsl(25 20% 3% / 0.5), 0 12px 32px hsl(25 20% 3% / 0.4);
+  }
+
+  /* Glassmorphism Badge */
+  .glass-badge {
+    background: hsl(var(--card) / 0.5);
+    backdrop-filter: blur(16px) saturate(150%);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
+    border: 1px solid hsl(var(--border) / 0.25);
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.15), inset 0 -1px 2px hsl(0 0% 0% / 0.08), 0 2px 8px hsl(0 0% 0% / 0.06);
+  }
+
+  .dark .glass-badge {
+    background: hsl(var(--card) / 0.35);
+    border-color: hsl(var(--border) / 0.2);
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.06), inset 0 -1px 2px hsl(0 0% 0% / 0.2), 0 2px 8px hsl(0 0% 0% / 0.15);
+  }
+
+  /* Hero Depth Layers */
+  .hero-depth-container {
+    perspective: 1000px;
+    transform-style: preserve-3d;
+  }
+
+  .hero-depth-bg {
+    transform: translateZ(-40px) scale(1.08);
+  }
+
+  .hero-depth-mid {
+    transform: translateZ(-20px) scale(1.04);
+  }
+
+  .hero-depth-front {
+    transform: translateZ(0px);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .card-waveform .waveform-bar,
     .group:hover .card-waveform .waveform-bar {
@@ -722,6 +794,16 @@ All colors MUST be HSL.
     }
     .audio-card-glow {
       transition: none;
+    }
+    .card-3d:hover .card-3d-inner {
+      transform: none;
+    }
+    .btn-raised:hover {
+      transform: none;
+    }
+    .hero-depth-bg,
+    .hero-depth-mid {
+      transform: none;
     }
   }
 }
