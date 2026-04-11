@@ -80,6 +80,7 @@ export type Database = {
           is_standalone: boolean
           languages: string[]
           location: string
+          maps_url: string | null
           master_access_code: string | null
           preview_url: string | null
           price_usd: number
@@ -117,6 +118,7 @@ export type Database = {
           is_standalone?: boolean
           languages?: string[]
           location: string
+          maps_url?: string | null
           master_access_code?: string | null
           preview_url?: string | null
           price_usd: number
@@ -154,6 +156,7 @@ export type Database = {
           is_standalone?: boolean
           languages?: string[]
           location?: string
+          maps_url?: string | null
           master_access_code?: string | null
           preview_url?: string | null
           price_usd?: number
