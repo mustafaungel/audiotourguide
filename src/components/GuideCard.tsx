@@ -89,6 +89,10 @@ export function GuideCard({
         <Badge className={`absolute top-2 left-2 ${getCategoryColor(category)} text-[9px] font-semibold px-2 py-0.5 capitalize shadow-sm`}>
           {category}
         </Badge>
+        {/* Price badge on image */}
+        <div className="absolute bottom-2 right-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded-lg shadow-lg backdrop-blur-sm" style={{ fontFamily: "'Inter', sans-serif" }}>
+          ${(price / 100).toFixed(2)}
+        </div>
         {/* Hover play overlay */}
         <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
           <div className="w-11 h-11 rounded-full bg-primary/90 backdrop-blur-sm flex items-center justify-center shadow-lg">
@@ -98,41 +102,40 @@ export function GuideCard({
       </div>
 
       {/* Content */}
-      <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
+      <div className="flex-1 min-w-0 overflow-hidden flex flex-col justify-center gap-1.5">
         {/* Title */}
-        <h3 className="font-bold text-base leading-snug line-clamp-2 tracking-tight" style={{ fontFamily: "'Lora', Georgia, serif" }}>
+        <h3 className="font-bold text-[15px] leading-snug line-clamp-2 tracking-tight" style={{ fontFamily: "'Lora', Georgia, serif" }}>
           {title}
         </h3>
 
         {/* Location + Duration */}
-        <div className="flex items-center gap-3 text-xs text-muted-foreground" style={{ fontFamily: "'Inter', sans-serif" }}>
-          <span className="flex items-center gap-1">
-            <MapPin className="w-3.5 h-3.5 text-primary/60" />
-            <span className="truncate max-w-[120px]">{location}</span>
+        <div className="flex items-center gap-2 text-[11px] text-muted-foreground" style={{ fontFamily: "'Inter', sans-serif" }}>
+          <span className="flex items-center gap-0.5 min-w-0">
+            <MapPin className="w-3 h-3 text-primary/60 shrink-0" />
+            <span className="truncate">{location}</span>
           </span>
-          <span className="flex items-center gap-1">
-            <Clock className="w-3.5 h-3.5 text-primary/60" />
-            {Math.floor(duration / 60)} min
+          <span className="flex items-center gap-0.5 shrink-0">
+            <Clock className="w-3 h-3 text-primary/60" />
+            {Math.floor(duration / 60)}min
           </span>
         </div>
 
         {/* Language flags */}
         {languages && languages.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1 mt-0.5">
+          <div className="flex flex-wrap items-center gap-0.5">
             {languages.map((lang, i) => {
               const match = ELEVENLABS_LANGUAGES.find(l => l.name === lang || l.code === lang);
-              return match ? <span key={i} className="text-sm" title={match.name}>{match.flag}</span> : null;
+              return match ? <span key={i} className="text-xs" title={match.name}>{match.flag}</span> : null;
             })}
           </div>
         )}
 
-        {/* Price + CTA */}
-        <div className="flex items-center gap-2 mt-1" style={{ fontFamily: "'Inter', sans-serif" }}>
-          <span className="text-lg font-extrabold tracking-tight">${(price / 100).toFixed(2)}</span>
+        {/* CTA */}
+        <div className="flex items-center mt-0.5" style={{ fontFamily: "'Inter', sans-serif" }}>
           <Button
             variant="default"
             size="sm"
-            className="ml-auto h-8 text-xs font-semibold rounded-full px-4 bg-gradient-tourism hover:shadow-tourism gap-1.5 shadow-sm"
+            className="h-7 text-[11px] font-semibold rounded-full px-3 bg-gradient-tourism hover:shadow-tourism gap-1 shadow-sm shrink-0"
             disabled={isProcessingPayment}
             onClick={(e) => { e.stopPropagation(); handleView(); }}
           >
@@ -141,7 +144,7 @@ export function GuideCard({
             ) : (
               <>
                 <Headphones className="h-3.5 w-3.5" />
-                Listen Now
+                Listen
               </>
             )}
           </Button>
