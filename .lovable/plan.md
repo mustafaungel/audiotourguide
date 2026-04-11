@@ -1,36 +1,49 @@
 
 
-## Sitemap Temizligi + SEO Alt Text Optimizasyonu
+## Geri Navigasyonda Scroll Pozisyonu Koruma
 
 ### Sorun
 
-Sitemap'te `<image:image>` etiketlerindeki URL'ler `dsaqlgxajdnwoqvtsrqd.supabase.co` domain'ine isaret ediyor. Google bu URL'leri kesfedip Supabase domain'ini indexleyebilir. Ana domain disinda hicbir sey indexlenmemeli.
+`ScrollToTop` bileşeni her `pathname` değişikliğinde `window.scrollTo(0, 0)` çağırıyor. Bu, tarayıcının geri/ileri butonuyla navigasyonda da çalışıyor — kullanıcı geri döndüğünde sayfa en üstten başlıyor, bıraktığı yerden değil.
 
-Ayrica gorsel alt text'lerinde "Audio Guide" keyword'u yok — Google Image SEO icin eksik.
+### Çözüm
 
-### Degisiklikler
+Navigasyon tipini kontrol et: sadece **yeni sayfa açılışlarında** (PUSH) en üste kaydır, **geri/ileri** (POP) navigasyonlarda tarayıcının kendi scroll restoration'ını kullan.
 
-**1. `public/sitemap.xml`**
-- Tum `<image:image>...</image:image>` bloklarini kaldir
-- Sadece `<loc>`, `<lastmod>`, `<changefreq>`, `<priority>` kalsin
-- Google gorselleri zaten sayfa icindeki OG tag'lerden ve JSON-LD'den indexliyor
+### Değişiklik
 
-**2. `src/components/GuideCard.tsx`**
-- `alt={title}` → `alt={\`${title} - Audio Guide\`}`
+**`src/components/ScrollToTop.tsx`**
 
-**3. `src/pages/GuideDetail.tsx`**
-- Ana gorsel alt text'e "Audio Guide" ekle
+```tsx
+import { useEffect } from "react";
+import { useLocation, useNavigationType } from "react-router-dom";
 
-**4. `src/components/SEO.tsx`**
-- `<meta property="og:image:alt" content={fullTitle} />` ekle
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  const navigationType = useNavigationType();
 
-### Teknik Ozet
+  useEffect(() => {
+    // Sadece yeni sayfa açılışlarında (link tıklama, navigate()) en üste kaydır
+    // Geri/ileri (POP) navigasyonlarda tarayıcı scroll pozisyonunu kendisi yönetir
+    if (navigationType !== "POP") {
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: "instant" as ScrollBehavior });
+      });
+    }
+  }, [pathname, navigationType]);
+
+  return null;
+};
+
+export default ScrollToTop;
+```
+
+- `history.scrollRestoration = 'manual'` satırı kaldırılır — tarayıcının POP navigasyonlarda scroll'u geri yüklemesine izin verilir
+- `useNavigationType()` ile PUSH/REPLACE ve POP ayrımı yapılır
+
+### Teknik Özet
 
 ```
-4 dosya:
-  public/sitemap.xml — image:image etiketleri kaldir (cross-domain URL'ler)
-  GuideCard.tsx — alt text'e "Audio Guide" ekle
-  GuideDetail.tsx — alt text'e "Audio Guide" ekle
-  SEO.tsx — og:image:alt meta tag ekle
+1 dosya: src/components/ScrollToTop.tsx
 ```
 
