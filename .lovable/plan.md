@@ -1,26 +1,23 @@
 
-## GuideCard'lardaki "listening" badge'ini Guide Detail ile aynı stile güncelle
+
+## Guide Kartlarından Equalizer Animasyonunu Kaldır
 
 ### Problem
-- GuideCard'larda `variant="inline"` kullanılıyor → sadece düz metin, kulaklık ikonu + "XX listening"
-- GuideDetail ve AudioAccess'te `variant="badge"` kullanılıyor → gradient border pill, equalizer animasyonu, premium görünüm
-- Kullanıcı tüm sayfalarda aynı badge stilini istiyor
+Compact (kart) boyutundaki badge'de equalizer animasyonu gereksiz görsel karmaşa yaratıyor.
 
 ### Çözüm
-GuideCard'daki `variant="inline"` kullanımını kaldırıp default `badge` varyantını kullan. Ancak kart içinde badge varyantı çok büyük kalacağından, badge varyantına `compact` boyut desteği ekle.
+`MiniEqualizer` bileşenini sadece `default` boyutta göster, `compact` boyutta render etme.
 
-### Teknik detay
+### Teknik
+**`src/components/LiveListenersBadge.tsx` (satır 34)**
 
-**`src/components/LiveListenersBadge.tsx`**
-- Yeni prop ekle: `size?: 'default' | 'compact'`
-- `compact` boyutta: daha küçük font (`text-[9px]`), daha küçük padding (`px-2 py-1`), küçük equalizer (`small`), küçük ikon (`w-2.5 h-2.5`)
-- `inline` varyantı tamamen kaldırılacak — artık her yerde badge varyantı kullanılacak
+```tsx
+// Önce:
+<MiniEqualizer small={isCompact} />
 
-**`src/components/GuideCard.tsx`**
-- `variant="inline"` → kaldır
-- `size="compact"` ekle → kart içinde sığacak boyutta premium pill badge
+// Sonra:
+{!isCompact && <MiniEqualizer />}
+```
 
-### Beklenen sonuç
-- Tüm sayfalarda aynı gradient-border pill + equalizer animasyonlu badge
-- Kart içinde kompakt ama aynı estetik
-- Tutarlı marka deneyimi
+Tek satır değişikliği — compact modda equalizer barları render edilmeyecek, sadece kulaklık ikonu + sayı + "listening now" metni kalacak.
+
