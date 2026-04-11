@@ -61,7 +61,7 @@ export function GuideCard({
   // Featured and normal cards share the same horizontal layout
   // Featured gets amber accents, normal gets primary
   const isFeaturedCard = isFeatured;
-  const accentBorder = isFeaturedCard ? 'border-amber-500/30' : 'border-border/50';
+  const accentBorder = isFeaturedCard ? 'border-amber-500/50' : 'border-primary/30';
   const bandGradient = isFeaturedCard
     ? 'bg-gradient-to-r from-amber-500 via-amber-500/85 to-yellow-500/70'
     : 'bg-gradient-to-r from-primary via-primary/85 to-primary/70';
@@ -73,12 +73,11 @@ export function GuideCard({
 
   return (
     <div
-      className={`group rounded-2xl overflow-hidden border ${accentBorder} bg-card/80 backdrop-blur-sm shadow-sm hover:shadow-lg ${hoverShadow} hover:border-primary/20 transition-all duration-300 cursor-pointer active:scale-[0.98]`}
+      className={`group rounded-2xl overflow-hidden border ${accentBorder} bg-card/80 backdrop-blur-sm shadow-sm hover:shadow-lg ${hoverShadow} ${isFeaturedCard ? 'hover:border-amber-500/60' : 'hover:border-primary/30'} transition-all duration-300 cursor-pointer active:scale-[0.98]`}
       onClick={handleView}
     >
       {/* Top band */}
-      <div className={`px-4 py-2.5 flex items-start gap-2 ${bandGradient}`}>
-        <Headphones className="w-4 h-4 text-primary-foreground shrink-0 mt-0.5" />
+      <div className={`px-4 py-2.5 flex items-start ${bandGradient}`}>
         <span className="flex-1 min-w-0 text-[12px] font-extrabold font-heading line-clamp-2 break-words leading-tight tracking-normal text-primary-foreground drop-shadow-sm">
           {title}
         </span>
