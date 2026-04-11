@@ -100,8 +100,8 @@ All colors MUST be HSL.
     --warning-foreground: 0 0% 100%;
     --warning-hover: 35 85% 50%;
 
-    --border: 25 15% 88%;
-    --input: 25 15% 90%;
+    --border: 25 20% 80%;
+    --input: 25 18% 85%;
     --ring: 22 88% 52%;
 
     /* Enhanced Tourism Color Palette */
@@ -220,8 +220,8 @@ All colors MUST be HSL.
     --warning-foreground: 25 20% 6%;
     --warning-hover: 35 80% 55%;
 
-    --border: 25 15% 22%;
-    --input: 25 15% 16%;
+    --border: 25 12% 30%;
+    --input: 25 12% 20%;
     --ring: 22 85% 65%;
 
     /* Enhanced Tourism Color Palette - Dark Mode */
@@ -321,6 +321,11 @@ All colors MUST be HSL.
     @apply bg-background text-foreground font-inter;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    letter-spacing: -0.02em;
   }
 
   /* Mobile-first responsive typography */

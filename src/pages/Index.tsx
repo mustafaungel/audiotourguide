@@ -277,6 +277,7 @@ const Index = () => {
                   imageUrl={guide.image_urls?.[0] || guide.image_url}
                   totalPurchases={guide.total_purchases || 0}
                   languages={guide.languages}
+                  isFeatured={guide.is_featured}
                   imageLoading={idx < 4 ? 'eager' : 'lazy'}
                   creatorName="Audio Tour Guides"
                   isProcessingPayment={processingPayment === guide.id}

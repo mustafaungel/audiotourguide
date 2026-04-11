@@ -21,7 +21,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { buildAccessUrl, getBaseUrl } from '@/lib/url-utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { GripVertical, Save, Loader2, Pencil, ExternalLink, Eye, EyeOff, Link2, ChevronDown, Copy, Plus, Trash2, MapPin, Globe, FileText } from 'lucide-react';
+import { GripVertical, Save, Loader2, Pencil, ExternalLink, Eye, EyeOff, Link2, ChevronDown, Copy, Plus, Trash2, MapPin, Globe, FileText, Star } from 'lucide-react';
 import { AddLanguageDialog } from '@/components/AddLanguageDialog';
 import { AdminScriptEditor } from '@/components/AdminScriptEditor';
 import { toast } from 'sonner';
@@ -41,6 +41,7 @@ interface GuideItem {
   languages: string[];
   slug: string;
   share_url: string | null;
+  is_featured?: boolean;
 }
 
 interface LinkedGuideInfo {
@@ -59,6 +60,7 @@ const SortableGuideRow = ({
   onEdit,
   onAddLanguage,
   onEditScripts,
+  onToggleFeatured,
   onDelete,
   togglingId,
   linkedGuides,
@@ -70,6 +72,7 @@ const SortableGuideRow = ({
   onEdit: (id: string) => void;
   onAddLanguage: (guide: { id: string; title: string; location: string }) => void;
   onEditScripts: (guide: { id: string; title: string }) => void;
+  onToggleFeatured: (id: string, current: boolean) => void;
   onDelete: () => void;
   togglingId: string | null;
   linkedGuides: LinkedGuideInfo[];
@@ -242,6 +245,19 @@ const SortableGuideRow = ({
               <Button
                 variant="ghost"
                 size="icon-sm"
+                className={`h-7 w-7 ${guide.is_featured ? 'text-amber-500 hover:text-amber-600' : 'text-muted-foreground/40 hover:text-amber-500'}`}
+                onClick={() => onToggleFeatured(guide.id, !!guide.is_featured)}
+              >
+                <Star className="h-3.5 w-3.5" fill={guide.is_featured ? 'currentColor' : 'none'} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-xs">{guide.is_featured ? 'Unfeatured' : 'Feature'}</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-sm"
                 className="h-7 w-7 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950"
                 onClick={() => onAddLanguage({ id: guide.id, title: guide.title, location: guide.location })}
               >
@@ -385,7 +401,7 @@ export const AdminGuideOrderManager = ({ onCreateNew, onEdit }: { onCreateNew?: 
     try {
       const { data, error } = await supabase
         .from('audio_guides')
-        .select('id, title, location, is_published, is_approved, is_standalone, price_usd, display_order, languages, slug, share_url')
+        .select('id, title, location, is_published, is_approved, is_standalone, is_featured, price_usd, display_order, languages, slug, share_url')
         .order('display_order', { ascending: true })
         .order('created_at', { ascending: false });
 
@@ -514,6 +530,20 @@ export const AdminGuideOrderManager = ({ onCreateNew, onEdit }: { onCreateNew?: 
     }
   };
 
+  const handleToggleFeatured = async (guideId: string, currentFeatured: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('audio_guides')
+        .update({ is_featured: !currentFeatured })
+        .eq('id', guideId);
+      if (error) throw error;
+      setGuides((prev) => prev.map((g) => g.id === guideId ? { ...g, is_featured: !currentFeatured } : g));
+      toast.success(currentFeatured ? 'Guide unfeatured' : 'Guide featured ★');
+    } catch (error) {
+      toast.error('Failed to update featured status');
+    }
+  };
+
   const handleEdit = (guideId: string) => {
     if (onEdit) {
       onEdit(guideId);
@@ -592,6 +622,7 @@ export const AdminGuideOrderManager = ({ onCreateNew, onEdit }: { onCreateNew?: 
                   onEdit={handleEdit}
                   onAddLanguage={setAddLangGuide}
                   onEditScripts={setScriptEditorGuide}
+                  onToggleFeatured={handleToggleFeatured}
                   onDelete={fetchGuides}
                   togglingId={togglingId}
                   linkedGuides={collections[guide.id] || []}

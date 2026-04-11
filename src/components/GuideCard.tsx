@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, MapPin, Headphones, Play } from "lucide-react";
+import { Clock, MapPin, Headphones, Play, Star } from "lucide-react";
 import { ButtonLoader } from "@/components/AudioGuideLoader";
 import { useViralTracking } from "@/hooks/useViralTracking";
 import { useNavigate } from "react-router-dom";
@@ -24,6 +24,7 @@ interface GuideCardProps {
   creatorAvatar?: string;
   creatorId?: string;
   languages?: string[];
+  isFeatured?: boolean;
   imageLoading?: 'lazy' | 'eager';
   isProcessingPayment?: boolean;
   onViewGuide?: () => void;
@@ -40,6 +41,7 @@ export function GuideCard({
   category,
   imageUrl,
   languages,
+  isFeatured = false,
   imageLoading = 'lazy',
   isProcessingPayment = false,
 }: GuideCardProps) {
@@ -57,13 +59,23 @@ export function GuideCard({
 
   return (
     <div
-      className="group rounded-2xl overflow-hidden border border-border/40 bg-card shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer active:scale-[0.98]"
+      className="group rounded-2xl overflow-hidden border border-border/50 bg-card/80 backdrop-blur-sm shadow-sm hover:shadow-lg hover:shadow-primary/5 hover:border-primary/20 transition-all duration-300 cursor-pointer active:scale-[0.98]"
       onClick={handleView}
     >
-      {/* Top band — Guide title */}
-      <div className="bg-gradient-to-r from-primary via-primary/90 to-primary px-4 py-2 flex items-center gap-2">
-        <Headphones className="w-4 h-4 text-primary-foreground shrink-0" />
-        <span className="text-xs font-bold text-primary-foreground font-heading truncate">
+      {/* Top band — Guide title (golden for featured) */}
+      <div className={`px-4 py-2 flex items-center gap-2 ${
+        isFeatured
+          ? 'bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500'
+          : 'bg-gradient-to-r from-primary via-primary/85 to-primary/70'
+      }`}>
+        {isFeatured ? (
+          <Star className="w-4 h-4 text-amber-100 shrink-0" fill="currentColor" />
+        ) : (
+          <Headphones className="w-4 h-4 text-primary-foreground shrink-0" />
+        )}
+        <span className={`text-xs font-extrabold font-heading truncate tracking-tight ${
+          isFeatured ? 'text-amber-50' : 'text-primary-foreground'
+        }`}>
           {title}
         </span>
       </div>
