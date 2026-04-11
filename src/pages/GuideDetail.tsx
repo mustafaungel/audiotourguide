@@ -743,12 +743,12 @@ const GuideDetail = () => {
           <div className="lg:col-span-2 space-y-4">
             {/* Compact Header — image + info side by side */}
             <div className="flex gap-4">
-              <div className="relative w-36 h-36 sm:w-40 sm:h-40 shrink-0 rounded-xl overflow-hidden shadow-lg">
+              <div className="relative w-32 sm:w-36 shrink-0 rounded-xl overflow-hidden shadow-lg" style={{ aspectRatio: '3/4' }}>
                 <OptimizedImage
                   src={guide.image_urls?.[0] || guide.image_url}
                   alt={guide.title}
-                  width={160}
-                  height={160}
+                  width={144}
+                  height={192}
                   quality={80}
                   loading="eager"
                   className="w-full h-full object-cover"

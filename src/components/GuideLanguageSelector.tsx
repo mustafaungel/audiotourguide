@@ -131,7 +131,7 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
           >
             <Headphones className="w-3.5 h-3.5 text-primary shrink-0" />
             <span className="text-lg shrink-0">{getLanguageFlag(selectedLanguage)}</span>
-            <span className="truncate">{selectedLangInfo?.native_name}</span>
+            <span className="truncate">{selectedLangInfo?.native_name || getLanguageName(selectedLanguage)}</span>
             <Check className="w-3.5 h-3.5 text-primary ml-auto shrink-0" />
             {displayLanguages.length > 1 && (
               <ChevronDown className="w-3.5 h-3.5 text-muted-foreground shrink-0" />

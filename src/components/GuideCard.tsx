@@ -71,7 +71,7 @@ export function GuideCard({
       {/* Main content — horizontal layout */}
       <div className="flex gap-3 p-3">
         {/* Image thumbnail */}
-        <div className="relative w-36 h-36 sm:w-40 sm:h-40 shrink-0 rounded-xl overflow-hidden shadow-md">
+        <div className="relative w-32 sm:w-36 shrink-0 rounded-xl overflow-hidden shadow-md" style={{ aspectRatio: '3/4' }}>
           <OptimizedImage
             src={imageUrl}
             alt={title}
