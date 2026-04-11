@@ -720,15 +720,14 @@ const GuideDetail = () => {
       )}
       <Navigation />
       
-      {/* Sticky header — guide name + selected language */}
-      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-md border-b border-border/30 px-4 py-2 flex items-center gap-2">
-        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => navigate('/guides')}>
+      {/* Sticky header — below navigation bar */}
+      <div className="sticky top-14 sm:top-16 z-40 bg-background/95 backdrop-blur-md border-b border-border/30 px-3 py-2 flex items-center gap-2">
+        <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => navigate('/guides')}>
           <ChevronLeft className="w-4 h-4" />
         </Button>
-        <div className="flex-1 min-w-0">
-          <h2 className="text-sm font-bold truncate font-heading">{guide.title}</h2>
-        </div>
-        <span className="text-xs font-medium text-primary flex items-center gap-1 shrink-0">
+        <Headphones className="w-3.5 h-3.5 text-primary shrink-0" />
+        <span className="text-[13px] font-bold truncate font-heading flex-1 min-w-0">{guide.title}</span>
+        <span className="text-[11px] font-semibold text-primary flex items-center gap-1 shrink-0 bg-primary/10 px-2 py-0.5 rounded-full">
           {getLanguageFlag(selectedLanguage)} {getLanguageName(selectedLanguage)}
         </span>
       </div>
