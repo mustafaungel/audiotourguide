@@ -82,10 +82,6 @@ export function GuideCard({
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-          {/* Price badge */}
-          <div className="absolute bottom-1.5 right-1.5 bg-primary text-primary-foreground rounded-full shadow-lg px-2.5 py-0.5">
-            <span className="text-[11px] font-bold">${(price / 100).toFixed(2)}</span>
-          </div>
           {/* Category badge */}
           <Badge className="absolute top-1.5 left-1.5 bg-black/50 text-white border-0 text-[9px] font-medium px-1.5 py-0 capitalize backdrop-blur-sm">
             {category}
@@ -116,9 +112,9 @@ export function GuideCard({
             </div>
           )}
 
-          {/* Headphone + Play */}
+          {/* Price + Play */}
           <div className="flex items-center gap-2 mt-1.5 self-end">
-            <Headphones className="w-5 h-5 text-primary/70" />
+            <span className="text-sm font-bold">${(price / 100).toFixed(2)}</span>
             <Button
               variant="default"
               size="icon"
