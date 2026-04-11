@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Star, MapPin, Clock, Users, Play, Download, Share2, Bookmark, ChevronLeft, Lock, Copy, Check, Link, ShoppingCart, Headphones, Globe } from "lucide-react";
 import { getLanguageFlag, getLanguageName } from "@/lib/language-utils";
 import { OptimizedImage } from "@/components/OptimizedImage";
+import { getMapEmbedUrl, parseCoordinates } from "@/lib/maps-utils";
 import { getProxiedImageUrl } from "@/lib/url-utils";
 import { LiveListenersBadge } from "@/components/LiveListenersBadge";
 import { useToast } from "@/hooks/use-toast";
@@ -614,6 +615,13 @@ const GuideDetail = () => {
         "addressLocality": guideCity,
         "addressCountry": guideCountry
       },
+      ...(parseCoordinates(guide.maps_url) ? {
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": parseCoordinates(guide.maps_url)!.lat,
+          "longitude": parseCoordinates(guide.maps_url)!.lng
+        }
+      } : {}),
       ...(guide.languages?.length > 0 ? { "availableLanguage": guide.languages.map((l: string) => ({ "@type": "Language", "name": l })) } : {}),
       "offers": guide.price_usd ? {
         "@type": "Offer",
@@ -658,6 +666,10 @@ const GuideDetail = () => {
           hreflangLinks={hreflangLinks}
           geoPlaceName={guideCity}
           geoRegion={guideCountry}
+          geoPosition={(() => {
+            const coords = parseCoordinates(guide.maps_url);
+            return coords ? `${coords.lat};${coords.lng}` : undefined;
+          })()}
         />
       )}
       <Navigation sticky={false} />
@@ -719,6 +731,21 @@ const GuideDetail = () => {
             <p className="text-sm text-muted-foreground leading-relaxed">
               {guide.description}
             </p>
+
+            {/* Map embed */}
+            {guide.maps_url && (
+              <div className="rounded-xl overflow-hidden border border-border/50 shadow-sm">
+                <iframe
+                  src={getMapEmbedUrl(guide.maps_url) || ''}
+                  width="100%"
+                  height="180"
+                  style={{ border: 0 }}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title={`${guide.title} location`}
+                />
+              </div>
+            )}
 
             {/* What's Included — value proposition */}
             {!isPurchased && !hasAccessCode && (

@@ -55,6 +55,8 @@ export const SEO: React.FC<SEOProps> = ({
       {/* Geo Meta Tags (for local SEO) */}
       {geoPlaceName && <meta name="geo.placename" content={geoPlaceName} />}
       {geoRegion && <meta name="geo.region" content={geoRegion} />}
+      {geoPosition && <meta name="geo.position" content={geoPosition} />}
+      {geoPosition && <meta name="ICBM" content={geoPosition.replace(';', ', ')} />}
 
       {/* Hreflang Tags (multi-language SEO) */}
       {hreflangLinks && hreflangLinks.map((link) => (

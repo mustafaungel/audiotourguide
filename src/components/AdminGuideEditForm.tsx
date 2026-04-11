@@ -65,6 +65,7 @@ export const AdminGuideEditForm = ({ onBack, guideId: propGuideId, onClose }: Ad
     price_usd: 0,
     image_urls: [] as string[],
     is_featured: false,
+    maps_url: '',
   });
 
   // Use propGuideId if provided, otherwise check sessionStorage
@@ -127,6 +128,7 @@ export const AdminGuideEditForm = ({ onBack, guideId: propGuideId, onClose }: Ad
         price_usd: data.price_usd / 100,
         image_urls: data.image_urls || [],
         is_featured: data.is_featured || false,
+        maps_url: data.maps_url || '',
       });
       setCustomSlug(data.slug || '');
 
@@ -243,6 +245,7 @@ export const AdminGuideEditForm = ({ onBack, guideId: propGuideId, onClose }: Ad
         image_urls: formData.image_urls,
         image_url: formData.image_urls[0] || null,
         is_featured: formData.is_featured,
+        maps_url: formData.maps_url || null,
         updated_at: new Date().toISOString(),
       };
 
@@ -478,6 +481,41 @@ export const AdminGuideEditForm = ({ onBack, guideId: propGuideId, onClose }: Ad
                   </div>
                   <p className="text-xs text-muted-foreground">Featured guides appear prominently on the homepage and get more visibility.</p>
                 </div>
+              </CollapsibleContent>
+            </Collapsible>
+
+            {/* Section: Maps & Location */}
+            <Collapsible defaultOpen={false}>
+              <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border px-4 py-2 font-medium text-sm hover:bg-muted transition-colors [&[data-state=open]>svg]:rotate-180">
+                📍 Maps & Location
+                <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pt-4 space-y-4">
+                <div className="space-y-2">
+                  <Label>Google Maps URL</Label>
+                  <Input
+                    placeholder="Paste Google Maps link here..."
+                    value={formData.maps_url}
+                    onChange={(e) => handleInputChange('maps_url', e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Open Google Maps → find the location → click Share → Copy link → Paste here.
+                    The map will be embedded on the guide detail page.
+                  </p>
+                </div>
+                {formData.maps_url && (
+                  <div className="rounded-xl overflow-hidden border border-border/50 shadow-sm">
+                    <iframe
+                      src={`https://www.google.com/maps?q=${encodeURIComponent(formData.maps_url.includes('google.com') ? new URL(formData.maps_url).searchParams.get('q') || formData.maps_url : formData.maps_url)}&output=embed`}
+                      width="100%"
+                      height="200"
+                      style={{ border: 0 }}
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                      title="Map preview"
+                    />
+                  </div>
+                )}
               </CollapsibleContent>
             </Collapsible>
 
