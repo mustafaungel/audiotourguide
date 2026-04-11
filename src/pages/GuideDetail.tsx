@@ -161,6 +161,8 @@ const GuideDetail = () => {
     creator: realGuideData.creator || {}
   } : null;
 
+  const isFeaturedGuide = realGuideData?.is_featured === true;
+
   // Get the current chapters based on language selection
   const currentChapters = guideSections.length > 0 ? guideSections : (guide?.chapters || guide?.sections || []);
   // Calculate duration from actual sections (language-specific)
@@ -726,12 +728,18 @@ const GuideDetail = () => {
       <Navigation />
       
       {/* Sticky header — below navigation bar */}
-      <div className="sticky top-14 sm:top-16 z-40 bg-background/95 backdrop-blur-md border-b border-border/30 px-3 py-2">
+      <div className={`sticky top-14 sm:top-16 z-40 backdrop-blur-md border-b border-border/30 px-3 py-2 ${isFeaturedGuide ? 'bg-gradient-to-r from-amber-500/10 to-yellow-500/5' : 'bg-background/95'}`}>
         <div className="flex items-center gap-2.5">
-          <button onClick={() => navigate(-1)} className="w-10 h-10 shrink-0 rounded-full bg-primary/15 hover:bg-primary/25 flex items-center justify-center transition-colors active:scale-90">
-            <ChevronLeft className="w-5 h-5 text-primary" />
+          <button onClick={() => navigate(-1)} className={`w-10 h-10 shrink-0 rounded-full flex items-center justify-center transition-colors active:scale-90 ${isFeaturedGuide ? 'bg-amber-500/15 hover:bg-amber-500/25' : 'bg-primary/15 hover:bg-primary/25'}`}>
+            <ChevronLeft className={`w-5 h-5 ${isFeaturedGuide ? 'text-amber-600 dark:text-amber-400' : 'text-primary'}`} />
           </button>
-          <Headphones className="w-3.5 h-3.5 text-primary shrink-0" />
+          <Headphones className={`w-3.5 h-3.5 shrink-0 ${isFeaturedGuide ? 'text-amber-600 dark:text-amber-400' : 'text-primary'}`} />
+          {isFeaturedGuide && (
+            <Badge className="bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-50 border-0 text-[9px] font-bold px-1.5 py-0 shrink-0">
+              <Star className="w-2.5 h-2.5 mr-0.5" fill="currentColor" />
+              Featured
+            </Badge>
+          )}
           <span className="text-xs font-bold font-heading min-w-0 truncate">{guide.title}</span>
           <span className="text-base ml-0.5 shrink-0">{getLanguageFlag(selectedLanguage)}</span>
         </div>
