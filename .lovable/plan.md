@@ -1,29 +1,61 @@
 
 
-## Get Full Access — Tüm Rehberler İçin Amber/Altın Tasarım
+## Arama İyileştirmeleri: Otomatik Tamamlama + Mobil Zoom Engelleme + UX
 
-### Değişiklik
+### Yapılacaklar
 
-Şu anda featured rehberler için uygulanan amber/altın tasarımı **tüm rehberler** için varsayılan yapılacak. `isFeaturedGuide` koşulları kaldırılıp her rehberde aynı premium görünüm kullanılacak.
+**1. Otomatik Tamamlama (Autocomplete) Bileşeni**
 
-**`src/pages/GuideDetail.tsx`** — Satır 917-942
+Yeni bir `SearchAutocomplete` bileşeni oluşturulacak. Kullanıcı yazdıkça mevcut rehber verilerinden eşleşen sonuçları dropdown olarak gösterecek (şehir adı, rehber adı, kategori). Mobilde tam genişlikte, masaüstünde max-width ile sınırlı.
 
-| Eleman | Şimdi (standart) | Yeni (tümü) |
-|--------|------------------|-------------|
-| Container border | `border-border/40` | `border-amber-500/30 bg-amber-500/5` |
-| Üst bant gradyanı | `from-primary via-primary/90 to-primary` | `from-amber-500 via-yellow-500 to-amber-500` |
-| İkon/metin rengi | `text-primary-foreground` | `text-amber-50` |
-| Already Purchased | `text-green-600` | `text-amber-600` |
+- Debounce (300ms) ile performans koruması
+- Dropdown'da eşleşen rehber başlığı + lokasyon gösterilecek
+- Tıklayınca direkt o rehberin detay sayfasına gidecek VEYA arama terimini dolduracak
+- Dışarı tıklayınca dropdown kapanacak
 
-Tüm `isFeaturedGuide ? ... : ...` ternary'leri kaldırılıp sadece amber değerleri kalacak.
+**2. Mobil Zoom Engelleme**
 
-### Teknik Özet
+Tüm arama input'larına `text-[16px]` class'ı eklenecek (iOS'ta 16px altı font zoom tetikliyor). Bu zaten memory'de belirtilmiş ama bazı sayfalarda uygulanmamış.
+
+**3. X (Temizle) Butonu**
+
+Guides sayfasında zaten "Clear" butonu var ama ayrı bir buton olarak. FeaturedGuides ve Countries sayfalarında yok. Tüm arama input'larının içine (sağ tarafa) küçük X ikonu eklenecek.
+
+**4. Kategori Chip'leri (Guides Sayfası)**
+
+Arama altına yatay kaydırılabilir kategori chip'leri: mevcut rehberlerden unique kategoriler çekilip gösterilecek. Tek dokunuşla filtreleme.
+
+**5. Filters Butonu (Guides Sayfası)**
+
+Mevcut çalışmayan Filters butonunu aktif hale getir — Bottom Sheet (mobil) açılacak, içinde kategori seçenekleri olacak.
+
+### Dosyalar
 
 ```
-1 dosya: src/pages/GuideDetail.tsx
-  - Satır 917: border-amber-500/30 bg-amber-500/5 (koşulsuz)
-  - Satır 918: from-amber-500 via-yellow-500 to-amber-500 (koşulsuz)
-  - Satır 919-920: text-amber-50 (koşulsuz)
-  - Satır 924: text-amber-600 (koşulsuz)
+Yeni dosya:
+  src/components/SearchAutocomplete.tsx — Autocomplete dropdown bileşeni
+
+Düzenlenecek dosyalar:
+  src/pages/Guides.tsx
+    - SearchAutocomplete entegrasyonu
+    - Kategori chip'leri (yatay scroll)
+    - Filters butonu → Bottom Sheet aç
+    - Input'a text-[16px] ekle
+
+  src/pages/FeaturedGuides.tsx
+    - SearchAutocomplete entegrasyonu
+    - X temizle butonu
+    - Input'a touch-target, mobile-text, text-[16px] ekle
+
+  src/pages/Countries.tsx
+    - Input içine X temizle butonu
+    - Input'a text-[16px] ekle (zaten mobile-text var ama doğrulama)
 ```
+
+### Autocomplete Mantığı
+
+- Guides/FeaturedGuides: Mevcut `guides` array'inden `title` ve `location` alanlarını filtrele
+- Countries: Mevcut `countries` array'inden `country` alanını filtrele
+- Minimum 2 karakter sonrası öneriler gösterilecek
+- Maksimum 5 öneri gösterilecek
 
