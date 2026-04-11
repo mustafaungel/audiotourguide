@@ -668,7 +668,7 @@ const GuideDetail = () => {
             <ChevronLeft className={`w-[22px] h-[22px] ${isFeaturedGuide ? 'text-amber-600 dark:text-amber-400' : 'text-primary'}`} />
           </button>
           <Headphones className={`w-4 h-4 shrink-0 ${isFeaturedGuide ? 'text-amber-600 dark:text-amber-400' : 'text-primary'}`} />
-          <span className="text-sm font-bold font-heading min-w-0 truncate">{guide.title}</span>
+          <span className="text-sm font-bold font-heading min-w-0 line-clamp-2 leading-tight">{guide.title}</span>
           <span className="text-base ml-0.5 shrink-0">{getLanguageFlag(selectedLanguage)}</span>
         </div>
       </div>
