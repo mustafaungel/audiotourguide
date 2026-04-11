@@ -662,7 +662,7 @@ const GuideDetail = () => {
       <Navigation />
       
       {/* Sticky header — below navigation bar */}
-      <div className={`sticky top-14 sm:top-16 z-40 backdrop-blur-xl border-b px-3 py-2 ${isFeaturedGuide ? 'bg-amber-500/15 dark:bg-amber-900/40 border-amber-500/20' : 'bg-background/70 border-border/30'}`}>
+      <div className={`sticky top-14 sm:top-16 z-40 backdrop-blur-xl border-b px-3 py-2 will-change-transform transform-gpu ${isFeaturedGuide ? 'bg-amber-500/15 dark:bg-amber-900/40 border-amber-500/20' : 'bg-background/70 border-border/30'}`}>
         <div className="flex items-center gap-2.5">
           <button onClick={() => navigate(-1)} className={`w-10 h-10 shrink-0 rounded-full flex items-center justify-center transition-colors active:scale-90 ${isFeaturedGuide ? 'bg-amber-500/15 hover:bg-amber-500/25' : 'bg-primary/15 hover:bg-primary/25'}`}>
             <ChevronLeft className={`w-5 h-5 ${isFeaturedGuide ? 'text-amber-600 dark:text-amber-400' : 'text-primary'}`} />
