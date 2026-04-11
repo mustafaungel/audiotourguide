@@ -1,25 +1,25 @@
 
 
-## "now" Kaldırma + Listening Badge Görselle Aynı Hizada
+## LiveListenersBadge'i Görselin Altına Taşıma
 
-### Değişiklikler
+### Problem
+Şu an `LiveListenersBadge` görselin sağ tarafındaki dil seçici alanının içinde (satır 713). Kullanıcı görselin hemen altında olmasını istiyor.
 
-**1. `src/components/LiveListenersBadge.tsx` (satır 35)**
-- `listening now` → `listening` olarak değiştirilecek. Tüm kullanım yerlerinde otomatik güncellenmiş olacak (GuideDetail, Access, kartlar vs.)
+### Çözüm — `src/pages/GuideDetail.tsx`
 
-**2. `src/pages/GuideDetail.tsx` (satır 714-717)**
-- `LiveListenersBadge` görselin altından kaldırılıp, görsel+dil emojileri satırının içine taşınacak — görselle aynı hizada olacak.
+**Satır 713:** `LiveListenersBadge`'i `flex-1` div'den kaldır.
 
-Yeni layout:
+**Satır 715-716 arası:** `flex gap-4` div'in kapandığı yerin hemen altına, `space-y-3` div'in içine taşı.
+
 ```text
 ┌──────────────────────────────────┐
 │ [Görsel 128x128] [🇺🇸🇫🇷🇳🇱🇨🇳]   │
 │  📍 pin  konum   [🇪🇸🇮🇹🇯🇵]      │
-│                  🎧 42 listening │  ← Dil emojilerinin altında, aynı hizada
+│                  [🇵🇹]           │
+├──────────────────────────────────┤
+│ 🎧 42 listening                 │  ← Görselin hemen altında, ayrı satır
 └──────────────────────────────────┘
 ```
 
-`LiveListenersBadge` dil seçicinin bulunduğu `flex-1` div'in içine, `GuideLanguageSelector`'ın altına taşınacak.
-
-2 dosya, küçük değişiklikler.
+Tek dosya, 2 satır değişikliği: satır 713'ten sil, satır 715'in altına ekle.
 
