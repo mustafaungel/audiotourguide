@@ -762,14 +762,20 @@ const GuideDetail = () => {
                   loading="eager"
                   className="w-full h-full object-cover object-center"
                 />
-                <Badge className="absolute top-1.5 left-1.5 bg-black/50 text-white border-0 text-[9px] px-1.5 py-0 capitalize backdrop-blur-sm">
+                <Badge className={`absolute top-1.5 left-1.5 border-0 text-[9px] px-1.5 py-0 capitalize backdrop-blur-sm ${isFeaturedGuide ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-50' : 'bg-black/50 text-white'}`}>
                   {guide.category}
                 </Badge>
               </div>
               <div className="flex-1 min-w-0 flex flex-col justify-center">
                 <h1 className="font-bold text-lg md:text-2xl leading-tight font-heading">{guide.title}</h1>
-                <div className="mt-1">
+                <div className="mt-1 flex items-center gap-2">
                   <LiveListenersBadge guideId={guide.id} />
+                  {isFeaturedGuide && (
+                    <Badge className="bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-50 border-0 text-[9px] font-bold px-1.5 py-0">
+                      <Star className="w-2.5 h-2.5 mr-0.5" fill="currentColor" />
+                      Featured
+                    </Badge>
+                  )}
                 </div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
                   <MapPin className="w-3 h-3 text-primary/60 shrink-0" />
