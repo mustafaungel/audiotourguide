@@ -1,43 +1,36 @@
 
 
-## Guide Kartı Kulaklık Tasarımı İyileştirmesi
+## Guide Kartı Düzeltmesi: Kenar Hizalama ve Metin Taşması
 
-### Sorunlar (Ekran görüntüsünden)
-1. **Kenarlar boş** — ear cup'lar ve headband arasında kulaklık silüetini tamamlayan kenar çizgileri yok. Kartın sol ve sağ kenarları düz ve boş kalıyor.
-2. **Başlıklar kesiliyor** — `line-clamp-1` ve `max-w-[80%]` yüzünden uzun başlıklar "..." ile kırpılıyor.
-3. **Headband'deki kulaklık ikonu gereksiz** — kart zaten kulaklık şeklinde, `<Headphones>` ikonu fazlalık.
+### Sorunlar
+1. **Connector bantları yanlış konumda** — `px-[calc(2rem+0.75rem)]` hesaplaması ear cup'ların gerçek konumuyla uyuşmuyor. Bantlar ear cup'ların dışında veya içinde kalıyor.
+2. **Orta metadata alanı taşıyor** — `flex-1 min-w-0` olmasına rağmen, iki sabit genişlikli ear cup (88px) + gap + padding hesabında orta alan yeterince daralmıyor ve içerik taşıyor.
 
-### Çözüm
+### Çözüm — `src/components/GuideCard.tsx`
 
-**`src/components/GuideCard.tsx`**
+**1. Connector bantlarını ear cup'larla hizala:**
+Mevcut karmaşık `calc()` padding'i yerine, ear cup'ların gerçek konumuna göre hizalama yap. Ear cup'lar `px-1` (4px) padding ile başlıyor ve 88px genişliğinde. Connector'lar ear cup'ların dış kenarının ortasına denk gelmeli:
+- Sol connector: `left` = `4px + 44px` = `48px` (ear cup'ın ortası)
+- Sağ connector: aynı mesafe sağdan
 
-1. **Kenar bantları ekle** — Headband'den ear cup'lara inen dikey kenar çizgileri. Connector bölümünü uzatıp, ear cup'ların dış kenarlarında dikey bantlar oluşturacak şekilde `border-left` / `border-right` veya ince div'ler eklemek. Ana body bölümünün sol ve sağında 3px genişliğinde, yukarıdan aşağı uzanan bantlar olacak → kulaklık silüetinin "band" kısmını tamamlayacak.
+Bunu `justify-between` + padding yerine `absolute` pozisyonlama ile yapmak daha doğru olacak.
 
-2. **Başlık tam gösterilsin** — `line-clamp-1` → `line-clamp-2` yapılacak, `max-w-[80%]` kaldırılacak. Başlık iki satıra kadar rahatça sığacak.
-
-3. **Kulaklık ikonu kaldırılsın** — `<Headphones>` import ve kullanımı headband'den çıkarılacak.
-
-### Teknik Detay
-
-```text
-Yapı (güncelleme sonrası):
-
-          ╭──────────────────────────╮
-         ╱  Cappadocia: Discover      ╲
-        ╱   Hidden Valleys             ╲
-       │                                │
-       │                                │   ← dikey bant çizgileri
-  ╭────┤                                ├────╮
-  │    │                                │    │
-  │IMG │   📍 Location                  │ ▶  │
-  │    │   ⏱ 66 min                    │    │
-  │    │   🎧 56 listening              │    │
-  ╰────┤                                ├────╯
-       └────────────────────────────────┘
+```tsx
+{/* Band connectors */}
+<div className="relative h-5">
+  <div className={`absolute left-[48px] sm:left-[56px] w-[3px] h-full ${connectorColor} rounded-full`} />
+  <div className={`absolute right-[48px] sm:right-[56px] w-[3px] h-full ${connectorColor} rounded-full`} />
+</div>
 ```
 
-Connector bölümü yerine, ear cup'ları saran bir wrapper div'e sol/sağ border eklenecek. Bu border headband'ın alt kenarından ear cup'ların üst kenarına kadar uzanacak → gerçek kulaklık bant silüeti.
+**2. Orta metadata taşmasını düzelt:**
+`overflow-hidden` zaten var ama location metni `truncate` ile kesilmeli ve font boyutu küçültülmeli:
+- Location span'ına `max-w-full` ekle
+- Tüm orta alana `text-center` ile sınırlama koy
+
+**3. Ana body gap'ini azalt:**
+`gap-2` (8px) → `gap-1` (4px) yaparak ear cup'lar arasında daha fazla alan bırak metadata'ya.
 
 ### Değişecek dosya
-- **`src/components/GuideCard.tsx`** — 3 değişiklik (kenar bantları, başlık clamp, ikon kaldırma)
+- **`src/components/GuideCard.tsx`** — connector pozisyonlama, gap azaltma, metadata overflow düzeltmesi
 
