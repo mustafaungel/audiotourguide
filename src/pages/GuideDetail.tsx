@@ -781,10 +781,7 @@ const GuideDetail = () => {
                   <Clock className="w-3 h-3" /> {Math.floor(guide.duration / 60)} min
                 </span>
                 <span className="flex items-center gap-1 bg-primary/10 text-primary rounded-full px-2.5 py-1">
-                  <Globe className="w-3 h-3" /> Offline access
-                </span>
-                <span className="flex items-center gap-1 bg-primary/10 text-primary rounded-full px-2.5 py-1">
-                  <Share2 className="w-3 h-3" /> Lifetime access
+                  <Headphones className="w-3 h-3" /> Lifetime access
                 </span>
               </div>
             )}
