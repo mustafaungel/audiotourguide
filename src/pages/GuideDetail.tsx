@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Star, MapPin, Clock, Users, Play, Download, Share2, Bookmark, ChevronLeft, Lock, Copy, Check, Link, ShoppingCart, Headphones, Globe } from "lucide-react";
 import { getLanguageFlag, getLanguageName } from "@/lib/language-utils";
+import { OptimizedImage } from "@/components/OptimizedImage";
 import { useToast } from "@/hooks/use-toast";
 import { useViralTracking } from "@/hooks/useViralTracking";
 import { useAuth } from "@/contexts/AuthContext";
@@ -742,12 +743,15 @@ const GuideDetail = () => {
           <div className="lg:col-span-2 space-y-4">
             {/* Compact Header — image + info side by side */}
             <div className="flex gap-4">
-              <div className="relative w-32 h-32 sm:w-36 sm:h-36 shrink-0 rounded-xl overflow-hidden shadow-lg">
-                <img
-                  src={(guide.image_urls?.[0] || guide.image_url) || '/hero-audio-guide.jpg'}
+              <div className="relative w-36 h-36 sm:w-40 sm:h-40 shrink-0 rounded-xl overflow-hidden shadow-lg">
+                <OptimizedImage
+                  src={guide.image_urls?.[0] || guide.image_url}
                   alt={guide.title}
+                  width={160}
+                  height={160}
+                  quality={80}
+                  loading="eager"
                   className="w-full h-full object-cover"
-                  onError={(e) => { e.currentTarget.src = '/hero-audio-guide.jpg'; }}
                 />
                 <Badge className="absolute top-1.5 left-1.5 bg-black/50 text-white border-0 text-[9px] px-1.5 py-0 capitalize backdrop-blur-sm">
                   {guide.category}
