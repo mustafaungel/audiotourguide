@@ -1,36 +1,61 @@
 
 
-## Metadata Bilgilerini Resmin Altına Taşıma
+## Görsel + Dil Emojileri Yan Yana, Listening Now + Bölge Altında
 
-### Problem
-Şu an resim ve metadata (konum, süre, stops, dil seçici) yan yana (`flex gap-4`) duruyor. Mobilde resim 128px genişliğinde kalınca metadata'ya az alan kalıyor.
+### Yeni Layout
 
-### Çözüm
-Satır 682'deki `flex gap-4` layout'u `space-y-3` (dikey yığın) olarak değiştirilecek. Resim mevcut boyutunda kalacak, metadata bilgileri resmin hemen altına geçecek.
+```text
+┌──────────────────────────────┐
+│ [Görsel 128x128] [🇺🇸🇫🇷🇳🇱🇨🇳] │  ← Görsel sol, dil emojileri sağda
+│                  [🇪🇸🇮🇹🇯🇵] │
+│                  [🇵🇹🇰🇷]    │
+├──────────────────────────────┤
+│ 🎧 112 listening now         │  ← Resmin altında
+│ 📍 Cappadocia, Turkey        │  ← Badge olarak
+│ ⏱ 66 min · 19 stops          │
+└──────────────────────────────┘
+```
 
 ### Değişiklik — `src/pages/GuideDetail.tsx` (satır 682-718)
 
-```
-Önce:
-<div className="flex gap-4">
-  <div className="relative w-32 h-32 ...">  {/* image */}
-  </div>
-  <div className="flex-1 min-w-0 flex flex-col justify-center">
-    {/* LiveListeners, location, duration, language */}
-  </div>
-</div>
+1. İlk satır: `flex gap-4` ile görsel (sol) + dil seçici (sağ, `flex-1 flex-wrap items-start`)
+2. İkinci bölüm (`space-y-1.5`): LiveListenersBadge, ardından konum bilgisi badge olarak (`bg-primary/10 text-primary rounded-full px-2.5 py-1`), süre/stops bilgisi
 
-Sonra:
+```tsx
 <div className="space-y-3">
-  <div className="relative w-32 h-32 ...">  {/* image — boyut aynı */}
+  {/* Üst: Görsel + Dil emojileri yan yana */}
+  <div className="flex gap-4">
+    <div className="relative w-32 h-32 sm:w-36 sm:h-36 shrink-0 rounded-xl overflow-hidden shadow-lg">
+      <OptimizedImage ... />
+      <Badge ...>{guide.category}</Badge>
+    </div>
+    <div className="flex-1 min-w-0 flex items-start">
+      {guide?.id && (
+        <GuideLanguageSelector
+          guideId={guide.id}
+          selectedLanguage={selectedLanguage}
+          onLanguageChange={handleLanguageChange}
+        />
+      )}
+    </div>
   </div>
-  <div className="flex flex-col gap-1">
-    {/* LiveListeners, location, duration, language — artık resmin altında */}
+
+  {/* Alt: Listening + Konum badge + Süre */}
+  <div className="flex flex-col gap-1.5">
+    <LiveListenersBadge guideId={guide.id} />
+    <span className="inline-flex items-center gap-1.5 w-fit bg-primary/10 text-primary text-xs rounded-full px-2.5 py-1">
+      <MapPin className="w-3 h-3" />
+      {guide.location}
+    </span>
+    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+      <Clock className="w-3 h-3 text-primary/60 shrink-0" />
+      <span>{displayDuration} min</span>
+      <span>·</span>
+      <span>{currentChapters.length} stops</span>
+    </div>
   </div>
 </div>
 ```
 
-- Resim boyutu değişmez
-- Köklü tasarım değişikliği yok, sadece layout yönü değişiyor
-- Tek dosya, tek bölüm değişikliği
+Tek dosya, tek bölüm değişikliği. Görsel boyutu ve diğer tasarım öğeleri aynı kalır.
 
