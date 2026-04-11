@@ -79,12 +79,6 @@ export function GuideCard({
       {/* Top band */}
       <div className={`px-4 py-2 flex items-center gap-2 ${bandGradient}`}>
         <Headphones className="w-4 h-4 text-primary-foreground shrink-0" />
-        {isFeaturedCard && (
-          <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-amber-50 bg-amber-600/30 rounded-full px-1.5 py-0 shrink-0">
-            <Star className="w-2.5 h-2.5" fill="currentColor" />
-            Featured
-          </span>
-        )}
         <span className="text-xs font-extrabold font-heading truncate tracking-tight text-primary-foreground">
           {title}
         </span>
