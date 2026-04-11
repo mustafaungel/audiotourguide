@@ -53,7 +53,7 @@ export function GuideCard({
     trackEngagement('view', id);
     navigate(`/guide/${slug || id}`, {
       state: {
-        guidePreview: { id, slug, title, description, location, price, duration, category, imageUrl }
+        guidePreview: { id, slug, title, description, location, price, duration, category, imageUrl, isFeatured }
       }
     });
   };
