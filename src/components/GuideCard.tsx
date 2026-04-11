@@ -112,9 +112,8 @@ export function GuideCard({
             </div>
           )}
 
-          {/* Price + Play */}
-          <div className="flex items-center gap-2 mt-1.5 self-end">
-            <span className="text-sm font-bold">${(price / 100).toFixed(2)}</span>
+          {/* Play */}
+          <div className="flex items-center mt-1.5 self-end">
             <Button
               variant="default"
               size="icon"
