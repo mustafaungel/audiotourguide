@@ -9,6 +9,7 @@ import { GuideCard } from '@/components/GuideCard';
 import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Headphones, MapPin } from 'lucide-react';
 import * as CarouselComponents from '@/components/ui/carousel';
 import { supabase } from '@/integrations/supabase/client';
