@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getMapEmbedUrl } from '@/lib/maps-utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -499,14 +500,14 @@ export const AdminGuideEditForm = ({ onBack, guideId: propGuideId, onClose }: Ad
                     onChange={(e) => handleInputChange('maps_url', e.target.value)}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Open Google Maps → find the location → click Share → Copy link → Paste here.
-                    The map will be embedded on the guide detail page.
+                    Open Google Maps → find the location → copy the full URL from the address bar.
+                    Short links (maps.app.goo.gl) are not supported — use the full URL.
                   </p>
                 </div>
-                {formData.maps_url && (
+                {formData.maps_url && getMapEmbedUrl(formData.maps_url) && (
                   <div className="rounded-xl overflow-hidden border border-border/50 shadow-sm">
                     <iframe
-                      src={`https://www.google.com/maps?q=${encodeURIComponent(formData.maps_url.includes('google.com') ? new URL(formData.maps_url).searchParams.get('q') || formData.maps_url : formData.maps_url)}&output=embed`}
+                      src={getMapEmbedUrl(formData.maps_url)!}
                       width="100%"
                       height="200"
                       style={{ border: 0 }}

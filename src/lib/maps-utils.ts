@@ -4,36 +4,33 @@ export function getMapEmbedUrl(mapsUrl: string | null | undefined): string | nul
 
   // Already an embed URL
   if (mapsUrl.includes('/maps/embed')) return mapsUrl;
+  if (mapsUrl.includes('output=embed')) return mapsUrl;
 
-  // Extract place name or coordinates from various Google Maps URL formats
+  // Extract place name from /maps/place/PLACE_NAME/... format
+  const placeMatch = mapsUrl.match(/\/maps\/place\/([^/@?]+)/);
+  if (placeMatch) {
+    const place = decodeURIComponent(placeMatch[1].replace(/\+/g, ' '));
+    return `https://www.google.com/maps?q=${encodeURIComponent(place)}&output=embed`;
+  }
+
+  // Extract coordinates from @lat,lng format
+  const coordMatch = mapsUrl.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+  if (coordMatch) {
+    return `https://www.google.com/maps?q=${coordMatch[1]},${coordMatch[2]}&output=embed`;
+  }
+
+  // Extract ?q= parameter
   try {
     const url = new URL(mapsUrl);
-
-    // Format: https://www.google.com/maps/place/Hagia+Sophia/...
-    const placeMatch = mapsUrl.match(/\/maps\/place\/([^/@]+)/);
-    if (placeMatch) {
-      const place = decodeURIComponent(placeMatch[1]);
-      return `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3000!2d0!3d0!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2s${encodeURIComponent(place)}!5e0!3m2!1sen!2sus!4v1`;
-    }
-
-    // Format: https://maps.google.com/?q=Hagia+Sophia
     const qParam = url.searchParams.get('q');
     if (qParam) {
       return `https://www.google.com/maps?q=${encodeURIComponent(qParam)}&output=embed`;
     }
+  } catch {}
 
-    // Format: https://www.google.com/maps/@41.0082,28.9784,17z
-    const coordMatch = mapsUrl.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
-    if (coordMatch) {
-      return `https://www.google.com/maps?q=${coordMatch[1]},${coordMatch[2]}&output=embed`;
-    }
-
-    // Fallback: use the query as-is
-    return `https://www.google.com/maps?q=${encodeURIComponent(mapsUrl)}&output=embed`;
-  } catch {
-    // If URL parsing fails, try using as search query
-    return `https://www.google.com/maps?q=${encodeURIComponent(mapsUrl)}&output=embed`;
-  }
+  // Short links (maps.app.goo.gl, goo.gl/maps) — can't resolve client-side
+  // Use the guide's location name instead
+  return null;
 }
 
 // Parse coordinates from Google Maps URL
