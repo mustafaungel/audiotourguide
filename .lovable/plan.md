@@ -1,25 +1,18 @@
 
 
-## LiveListenersBadge'i Görselin Altına Taşıma
+## "listening" → "Listening" Büyük Harf Düzeltmesi
 
-### Problem
-Şu an `LiveListenersBadge` görselin sağ tarafındaki dil seçici alanının içinde (satır 713). Kullanıcı görselin hemen altında olmasını istiyor.
+### Değişiklik — `src/components/LiveListenersBadge.tsx` (satır 35)
 
-### Çözüm — `src/pages/GuideDetail.tsx`
+`listening` → `Listening` olarak değiştirilecek:
 
-**Satır 713:** `LiveListenersBadge`'i `flex-1` div'den kaldır.
+```tsx
+// Önce:
+<span className="font-semibold">{count}</span> listening
 
-**Satır 715-716 arası:** `flex gap-4` div'in kapandığı yerin hemen altına, `space-y-3` div'in içine taşı.
-
-```text
-┌──────────────────────────────────┐
-│ [Görsel 128x128] [🇺🇸🇫🇷🇳🇱🇨🇳]   │
-│  📍 pin  konum   [🇪🇸🇮🇹🇯🇵]      │
-│                  [🇵🇹]           │
-├──────────────────────────────────┤
-│ 🎧 42 listening                 │  ← Görselin hemen altında, ayrı satır
-└──────────────────────────────────┘
+// Sonra:
+<span className="font-semibold">{count}</span> Listening
 ```
 
-Tek dosya, 2 satır değişikliği: satır 713'ten sil, satır 715'in altına ekle.
+Tek dosya, tek kelime değişikliği.
 
