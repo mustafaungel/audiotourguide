@@ -680,7 +680,13 @@ const GuideDetail = () => {
           <div className="lg:col-span-2 space-y-4">
             {/* Compact Header — image + info side by side */}
             <div className="space-y-3">
-              {/* Top row: Image + Language flags side by side */}
+              {/* Location badge — above image */}
+              <span className="inline-flex items-center gap-1.5 w-fit bg-primary/10 text-primary text-xs font-medium rounded-full px-2.5 py-1">
+                <MapPin className="w-3 h-3" />
+                {guide.location}
+              </span>
+
+              {/* Image + Language flags side by side */}
               <div className="flex gap-4">
                 <div className="relative w-32 h-32 sm:w-36 sm:h-36 shrink-0 rounded-xl overflow-hidden shadow-lg">
                   <OptimizedImage
@@ -707,20 +713,8 @@ const GuideDetail = () => {
                 </div>
               </div>
 
-              {/* Bottom: Listening + Location badge + Duration */}
-              <div className="flex flex-col gap-1.5">
-                <LiveListenersBadge guideId={guide.id} />
-                <span className="inline-flex items-center gap-1.5 w-fit bg-primary/10 text-primary text-xs font-medium rounded-full px-2.5 py-1">
-                  <MapPin className="w-3 h-3" />
-                  {guide.location}
-                </span>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Clock className="w-3 h-3 text-primary/60 shrink-0" />
-                  <span>{displayDuration} min</span>
-                  <span>·</span>
-                  <span>{currentChapters.length} stops</span>
-                </div>
-              </div>
+              {/* Listening now — below image */}
+              <LiveListenersBadge guideId={guide.id} />
             </div>
 
             {/* Description — compact */}
