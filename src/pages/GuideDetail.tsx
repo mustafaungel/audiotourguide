@@ -680,33 +680,23 @@ const GuideDetail = () => {
           <div className="lg:col-span-2 space-y-4">
             {/* Compact Header — image + info side by side */}
             <div className="space-y-3">
-              <div className="relative w-32 h-32 sm:w-36 sm:h-36 shrink-0 rounded-xl overflow-hidden shadow-lg">
-                <OptimizedImage
-                  src={guide.image_urls?.[0] || guide.image_url}
-                  alt={`${guide.title} - Audio Guide`}
-                  width={144}
-                  height={144}
-                  quality={80}
-                  loading="eager"
-                  className="w-full h-full object-cover object-center"
-                />
-                <Badge className={`absolute top-1.5 left-1.5 border-0 text-[9px] px-1.5 py-0 capitalize backdrop-blur-sm ${isFeaturedGuide ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-50' : 'bg-primary/80 text-primary-foreground'}`}>
-                  {guide.category}
-                </Badge>
-              </div>
-              <div className="flex flex-col gap-1">
-                <LiveListenersBadge guideId={guide.id} />
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                  <MapPin className="w-3 h-3 text-primary/60 shrink-0" />
-                  <span>{guide.location}</span>
+              {/* Top row: Image + Language flags side by side */}
+              <div className="flex gap-4">
+                <div className="relative w-32 h-32 sm:w-36 sm:h-36 shrink-0 rounded-xl overflow-hidden shadow-lg">
+                  <OptimizedImage
+                    src={guide.image_urls?.[0] || guide.image_url}
+                    alt={`${guide.title} - Audio Guide`}
+                    width={144}
+                    height={144}
+                    quality={80}
+                    loading="eager"
+                    className="w-full h-full object-cover object-center"
+                  />
+                  <Badge className={`absolute top-1.5 left-1.5 border-0 text-[9px] px-1.5 py-0 capitalize backdrop-blur-sm ${isFeaturedGuide ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-50' : 'bg-primary/80 text-primary-foreground'}`}>
+                    {guide.category}
+                  </Badge>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                  <Clock className="w-3 h-3 text-primary/60 shrink-0" />
-                  <span>{displayDuration} min</span>
-                  <span>·</span>
-                  <span>{currentChapters.length} stops</span>
-                </div>
-                <div className="flex items-center gap-2 mt-1.5">
+                <div className="flex-1 min-w-0 flex items-start">
                   {guide?.id && (
                     <GuideLanguageSelector
                       guideId={guide.id}
@@ -714,6 +704,21 @@ const GuideDetail = () => {
                       onLanguageChange={handleLanguageChange}
                     />
                   )}
+                </div>
+              </div>
+
+              {/* Bottom: Listening + Location badge + Duration */}
+              <div className="flex flex-col gap-1.5">
+                <LiveListenersBadge guideId={guide.id} />
+                <span className="inline-flex items-center gap-1.5 w-fit bg-primary/10 text-primary text-xs font-medium rounded-full px-2.5 py-1">
+                  <MapPin className="w-3 h-3" />
+                  {guide.location}
+                </span>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Clock className="w-3 h-3 text-primary/60 shrink-0" />
+                  <span>{displayDuration} min</span>
+                  <span>·</span>
+                  <span>{currentChapters.length} stops</span>
                 </div>
               </div>
             </div>
