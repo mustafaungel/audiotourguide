@@ -71,7 +71,7 @@ export function GuideCard({
       {/* Main content — horizontal layout */}
       <div className="flex gap-3 p-3">
         {/* Image thumbnail */}
-        <div className="relative w-32 sm:w-36 shrink-0 rounded-xl overflow-hidden shadow-md" style={{ aspectRatio: '3/4' }}>
+        <div className="relative w-32 h-32 sm:w-36 sm:h-36 shrink-0 rounded-xl overflow-hidden shadow-md">
           <OptimizedImage
             src={imageUrl}
             alt={title}
@@ -79,7 +79,7 @@ export function GuideCard({
             height={144}
             quality={80}
             loading={imageLoading}
-            className="w-full h-full object-cover object-bottom group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
           {/* Category badge */}

@@ -743,15 +743,15 @@ const GuideDetail = () => {
           <div className="lg:col-span-2 space-y-4">
             {/* Compact Header — image + info side by side */}
             <div className="flex gap-4">
-              <div className="relative w-32 sm:w-36 shrink-0 rounded-xl overflow-hidden shadow-lg" style={{ aspectRatio: '3/4' }}>
+              <div className="relative w-32 h-32 sm:w-36 sm:h-36 shrink-0 rounded-xl overflow-hidden shadow-lg">
                 <OptimizedImage
                   src={guide.image_urls?.[0] || guide.image_url}
                   alt={guide.title}
                   width={144}
-                  height={192}
+                  height={144}
                   quality={80}
                   loading="eager"
-                  className="w-full h-full object-cover object-bottom"
+                  className="w-full h-full object-cover object-center"
                 />
                 <Badge className="absolute top-1.5 left-1.5 bg-black/50 text-white border-0 text-[9px] px-1.5 py-0 capitalize backdrop-blur-sm">
                   {guide.category}
