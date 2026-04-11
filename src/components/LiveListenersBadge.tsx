@@ -32,7 +32,7 @@ export function LiveListenersBadge({ guideId, variant = 'badge' }: LiveListeners
   }
 
   return (
-    <div className="inline-flex max-w-full rounded-full bg-gradient-to-r from-primary/20 via-primary/5 to-primary/20 p-[1px] shadow-[0_2px_12px_hsl(var(--primary)/0.12)]">
+    <div className="inline-flex max-w-full rounded-full overflow-hidden bg-gradient-to-r from-primary/20 via-primary/5 to-primary/20 p-[1px] shadow-[0_2px_12px_hsl(var(--primary)/0.12)]">
       <div className="inline-flex max-w-full items-center gap-1.5 bg-card backdrop-blur-sm px-3 py-1.5 rounded-full text-[11px] text-primary">
         <MiniEqualizer />
         <Headphones className="w-3 h-3 shrink-0" />
