@@ -22,6 +22,7 @@ const Index = () => {
   const [processingPayment, setProcessingPayment] = useState<string | null>(null);
   const [selectedCountry, setSelectedCountry] = useState<string>('');
   const [selectedCity, setSelectedCity] = useState<string>('');
+  const [visibleCount, setVisibleCount] = useState(9);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -147,6 +148,14 @@ const Index = () => {
     });
   }, [guides, selectedCountry, selectedCity]);
 
+  // Reset visible count when filters change
+  useEffect(() => {
+    setVisibleCount(9);
+  }, [selectedCountry, selectedCity]);
+
+  const visibleGuides = filteredGuides.slice(0, visibleCount);
+  const remainingCount = filteredGuides.length - visibleCount;
+
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -255,7 +264,7 @@ const Index = () => {
           {/* Guides List */}
           {!loading && filteredGuides.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-              {filteredGuides.map((guide, idx) => (
+              {visibleGuides.map((guide, idx) => (
                 <GuideCard
                   key={guide.id}
                   id={guide.id}
@@ -277,6 +286,15 @@ const Index = () => {
                   isProcessingPayment={processingPayment === guide.id}
                 />
               ))}
+            </div>
+          )}
+
+          {/* Load More Button */}
+          {!loading && remainingCount > 0 && (
+            <div className="flex justify-center mt-8">
+              <Button variant="outline" className="w-full sm:w-auto touch-target px-8 py-3" onClick={() => setVisibleCount(prev => prev + 9)}>
+                Show {Math.min(9, remainingCount)} More Guides ({remainingCount} remaining)
+              </Button>
             </div>
           )}
 

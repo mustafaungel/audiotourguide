@@ -25,6 +25,7 @@ const Guides = () => {
   const [processingPayment, setProcessingPayment] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(9);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -112,6 +113,14 @@ const Guides = () => {
     const matchesCategory = !selectedCategory || guide.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
+  // Reset visible count when filters change
+  useEffect(() => {
+    setVisibleCount(9);
+  }, [searchTerm, selectedCategory]);
+
+  const visibleGuides = filteredGuides.slice(0, visibleCount);
+  const remainingCount = filteredGuides.length - visibleCount;
 
   const handlePlayGuide = (guide: any) => {
     setSelectedGuide(guide);
@@ -247,7 +256,7 @@ const Guides = () => {
           {/* Guides Grid */}
           {!loading && (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-              {filteredGuides.map(guide => {
+              {visibleGuides.map(guide => {
                 const isPurchased = userPurchases.includes(guide.id);
                 return (
                   <GuideCard
@@ -278,6 +287,19 @@ const Guides = () => {
                   />
                 );
               })}
+            </div>
+          )}
+
+          {/* Load More Button */}
+          {!loading && remainingCount > 0 && (
+            <div className="flex justify-center mt-8">
+              <Button 
+                variant="outline" 
+                className="w-full sm:w-auto touch-target px-8 py-3"
+                onClick={() => setVisibleCount(prev => prev + 9)}
+              >
+                Show {Math.min(9, remainingCount)} More Guides ({remainingCount} remaining)
+              </Button>
             </div>
           )}
 
