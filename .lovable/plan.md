@@ -1,51 +1,31 @@
 
 
-## Konum Badge Görselin Üstüne + Listening Now Aynı Hizada
+## Konum Badge'ini Görselin İçine Taşıma
 
-### Yeni Layout
+Konum badge'i şu an görselin üstünde ayrı bir satırda duruyor. Bunu görselin içine (sağ alt köşeye) taşıyacağız — tıpkı kategori badge'inin sol üstte durması gibi.
 
-```text
-┌──────────────────────────────────┐
-│ 📍 Cappadocia, Turkey            │  ← Konum badge görselin üstünde
-│ [Görsel 128x128] [🇺🇸🇫🇷🇳🇱🇨🇳]   │  ← Görsel + dil emojileri yan yana
-│                  [🇪🇸🇮🇹🇯🇵]      │
-│ 🎧 112 listening now             │  ← Görselin altında, aynı hizada
-└──────────────────────────────────┘
-```
+### Değişiklik — `src/pages/GuideDetail.tsx`
 
-Süre ve stops satırı kaldırılacak.
+**Satır 683-687:** Konum badge satırını sil (dışarıdan kaldır).
 
-### Değişiklik — `src/pages/GuideDetail.tsx` (satır 710-723)
-
-Mevcut bottom bölümünü yeniden düzenle:
-
-1. **Konum badge'i** görselin üstüne taşınacak (satır 684'ün öncesine)
-2. **Süre/stops satırı** (satır 717-722) silinecek
-3. **LiveListenersBadge** görselin altında kalacak
+**Satır 691-704:** Görselin içine, kategori badge'inin altına konum badge'i ekle:
 
 ```tsx
-<div className="space-y-3">
-  {/* Konum badge — görselin üstünde */}
-  <span className="inline-flex items-center gap-1.5 w-fit bg-primary/10 text-primary text-xs font-medium rounded-full px-2.5 py-1">
-    <MapPin className="w-3 h-3" />
-    {guide.location}
+<div className="relative w-32 h-32 sm:w-36 sm:h-36 shrink-0 rounded-xl overflow-hidden shadow-lg">
+  <OptimizedImage ... />
+  {/* Kategori — sol üst (mevcut) */}
+  <Badge className="absolute top-1.5 left-1.5 ...">
+    {guide.category}
+  </Badge>
+  {/* Konum — sol alt (yeni) */}
+  <span className="absolute bottom-1.5 left-1.5 right-1.5 inline-flex items-center gap-1 bg-black/60 backdrop-blur-sm text-white text-[9px] font-medium rounded-md px-1.5 py-0.5 truncate">
+    <MapPin className="w-2.5 h-2.5 shrink-0" />
+    <span className="truncate">{guide.location}</span>
   </span>
-
-  {/* Görsel + Dil emojileri yan yana */}
-  <div className="flex gap-4">
-    <div className="relative w-32 h-32 ...">
-      <OptimizedImage ... />
-      <Badge ...>{guide.category}</Badge>
-    </div>
-    <div className="flex-1 min-w-0 flex items-start">
-      <GuideLanguageSelector ... />
-    </div>
-  </div>
-
-  {/* Listening now — görselin altında */}
-  <LiveListenersBadge guideId={guide.id} />
 </div>
 ```
 
-Tek dosya, tek bölüm. Süre/stops kaldırıldı, konum yukarı taşındı.
+Konum badge'i görselin sol altına yerleşecek, yarı saydam siyah arka plan ile okunabilirliği korunacak. `truncate` ile uzun konum isimleri taşmayacak.
+
+Tek dosya, tek bölüm değişikliği.
 
