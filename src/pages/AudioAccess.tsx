@@ -42,6 +42,7 @@ export default function AudioAccess() {
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [hasMiniPlayer, setHasMiniPlayer] = useState(false);
+  const realListenerCount = usePresenceTracker(guideId);
 
   // Detect MiniPlayer presence in DOM (it's portaled to document.body)
   useEffect(() => {
