@@ -88,7 +88,7 @@ export function GuideCard({
       </div>
 
       {/* Band connectors — thin vertical lines from headband to ear cups */}
-      <div className="relative flex justify-between px-[calc(theme(spacing.16)/2+theme(spacing.3))] sm:px-[calc(theme(spacing.18)/2+theme(spacing.3))]">
+      <div className="relative flex justify-between px-[calc(2rem+0.75rem)] sm:px-[calc(2.5rem+0.75rem)]">
         <div className={`w-[3px] h-4 ${connectorColor} rounded-full -mt-px ml-1`} />
         <div className={`w-[3px] h-4 ${connectorColor} rounded-full -mt-px mr-1`} />
       </div>
