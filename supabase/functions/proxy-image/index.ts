@@ -1,4 +1,7 @@
-import { corsHeaders } from "https://esm.sh/@supabase/supabase-js@2.49.1/dist/module/lib/cors.js";
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 const ALLOWED_ORIGINS = [
   "https://dsaqlgxajdnwoqvtsrqd.supabase.co",
