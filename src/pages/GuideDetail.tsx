@@ -695,9 +695,9 @@ const GuideDetail = () => {
                   <Badge className={`absolute top-1.5 left-1.5 border-0 text-[9px] px-1.5 py-0 capitalize backdrop-blur-sm ${isFeaturedGuide ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-50' : 'bg-primary/80 text-primary-foreground'}`}>
                     {guide.category}
                   </Badge>
-                  <span className="absolute bottom-1.5 left-1.5 right-1.5 inline-flex items-center gap-1 bg-black/60 backdrop-blur-sm text-white text-[9px] font-medium rounded-md px-1.5 py-0.5">
+                  <span className="absolute bottom-1.5 left-1.5 right-1.5 flex flex-wrap items-center gap-1 bg-black/60 backdrop-blur-sm text-white text-[9px] font-medium rounded-md px-1.5 py-0.5">
                     <MapPin className="w-2.5 h-2.5 shrink-0" />
-                    <span className="truncate">{guide.location}</span>
+                    <span className="break-words">{guide.location}</span>
                   </span>
                 </div>
                 <div className="flex-1 min-w-0 flex items-start">
