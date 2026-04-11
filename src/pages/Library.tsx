@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Link, useNavigate } from 'react-router-dom';
 import { EnhancedLibrary } from '@/components/EnhancedLibrary';
+import { AudioGuideLoader } from '@/components/AudioGuideLoader';
 
 export default function Library() {
   const [purchasedGuides, setPurchasedGuides] = useState<any[]>([]);
@@ -107,6 +108,23 @@ export default function Library() {
       });
     }
   };
+
+  if (loading && user) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="max-w-7xl mx-auto px-6 py-16">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-foreground mb-4">My Library</h1>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Your collection of purchased audio guides, ready for your next adventure
+            </p>
+          </div>
+          <AudioGuideLoader variant="card" count={3} />
+        </div>
+      </div>
+    );
+  }
 
   if (!user) {
     return (
