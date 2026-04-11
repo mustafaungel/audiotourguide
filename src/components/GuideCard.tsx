@@ -82,10 +82,9 @@ export function GuideCard({
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-          {/* Price badge — headphone shaped */}
-          <div className="absolute bottom-1.5 right-1.5 flex items-center gap-1 bg-primary text-primary-foreground rounded-full shadow-lg pl-1 pr-2 py-0.5">
-            <Headphones className="w-3 h-3" />
-            <span className="text-[10px] font-bold">${(price / 100).toFixed(2)}</span>
+          {/* Price badge */}
+          <div className="absolute bottom-1.5 right-1.5 bg-primary text-primary-foreground rounded-full shadow-lg px-2.5 py-0.5">
+            <span className="text-[11px] font-bold">${(price / 100).toFixed(2)}</span>
           </div>
           {/* Category badge */}
           <Badge className="absolute top-1.5 left-1.5 bg-black/50 text-white border-0 text-[9px] font-medium px-1.5 py-0 capitalize backdrop-blur-sm">
@@ -117,20 +116,23 @@ export function GuideCard({
             </div>
           )}
 
-          {/* Play button */}
-          <Button
-            variant="default"
-            size="icon"
-            className="mt-1.5 h-9 w-9 rounded-full bg-gradient-tourism hover:shadow-tourism shadow-sm self-end shrink-0"
-            disabled={isProcessingPayment}
-            onClick={(e) => { e.stopPropagation(); handleView(); }}
-          >
-            {isProcessingPayment ? (
-              <ButtonLoader text="" />
-            ) : (
-              <Play className="h-4 w-4 ml-0.5" fill="currentColor" />
-            )}
-          </Button>
+          {/* Headphone + Play */}
+          <div className="flex items-center gap-2 mt-1.5 self-end">
+            <Headphones className="w-5 h-5 text-primary/70" />
+            <Button
+              variant="default"
+              size="icon"
+              className="h-9 w-9 rounded-full bg-gradient-tourism hover:shadow-tourism shadow-sm shrink-0"
+              disabled={isProcessingPayment}
+              onClick={(e) => { e.stopPropagation(); handleView(); }}
+            >
+              {isProcessingPayment ? (
+                <ButtonLoader text="" />
+              ) : (
+                <Play className="h-4 w-4 ml-0.5" fill="currentColor" />
+              )}
+            </Button>
+          </div>
         </div>
       </div>
 
