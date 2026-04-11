@@ -19,8 +19,8 @@ function MiniEqualizer({ small = false }: { small?: boolean }) {
   );
 }
 
-export function LiveListenersBadge({ guideId, size = 'default' }: LiveListenersBadgeProps) {
-  const count = useLiveListeners(guideId);
+export function LiveListenersBadge({ guideId, size = 'default', realCount }: LiveListenersBadgeProps) {
+  const count = useLiveListeners(guideId, realCount);
 
   const isCompact = size === 'compact';
 

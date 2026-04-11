@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { GuestReviewForm } from "@/components/GuestReviewForm";
 import { GuideLanguageSelector } from '@/components/GuideLanguageSelector';
 import { LiveListenersBadge } from '@/components/LiveListenersBadge';
+import { usePresenceTracker } from '@/hooks/usePresenceTracker';
 import { Badge } from "@/components/ui/badge";
 import { Star, MapPin, Clock, ChevronLeft, Lock, Wifi, WifiOff, RotateCcw, Headphones } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
