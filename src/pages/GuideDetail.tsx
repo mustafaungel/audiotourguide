@@ -595,7 +595,7 @@ const GuideDetail = () => {
       "@type": "TouristAttraction",
       "name": guide.title,
       "description": guide.description,
-      "image": guideImage,
+      "image": guideImageSeo,
       "url": `https://audiotourguide.app/guide/${slug}`,
       "address": {
         "@type": "PostalAddress",
@@ -620,7 +620,7 @@ const GuideDetail = () => {
       "@type": "Product",
       "name": `${guide.title} Audio Guide`,
       "description": guide.description,
-      "image": guideImage,
+      "image": guideImageSeo,
       "brand": { "@type": "Brand", "name": "Audio Tour Guides" },
       "offers": {
         "@type": "Offer",
@@ -639,7 +639,7 @@ const GuideDetail = () => {
           title={seoTitle}
           description={guide.description || `Discover ${guide.title} with our immersive audio guide in ${guide.location}`}
           canonicalUrl={`https://audiotourguide.app/guide/${slug}`}
-          image={guideImage}
+          image={guideImageSeo}
           type="article"
           structuredData={guideStructuredData}
           noindex={!!hasAccessParam}
