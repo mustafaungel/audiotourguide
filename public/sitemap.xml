@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <!-- Homepage -->
   <url>
     <loc>https://audiotourguide.app/</loc>
-    <lastmod>2026-04-10</lastmod>
+    <lastmod>2026-04-11</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -11,21 +12,21 @@
   <!-- Main Pages -->
   <url>
     <loc>https://audiotourguide.app/guides</loc>
-    <lastmod>2026-04-10</lastmod>
+    <lastmod>2026-04-11</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
 
   <url>
     <loc>https://audiotourguide.app/country</loc>
-    <lastmod>2026-04-10</lastmod>
+    <lastmod>2026-04-11</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
 
   <url>
     <loc>https://audiotourguide.app/featured-guides</loc>
-    <lastmod>2026-04-10</lastmod>
+    <lastmod>2026-04-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -33,86 +34,130 @@
   <!-- Country Pages -->
   <url>
     <loc>https://audiotourguide.app/country/turkey</loc>
-    <lastmod>2026-04-10</lastmod>
+    <lastmod>2026-04-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <!-- Guide Detail Pages -->
   <url>
-    <loc>https://audiotourguide.app/guide/grand-bazaar-audio-guide-istanbul-turkey</loc>
-    <lastmod>2026-04-10</lastmod>
+    <loc>https://audiotourguide.app/guide/cappadocia-discover-hidden-valleys-cappadocia-turkey</loc>
+    <lastmod>2026-04-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://dsaqlgxajdnwoqvtsrqd.supabase.co/functions/v1/proxy-image?url=https%3A%2F%2Fdsaqlgxajdnwoqvtsrqd.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fguide-images%2Fguide-images%2Fxyoxfwgd12-1757700545710.jpg</image:loc>
+      <image:title>Cappadocia Hidden Valleys Turkey</image:title>
+    </image:image>
   </url>
 
   <url>
     <loc>https://audiotourguide.app/guide/cappadocia-zelve-open-air-museum-cappadocia-turkey</loc>
-    <lastmod>2026-04-10</lastmod>
+    <lastmod>2026-04-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://dsaqlgxajdnwoqvtsrqd.supabase.co/functions/v1/proxy-image?url=https%3A%2F%2Fdsaqlgxajdnwoqvtsrqd.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fguide-images%2Fguide-images%2Frtllc4w7qw-1757520227484.jpg</image:loc>
+      <image:title>Zelve Open Air Museum Cappadocia Turkey</image:title>
+    </image:image>
   </url>
 
   <url>
     <loc>https://audiotourguide.app/guide/cappadocia-goreme-open-air-museum-cappadocia-turkey</loc>
-    <lastmod>2026-04-10</lastmod>
+    <lastmod>2026-04-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
-  </url>
-
-  <url>
-    <loc>https://audiotourguide.app/guide/cappadocia-derinkuyu-underground-city-cappadocia-turkey</loc>
-    <lastmod>2026-04-10</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <url>
-    <loc>https://audiotourguide.app/guide/cappadocia-discover-hidden-valleys-cappadocia-turkey</loc>
-    <lastmod>2026-04-10</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://dsaqlgxajdnwoqvtsrqd.supabase.co/functions/v1/proxy-image?url=https%3A%2F%2Fdsaqlgxajdnwoqvtsrqd.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fguide-images%2Fguide-images%2Fra17ysdle1l-1757351163681.jpg</image:loc>
+      <image:title>Goreme Open Air Museum Cappadocia Turkey</image:title>
+    </image:image>
   </url>
 
   <url>
     <loc>https://audiotourguide.app/guide/hagia-sophia-audio-guide-istanbul-turkey</loc>
-    <lastmod>2026-04-09</lastmod>
+    <lastmod>2026-04-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://dsaqlgxajdnwoqvtsrqd.supabase.co/functions/v1/proxy-image?url=https%3A%2F%2Fdsaqlgxajdnwoqvtsrqd.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fguide-images%2Fgenerated-1775760071234-136f1093-2cb1-4462-927b-c0f2b9eff6a7.png</image:loc>
+      <image:title>Hagia Sophia Audio Guide Istanbul Turkey</image:title>
+    </image:image>
   </url>
 
   <url>
-    <loc>https://audiotourguide.app/guide/cappadocia-ihlara-valley-cappadocia-turkey-1</loc>
-    <lastmod>2026-04-09</lastmod>
+    <loc>https://audiotourguide.app/guide/cappadocia-derinkuyu-underground-city-cappadocia-turkey</loc>
+    <lastmod>2026-04-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
-  </url>
-
-  <url>
-    <loc>https://audiotourguide.app/guide/cappadocia-pasabag-monks-valley-cappadocia-turkey</loc>
-    <lastmod>2026-04-09</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://dsaqlgxajdnwoqvtsrqd.supabase.co/functions/v1/proxy-image?url=https%3A%2F%2Fdsaqlgxajdnwoqvtsrqd.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fguide-images%2Fguide-images%2Faqn15gpjfm-1757522676898.jpg</image:loc>
+      <image:title>Derinkuyu Underground City Cappadocia Turkey</image:title>
+    </image:image>
   </url>
 
   <url>
     <loc>https://audiotourguide.app/guide/cappadocia-kaymakli-underground-city-cappadocia-turkey</loc>
-    <lastmod>2026-04-09</lastmod>
+    <lastmod>2026-04-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://dsaqlgxajdnwoqvtsrqd.supabase.co/functions/v1/proxy-image?url=https%3A%2F%2Fdsaqlgxajdnwoqvtsrqd.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fguide-images%2Fguide-images%2Fg3453i5r6y-1757519774760.jpg</image:loc>
+      <image:title>Kaymakli Underground City Cappadocia Turkey</image:title>
+    </image:image>
   </url>
 
   <url>
-    <loc>https://audiotourguide.app/guide/cappadocia-whirling-dervish-show-cappadocia-turkey</loc>
-    <lastmod>2026-04-09</lastmod>
+    <loc>https://audiotourguide.app/guide/grand-bazaar-audio-guide-istanbul-turkey</loc>
+    <lastmod>2026-04-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://dsaqlgxajdnwoqvtsrqd.supabase.co/functions/v1/proxy-image?url=https%3A%2F%2Fdsaqlgxajdnwoqvtsrqd.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fguide-images%2Fgenerated-1775864671565-cd0a6737-3883-4bf8-8897-c4e6d5522906.png</image:loc>
+      <image:title>Grand Bazaar Audio Guide Istanbul Turkey</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://audiotourguide.app/guide/cappadocia-pasabag-monks-valley-cappadocia-turkey</loc>
+    <lastmod>2026-04-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://dsaqlgxajdnwoqvtsrqd.supabase.co/functions/v1/proxy-image?url=https%3A%2F%2Fdsaqlgxajdnwoqvtsrqd.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fguide-images%2Fguide-images%2F7joyfatpvcv-1757529457426.jpg</image:loc>
+      <image:title>Pasabag Monks Valley Cappadocia Turkey</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://audiotourguide.app/guide/cappadocia-ihlara-valley-cappadocia-turkey-1</loc>
+    <lastmod>2026-04-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://dsaqlgxajdnwoqvtsrqd.supabase.co/functions/v1/proxy-image?url=https%3A%2F%2Fdsaqlgxajdnwoqvtsrqd.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fguide-images%2Fguide-images%2F0nhl7wfo4psd-1775409381460.jpg</image:loc>
+      <image:title>Ihlara Valley Cappadocia Turkey</image:title>
+    </image:image>
   </url>
 
   <url>
     <loc>https://audiotourguide.app/guide/cappadocia-avanos-town-uchisar-castle-cappadocia-turkey</loc>
-    <lastmod>2026-04-06</lastmod>
+    <lastmod>2026-04-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://dsaqlgxajdnwoqvtsrqd.supabase.co/functions/v1/proxy-image?url=https%3A%2F%2Fdsaqlgxajdnwoqvtsrqd.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fguide-images%2Fguide-images%2Fog955lohwkb-1775411332043.jpg</image:loc>
+      <image:title>Avanos Town and Uchisar Castle Cappadocia Turkey</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://audiotourguide.app/guide/cappadocia-whirling-dervish-show-cappadocia-turkey</loc>
+    <lastmod>2026-04-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://dsaqlgxajdnwoqvtsrqd.supabase.co/functions/v1/proxy-image?url=https%3A%2F%2Fdsaqlgxajdnwoqvtsrqd.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fguide-images%2Fguide-images%2Fuwve0a8rwl-1758201380069.jpg</image:loc>
+      <image:title>Whirling Dervish Show Cappadocia Turkey</image:title>
+    </image:image>
   </url>
 </urlset>

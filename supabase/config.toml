@@ -47,3 +47,6 @@ verify_jwt = true
 
 [functions.test-email-system]
 verify_jwt = true
+
+[functions.proxy-image]
+verify_jwt = false

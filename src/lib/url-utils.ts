@@ -2,6 +2,9 @@
  * Utility functions for URL generation
  */
 
+const SUPABASE_STORAGE_BASE = 'https://dsaqlgxajdnwoqvtsrqd.supabase.co/storage/v1/object/public/';
+const SUPABASE_FUNCTIONS_BASE = 'https://dsaqlgxajdnwoqvtsrqd.supabase.co/functions/v1';
+
 /**
  * Gets the base URL of the current application
  */
@@ -62,71 +65,38 @@ export function openGuidePreview(slug: string): void {
 }
 
 /**
- * Optimizes Supabase Storage image URLs using Supabase Image Transformation
- * @param imageUrl - The original Supabase storage URL
- * @param options - Transformation options
- * @returns Optimized image URL with transformations applied (or direct URL if transformations aren't available)
+ * Checks if a URL is a Supabase storage URL
  */
-interface ImageOptimizationOptions {
-  width?: number;
-  height?: number;
-  quality?: number;
-  format?: 'webp' | 'avif' | 'origin';
-}
-
-export function getOptimizedImageUrl(
-  imageUrl: string | null | undefined,
-  options: ImageOptimizationOptions = {}
-): string {
-  // Return placeholder if no image URL provided
-  if (!imageUrl) {
-    return '/placeholder.svg';
-  }
-
-  // Check if it's a Supabase storage URL
-  const supabaseStoragePattern = /https:\/\/dsaqlgxajdnwoqvtsrqd\.supabase\.co\/storage\/v1\/object\/public\//;
-  
-  if (!supabaseStoragePattern.test(imageUrl)) {
-    // Not a Supabase URL, return as-is (e.g., local assets or external URLs)
-    return imageUrl;
-  }
-
-  // Extract bucket and path from the URL
-  // Format: https://dsaqlgxajdnwoqvtsrqd.supabase.co/storage/v1/object/public/{bucket}/{path}
-  const url = new URL(imageUrl);
-  const pathParts = url.pathname.replace('/storage/v1/object/public/', '').split('/');
-  const bucket = pathParts[0];
-  const filePath = pathParts.slice(1).join('/');
-
-  // Default optimization settings
-  const {
-    width = 600,
-    quality = 80,
-    format = 'webp'
-  } = options;
-
-  // Build transformation URL (will fallback to direct URL if transformations aren't available)
-  const baseUrl = 'https://dsaqlgxajdnwoqvtsrqd.supabase.co';
-  const transformUrl = `${baseUrl}/storage/v1/render/image/public/${bucket}/${filePath}`;
-  
-  // Add query parameters
-  const params = new URLSearchParams();
-  if (width) params.append('width', width.toString());
-  if (options.height) params.append('height', options.height.toString());
-  params.append('quality', quality.toString());
-  if (format !== 'origin') params.append('format', format);
-
-  return `${transformUrl}?${params.toString()}`;
+function isSupabaseStorageUrl(url: string): boolean {
+  return url.startsWith(SUPABASE_STORAGE_BASE);
 }
 
 /**
- * Gets the direct Supabase Storage URL without any transformations
- * @param imageUrl - The original Supabase storage URL
- * @returns Direct image URL (always works, even on free tier)
+ * Returns a proxied image URL that serves the image through the main domain's
+ * Edge Function, so Google treats it as same-domain for sitemap indexing.
+ */
+export function getProxiedImageUrl(imageUrl: string | null | undefined): string {
+  if (!imageUrl) return '/placeholder.svg';
+  if (!isSupabaseStorageUrl(imageUrl)) return imageUrl;
+  return `${SUPABASE_FUNCTIONS_BASE}/proxy-image?url=${encodeURIComponent(imageUrl)}`;
+}
+
+/**
+ * Returns the direct image URL without any transformations.
+ * Use this for rendering in <img> tags (fast, no proxy overhead).
  */
 export function getDirectImageUrl(imageUrl: string | null | undefined): string {
-  if (!imageUrl) {
-    return '/placeholder.svg';
-  }
+  if (!imageUrl) return '/placeholder.svg';
   return imageUrl;
+}
+
+/**
+ * @deprecated Use getDirectImageUrl() for rendering, getProxiedImageUrl() for SEO.
+ * This function now returns the direct URL to avoid broken Supabase Image Transformation 404s.
+ */
+export function getOptimizedImageUrl(
+  imageUrl: string | null | undefined,
+  _options: { width?: number; height?: number; quality?: number; format?: string } = {}
+): string {
+  return getDirectImageUrl(imageUrl);
 }
