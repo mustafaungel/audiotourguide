@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { AudioGuideLoader } from '@/components/AudioGuideLoader';
 import { useNavigate } from 'react-router-dom';
 import { SEO } from '@/components/SEO';
 import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Search, MapPin, Headphones } from 'lucide-react';
+import { MapPin, Headphones } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { getUniqueCountries, createCountrySlug } from '@/lib/country-utils';
+import { SearchAutocomplete } from '@/components/SearchAutocomplete';
 
 const Countries = () => {
   const navigate = useNavigate();
@@ -32,20 +32,25 @@ const Countries = () => {
         .eq('is_approved', true);
 
       if (error) throw error;
-
       const uniqueCountries = getUniqueCountries(data || []);
       setCountries(uniqueCountries);
     } catch (error) {
       console.error('Error fetching countries:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load countries",
-        variant: "destructive"
-      });
+      toast({ title: "Error", description: "Failed to load countries", variant: "destructive" });
     } finally {
       setLoading(false);
     }
   };
+
+  // Autocomplete suggestions for countries
+  const suggestions = useMemo(() => {
+    return countries.map(c => ({
+      label: `${c.flag} ${c.country}`,
+      sublabel: `${c.count} guide${c.count !== 1 ? 's' : ''}`,
+      type: 'country' as const,
+      slug: createCountrySlug(c.country),
+    }));
+  }, [countries]);
 
   const filteredCountries = countries.filter(country =>
     country.country.toLowerCase().includes(searchTerm.toLowerCase())
@@ -60,18 +65,8 @@ const Countries = () => {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     "itemListElement": [
-      {
-        "@type": "ListItem",
-        "position": 1,
-        "name": "Home",
-        "item": "https://audiotourguide.app"
-      },
-      {
-        "@type": "ListItem",
-        "position": 2,
-        "name": "Countries",
-        "item": "https://audiotourguide.app/country"
-      }
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://audiotourguide.app" },
+      { "@type": "ListItem", "position": 2, "name": "Countries", "item": "https://audiotourguide.app/country" }
     ]
   };
 
@@ -100,17 +95,17 @@ const Countries = () => {
             Choose a destination and explore UNESCO World Heritage sites, cultural landmarks, and hidden gems with immersive audio experiences.
           </h2>
 
-          {/* Search */}
+          {/* Search with autocomplete */}
           <div className="max-w-md mx-auto">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search countries..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-card/50 backdrop-blur-sm border-border/50 touch-target mobile-text"
-              />
-            </div>
+            <SearchAutocomplete
+              value={searchTerm}
+              onChange={setSearchTerm}
+              suggestions={suggestions}
+              placeholder="Search countries..."
+              onNavigate={(s) => {
+                if (s.slug) navigate(`/country/${s.slug}`);
+              }}
+            />
           </div>
         </div>
       </section>
@@ -118,21 +113,18 @@ const Countries = () => {
       {/* Countries Grid */}
       <section className="mobile-padding mobile-spacing">
         <div className="mobile-container">
-          {/* Search Results Info */}
-          {searchTerm && (
-            <div className="text-center mb-6">
-              <p className="mobile-caption">
-                {loading ? 'Searching...' : `Found ${filteredCountries.length} country(ies) for "${searchTerm}"`}
-              </p>
-            </div>
-          )}
+          {/* Results count */}
+          <div className="text-center mb-6">
+            <p className="mobile-caption">
+              {loading ? 'Loading...' : searchTerm 
+                ? `Found ${filteredCountries.length} country(ies) for "${searchTerm}"`
+                : `${countries.length} countries available`
+              }
+            </p>
+          </div>
 
-          {/* Loading State */}
-          {loading && (
-            <AudioGuideLoader variant="grid" count={12} />
-          )}
+          {loading && <AudioGuideLoader variant="grid" count={12} />}
 
-          {/* Countries Grid */}
           {!loading && (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {filteredCountries.map(({ country, flag, count }) => (
@@ -142,17 +134,12 @@ const Countries = () => {
                   onClick={() => handleCountryClick(country)}
                 >
                   <CardContent className="p-4 text-center">
-                    {/* Flag Circle */}
                     <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center text-3xl mb-3 mx-auto group-hover:from-primary/20 group-hover:to-accent/20 transition-colors overflow-hidden">
                       {flag}
                     </div>
-                    
-                    {/* Country Name */}
                     <h3 className="font-semibold text-sm text-foreground mb-1 group-hover:text-primary transition-colors">
                       {country}
                     </h3>
-                    
-                    {/* Guide Count */}
                     <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
                       <Headphones className="h-3.5 w-3.5 text-primary/60" />
                       <span>{count} guide{count !== 1 ? 's' : ''}</span>
@@ -163,7 +150,6 @@ const Countries = () => {
             </div>
           )}
 
-          {/* No Results */}
           {!loading && filteredCountries.length === 0 && (
             <div className="text-center py-16 mobile-spacing">
               <div className="text-6xl mb-4">🌍</div>
@@ -177,11 +163,7 @@ const Countries = () => {
                 }
               </p>
               {searchTerm && (
-                <Button
-                  variant="outline"
-                  className="mt-4"
-                  onClick={() => setSearchTerm('')}
-                >
+                <Button variant="outline" className="mt-4" onClick={() => setSearchTerm('')}>
                   Clear search
                 </Button>
               )}
