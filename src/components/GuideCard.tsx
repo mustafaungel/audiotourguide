@@ -55,87 +55,78 @@ export function GuideCard({
     });
   };
 
-  const getCategoryColor = (cat: string) => {
-    const colors: Record<string, string> = {
-      cultural: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
-      historical: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
-      adventure: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
-      scenic: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
-      food: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
-    };
-    return colors[cat] || "bg-muted text-muted-foreground";
-  };
-
   return (
     <div
-      className="group flex gap-4 p-4 rounded-2xl border border-border/40 bg-card shadow-sm hover:shadow-lg hover:border-primary/30 transition-all duration-300 cursor-pointer active:scale-[0.98]"
+      className="group rounded-2xl overflow-hidden border border-border/40 bg-card shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer active:scale-[0.98]"
       onClick={handleView}
-      style={{ fontFamily: "'Lora', 'Playfair Display', Georgia, serif" }}
     >
-      {/* Image — larger square with rounded corners */}
-      <div className="relative w-36 h-36 sm:w-40 sm:h-40 shrink-0 rounded-xl overflow-hidden shadow-md">
-        <OptimizedImage
-          src={imageUrl}
-          alt={title}
-          width={160}
-          height={160}
-          quality={80}
-          loading={imageLoading}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-        />
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-        {/* Category badge */}
-        <Badge className={`absolute top-2 left-2 ${getCategoryColor(category)} text-[9px] font-semibold px-2 py-0.5 capitalize shadow-sm`}>
-          {category}
-        </Badge>
-        {/* Price badge on image */}
-        <div className="absolute bottom-2 right-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded-lg shadow-lg backdrop-blur-sm" style={{ fontFamily: "'Inter', sans-serif" }}>
-          ${(price / 100).toFixed(2)}
-        </div>
-        {/* Hover play overlay */}
-        <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-          <div className="w-11 h-11 rounded-full bg-primary/90 backdrop-blur-sm flex items-center justify-center shadow-lg">
-            <Headphones className="w-5 h-5 text-primary-foreground" />
-          </div>
-        </div>
+      {/* Top band — Audio Tour Guide */}
+      <div className="bg-gradient-to-r from-primary via-primary/90 to-primary px-4 py-1.5 flex items-center justify-center gap-2">
+        <Headphones className="w-3.5 h-3.5 text-primary-foreground" />
+        <span className="text-[10px] font-bold text-primary-foreground tracking-widest uppercase font-heading">
+          Audio Tour Guide
+        </span>
+        <Headphones className="w-3.5 h-3.5 text-primary-foreground" />
       </div>
 
-      {/* Content */}
-      <div className="flex-1 min-w-0 overflow-hidden flex flex-col justify-center gap-1.5">
-        {/* Title */}
-        <h3 className="font-bold text-[15px] leading-snug line-clamp-2 tracking-tight" style={{ fontFamily: "'Lora', Georgia, serif" }}>
-          {title}
-        </h3>
-
-        {/* Location + Duration */}
-        <div className="flex items-center gap-2 text-[11px] text-muted-foreground" style={{ fontFamily: "'Inter', sans-serif" }}>
-          <span className="flex items-center gap-0.5 min-w-0">
-            <MapPin className="w-3 h-3 text-primary/60 shrink-0" />
-            <span className="truncate">{location}</span>
-          </span>
-          <span className="flex items-center gap-0.5 shrink-0">
-            <Clock className="w-3 h-3 text-primary/60" />
-            {Math.floor(duration / 60)}min
-          </span>
+      {/* Main content — horizontal layout */}
+      <div className="flex gap-3 p-3">
+        {/* Image thumbnail */}
+        <div className="relative w-32 h-32 sm:w-36 sm:h-36 shrink-0 rounded-xl overflow-hidden shadow-md">
+          <OptimizedImage
+            src={imageUrl}
+            alt={title}
+            width={144}
+            height={144}
+            quality={80}
+            loading={imageLoading}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+          {/* Price badge */}
+          <div className="absolute bottom-1.5 right-1.5 bg-primary text-primary-foreground text-[11px] font-bold px-2 py-0.5 rounded-md shadow-lg">
+            ${(price / 100).toFixed(2)}
+          </div>
+          {/* Category badge */}
+          <Badge className="absolute top-1.5 left-1.5 bg-black/50 text-white border-0 text-[9px] font-medium px-1.5 py-0 capitalize backdrop-blur-sm">
+            {category}
+          </Badge>
         </div>
 
-        {/* Language flags */}
-        {languages && languages.length > 0 && (
-          <div className="flex flex-wrap items-center gap-0.5">
-            {languages.map((lang, i) => {
-              const match = ELEVENLABS_LANGUAGES.find(l => l.name === lang || l.code === lang);
-              return match ? <span key={i} className="text-xs" title={match.name}>{match.flag}</span> : null;
-            })}
-          </div>
-        )}
+        {/* Content */}
+        <div className="flex-1 min-w-0 overflow-hidden flex flex-col justify-between py-0.5">
+          {/* Title — full, no truncation */}
+          <h3 className="font-bold text-[15px] leading-tight font-heading">
+            {title}
+          </h3>
 
-        {/* CTA */}
-        <div className="flex items-center mt-0.5" style={{ fontFamily: "'Inter', sans-serif" }}>
+          {/* Location — full, no truncation */}
+          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+            <MapPin className="w-3 h-3 text-primary/60 shrink-0" />
+            <span>{location}</span>
+          </div>
+
+          {/* Duration */}
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Clock className="w-3 h-3 text-primary/60 shrink-0" />
+            <span>{Math.floor(duration / 60)} min</span>
+          </div>
+
+          {/* Language flags */}
+          {languages && languages.length > 0 && (
+            <div className="flex flex-wrap items-center gap-0.5 mt-0.5">
+              {languages.map((lang, i) => {
+                const match = ELEVENLABS_LANGUAGES.find(l => l.name === lang || l.code === lang);
+                return match ? <span key={i} className="text-xs" title={match.name}>{match.flag}</span> : null;
+              })}
+            </div>
+          )}
+
+          {/* Listen button */}
           <Button
             variant="default"
             size="sm"
-            className="h-7 text-[11px] font-semibold rounded-full px-3 bg-gradient-tourism hover:shadow-tourism gap-1 shadow-sm shrink-0"
+            className="mt-1.5 h-7 w-full text-[11px] font-semibold rounded-full bg-gradient-tourism hover:shadow-tourism gap-1.5 shadow-sm"
             disabled={isProcessingPayment}
             onClick={(e) => { e.stopPropagation(); handleView(); }}
           >
@@ -143,12 +134,26 @@ export function GuideCard({
               <ButtonLoader text="..." />
             ) : (
               <>
-                <Headphones className="h-3.5 w-3.5" />
-                Listen
+                <Headphones className="h-3 w-3" />
+                Listen Now
               </>
             )}
           </Button>
         </div>
+      </div>
+
+      {/* Bottom waveform decoration */}
+      <div className="flex items-end justify-center gap-[2px] h-3 px-4 pb-1.5 opacity-40">
+        {[0, 120, 240, 80, 200, 40, 160, 280, 100, 220, 60, 180, 300, 140, 260].map((delay, i) => (
+          <span
+            key={i}
+            className="inline-block w-[3px] bg-primary rounded-full"
+            style={{
+              height: `${4 + Math.sin(delay * 0.02) * 6}px`,
+              animation: 'none',
+            }}
+          />
+        ))}
       </div>
     </div>
   );
