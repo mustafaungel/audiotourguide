@@ -722,9 +722,9 @@ const GuideDetail = () => {
       
       {/* Sticky header — below navigation bar */}
       <div className="sticky top-14 sm:top-16 z-40 bg-background/95 backdrop-blur-md border-b border-border/30 px-3 py-2">
-        <div className="flex items-center gap-2">
-          <button onClick={() => navigate('/guides')} className="p-1.5 -ml-1 shrink-0 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted transition-colors active:scale-95">
-            <ChevronLeft className="w-5 h-5" />
+        <div className="flex items-center gap-2.5">
+          <button onClick={() => navigate('/guides')} className="w-8 h-8 shrink-0 rounded-full bg-primary/15 hover:bg-primary/25 flex items-center justify-center transition-colors active:scale-90">
+            <ChevronLeft className="w-4 h-4 text-primary" />
           </button>
           <Headphones className="w-3.5 h-3.5 text-primary shrink-0" />
           <span className="text-xs font-bold font-heading min-w-0 truncate">{guide.title}</span>
@@ -877,25 +877,33 @@ const GuideDetail = () => {
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Headphones className="w-4 h-4 text-primary" />
-                      <span className="text-sm font-semibold">Free Preview Available</span>
+                    {/* Preview header — gradient card */}
+                    <div className="bg-gradient-to-r from-primary/15 to-primary/5 rounded-xl p-3 border border-primary/20">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                          <Headphones className="w-4 h-4 text-primary" />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-bold">Try Before You Buy</h3>
+                          <p className="text-[10px] text-muted-foreground">Listen to 30-second previews for free</p>
+                        </div>
+                      </div>
                     </div>
+
+                    {/* Chapter list — full names */}
                     {currentChapters.slice(0, 3).map((chapter, index) => (
-                      <div key={index} className="flex items-center justify-between gap-2 p-2.5 bg-muted/30 rounded-lg border border-border/30">
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary shrink-0">
-                            {index + 1}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-xs truncate">{chapter.title}</h4>
-                            <p className="text-[10px] text-muted-foreground">
-                              {chapter.duration_seconds
-                                ? `${Math.floor(chapter.duration_seconds / 60)}:${(chapter.duration_seconds % 60).toString().padStart(2, '0')}`
-                                : 'N/A'
-                              }
-                            </p>
-                          </div>
+                      <div key={index} className="flex items-center gap-2 p-2.5 bg-muted/30 rounded-lg border border-border/30">
+                        <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
+                          {index + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-xs leading-snug">{chapter.title}</h4>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">
+                            {chapter.duration_seconds
+                              ? `${Math.floor(chapter.duration_seconds / 60)}:${(chapter.duration_seconds % 60).toString().padStart(2, '0')}`
+                              : 'N/A'
+                            }
+                          </p>
                         </div>
                         <ChapterPreviewButton
                           chapter={chapter}
@@ -907,7 +915,7 @@ const GuideDetail = () => {
                       </div>
                     ))}
                     {currentChapters.length > 3 && (
-                      <p className="text-[11px] text-muted-foreground text-center py-1">
+                      <p className="text-[11px] text-muted-foreground text-center py-1.5">
                         +{currentChapters.length - 3} more stops with full access
                       </p>
                     )}
