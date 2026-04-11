@@ -697,7 +697,7 @@ export default function AudioAccess() {
         />
       )}
       {/* iOS-style minimal navbar */}
-      <div className="sticky top-0 z-50 bg-background/95 border-b border-border/30 shadow-sm">
+      <div className="sticky top-0 z-50 bg-background/70 backdrop-blur-xl border-b border-border/30 shadow-sm">
         <div className="grid grid-cols-[48px_1fr_48px] items-center px-2 min-h-12 h-auto py-1">
           <button
             onClick={() => navigate('/')}
