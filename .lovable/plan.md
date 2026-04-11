@@ -1,54 +1,35 @@
 
 
-## Guides Listeleme — "Load More" ile Kademeli Yükleme
+## "Load More" Butonu — Audio Guide Temasına Uygun Tasarım
 
-### Problem
+### Mevcut Durum
 
-Şu anda hem Index hem Guides sayfasında tüm rehberler tek seferde çekiliyor ve render ediliyor. 10-20 rehberde sorun yok, ama 50+ rehbere ulaşıldığında:
-- İlk render yavaşlar (tüm kartlar + görseller aynı anda DOM'a eklenir)
-- Mobilde scroll performansı düşer
-- Veri transferi gereksiz büyür
+Şu anda her iki sayfada da (`Index.tsx`, `Guides.tsx`) Load More butonu düz bir `variant="outline"` Button — generic, audio guide temasıyla uyumsuz.
 
-### Çözüm: Client-Side "Load More"
+### Yapılacak
 
-Veritabanı sorgusuna dokunmadan, mevcut verileri client tarafında sayfalayarak göstermek en temiz çözüm. Neden server-side pagination değil? Çünkü filtreleme ve arama zaten client-side çalışıyor — ikisini karıştırmak karmaşıklık getirir.
+Her iki sayfadaki Load More butonunu, uygulamanın audio guide kimliğine uygun şekilde yeniden tasarla:
 
-**Mantık:**
-- İlk açılışta 9 rehber göster (mobilde 3x3 grid)
-- "Load More" butonuna basınca 9 tane daha ekle
-- Filtreleme/arama yapılınca sayaç sıfırlansın, sonuçlar baştan gösterilsin
-- Tüm rehberler gösterildiyse buton kaybolsun
-
-### Uygulanacak Sayfalar
-
-| Sayfa | Değişiklik |
-|-------|-----------|
-| **Guides.tsx** | `visibleCount` state + "Load More" butonu |
-| **Index.tsx** | `visibleCount` state + "Load More" butonu |
-| **FeaturedGuides.tsx** | Zaten az sayıda rehber — değişiklik yok |
+- Kulaklık ikonu (`Headphones`) ekle
+- Ses dalgası animasyonlu dekorasyon (mevcut `audio-wave-bar` class'ları)
+- Amber/altın tonlu gradient border (`border-amber-500/20`) — premium hisse uyumlu
+- Kalan rehber sayısını badge olarak göster (`Badge` component)
+- Metin: "Discover More Audio Guides" tarzı, tema ile uyumlu
+- `active:scale-95` dokunma geri bildirimi
 
 ### Teknik Özet
 
 ```
 2 dosya:
 
-src/pages/Guides.tsx
-  - visibleCount state (başlangıç: 9)
-  - filteredGuides.slice(0, visibleCount) ile render
-  - searchTerm veya selectedCategory değişince visibleCount = 9
-  - "Show More Guides" butonu (kalan sayıyı gösterir)
+src/pages/Index.tsx (satır 293-299)
+  - Button → özel div/button: Headphones ikonu + "Discover More Guides" + Badge(remaining)
+  - border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10
+  - Küçük audio-wave-bar animasyonu buton içinde
 
-src/pages/Index.tsx
-  - visibleCount state (başlangıç: 9)
-  - filteredGuides.slice(0, visibleCount) ile render
-  - Filtre değişince visibleCount = 9
-  - "Show More" butonu
+src/pages/Guides.tsx (satır 294-303)
+  - Aynı tasarım
 ```
 
-### "Load More" Buton Tasarımı
-
-Mevcut CTA bölümüyle uyumlu, minimal:
-- `variant="outline"` + tam genişlik mobilde
-- "Show 9 More Guides (24 remaining)" gibi bilgilendirici metin
-- Tüm rehberler gösterildiyse buton gizlenir
+Her iki dosyada da aynı Load More bloku kullanılacak — tutarlılık sağlanacak.
 
