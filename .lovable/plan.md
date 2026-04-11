@@ -1,33 +1,29 @@
 
 
-## Featured Guide — "Get Full Access" Özel Tasarım
+## Get Full Access — Tüm Rehberler İçin Amber/Altın Tasarım
 
-### Mevcut Durum
+### Değişiklik
 
-"Get Full Access" kutusu tüm rehberler için aynı: `bg-gradient-to-r from-primary via-primary/90 to-primary` gradyanı ve standart primary renk. Featured rehberlerde sticky header, kategori badge'i ve geri butonu zaten amber/altın tonlarına dönüşüyor — ama satın alma kutusu standart kalıyor.
+Şu anda featured rehberler için uygulanan amber/altın tasarımı **tüm rehberler** için varsayılan yapılacak. `isFeaturedGuide` koşulları kaldırılıp her rehberde aynı premium görünüm kullanılacak.
 
-### Yapılacak Değişiklik
+**`src/pages/GuideDetail.tsx`** — Satır 917-942
 
-**`src/pages/GuideDetail.tsx`** — Satır 917-942 arası "Get Full Access" bloğu
+| Eleman | Şimdi (standart) | Yeni (tümü) |
+|--------|------------------|-------------|
+| Container border | `border-border/40` | `border-amber-500/30 bg-amber-500/5` |
+| Üst bant gradyanı | `from-primary via-primary/90 to-primary` | `from-amber-500 via-yellow-500 to-amber-500` |
+| İkon/metin rengi | `text-primary-foreground` | `text-amber-50` |
+| Already Purchased | `text-green-600` | `text-amber-600` |
 
-Featured rehberler için:
-- Dış border: `border-amber-500/30` (altın çerçeve)
-- Üst bant gradyanı: `from-amber-500 via-yellow-500 to-amber-500` (altın gradyan)
-- İkon ve metin rengi: `text-amber-50`
-- "Already Purchased" durumunda da amber tonları
-- Kutu içine hafif `bg-amber-500/5` arka plan
-
-Standart rehberler için mevcut tasarım korunur.
-
-Koşul zaten mevcut: `isFeaturedGuide` değişkeni (satır 86).
+Tüm `isFeaturedGuide ? ... : ...` ternary'leri kaldırılıp sadece amber değerleri kalacak.
 
 ### Teknik Özet
 
 ```
 1 dosya: src/pages/GuideDetail.tsx
-  - Get Full Access container border: isFeaturedGuide ? border-amber-500/30 : border-border/40
-  - Üst bant gradyanı: isFeaturedGuide ? amber/yellow : primary
-  - İç alan arka planı: isFeaturedGuide ? bg-amber-500/5 : varsayılan
-  - Already Purchased rengi: isFeaturedGuide ? text-amber-600 : text-green-600
+  - Satır 917: border-amber-500/30 bg-amber-500/5 (koşulsuz)
+  - Satır 918: from-amber-500 via-yellow-500 to-amber-500 (koşulsuz)
+  - Satır 919-920: text-amber-50 (koşulsuz)
+  - Satır 924: text-amber-600 (koşulsuz)
 ```
 
