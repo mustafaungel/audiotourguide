@@ -1,36 +1,23 @@
 
 
-## 2 Düzeltme: Kart Başlık Taşması + Detay Sayfası Başlık Tekrarı
+## Düzeltme: LiveListenersBadge Renk Taşması
 
-### 1. GuideCard Başlık Taşması
+### Problem
 
-**Problem:** `uppercase` dönüşümü büyük harflerle yazınca başlıklar genişliyor ve `truncate` olsa bile sığmıyor — çirkin görünüyor.
+Badge'in dış katmanı gradient border (`from-primary/20 via-primary/5 to-primary/20`) ve iç katman `bg-card/60` (yarı saydam). Yarı saydam arka plan, altındaki gradient'in sağ tarafta "now" kelimesinden sonra görünmesine neden oluyor — renk taşması efekti.
 
-**Çözüm:** `uppercase` kaldırılacak. Başlık doğal haliyle (capitalize/normal) kalacak. Font weight ve drop-shadow korunacak.
+### Çözüm
 
-**Dosya:** `src/components/GuideCard.tsx` satır 82
-- `uppercase` kaldır
-- `text-[12px] font-extrabold font-heading truncate tracking-normal text-primary-foreground drop-shadow-sm` olarak kalacak
+İç div'in arka plan opaklığını `bg-card/60` → `bg-card` (tam opak) yaparak gradient border'ın sadece 1px kenarlık olarak görünmesini sağla. `backdrop-blur-xl saturate-150` efektleri bu durumda gereksiz kalacağı için kaldırılabilir.
 
-### 2. Guide Detail — Başlık Tekrarı Kaldırma
-
-**Problem:** Sticky header'da zaten rehber adı yazıyor. Aşağıda görsel yanındaki `h1` başlık + "listening now" badge'i gereksiz tekrar oluşturuyor.
-
-**Çözüm:** `h1` başlığı kaldırılacak. LiveListenersBadge korunacak (başlığın yerine, görselin yanında metadata ile birlikte kalacak).
-
-**Dosya:** `src/pages/GuideDetail.tsx` satır 698
-- `<h1>` satırını kaldır
-- LiveListenersBadge ve metadata (location, duration) yukarı kayacak
-
-### Teknik Özet
+### Teknik
 
 ```
-2 dosya:
+src/components/LiveListenersBadge.tsx (satır 36)
 
-src/components/GuideCard.tsx (satır 82)
-  - uppercase kaldır
-
-src/pages/GuideDetail.tsx (satır 698)
-  - h1 başlık satırını kaldır
+Önce:  bg-card/60 backdrop-blur-xl saturate-150
+Sonra: bg-card backdrop-blur-sm
 ```
+
+Tek satır değişikliği — iç arka plan tam opak olunca gradient sadece 1px border olarak kalır, taşma olmaz.
 
