@@ -753,7 +753,7 @@ export default function AudioAccess() {
               {guide.title}
             </h1>
             <div className="flex justify-center mt-1">
-              <LiveListenersBadge guideId={guide.id} />
+              <LiveListenersBadge guideId={guide.id} realCount={realListenerCount} />
             </div>
             <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground">
               <span className="inline-flex items-center gap-1.5">
