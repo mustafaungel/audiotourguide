@@ -24,7 +24,6 @@ export function LiveListenersBadge({ guideId, variant = 'badge' }: LiveListeners
   if (variant === 'inline') {
     return (
       <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground font-medium">
-        <MiniEqualizer small />
         <Headphones className="w-2.5 h-2.5" />
         {count} listening
       </span>
