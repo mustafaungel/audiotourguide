@@ -161,6 +161,9 @@ const GuideDetail = () => {
 
   // Get the current chapters based on language selection
   const currentChapters = guideSections.length > 0 ? guideSections : (guide?.chapters || guide?.sections || []);
+  // Calculate duration from actual sections (language-specific)
+  const sectionsDuration = currentChapters.reduce((sum: number, ch: any) => sum + (ch.duration_seconds || 0), 0);
+  const displayDuration = sectionsDuration > 0 ? Math.floor(sectionsDuration / 60) : Math.floor(guide.duration / 60);
 
   // No global audio player - each chapter will manage its own
 
@@ -758,7 +761,7 @@ const GuideDetail = () => {
                 </div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
                   <Clock className="w-3 h-3 text-primary/60 shrink-0" />
-                  <span>{Math.floor(guide.duration / 60)} min</span>
+                  <span>{displayDuration} min</span>
                   <span>·</span>
                   <span>{currentChapters.length} stops</span>
                 </div>
@@ -786,7 +789,7 @@ const GuideDetail = () => {
                   <Headphones className="w-3 h-3" /> {currentChapters.length} audio stops
                 </span>
                 <span className="flex items-center gap-1 bg-primary/10 text-primary rounded-full px-2.5 py-1">
-                  <Clock className="w-3 h-3" /> {Math.floor(guide.duration / 60)} min
+                  <Clock className="w-3 h-3" /> {displayDuration} min
                 </span>
                 <span className="flex items-center gap-1 bg-primary/10 text-primary rounded-full px-2.5 py-1">
                   <Headphones className="w-3 h-3" /> Lifetime access
@@ -964,16 +967,20 @@ const GuideDetail = () => {
             )}
           </div>
 
-          {/* Sidebar - Hidden on mobile when player is active */}
-          <div className="space-y-6">
-            {/* Purchase Card - Compact on mobile */}
-            <Card className="min-h-[200px] audio-card-glow border-border/30">
-              <CardContent className="space-y-3 pt-4 md:pt-6 px-4 md:px-6">
+          {/* Sidebar */}
+          <div className="space-y-4">
+            {/* Purchase — headphone themed */}
+            <div className="rounded-2xl border border-border/40 overflow-hidden">
+              <div className="bg-gradient-to-r from-primary via-primary/90 to-primary px-4 py-2 flex items-center justify-center gap-2">
+                <Headphones className="w-4 h-4 text-primary-foreground" />
+                <span className="text-xs font-bold text-primary-foreground tracking-wide uppercase">Get Full Access</span>
+              </div>
+              <div className="p-4">
                 {isPurchased ? (
-                  <Button className="w-full" size="lg" disabled>
-                    <Check className="w-5 h-5 mr-2" />
-                    Already Purchased
-                  </Button>
+                  <div className="flex items-center justify-center gap-2 py-3 text-green-600">
+                    <Check className="w-5 h-5" />
+                    <span className="font-semibold text-sm">Already Purchased</span>
+                  </div>
                 ) : (
                   <EmbeddedCheckout
                     guide={{
@@ -987,95 +994,68 @@ const GuideDetail = () => {
                     onCancel={() => setShowPaymentModal(false)}
                   />
                 )}
-               </CardContent>
-             </Card>
+              </div>
+            </div>
 
-
-            {/* Linked Guides Collection */}
+            {/* Linked Guides */}
             {linkedGuides.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Headphones className="w-5 h-5 text-primary" />
-                    <Link className="w-4 h-4" />
-                    Additional Guides in Collection
-                  </CardTitle>
-                  <CardDescription>
-                    These guides are included with your purchase
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
+              <div className="rounded-2xl border border-border/40 overflow-hidden">
+                <div className="px-4 py-3 border-b border-border/30">
+                  <h3 className="text-sm font-bold flex items-center gap-2">
+                    <Headphones className="w-4 h-4 text-primary" />
+                    Also in This Collection
+                  </h3>
+                </div>
+                <div className="p-3 space-y-2">
                   {linkedGuides.map((linkedGuide) => (
-                    <Card key={linkedGuide.guide_id} className="overflow-hidden hover:shadow-md transition-shadow audio-card-glow border-border/30">
-                      <div className="flex gap-3 p-3">
-                        {linkedGuide.image_url && (
-                          <img 
-                            src={linkedGuide.image_url} 
-                            alt={linkedGuide.custom_title || linkedGuide.title}
-                            className="w-16 h-16 object-cover rounded-md"
-                          />
+                    <div key={linkedGuide.guide_id} className="flex gap-3 p-2 rounded-xl hover:bg-muted/50 transition-colors cursor-pointer border border-border/20"
+                      onClick={() => isPurchased && linkedGuide.master_access_code && navigate(`/access/${linkedGuide.guide_id}?access_code=${linkedGuide.master_access_code}`)}
+                    >
+                      {linkedGuide.image_url && (
+                        <img src={linkedGuide.image_url} alt={linkedGuide.custom_title || linkedGuide.title}
+                          className="w-14 h-14 object-cover rounded-lg shrink-0" />
+                      )}
+                      <div className="flex-1 min-w-0 flex flex-col justify-center">
+                        <h4 className="font-medium text-xs leading-snug">{linkedGuide.custom_title || linkedGuide.title}</h4>
+                        {isPurchased && linkedGuide.master_access_code && (
+                          <span className="text-[10px] text-primary font-medium mt-0.5">Listen →</span>
                         )}
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-sm line-clamp-2">
-                            {linkedGuide.custom_title || linkedGuide.title}
-                          </h4>
-                          {isPurchased && linkedGuide.master_access_code && (
-                            <Button
-                              variant="link"
-                              size="sm"
-                              className="p-0 h-auto text-xs"
-                              onClick={() => {
-                                const accessUrl = `/access/${linkedGuide.guide_id}?access_code=${linkedGuide.master_access_code}`;
-                                navigate(accessUrl);
-                              }}
-                            >
-                              Listen Now →
-                            </Button>
-                          )}
-                        </div>
                       </div>
-                    </Card>
+                    </div>
                   ))}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             )}
 
             {/* Related Guides */}
             {relatedGuides.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+              <div className="rounded-2xl border border-border/40 overflow-hidden">
+                <div className="px-4 py-3 border-b border-border/30">
+                  <h3 className="text-sm font-bold flex items-center gap-2">
                     <Headphones className="w-4 h-4 text-primary" />
-                    Related Guides
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
+                    You Might Also Like
+                  </h3>
+                </div>
+                <div className="p-3 space-y-2">
                   {relatedGuides.map((relatedGuide) => (
-                    <div 
-                      key={relatedGuide.id} 
-                      className="flex gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer"
+                    <div
+                      key={relatedGuide.id}
+                      className="flex gap-3 p-2 rounded-xl hover:bg-muted/50 cursor-pointer transition-colors border border-border/20"
                       onClick={() => navigate(`/guide/${relatedGuide.slug || relatedGuide.id}`)}
                     >
-                      <img 
-                        src={relatedGuide.image} 
-                        alt={`${relatedGuide.title} - Audio guide in ${relatedGuide.location || 'destination'}`}
-                        className="w-16 h-16 rounded-lg object-cover"
+                      <img
+                        src={relatedGuide.image}
+                        alt={relatedGuide.title}
+                        className="w-14 h-14 rounded-lg object-cover shrink-0"
                       />
-                      <div className="flex-1 min-w-0">
-                        <h5 className="font-medium text-sm line-clamp-2">{relatedGuide.title}</h5>
-                        <p className="text-xs text-muted-foreground">{relatedGuide.creator}</p>
-                        <div className="flex items-center justify-between mt-1">
-                          <div className="flex items-center gap-1">
-                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                            <span className="text-xs">{relatedGuide.rating}</span>
-                          </div>
-                          <span className="text-xs font-medium">${relatedGuide.price}</span>
-                        </div>
+                      <div className="flex-1 min-w-0 flex flex-col justify-center">
+                        <h5 className="font-medium text-xs leading-snug">{relatedGuide.title}</h5>
+                        <span className="text-[10px] text-muted-foreground mt-0.5">{relatedGuide.location}</span>
                       </div>
                     </div>
                   ))}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             )}
           </div>
         </div>

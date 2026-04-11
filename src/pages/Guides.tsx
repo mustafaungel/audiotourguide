@@ -18,7 +18,7 @@ const Guides = () => {
   const [selectedGuide, setSelectedGuide] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [guides, setGuides] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [userPurchases, setUserPurchases] = useState<string[]>([]);
   const [processingPayment, setProcessingPayment] = useState<string | null>(null);
   const { user } = useAuth();
