@@ -1,42 +1,65 @@
 
 
-## LiveListenersBadge — Premium Tasarim Iyilestirmesi
+## GuideCard ve Featured Guides — Premium Audio Tasarim Yenileme
 
-### Sorunlar
+### Sorun 1: Inline LiveListenersBadge cok yer kapliyor
 
-1. **Badge cok basit** — duz yazi + ikon, premium audio guide temasina yakismayan minimal gorunum
-2. **Kart icindeki inline variant** — badge hissi vermiyor, sadece duz text
-3. **Ekolayzer hala biraz hizli** — 1.6s → 2.2s'e dusurulmeli
+Ekran goruntusunde goruldugu gibi, `border border-primary/10` + `px-2 py-0.5` + `rounded-full` cercevesi kartlarda gereksiz alan kapliyor. Cozum: border'i kaldir, sadece ince text olarak goster — ekolayzer + sayi + "listening" yeterli, cerceve gereksiz.
+
+### Sorun 2: FeaturedGuides farkli tasarim kullaniyor
+
+`FeaturedGuides.tsx` hala eski Card/Carousel yapisi — GuideCard bilesenini kullanmiyor. Tutarsiz gorunum.
+
+### Sorun 3: Featured kartlar icin ozel tasarim
+
+Featured guide'lar icin gercekten ozel bir deneyim onerisi:
 
 ### Degisiklikler
 
-**1. `src/index.css` — Animasyon yavaslatma**
-- `1.6s` → `2.2s` (her iki class icin)
+**1. `src/components/LiveListenersBadge.tsx` — Inline variant sadele**
+- Border ve background kaldir
+- Sadece: ekolayzer bars + headphones icon + `{count} listening` text
+- `text-[10px] text-muted-foreground font-medium` — cercevesiz, hafif
+- Badge variant ayni kalsin (detay sayfalarinda iyi gorunuyor)
 
-**2. `src/components/LiveListenersBadge.tsx` — Premium badge tasarimi**
+**2. `src/components/GuideCard.tsx` — Featured kartlar icin ozel tasarim**
+- `isFeatured` true oldugunda tamamen farkli gorunum:
+  - Ust band: amber gradient yerine **koyu transparan gradient overlay** gorunumlu buyuk gorsel
+  - Gorsel tam genislik, daha yuksek (h-40)
+  - Baslik gorselin uzerine beyaz text olarak overlay
+  - Alt kisimda: konum, sure, dil bayraklari ve listening bilgisi
+  - Altin ince border: `border-amber-500/30`
+  - "Featured" rozeti gorselin ustunde
+  - Waveform alt dekorasyonu animasyonlu hale gelsin (featured icin)
+- Normal kartlar: mevcut yatay layout ayni kalsin, sadece listening border kalkar
 
-Badge variant (GuideDetail, AudioAccess):
-- Cam efekti guclendir: `bg-card/60 backdrop-blur-xl saturate-150`
-- Gradient border efekti: dis wrapper ile `bg-gradient-to-r from-primary/20 via-primary/5 to-primary/20` + ic `p-[1px] rounded-full`
-- Ince shadow: `shadow-[0_2px_12px_hsl(var(--primary)/0.12)]`
-- Sayi bold yapilsin, "listening now" normal weight
-- Ekolayzer + kulaklık + `{count}` **listening now** formati
-
-Inline variant (GuideCard icinde):
-- Mini pill badge formuna cevir: `bg-primary/8 rounded-full px-2 py-0.5 border border-primary/10`
-- Ekolayzer + `{count} listening` tek satirda
-- Kulaklık ikonu kalsin
-
-**3. `src/components/GuideCard.tsx` — Inline badge konumu**
-- Mevcut konum uygun, sadece LiveListenersBadge'in yeni pill stili yeterli
+**3. `src/components/FeaturedGuides.tsx` — GuideCard kullan**
+- Carousel yapisi kalsin ama ic kisim `GuideCard` bilesenine gecsin
+- `isFeatured={true}` prop'u ile ozel featured tasarimi aktif olsun
+- Gereksiz Card/CardContent/CardHeader import'lari kaldirilsin
 
 ### Teknik Ozet
 
 ```
-3 dosya: index.css, LiveListenersBadge.tsx, GuideCard.tsx (konum degisiklik yok)
+3 dosya:
+  LiveListenersBadge.tsx — inline variant: border/bg kaldir, sade text
+  GuideCard.tsx — isFeatured icin buyuk gorsel + overlay baslik + altin border
+  FeaturedGuides.tsx — GuideCard bileseni kullan, carousel koru
+```
 
-CSS: animation duration 1.6s → 2.2s
-Badge: gradient border + glass + shadow
-Inline: mini pill badge + border
+### Featured Kart Gorsel Yapisi
+
+```text
+┌─────────────────────────┐
+│  ★ Featured        $4.99│  ← badge'ler gorselin ustunde
+│                         │
+│    [buyuk gorsel]       │  ← h-40, tam genislik
+│                         │
+│  ▓▓ Guide Basligi ▓▓   │  ← overlay text, beyaz, bold
+└─────────────────────────┘
+│ 📍 Location · ⏱ 66 min │
+│ 🇹🇷🇬🇧🇷🇺  ‖ 🎧 135 listening │
+│ .,|.|.,|.|.,|.|.,|.|.,  │  ← animasyonlu waveform
+└─────────────────────────┘
 ```
 
