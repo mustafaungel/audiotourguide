@@ -121,7 +121,7 @@ export function GuideCard({
               })}
             </div>
           )}
-          <LiveListenersBadge guideId={id} variant="inline" />
+          <LiveListenersBadge guideId={id} size="compact" />
           <div className="flex items-center mt-1.5 self-end">
             <Button
               variant="default"
