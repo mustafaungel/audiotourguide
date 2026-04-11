@@ -679,7 +679,7 @@ const GuideDetail = () => {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-4">
             {/* Compact Header — image + info side by side */}
-            <div className="flex gap-4">
+            <div className="space-y-3">
               <div className="relative w-32 h-32 sm:w-36 sm:h-36 shrink-0 rounded-xl overflow-hidden shadow-lg">
                 <OptimizedImage
                   src={guide.image_urls?.[0] || guide.image_url}
@@ -694,7 +694,7 @@ const GuideDetail = () => {
                   {guide.category}
                 </Badge>
               </div>
-              <div className="flex-1 min-w-0 flex flex-col justify-center">
+              <div className="flex flex-col gap-1">
                 <LiveListenersBadge guideId={guide.id} />
                 <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
                   <MapPin className="w-3 h-3 text-primary/60 shrink-0" />
