@@ -1,74 +1,32 @@
 
 
-## CSS-Only 3D Derinlik Tasarım Yükseltmesi
+## Audio Access ve Bağlı Rehber Sayfalarına 3D Derinlik Uygulaması
 
-Performans kaybı sıfır — tamamı CSS `transform`, `box-shadow` ve `backdrop-filter` ile yapılacak. WebGL veya ağır JS kütüphanesi yok.
+Mevcut 3D sistemi (card-3d, glass-badge, btn-raised) bu sayfalara henüz uygulanmamış. Fonksiyonlara dokunmadan sadece CSS class'ları eklenecek.
 
-### 1. Kartlara Çok Katmanlı Shadow + Hover 3D Transform
+### Değişiklikler
 
-**Dosya:** `src/components/GuideCard.tsx`
+**1. `src/pages/AudioAccess.tsx`**
+- Hero'daki rehber görseline çok katmanlı shadow eklenir (`shadow-[0_4px_16px_rgba(0,0,0,0.1),0_8px_32px_rgba(0,0,0,0.08)]`)
+- Kategori badge'ine `glass-badge` class'ı eklenir (zaten `backdrop-blur-md` var ama tutarsız — standartlaştırılacak)
+- "Leave Feedback" butonuna `btn-raised` efekti eklenir
 
-- Kart wrapper'a `perspective` ve hover'da `rotateX(-2deg) rotateY(2deg) translateZ(4px)` eklenir
-- Çok katmanlı shadow: `shadow-[0_2px_8px_rgba(0,0,0,0.08),0_8px_24px_rgba(0,0,0,0.06),0_16px_48px_rgba(0,0,0,0.04)]`
-- Hover'da shadow derinleşir + hafif yukarı kalkar
-- `transform-style: preserve-3d` ve `will-change: transform` ile GPU hızlandırması
+**2. `src/components/MultiTabAudioPlayer.tsx`**
+- Akordeon pill butonlarına çok katmanlı shadow ve `active:shadow-inner` derinlik efekti eklenir
+- Aktif (expanded) pill'e `shadow-lg` yerine daha derin 3D shadow verilir
 
-### 2. Hero Section'a Parallax Depth Katmanları
+**3. `src/components/ChapterList.tsx`**
+- Ana Card'a çok katmanlı shadow eklenir (mevcut `audio-card-glow` korunur, üstüne shadow eklenir)
+- Chapter item'lara hover'da hafif shadow yükselmesi eklenir
+- Aktif chapter'ın border'ına daha belirgin 3D shadow verilir
 
-**Dosya:** `src/components/HeroSection.tsx`
+**4. `src/components/MiniPlayer.tsx`**
+- Play/Pause butonuna `btn-raised` efekti eklenir (mevcut `shadow-lg shadow-primary/25` korunur, active state iyileştirilir)
 
-- Arka plan görseli, gradient overlay ve content'e farklı `translateZ` değerleri verilir
-- Section'a `perspective: 1000px` eklenir
-- Scroll'a bağlı parallax yerine CSS-only depth (z-katmanları) — performans güvenli
-- Dekoratif ses dalgası çizgilerine hafif `translateZ(-20px)` ile geri plan derinliği
+### Dokunulmayan Alanlar
+- Hiçbir fonksiyon, event handler, state veya prop değiştirilmez
+- Sadece className string'lerine class eklenir
+- `prefers-reduced-motion` ile tüm efektler zaten devre dışı kalıyor (index.css'te mevcut)
 
-### 3. Butonlara Pressed/Raised Efekti (Neumorphism-lite)
-
-**Dosya:** `src/index.css` (yeni utility class'lar)
-
-- `.btn-raised`: Çift shadow (üst: aydınlık, alt: gölge) ile yüzeyden yükselmiş görünüm
-- `active` state'te shadow tersine döner (iç gölge) + `translateY(1px)` — basılma hissi
-- Hero ve tourism buton varyantlarına uygulanır
-
-**Dosya:** `src/components/ui/button.tsx`
-
-- `hero`, `tourism`, `audio` varyantlarına raised shadow + active pressed efekti eklenir
-
-### 4. Badge'lere Glassmorphism + Inner Shadow
-
-**Dosya:** `src/index.css`
-
-- `.glass-badge`: `backdrop-blur-xl`, yarı-saydam arka plan, `inset 0 1px 0 rgba(255,255,255,0.15)` üst kenar parlama, `inset 0 -1px 2px rgba(0,0,0,0.1)` alt iç gölge
-- Dark mode'da opaklık değerleri ayarlanır
-
-**Dosya:** `src/components/LiveListenersBadge.tsx`
-
-- Mevcut badge'e `glass-badge` class'ı uygulanır
-
-**Dosya:** `src/components/GuideCard.tsx`
-
-- Kategori badge'ine glassmorphism eklenir
-
-### 5. Genel Shadow Sistemi Güncelleme
-
-**Dosya:** `src/index.css` (CSS variables)
-
-- `--shadow-card` → 3 katmanlı shadow'a güncellenir
-- `--shadow-elevated` → 4 katmanlı shadow'a güncellenir
-- Yeni `--shadow-raised` ve `--shadow-pressed` değişkenleri eklenir
-
-### Performans Garantisi
-
-- Tüm efektler `transform` ve `opacity` — layout/paint tetiklemez
-- `will-change: transform` sadece hover/active state'lerde
-- `prefers-reduced-motion` media query ile animasyonlar devre dışı bırakılabilir
-- Backdrop-blur sadece küçük, statik alanlarda (badge'ler) — scroll performansı etkilenmez
-
-### Etkilenen Dosyalar (5 dosya)
-
-1. `src/index.css` — Yeni utility class'lar ve shadow variables
-2. `src/components/GuideCard.tsx` — 3D hover transform + çok katmanlı shadow
-3. `src/components/HeroSection.tsx` — Depth katmanları
-4. `src/components/ui/button.tsx` — Raised/pressed efekti
-5. `src/components/LiveListenersBadge.tsx` — Glass badge
+5 dosya, sadece className güncellemeleri.
 
