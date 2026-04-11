@@ -115,7 +115,7 @@ export function GuideCard({
         <div className="flex-1 min-w-0 overflow-hidden flex flex-col items-center justify-center gap-1 py-1">
           <div className="flex items-center gap-1 text-[11px] font-semibold text-foreground/80">
             <MapPin className="w-3 h-3 text-primary/70 shrink-0" />
-            <span className="truncate">{location}</span>
+            <span className="truncate max-w-full">{location}</span>
           </div>
           <div className="flex items-center gap-1 text-[10px] font-semibold text-foreground/60">
             <Clock className="w-2.5 h-2.5 text-primary/70 shrink-0" />
