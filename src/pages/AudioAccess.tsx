@@ -6,6 +6,7 @@ import { MultiTabAudioPlayer } from "@/components/MultiTabAudioPlayer";
 import { Button } from "@/components/ui/button";
 import { GuestReviewForm } from "@/components/GuestReviewForm";
 import { GuideLanguageSelector } from '@/components/GuideLanguageSelector';
+import { LiveListenersBadge } from '@/components/LiveListenersBadge';
 import { Badge } from "@/components/ui/badge";
 import { Star, MapPin, Clock, ChevronLeft, Lock, Wifi, WifiOff, RotateCcw, Headphones } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -749,6 +750,9 @@ export default function AudioAccess() {
             <h1 className="text-xl font-bold text-foreground leading-tight">
               {guide.title}
             </h1>
+            <div className="flex justify-center">
+              <LiveListenersBadge guideId={guide.id} />
+            </div>
             <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground">
               <span className="inline-flex items-center gap-1.5">
                 <MapPin className="w-3.5 h-3.5 shrink-0" />

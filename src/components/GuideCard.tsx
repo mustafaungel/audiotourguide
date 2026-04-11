@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Clock, MapPin, Headphones, Play, Star } from "lucide-react";
 import { ButtonLoader } from "@/components/AudioGuideLoader";
 import { useViralTracking } from "@/hooks/useViralTracking";
+import { LiveListenersBadge } from "@/components/LiveListenersBadge";
 import { useNavigate } from "react-router-dom";
 import { OptimizedImage } from "@/components/OptimizedImage";
 import { ELEVENLABS_LANGUAGES } from "@/data/countries-full";
@@ -123,6 +124,9 @@ export function GuideCard({
               })}
             </div>
           )}
+
+          {/* Live listeners */}
+          <LiveListenersBadge guideId={id} variant="inline" />
 
           {/* Play */}
           <div className="flex items-center mt-1.5 self-end">
