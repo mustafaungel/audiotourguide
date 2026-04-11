@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getOptimizedImageUrl, getDirectImageUrl } from '@/lib/url-utils';
+import { getDirectImageUrl } from '@/lib/url-utils';
 
 interface OptimizedImageProps {
   src: string | null | undefined;
@@ -17,30 +17,15 @@ export function OptimizedImage({
   className,
   width,
   height,
-  quality = 80,
   loading = 'lazy'
 }: OptimizedImageProps) {
-  const [imgSrc, setImgSrc] = useState<string>(
-    getOptimizedImageUrl(src, { width, height, quality })
-  );
-  const [hasError, setHasError] = useState(false);
-  const [loaded, setLoaded] = useState(false);
-
   const directUrl = getDirectImageUrl(src);
-
-  const handleError = () => {
-    if (!hasError && imgSrc !== directUrl) {
-      setHasError(true);
-      setImgSrc(directUrl);
-    }
-  };
+  const [loaded, setLoaded] = useState(false);
 
   // Reset when src changes
   useEffect(() => {
-    setImgSrc(getOptimizedImageUrl(src, { width, height, quality }));
-    setHasError(false);
     setLoaded(false);
-  }, [src, width, height, quality]);
+  }, [src]);
 
   return (
     <div className="relative overflow-hidden w-full h-full">
@@ -49,7 +34,7 @@ export function OptimizedImage({
         <div className="absolute inset-0 bg-muted animate-pulse" />
       )}
       <img
-        src={imgSrc}
+        src={directUrl}
         alt={alt}
         width={width}
         height={height}
@@ -57,7 +42,6 @@ export function OptimizedImage({
         loading={loading}
         decoding="async"
         onLoad={() => setLoaded(true)}
-        onError={handleError}
       />
     </div>
   );
