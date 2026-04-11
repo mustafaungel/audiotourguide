@@ -4,6 +4,7 @@ import { useLiveListeners } from '@/hooks/useLiveListeners';
 interface LiveListenersBadgeProps {
   guideId: string;
   size?: 'default' | 'compact';
+  realCount?: number;
 }
 
 function MiniEqualizer({ small = false }: { small?: boolean }) {
