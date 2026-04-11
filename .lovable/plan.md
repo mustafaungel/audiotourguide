@@ -1,96 +1,31 @@
 
-Guide kartlarındaki sorunun kökü şu: başlık şu an üst bantta tek satıra zorlanıyor (`truncate`). Bu yüzden bazı kartlarda sığsa bile, daha uzun başlıklarda veya dar alanlarda mutlaka kesiliyor. “Hiç bir şekilde taşma yaratmayacak” mantığı için tek satır yaklaşımını bırakıp güvenli çok satırlı başlık düzenine geçmek en doğru çözüm.
 
-## Yapılacak çözüm
+## Düzeltme: Guide Detail — LiveListenersBadge Taşması
 
-### 1. GuideCard başlığını tek satırdan güvenli 2 satıra çevir
-Dosya: `src/components/GuideCard.tsx`
+### Problem
 
-Mevcut yapı:
-- `truncate`
-- tek satır
-- dar kartlarda kesiliyor
+Badge `inline-flex` olduğu için içerik genişliğine göre büyüyor ve `flex-1 min-w-0` kapsayıcısından taşıyor. Özellikle 390px mobil genişlikte görsel (w-32 = 128px) + gap (16px) sonrası kalan alan ~246px — badge bu alana sığmıyor ve gradient border dışarı taşıyor.
 
-Yeni yapı:
-- `truncate` kaldırılacak
-- yerine `line-clamp-2`
-- `break-words` / `min-w-0` ile taşma engellenecek
-- ikon üstte hizalanacak (`items-start`), böylece 2 satırlı başlık doğal görünecek
-- üst bant yüksekliği biraz artırılacak
+### Çözüm
 
-Önerilen mantık:
-- Başlık en fazla 2 satır gösterilsin
-- 2 satırı aşarsa kontrollü şekilde kırılsın
-- yatay taşma hiç oluşmasın
+`LiveListenersBadge` badge varyantının dış kapsayıcısına `max-w-full` ekleyerek taşmayı engelle. Ayrıca metin kısmına `truncate` ekleyerek uzun sayılarda bile taşma olmasın.
 
-### 2. Üst band layout’unu 2 satırlı başlığa uygun hale getir
-Dosya: `src/components/GuideCard.tsx`
+### Teknik
 
-Şu an bant:
-- ortalanmış kısa satır başlık mantığında
+```
+src/components/LiveListenersBadge.tsx
 
-Güncellenecek:
-- `items-center` yerine `items-start`
-- başlık kapsayıcısına `flex-1 min-w-0 leading-tight line-clamp-2`
-- padding biraz artırılacak (`py-2.5` gibi)
-- gerekiyorsa ikon biraz küçültülüp sabit bırakılacak
+Satır 35 — dış div:
+  Ekle: max-w-full
 
-Bu sayede:
-- uzun başlıklar ezilmez
-- ikon başlığın yanında düzgün kalır
-- mobilde daha premium görünür
+Satır 36 — iç div:
+  Ekle: max-w-full
 
-### 3. Gerekirse görsel alanı çok az optimize et
-Dosya: `src/components/GuideCard.tsx`
-
-Eğer 2 satırlı başlık sonrası kart fazla sıkışık görünürse:
-- içerik bölümündeki dikey boşluklar hafif sadeleştirilecek
-- ama ana çözüm başlık bölümünde yapılacak, kartın genel kimliği bozulmayacak
-
-### 4. Bu değişiklik tüm GuideCard kullanım yerlerine yayılmış olacak
-Aynı component kullanıldığı için şu sayfalar otomatik düzelecek:
-- `src/pages/Index.tsx`
-- `src/pages/Guides.tsx`
-- `src/pages/CountryDetail.tsx`
-- `src/components/FeaturedGuides.tsx`
-
-Yani tek tek her sayfada ayrıca başlık fix’i yapmaya gerek kalmayacak.
-
-## Neden bu çözüm en doğrusu?
-
-Tek satır + küçültme yaklaşımı sorunu tamamen çözmez. Çünkü:
-- bazı başlıklar yine uzun kalır
-- carousel ve grid genişlikleri farklıdır
-- mobilde 390px genişlikte güvenli çözüm ancak çok satırlı kontrollü başlıktır
-
-En sağlam mantık:
-```text
-tek satır zorlaması → kaldır
-2 satır kontrollü sarma → ekle
-horizontal overflow → tamamen engelle
+Satır 39 — span:
+  Ekle: truncate
 ```
 
-## Teknik özet
+### Performans Notu
 
-Değişecek ana dosya:
-- `src/components/GuideCard.tsx`
+GuideCard'daki `line-clamp-2` + `break-words` değişikliği saf CSS'tir — JavaScript çalıştırmaz, DOM manipulation yoktur, performans etkisi sıfırdır.
 
-Planlanan başlık mantığı:
-```text
-Top band
-[icon] [title wraps up to 2 lines]
-
-title classes:
-- flex-1
-- min-w-0
-- line-clamp-2
-- break-words
-- leading-tight
-- drop-shadow-sm
-```
-
-Beklenen sonuç:
-- başlık hiçbir durumda yatay taşma yapmaz
-- uzun isimler daha doğal görünür
-- mobil görünüm çok daha dengeli olur
-- tüm guide kartları tek seferde düzelir
