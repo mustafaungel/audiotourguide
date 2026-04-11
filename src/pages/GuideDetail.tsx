@@ -672,7 +672,7 @@ const GuideDetail = () => {
               <div className="relative w-32 h-32 sm:w-36 sm:h-36 shrink-0 rounded-xl overflow-hidden shadow-lg">
                 <OptimizedImage
                   src={guide.image_urls?.[0] || guide.image_url}
-                  alt={guide.title}
+                  alt={`${guide.title} - Audio Guide`}
                   width={144}
                   height={144}
                   quality={80}
