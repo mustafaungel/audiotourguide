@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Globe, Check, ChevronDown, Headphones } from 'lucide-react';
-import { getLanguageFlag, getLanguageDisplay } from '@/lib/language-utils';
+import { getLanguageFlag, getLanguageDisplay, getLanguageName } from '@/lib/language-utils';
 import { haptics } from '@/lib/haptics';
 import { cn } from '@/lib/utils';
 import { t } from '@/lib/translations';
@@ -107,7 +107,17 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
   }
 
   if (displayLanguages.length < 1) {
-    return <div className="min-h-[48px]" />;
+    // Show at least the selected language even if RPC returns empty
+    return (
+      <div className="space-y-2">
+        <button className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium border bg-primary/15 border-primary text-primary ring-1 ring-primary/30 w-full">
+          <Headphones className="w-3.5 h-3.5 text-primary shrink-0" />
+          <span className="text-lg shrink-0">{getLanguageFlag(selectedLanguage)}</span>
+          <span className="truncate">{getLanguageName(selectedLanguage)}</span>
+          <Check className="w-3.5 h-3.5 text-primary ml-auto shrink-0" />
+        </button>
+      </div>
+    );
   }
 
   return (
