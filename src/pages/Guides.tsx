@@ -303,9 +303,9 @@ const Guides = () => {
                   {remainingCount}
                 </Badge>
                 <div className="flex items-end gap-[3px] h-4 ml-1">
-                  <span className="audio-wave-bar w-[2px] bg-amber-500/40 rounded-full" style={{ animationDelay: '0s' }} />
-                  <span className="audio-wave-bar w-[2px] bg-amber-500/40 rounded-full" style={{ animationDelay: '0.15s' }} />
-                  <span className="audio-wave-bar w-[2px] bg-amber-500/40 rounded-full" style={{ animationDelay: '0.3s' }} />
+                  <span className="w-[2px] bg-amber-500/40 rounded-full" style={{ height: '4px', animation: 'equalizer-bar 2.2s ease-in-out infinite', animationDelay: '0ms' }} />
+                  <span className="w-[2px] bg-amber-500/40 rounded-full" style={{ height: '4px', animation: 'equalizer-bar 2.2s ease-in-out infinite', animationDelay: '150ms' }} />
+                  <span className="w-[2px] bg-amber-500/40 rounded-full" style={{ height: '4px', animation: 'equalizer-bar 2.2s ease-in-out infinite', animationDelay: '300ms' }} />
                 </div>
               </button>
             </div>
