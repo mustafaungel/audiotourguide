@@ -736,10 +736,10 @@ export default function AudioAccess() {
               <img
                 src={guideImageUrl}
                 alt={guide.title}
-                className="w-44 h-44 rounded-2xl object-cover shadow-xl ring-2 ring-primary/20"
+                className="w-44 h-44 rounded-2xl object-cover shadow-[0_4px_16px_rgba(0,0,0,0.1),0_8px_32px_rgba(0,0,0,0.08),0_16px_48px_rgba(0,0,0,0.05)] ring-2 ring-primary/20"
                 onError={(e) => { e.currentTarget.src = '/hero-audio-guide.jpg'; }}
               />
-              <Badge className="absolute top-2 left-2 text-[10px] px-2 py-0.5 rounded-lg backdrop-blur-md bg-background/70 text-foreground border-0 shadow-sm">
+              <Badge className="absolute top-2 left-2 text-[10px] px-2 py-0.5 rounded-lg glass-badge text-foreground border-0">
                 {guide.category}
               </Badge>
             </div>
@@ -824,7 +824,7 @@ export default function AudioAccess() {
           {!showReviewForm ? (
              <button
               onClick={() => setShowReviewForm(true)}
-              className="w-full flex items-center justify-center gap-2 min-h-[48px] py-3.5 rounded-2xl bg-primary/5 border border-primary/20 text-sm font-medium text-foreground active:scale-[0.98] active:bg-primary/10 active:shadow-inner shadow-sm hover:shadow-md transition-all duration-200"
+              className="w-full flex items-center justify-center gap-2 min-h-[48px] py-3.5 rounded-2xl bg-primary/5 border border-primary/20 text-sm font-medium text-foreground btn-raised active:scale-[0.98] active:bg-primary/10 hover:shadow-md transition-all duration-200"
             >
               <Star className="w-4 h-4 text-yellow-500" />
               {t('leaveFeedback', selectedLanguage)}

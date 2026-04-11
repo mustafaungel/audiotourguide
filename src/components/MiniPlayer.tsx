@@ -172,7 +172,7 @@ export const MiniPlayer = React.memo<MiniPlayerProps>(({
 
             {/* Play/Pause */}
             <button data-play-btn onClick={(e) => { e.stopPropagation(); haptics.medium(); onTogglePlay(); }}
-              className="w-13 h-13 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90 bg-primary text-primary-foreground shadow-lg shadow-primary/25"
+              className="w-13 h-13 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90 active:shadow-inner bg-primary text-primary-foreground shadow-[0_4px_16px_rgba(0,0,0,0.15),0_2px_4px_rgba(0,0,0,0.1)] shadow-primary/25 btn-raised"
               style={{ width: '52px', height: '52px' }}
               disabled={loading}>
               {isPlaying ? <Pause className="w-5.5 h-5.5" style={{ width: '22px', height: '22px' }} fill="currentColor" /> : <Play className="w-5.5 h-5.5 ml-0.5" style={{ width: '22px', height: '22px' }} fill="currentColor" />}

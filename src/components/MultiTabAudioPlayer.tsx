@@ -312,10 +312,10 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
           <button
             className={cn(
             "flex items-center justify-between gap-2 w-full min-h-[48px] px-4 py-2.5 text-base font-medium rounded-xl transition-all duration-200",
-              "active:scale-[0.95] active:shadow-inner",
+              "active:scale-[0.95]",
               isMainExpanded
-                ? "bg-primary text-primary-foreground shadow-lg ring-2 ring-primary/30 active:bg-primary/80"
-                : "bg-muted/50 border border-border/50 hover:bg-muted hover:shadow-sm active:bg-muted/80"
+                ? "bg-primary text-primary-foreground shadow-[0_4px_16px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] ring-2 ring-primary/30 active:bg-primary/80 active:shadow-inner"
+                : "bg-muted/50 border border-border/50 hover:bg-muted hover:shadow-[0_2px_12px_rgba(0,0,0,0.08)] active:bg-muted/80 active:shadow-inner"
             )}
             onClick={() => handlePillClick(mainGuide.id)}
           >
@@ -340,10 +340,10 @@ export const MultiTabAudioPlayer: React.FC<MultiTabAudioPlayerProps> = ({
                 onClick={() => handlePillClick(guide.guide_id)}
                 className={cn(
                   "flex items-center justify-between gap-2 w-full min-h-[48px] px-4 py-2.5 text-base font-medium rounded-xl transition-all duration-200",
-                  "active:scale-[0.95] active:shadow-inner",
+                  "active:scale-[0.95]",
                   isExpanded
-                    ? "bg-primary text-primary-foreground shadow-lg ring-2 ring-primary/30 active:bg-primary/80"
-                    : "bg-muted/50 border border-border/50 hover:bg-muted hover:shadow-sm active:bg-muted/80"
+                    ? "bg-primary text-primary-foreground shadow-[0_4px_16px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] ring-2 ring-primary/30 active:bg-primary/80 active:shadow-inner"
+                    : "bg-muted/50 border border-border/50 hover:bg-muted hover:shadow-[0_2px_12px_rgba(0,0,0,0.08)] active:bg-muted/80 active:shadow-inner"
                 )}
               >
                 <span className="flex items-center gap-2 min-w-0">
