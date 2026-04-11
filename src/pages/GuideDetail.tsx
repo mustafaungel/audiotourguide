@@ -710,10 +710,10 @@ const GuideDetail = () => {
                       onLanguageChange={handleLanguageChange}
                     />
                   )}
-                  <LiveListenersBadge guideId={guide.id} />
                 </div>
               </div>
             </div>
+            <LiveListenersBadge guideId={guide.id} />
 
             {/* Description — compact */}
             <p className="text-sm text-muted-foreground leading-relaxed">
