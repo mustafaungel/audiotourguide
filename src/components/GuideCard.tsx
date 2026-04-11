@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, MapPin, Headphones, Play } from "lucide-react";
+import { Clock, MapPin, Play } from "lucide-react";
 import { ButtonLoader } from "@/components/AudioGuideLoader";
 import { useViralTracking } from "@/hooks/useViralTracking";
 import { LiveListenersBadge } from "@/components/LiveListenersBadge";
@@ -79,18 +79,17 @@ export function GuideCard({
     >
       {/* Headband — curved arch */}
       <div className="headphone-headband relative">
-        <div className={`${bandGradient} rounded-[50%_50%_0_0/40px_40px_0_0] px-4 py-2.5 flex items-center justify-center gap-2 min-h-[44px]`}>
-          <Headphones className="w-4 h-4 text-primary-foreground shrink-0" />
-          <span className="text-[12px] font-extrabold font-heading line-clamp-1 break-words leading-tight tracking-normal text-primary-foreground drop-shadow-sm text-center max-w-[80%]">
+        <div className={`${bandGradient} rounded-[50%_50%_0_0/40px_40px_0_0] px-4 py-2.5 flex items-center justify-center min-h-[44px]`}>
+          <span className="text-[12px] font-extrabold font-heading line-clamp-2 break-words leading-tight tracking-normal text-primary-foreground drop-shadow-sm text-center">
             {title}
           </span>
         </div>
       </div>
 
-      {/* Band connectors — thin vertical lines from headband to ear cups */}
+      {/* Band connectors — vertical side bands from headband to ear cups */}
       <div className="relative flex justify-between px-[calc(2rem+0.75rem)] sm:px-[calc(2.5rem+0.75rem)]">
-        <div className={`w-[3px] h-4 ${connectorColor} rounded-full -mt-px ml-1`} />
-        <div className={`w-[3px] h-4 ${connectorColor} rounded-full -mt-px mr-1`} />
+        <div className={`w-[3px] h-5 ${connectorColor} rounded-full -mt-px ml-1`} />
+        <div className={`w-[3px] h-5 ${connectorColor} rounded-full -mt-px mr-1`} />
       </div>
 
       {/* Main body — ear cups + center metadata */}
