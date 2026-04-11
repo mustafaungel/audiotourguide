@@ -24,7 +24,6 @@ export default {
         'portrait': '3 / 4',
       },
       spacing: {
-        '18': '4.5rem',
         'touch': '44px',
         'touch-sm': '32px',
         'mobile-safe': '20px',
