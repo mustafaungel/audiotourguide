@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Globe, Check } from 'lucide-react';
+import { Globe, Check, ChevronDown, Headphones } from 'lucide-react';
 import { getLanguageFlag, getLanguageDisplay } from '@/lib/language-utils';
 import { haptics } from '@/lib/haptics';
 import { cn } from '@/lib/utils';
@@ -112,23 +112,26 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
 
   return (
     <div className={cn("space-y-2 transition-opacity duration-200", fetching && "opacity-70 pointer-events-none")}>
-      {/* Header — tap to toggle */}
+      {/* Header — always shows selected language, tap to toggle flag picker */}
       <button
         onClick={() => setCollapsed(!collapsed)}
         className="flex items-center gap-2 px-1 w-full text-left"
       >
-        <Globe className="h-4 w-4 text-muted-foreground" />
+        <Headphones className="h-4 w-4 text-primary" />
         <span className="text-sm text-muted-foreground font-medium">{t('language', selectedLanguage)}:</span>
         {selectedLangInfo && (
-          <span className="text-sm font-semibold text-primary flex items-center gap-1">
+          <span className="text-sm font-semibold text-primary">
             {getLanguageFlag(selectedLanguage)} {selectedLangInfo.native_name}
           </span>
         )}
+        {displayLanguages.length > 1 && (
+          <ChevronDown className={cn("h-3.5 w-3.5 text-muted-foreground ml-auto transition-transform", !collapsed && "rotate-180")} />
+        )}
       </button>
 
-      {/* Grid — collapsed: only selected flag, expanded: all flags */}
-      {!collapsed && (
-        <div className="flex flex-wrap gap-2">
+      {/* Flag picker — headphone themed circles */}
+      {!collapsed && displayLanguages.length > 1 && (
+        <div className="flex flex-wrap gap-2 pt-1">
           {displayLanguages.map((language) => {
             const isSelected = language.language_code === selectedLanguage;
             return (
@@ -136,15 +139,20 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
                 key={language.language_code}
                 onClick={() => handleLanguageSelect(language.language_code)}
                 className={cn(
-                  "w-10 h-10 rounded-full flex items-center justify-center text-xl",
+                  "relative w-11 h-11 rounded-full flex items-center justify-center text-xl",
                   "active:scale-90 transition-all duration-200",
                   isSelected
-                    ? "ring-2 ring-primary ring-offset-2 ring-offset-background shadow-md"
-                    : "border border-border/50 hover:border-primary/50 hover:scale-110"
+                    ? "ring-2 ring-primary ring-offset-2 ring-offset-background shadow-lg bg-primary/10"
+                    : "border-2 border-border/40 hover:border-primary/60 hover:scale-110 hover:shadow-md"
                 )}
                 title={language.native_name}
               >
                 {getLanguageFlag(language.language_code)}
+                {isSelected && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
+                    <Check className="w-2.5 h-2.5 text-primary-foreground" />
+                  </span>
+                )}
               </button>
             );
           })}
