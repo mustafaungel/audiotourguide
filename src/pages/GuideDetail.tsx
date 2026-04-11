@@ -721,15 +721,17 @@ const GuideDetail = () => {
       <Navigation />
       
       {/* Sticky header — below navigation bar */}
-      <div className="sticky top-14 sm:top-16 z-40 bg-background/95 backdrop-blur-md border-b border-border/30 px-3 py-2 flex items-center gap-2">
-        <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => navigate('/guides')}>
-          <ChevronLeft className="w-4 h-4" />
-        </Button>
-        <Headphones className="w-3.5 h-3.5 text-primary shrink-0" />
-        <span className="text-[13px] font-bold truncate font-heading flex-1 min-w-0">{guide.title}</span>
-        <span className="text-[11px] font-semibold text-primary flex items-center gap-1 shrink-0 bg-primary/10 px-2 py-0.5 rounded-full">
-          {getLanguageFlag(selectedLanguage)} {getLanguageName(selectedLanguage)}
-        </span>
+      <div className="sticky top-14 sm:top-16 z-40 bg-background/95 backdrop-blur-md border-b border-border/30 px-3 py-1.5">
+        <div className="flex items-center gap-1.5">
+          <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => navigate('/guides')}>
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+          <Headphones className="w-3.5 h-3.5 text-primary shrink-0" />
+          <span className="text-[13px] font-bold font-heading flex-1 min-w-0 leading-tight line-clamp-1">{guide.title}</span>
+          <span className="text-[10px] font-semibold text-primary flex items-center gap-0.5 shrink-0 bg-primary/10 px-1.5 py-0.5 rounded-full">
+            {getLanguageFlag(selectedLanguage)} {getLanguageName(selectedLanguage)}
+          </span>
+        </div>
       </div>
 
       <div className="container mx-auto px-4 py-4 pb-24">
