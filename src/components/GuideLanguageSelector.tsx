@@ -112,51 +112,42 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
 
   return (
     <div className={cn("space-y-2 transition-opacity duration-200", fetching && "opacity-70 pointer-events-none")}>
-      {/* Header — always shows selected language, tap to toggle flag picker */}
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        className="flex items-center gap-2 px-1 w-full text-left"
-      >
-        <Headphones className="h-4 w-4 text-primary" />
-        <span className="text-sm text-muted-foreground font-medium">{t('language', selectedLanguage)}:</span>
-        {selectedLangInfo && (
-          <span className="text-sm font-semibold text-primary">
-            {getLanguageFlag(selectedLanguage)} {selectedLangInfo.native_name}
-          </span>
-        )}
-        {displayLanguages.length > 1 && (
-          <ChevronDown className={cn("h-3.5 w-3.5 text-muted-foreground ml-auto transition-transform", !collapsed && "rotate-180")} />
-        )}
-      </button>
-
-      {/* Flag picker — headphone themed circles */}
-      {!collapsed && displayLanguages.length > 1 && (
-        <div className="flex flex-wrap gap-2 pt-1">
-          {displayLanguages.map((language) => {
-            const isSelected = language.language_code === selectedLanguage;
-            return (
-              <button
-                key={language.language_code}
-                onClick={() => handleLanguageSelect(language.language_code)}
-                className={cn(
-                  "relative w-11 h-11 rounded-full flex items-center justify-center text-xl",
-                  "active:scale-90 transition-all duration-200",
-                  isSelected
-                    ? "ring-2 ring-primary ring-offset-2 ring-offset-background shadow-lg bg-primary/10"
-                    : "border-2 border-border/40 hover:border-primary/60 hover:scale-110 hover:shadow-md"
-                )}
-                title={language.native_name}
-              >
-                {getLanguageFlag(language.language_code)}
-                {isSelected && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
-                    <Check className="w-2.5 h-2.5 text-primary-foreground" />
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
+      {/* Language buttons — collapsed shows only selected, expanded shows all */}
+      <div className={cn(
+        "grid gap-2 transition-all duration-300",
+        collapsed ? "grid-cols-1" : "grid-cols-2"
+      )}>
+        {displayLanguages.map((language) => {
+          const isSelected = language.language_code === selectedLanguage;
+          if (collapsed && !isSelected) return null;
+          return (
+            <button
+              key={language.language_code}
+              onClick={() => handleLanguageSelect(language.language_code)}
+              className={cn(
+                "flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium",
+                "border active:scale-[0.97] transition-all duration-200",
+                isSelected
+                  ? "bg-primary/15 border-primary text-primary ring-1 ring-primary/30"
+                  : "bg-card border-border text-foreground hover:bg-muted",
+                isSelected && collapsed && "col-span-full"
+              )}
+            >
+              <Headphones className={cn("w-3.5 h-3.5 shrink-0", isSelected ? "text-primary" : "text-muted-foreground/50")} />
+              <span className="text-lg shrink-0">{getLanguageFlag(language.language_code)}</span>
+              <span className="truncate">{language.native_name}</span>
+              {isSelected && (
+                <Check className="w-3.5 h-3.5 text-primary ml-auto shrink-0" />
+              )}
+              {isSelected && collapsed && displayLanguages.length > 1 && (
+                <ChevronDown className="w-3.5 h-3.5 text-muted-foreground ml-auto shrink-0" />
+              )}
+            </button>
+          );
+        })}
+      </div>
+      {collapsed && displayLanguages.length > 1 && (
+        <p className="text-[10px] text-muted-foreground/60 text-center">tap to change language</p>
       )}
     </div>
   );
