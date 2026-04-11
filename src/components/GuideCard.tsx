@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, MapPin, Headphones, Play } from "lucide-react";
+import { Clock, MapPin, Play } from "lucide-react";
 import { ButtonLoader } from "@/components/AudioGuideLoader";
 import { useViralTracking } from "@/hooks/useViralTracking";
 import { LiveListenersBadge } from "@/components/LiveListenersBadge";
