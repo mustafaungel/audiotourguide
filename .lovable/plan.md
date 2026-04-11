@@ -1,26 +1,22 @@
 
 
-## Sticky Header Dalgalanma (Flicker) Sorunu Çözümü
+## GuideDetail — Ana Navigation Sticky'liğini Kaldır
 
 ### Problem
-`backdrop-blur` filtresi her karede altındaki pikselleri yeniden örnekler. Scroll sırasında sticky header'ın konumu değişirken bu yeniden örnekleme görsel bir "dalgalanma" (flicker/shimmer) yaratıyor — özellikle mobilde belirgin.
+GuideDetail sayfasında hem Navigation (sticky top-0) hem de sayfa içi sticky header (sticky top-14) birlikte sticky kalıyor. Bu çift katmanlı yapı gereksiz — zaten sayfanın kendi sticky header'ı başlık, geri butonu ve dil bilgisini gösteriyor. Ana Navigation'ın burada sticky olmasına gerek yok.
 
 ### Çözüm
-Cam efektini koruyarak, GPU kompozit katmanı oluşturup dalgalanmayı engellemek:
+Navigation bileşenine bir `sticky` prop ekleyerek, GuideDetail'dan çağrıldığında sticky davranışını kapatmak:
 
-1. **`will-change: transform` + `transform: translateZ(0)`** ekleyerek sticky header'ı kendi GPU katmanına taşımak. Bu, backdrop-blur'un her karede yeniden hesaplanması yerine sabit bir katmanda çalışmasını sağlar.
+**1. `src/components/Navigation.tsx`**
+- Props'a `sticky?: boolean` ekle (default: `true`)
+- `sticky === false` ise `sticky top-0` yerine sadece `relative` kullan
 
-2. **`-webkit-backdrop-filter`** prefix'ini de ekleyerek Safari uyumluluğunu garanti etmek.
+**2. `src/pages/GuideDetail.tsx` (satır 662)**
+- `<Navigation sticky={false} />` olarak çağır
+- Sayfa içi sticky header'ın `top` değerini `top-0` olarak güncelle (artık üstünde sticky Navigation yok, ama Navigation yüksekliği hâlâ DOM'da — scroll edince üstüne geçecek)
 
-### Değişecek dosyalar
-
-| Dosya | Eklenen class'lar |
-|-------|-------------------|
-| `src/pages/GuideDetail.tsx` (satır 665) | `will-change-transform transform-gpu` |
-| `src/pages/AudioAccess.tsx` (satır 700) | `will-change-transform transform-gpu` |
-| `src/components/Navigation.tsx` (satır 41) | `will-change-transform transform-gpu` |
-
-Tailwind'in `transform-gpu` class'ı `transform: translate3d(0,0,0)` uygular — bu, elementi kendi compositing layer'ına taşır. `will-change-transform` ise tarayıcıya bu elementin değişeceğini önceden bildirir.
-
-Cam efekti (backdrop-blur, düşük opaklık) aynen korunacak, sadece render performansı iyileştirilecek.
+### Etki
+- Diğer tüm sayfalar etkilenmez (default `sticky={true}`)
+- GuideDetail'da scroll yapıldığında Navigation yukarı kaybolur, sadece sayfa içi compact header kalır
 
