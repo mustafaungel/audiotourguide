@@ -90,7 +90,7 @@ export const ChapterList: React.FC<ChapterListProps> = ({
 
   return (
     <>
-      <Card className={cn("audio-card-glow border-border/30 bg-card/50", className?.includes('in-sheet') && "border-0 shadow-none bg-transparent", className)}>
+      <Card className={cn("audio-card-glow border-border/30 bg-card/50 shadow-[0_2px_8px_rgba(0,0,0,0.06),0_8px_24px_rgba(0,0,0,0.04)]", className?.includes('in-sheet') && "border-0 shadow-none bg-transparent", className)}>
         <CardHeader className="pb-4 space-y-1.5">
           <div className="flex flex-row items-center justify-between">
           <span className="text-sm text-muted-foreground flex items-center gap-2">
@@ -204,9 +204,9 @@ export const ChapterList: React.FC<ChapterListProps> = ({
               }}
               className={cn(
                 "w-full text-left rounded-xl p-3 transition-all min-h-[64px] touch-manipulation group/chapter",
-                "hover:bg-primary/5 active:scale-[0.96] active:bg-primary/20 active:shadow-inner",
+                "hover:bg-primary/5 hover:shadow-[0_2px_12px_rgba(0,0,0,0.06)] active:scale-[0.96] active:bg-primary/20 active:shadow-inner",
                 isCurrent 
-                  ? "bg-gradient-to-r from-primary/10 to-primary/5 border-2 border-primary/50 border-l-primary shadow-lg shadow-primary/20" 
+                  ? "bg-gradient-to-r from-primary/10 to-primary/5 border-2 border-primary/50 border-l-primary shadow-[0_4px_16px_rgba(0,0,0,0.08),0_8px_24px_rgba(0,0,0,0.06)] shadow-primary/20" 
                   : "bg-card/30 border border-transparent"
               )}
             >
