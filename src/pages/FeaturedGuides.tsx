@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { AudioGuideLoader } from '@/components/AudioGuideLoader';
 import { useNavigate } from 'react-router-dom';
 import { SEO } from '@/components/SEO';
 import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Search, Star } from 'lucide-react';
+import { Star } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { GuideCard } from '@/components/GuideCard';
+import { SearchAutocomplete } from '@/components/SearchAutocomplete';
 
 interface AudioGuide {
   id: string;
@@ -53,15 +53,25 @@ const FeaturedGuides = () => {
       setGuides(data || []);
     } catch (error) {
       console.error('Error fetching featured guides:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load featured guides",
-        variant: "destructive"
-      });
+      toast({ title: "Error", description: "Failed to load featured guides", variant: "destructive" });
     } finally {
       setLoading(false);
     }
   };
+
+  // Autocomplete suggestions
+  const suggestions = useMemo(() => {
+    const items: { label: string; sublabel?: string; type: 'guide' | 'location'; slug?: string; id?: string }[] = [];
+    const seenLocations = new Set<string>();
+    guides.forEach(g => {
+      items.push({ label: g.title, sublabel: g.location, type: 'guide', slug: g.slug, id: g.id });
+      if (!seenLocations.has(g.location)) {
+        seenLocations.add(g.location);
+        items.push({ label: g.location, type: 'location' });
+      }
+    });
+    return items;
+  }, [guides]);
 
   const filteredGuides = guides.filter(guide =>
     guide.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -75,16 +85,14 @@ const FeaturedGuides = () => {
         title="Featured Audio Guides"
         description="Explore our handpicked collection of the best audio tour guides for UNESCO World Heritage sites and cultural attractions worldwide."
         canonicalUrl="https://audiotourguide.app/featured-guides"
-        structuredData={[
-          {
-            "@context": "https://schema.org",
-            "@type": "BreadcrumbList",
-            "itemListElement": [
-              { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://audiotourguide.app" },
-              { "@type": "ListItem", "position": 2, "name": "Featured Guides", "item": "https://audiotourguide.app/featured-guides" }
-            ]
-          }
-        ]}
+        structuredData={[{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://audiotourguide.app" },
+            { "@type": "ListItem", "position": 2, "name": "Featured Guides", "item": "https://audiotourguide.app/featured-guides" }
+          ]
+        }]}
       />
       <Navigation />
       
@@ -97,24 +105,21 @@ const FeaturedGuides = () => {
               <span className="text-sm font-medium">Featured Collection</span>
             </div>
             
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+            <h1 className="mobile-heading sm:text-4xl lg:text-5xl text-foreground mb-4">
               Featured Audio Guides
             </h1>
-            <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+            <p className="mobile-text sm:text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
               Discover our handpicked collection of the most popular and highest-rated audio guides from around the world.
             </p>
 
-            {/* Search */}
+            {/* Search with autocomplete */}
             <div className="max-w-md mx-auto">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search featured guides..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-card/50 backdrop-blur-sm border-border/50"
-                />
-              </div>
+              <SearchAutocomplete
+                value={searchTerm}
+                onChange={setSearchTerm}
+                suggestions={suggestions}
+                placeholder="Search featured guides..."
+              />
             </div>
           </div>
         </div>
@@ -123,21 +128,16 @@ const FeaturedGuides = () => {
       {/* Results Section */}
       <section className="py-8">
         <div className="container max-w-6xl mx-auto px-4">
-          {/* Search Results Info */}
           {searchTerm && (
             <div className="text-center mb-6">
-              <p className="text-sm text-muted-foreground">
+              <p className="mobile-caption">
                 {loading ? 'Searching...' : `Found ${filteredGuides.length} featured guide(s) for "${searchTerm}"`}
               </p>
             </div>
           )}
 
-          {/* Loading State */}
-          {loading && (
-            <AudioGuideLoader variant="card" count={6} />
-          )}
+          {loading && <AudioGuideLoader variant="card" count={6} />}
 
-          {/* Guides Grid */}
           {!loading && (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
               {filteredGuides.map((guide) => (
@@ -161,14 +161,13 @@ const FeaturedGuides = () => {
             </div>
           )}
 
-          {/* No Results */}
           {!loading && filteredGuides.length === 0 && (
             <div className="text-center py-16">
               <div className="text-6xl mb-4">⭐</div>
-              <h3 className="text-xl font-semibold text-foreground mb-2">
+              <h3 className="mobile-subheading text-foreground mb-2">
                 {searchTerm ? 'No featured guides found' : 'No featured guides available'}
               </h3>
-              <p className="text-muted-foreground mb-6">
+              <p className="mobile-caption mb-6">
                 {searchTerm 
                   ? 'Try searching with different keywords or browse all guides' 
                   : 'Featured guides will appear here once they are selected by our team'
@@ -176,17 +175,11 @@ const FeaturedGuides = () => {
               </p>
               {searchTerm ? (
                 <div className="flex gap-3 justify-center">
-                  <Button variant="outline" onClick={() => setSearchTerm('')}>
-                    Clear search
-                  </Button>
-                  <Button onClick={() => navigate('/guides')}>
-                    Browse All Guides
-                  </Button>
+                  <Button variant="outline" onClick={() => setSearchTerm('')}>Clear search</Button>
+                  <Button onClick={() => navigate('/guides')}>Browse All Guides</Button>
                 </div>
               ) : (
-                <Button onClick={() => navigate('/guides')}>
-                  Browse All Guides
-                </Button>
+                <Button onClick={() => navigate('/guides')}>Browse All Guides</Button>
               )}
             </div>
           )}
