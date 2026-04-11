@@ -111,64 +111,39 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
   }
 
   return (
-    <div className={cn("space-y-2 transition-opacity duration-200", fetching && "opacity-70 pointer-events-none")}>
-      {/* Header with selected language badge */}
-      <div className="flex items-center gap-2 px-1">
-        <Globe className="h-4 w-4 text-muted-foreground" />
-        <span className="text-sm text-muted-foreground font-medium">{t('language', selectedLanguage)}</span>
-        {collapsed && selectedLangInfo && (
-          <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-            <span>{getLanguageFlag(selectedLanguage)}</span>
-            <span>{selectedLangInfo.native_name}</span>
+    <div className={cn("space-y-1.5 transition-opacity duration-200", fetching && "opacity-70 pointer-events-none")}>
+      {/* Selected language label */}
+      <div className="flex items-center gap-1.5">
+        <Globe className="h-3.5 w-3.5 text-muted-foreground" />
+        <span className="text-xs text-muted-foreground">{t('language', selectedLanguage)}:</span>
+        {selectedLangInfo && (
+          <span className="text-xs font-semibold text-primary">
+            {getLanguageFlag(selectedLanguage)} {selectedLangInfo.native_name}
           </span>
         )}
       </div>
-      {(() => {
-        const rowHeight = 52;
-        const gap = 8;
-        const totalRows = Math.ceil(displayLanguages.length / 2);
-        const maxH = collapsed
-          ? rowHeight
-          : totalRows * rowHeight + (totalRows - 1) * gap;
 
-        return (
-          <div
-            className="grid grid-cols-2 gap-2 overflow-hidden transition-[max-height] duration-300"
-            style={{ maxHeight: `${maxH}px` }}
-          >
-            {displayLanguages.map((language) => {
-              const isSelected = language.language_code === selectedLanguage;
-              const isHidden = collapsed && !isSelected;
-              return (
-                <button
-                  key={language.language_code}
-                  onClick={() => handleLanguageSelect(language.language_code)}
-                  className={cn(
-                    "inline-flex items-center justify-center gap-2 px-3 rounded-xl text-sm font-medium",
-                    "border active:scale-[0.97]",
-                    "transition-[opacity,transform] duration-200 ease-out",
-                    isSelected
-                      ? "bg-primary/15 border-primary text-primary shadow-md ring-2 ring-primary/30 min-h-[44px] opacity-100 scale-100"
-                      : "bg-card border-border text-foreground hover:bg-muted min-h-[44px] opacity-100 scale-100",
-                    isSelected && collapsed && "col-span-2",
-                    isHidden && "hidden"
-                  )}
-                >
-                  <span className="text-lg" aria-hidden="true">
-                    {getLanguageFlag(language.language_code)}
-                  </span>
-                  <span>{language.native_name}</span>
-                  {isSelected && (
-                    <span className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground shrink-0">
-                      <Check className="h-3 w-3" />
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        );
-      })()}
+      {/* Horizontal scrollable flag row */}
+      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
+        {displayLanguages.map((language) => {
+          const isSelected = language.language_code === selectedLanguage;
+          return (
+            <button
+              key={language.language_code}
+              onClick={() => handleLanguageSelect(language.language_code)}
+              className={cn(
+                "shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-xl transition-all duration-200 active:scale-90",
+                isSelected
+                  ? "ring-2 ring-primary ring-offset-2 ring-offset-background shadow-md"
+                  : "border border-border/50 hover:border-primary/50 hover:scale-110"
+              )}
+              title={language.native_name}
+            >
+              {getLanguageFlag(language.language_code)}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
