@@ -70,6 +70,7 @@ export const SEO: React.FC<SEOProps> = ({
       <meta property="og:type" content={type} />
       <meta property="og:url" content={fullCanonicalUrl} />
       <meta property="og:image" content={seoImage} />
+      <meta property="og:image:alt" content={fullTitle} />
       <meta property="og:site_name" content="Audio Tour Guides" />
       <meta property="og:locale" content={locale} />
       {author && <meta property="article:author" content={author} />}
