@@ -16,6 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Star, MapPin, Clock, Users, Play, Download, Share2, Bookmark, ChevronLeft, Lock, Copy, Check, Link, ShoppingCart, Headphones, Globe } from "lucide-react";
+import { getLanguageFlag, getLanguageName } from "@/lib/language-utils";
 import { useToast } from "@/hooks/use-toast";
 import { useViralTracking } from "@/hooks/useViralTracking";
 import { useAuth } from "@/contexts/AuthContext";
@@ -719,12 +720,20 @@ const GuideDetail = () => {
       )}
       <Navigation />
       
-      <div className="container mx-auto px-4 py-4 pb-24">
-        {/* Back Button */}
-        <Button variant="ghost" size="sm" className="mb-3" onClick={() => navigate('/guides')}>
-          <ChevronLeft className="w-4 h-4 mr-1" />
-          Back
+      {/* Sticky header — guide name + selected language */}
+      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-md border-b border-border/30 px-4 py-2 flex items-center gap-2">
+        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => navigate('/guides')}>
+          <ChevronLeft className="w-4 h-4" />
         </Button>
+        <div className="flex-1 min-w-0">
+          <h2 className="text-sm font-bold truncate font-heading">{guide.title}</h2>
+        </div>
+        <span className="text-xs font-medium text-primary flex items-center gap-1 shrink-0">
+          {getLanguageFlag(selectedLanguage)} {getLanguageName(selectedLanguage)}
+        </span>
+      </div>
+
+      <div className="container mx-auto px-4 py-4 pb-24">
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}

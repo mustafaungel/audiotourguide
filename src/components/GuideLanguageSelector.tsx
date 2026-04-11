@@ -112,42 +112,55 @@ export function GuideLanguageSelector({ guideId, selectedLanguage, onLanguageCha
 
   return (
     <div className={cn("space-y-2 transition-opacity duration-200", fetching && "opacity-70 pointer-events-none")}>
-      {/* Language buttons — collapsed shows only selected, expanded shows all */}
-      <div className={cn(
-        "grid gap-2 transition-all duration-300",
-        collapsed ? "grid-cols-1" : "grid-cols-2"
-      )}>
-        {displayLanguages.map((language) => {
-          const isSelected = language.language_code === selectedLanguage;
-          if (collapsed && !isSelected) return null;
-          return (
-            <button
-              key={language.language_code}
-              onClick={() => handleLanguageSelect(language.language_code)}
-              className={cn(
-                "flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium",
-                "border active:scale-[0.97] transition-all duration-200",
-                isSelected
-                  ? "bg-primary/15 border-primary text-primary ring-1 ring-primary/30"
-                  : "bg-card border-border text-foreground hover:bg-muted",
-                isSelected && collapsed && "col-span-full"
-              )}
-            >
-              <Headphones className={cn("w-3.5 h-3.5 shrink-0", isSelected ? "text-primary" : "text-muted-foreground/50")} />
-              <span className="text-lg shrink-0">{getLanguageFlag(language.language_code)}</span>
-              <span className="truncate">{language.native_name}</span>
-              {isSelected && (
-                <Check className="w-3.5 h-3.5 text-primary ml-auto shrink-0" />
-              )}
-              {isSelected && collapsed && displayLanguages.length > 1 && (
-                <ChevronDown className="w-3.5 h-3.5 text-muted-foreground ml-auto shrink-0" />
-              )}
-            </button>
-          );
-        })}
-      </div>
-      {collapsed && displayLanguages.length > 1 && (
-        <p className="text-[10px] text-muted-foreground/60 text-center">tap to change language</p>
+      {/* Collapsed: selected language with name */}
+      {collapsed && (
+        <>
+          <button
+            onClick={() => displayLanguages.length > 1 && setCollapsed(false)}
+            className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium border bg-primary/15 border-primary text-primary ring-1 ring-primary/30 w-full active:scale-[0.97] transition-all"
+          >
+            <Headphones className="w-3.5 h-3.5 text-primary shrink-0" />
+            <span className="text-lg shrink-0">{getLanguageFlag(selectedLanguage)}</span>
+            <span className="truncate">{selectedLangInfo?.native_name}</span>
+            <Check className="w-3.5 h-3.5 text-primary ml-auto shrink-0" />
+            {displayLanguages.length > 1 && (
+              <ChevronDown className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+            )}
+          </button>
+          {displayLanguages.length > 1 && (
+            <p className="text-[10px] text-muted-foreground/60 text-center">tap to change language</p>
+          )}
+        </>
+      )}
+
+      {/* Expanded: emoji-only flag buttons (no text labels) */}
+      {!collapsed && displayLanguages.length > 1 && (
+        <div className="flex flex-wrap gap-2">
+          {displayLanguages.map((language) => {
+            const isSelected = language.language_code === selectedLanguage;
+            return (
+              <button
+                key={language.language_code}
+                onClick={() => handleLanguageSelect(language.language_code)}
+                className={cn(
+                  "relative w-11 h-11 rounded-xl flex items-center justify-center text-xl",
+                  "border active:scale-90 transition-all duration-200",
+                  isSelected
+                    ? "bg-primary/15 border-primary ring-1 ring-primary/30 shadow-md"
+                    : "border-border/50 hover:border-primary/50 hover:scale-105"
+                )}
+                title={language.native_name}
+              >
+                {getLanguageFlag(language.language_code)}
+                {isSelected && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
+                    <Check className="w-2.5 h-2.5 text-primary-foreground" />
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
       )}
     </div>
   );
