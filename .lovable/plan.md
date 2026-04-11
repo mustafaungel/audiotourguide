@@ -1,31 +1,23 @@
 
 
-## Düzeltme: Guide Detail — LiveListenersBadge Taşması
+## Düzeltme: LiveListenersBadge Gradient Taşması
 
 ### Problem
 
-Badge `inline-flex` olduğu için içerik genişliğine göre büyüyor ve `flex-1 min-w-0` kapsayıcısından taşıyor. Özellikle 390px mobil genişlikte görsel (w-32 = 128px) + gap (16px) sonrası kalan alan ~246px — badge bu alana sığmıyor ve gradient border dışarı taşıyor.
+Görselde görüldüğü gibi, badge'in dış gradient katmanı sağ tarafta pill şeklinin dışına taşıyor. `rounded-full` sadece border-radius verir ama içeriği kırpmaz — gradient arka plan taşıyor.
 
 ### Çözüm
 
-`LiveListenersBadge` badge varyantının dış kapsayıcısına `max-w-full` ekleyerek taşmayı engelle. Ayrıca metin kısmına `truncate` ekleyerek uzun sayılarda bile taşma olmasın.
+Dış kapsayıcıya `overflow-hidden` eklemek. Bu, `rounded-full` ile belirlenen sınırların dışındaki gradient'i kırpacak.
 
 ### Teknik
 
 ```
-src/components/LiveListenersBadge.tsx
+src/components/LiveListenersBadge.tsx (satır 35)
 
-Satır 35 — dış div:
-  Ekle: max-w-full
-
-Satır 36 — iç div:
-  Ekle: max-w-full
-
-Satır 39 — span:
-  Ekle: truncate
+Önce:  inline-flex max-w-full rounded-full bg-gradient-to-r ...
+Sonra: inline-flex max-w-full rounded-full overflow-hidden bg-gradient-to-r ...
 ```
 
-### Performans Notu
-
-GuideCard'daki `line-clamp-2` + `break-words` değişikliği saf CSS'tir — JavaScript çalıştırmaz, DOM manipulation yoktur, performans etkisi sıfırdır.
+Tek class eklenmesi — gradient artık pill sınırlarının dışına taşamaz.
 
