@@ -1,36 +1,38 @@
 
 
-## Guide Kartı Düzeltmesi: Kenar Hizalama ve Metin Taşması
+## Guide Kartı: Gerçekçi Kulaklık Silüeti Tasarımı
 
-### Sorunlar
-1. **Connector bantları yanlış konumda** — `px-[calc(2rem+0.75rem)]` hesaplaması ear cup'ların gerçek konumuyla uyuşmuyor. Bantlar ear cup'ların dışında veya içinde kalıyor.
-2. **Orta metadata alanı taşıyor** — `flex-1 min-w-0` olmasına rağmen, iki sabit genişlikli ear cup (88px) + gap + padding hesabında orta alan yeterince daralmıyor ve içerik taşıyor.
+### Sorun
+Mevcut tasarım keskin, düz ve mekanik görünüyor. Headband düz bir dikdörtgen, connector'lar ince çizgiler, ear cup'larla organik bir bağlantı yok. Gerçek bir over-ear kulaklığın zarif, kıvrımlı silüetini hissettiremiyor.
 
-### Çözüm — `src/components/GuideCard.tsx`
+### Yeni Tasarım Yaklaşımı
 
-**1. Connector bantlarını ear cup'larla hizala:**
-Mevcut karmaşık `calc()` padding'i yerine, ear cup'ların gerçek konumuna göre hizalama yap. Ear cup'lar `px-1` (4px) padding ile başlıyor ve 88px genişliğinde. Connector'lar ear cup'ların dış kenarının ortasına denk gelmeli:
-- Sol connector: `left` = `4px + 44px` = `48px` (ear cup'ın ortası)
-- Sağ connector: aynı mesafe sağdan
+Gerçek bir premium kulaklığın (Sony WH-1000XM5, AirPods Max gibi) önden görünümünü referans alarak:
 
-Bunu `justify-between` + padding yerine `absolute` pozisyonlama ile yapmak daha doğru olacak.
-
-```tsx
-{/* Band connectors */}
-<div className="relative h-5">
-  <div className={`absolute left-[48px] sm:left-[56px] w-[3px] h-full ${connectorColor} rounded-full`} />
-  <div className={`absolute right-[48px] sm:right-[56px] w-[3px] h-full ${connectorColor} rounded-full`} />
-</div>
+```text
+              ╭─────────────────────╮
+            ╭─╯   Guide Başlığı     ╰─╮        ← ince, zarif kemerli headband
+           │                            │
+           │                            │       ← kıvrımlı side bands (border-radius ile)
+          ╭╯                            ╰╮
+     ╭────╯                              ╰────╮
+    (  IMG  )    📍 Location · ⏱ 66min   ( ▶️  )  ← yuvarlak ear cups
+     ╰─────╮                              ╭────╯
+           ╰──────────────────────────────╯     ← alt cushion band
 ```
 
-**2. Orta metadata taşmasını düzelt:**
-`overflow-hidden` zaten var ama location metni `truncate` ile kesilmeli ve font boyutu küçültülmeli:
-- Location span'ına `max-w-full` ekle
-- Tüm orta alana `text-center` ile sınırlama koy
+### Teknik Değişiklikler — `src/components/GuideCard.tsx`
 
-**3. Ana body gap'ini azalt:**
-`gap-2` (8px) → `gap-1` (4px) yaparak ear cup'lar arasında daha fazla alan bırak metadata'ya.
+1. **Headband**: `rounded-[50%_50%_0_0/40px...]` yerine SVG `path` veya daha ince/zarif CSS arch kullanmak. Headband'i daha ince yapıp (`py-1.5`), kemer eğrisini artırmak (`/60px`). Arka planı solid renk yerine hafif gradient + blur ile yumuşatmak.
+
+2. **Side bands (connector)**: Düz çizgiler yerine, `border-left`/`border-right` ile kıvrımlı bir wrapper div kullanmak. Ear cup'ların dış kenarından headband'e doğru eğimli bağlantı — `border-radius` ile organik geçiş. Kalınlık 3px → 2px, renk daha soft (opacity azaltma).
+
+3. **Ear cup'lar**: `rounded-[28px]` → `rounded-full` (tam daire) yaparak gerçek kulaklık hissi. Ring kalınlığını `ring-[3px]` → `ring-[2px]` yapıp daha ince ve zarif yapmak. Hafif `shadow-lg` ekleyerek derinlik hissi.
+
+4. **Genel wrapper**: Tüm kartı saran bir container'a çok hafif bir arka plan (`bg-card/30`) ve `rounded-3xl` vererek silüetin bütünlüğünü artırmak. Veya side band'leri `before/after` pseudo-element yerine gerçek curved div'ler ile yapmak.
+
+5. **Alt cushion**: Daha geniş ve yumuşak (`w-2/3`, `h-[2px]`, `opacity-30`) — kulaklığın alt yastığı hissi.
 
 ### Değişecek dosya
-- **`src/components/GuideCard.tsx`** — connector pozisyonlama, gap azaltma, metadata overflow düzeltmesi
+- **`src/components/GuideCard.tsx`** — headband ince/kemerli, side bands kıvrımlı, ear cups tam daire, genel silüet organik
 
