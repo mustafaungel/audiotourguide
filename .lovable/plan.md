@@ -1,35 +1,54 @@
 
 
-## "Load More" Butonu — Audio Guide Temasına Uygun Tasarım
+## 3 İyileştirme: Görsel Yükleme + Load More Sayısı + Kart Tipografisi
 
-### Mevcut Durum
+### 1. Görsel Yükleme (Country Detail)
 
-Şu anda her iki sayfada da (`Index.tsx`, `Guides.tsx`) Load More butonu düz bir `variant="outline"` Button — generic, audio guide temasıyla uyumsuz.
+Kontrol ettim — `/country/turkey` sayfasında görseller düzgün yükleniyor. Zelve kartındaki gecikme lazy loading'den kaynaklanıyordu. Ancak `OptimizedImage` bileşeninde bir iyileştirme yapılabilir: `onError` handler eklenerek kırık görseller için fallback placeholder gösterilecek. Bu, ileride gerçekten bozuk URL'li rehberler olursa sayfanın düzgün görünmesini sağlar.
 
-### Yapılacak
+### 2. Load More — 9 → 6
 
-Her iki sayfadaki Load More butonunu, uygulamanın audio guide kimliğine uygun şekilde yeniden tasarla:
+Her iki sayfada `visibleCount` başlangıcı 9'dan **6**'ya düşürülecek. Load More'daki artış da 6 olacak.
 
-- Kulaklık ikonu (`Headphones`) ekle
-- Ses dalgası animasyonlu dekorasyon (mevcut `audio-wave-bar` class'ları)
-- Amber/altın tonlu gradient border (`border-amber-500/20`) — premium hisse uyumlu
-- Kalan rehber sayısını badge olarak göster (`Badge` component)
-- Metin: "Discover More Audio Guides" tarzı, tema ile uyumlu
-- `active:scale-95` dokunma geri bildirimi
+| Dosya | Değişiklik |
+|-------|-----------|
+| `Index.tsx` | `useState(9)` → `useState(6)`, `prev + 9` → `prev + 6` |
+| `Guides.tsx` | `useState(9)` → `useState(6)`, `prev + 9` → `prev + 6` |
+
+### 3. GuideCard Tipografi — Daha Zengin, Premium Görünüm
+
+Şu anda kartlardaki metinler çok sade: `text-xs text-muted-foreground` — sönük ve düz. Yapılacak iyileştirmeler:
+
+**`GuideCard.tsx`:**
+
+- **Lokasyon metni**: `text-xs text-muted-foreground` → `text-xs font-semibold text-foreground/80` — daha koyu ve belirgin
+- **Süre metni**: `text-xs text-muted-foreground` → `text-xs font-medium text-foreground/60` — hafif ama okunabilir
+- **Üst band başlık**: `text-xs font-extrabold` → `text-[13px] font-extrabold tracking-wide uppercase` — daha etkili
+- **Kategori badge**: `text-[9px]` → `text-[10px] font-semibold` — biraz daha okunabilir
+- **Kart hover'da**: hafif `shadow-tourism` efekti eklenerek derinlik hissi
+
+**`index.css`'e yeni utility (isteğe bağlı):**
+- `.card-text-shadow`: `text-shadow: 0 1px 2px hsl(0 0% 0% / 0.08)` — metin derinlik efekti (açık modda ince, koyu modda güçlü)
 
 ### Teknik Özet
 
 ```
-2 dosya:
+3 dosya:
 
-src/pages/Index.tsx (satır 293-299)
-  - Button → özel div/button: Headphones ikonu + "Discover More Guides" + Badge(remaining)
-  - border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10
-  - Küçük audio-wave-bar animasyonu buton içinde
+src/components/OptimizedImage.tsx
+  - onError handler → fallback placeholder
 
-src/pages/Guides.tsx (satır 294-303)
-  - Aynı tasarım
+src/components/GuideCard.tsx
+  - Font weight artışları (semibold/medium)
+  - Text renk kontrastı artışı (foreground/80)
+  - Üst band: text-[13px] uppercase tracking-wide
+  - Badge: text-[10px] font-semibold
+  - Hover shadow iyileştirme
+
+src/pages/Index.tsx
+  - visibleCount: 9 → 6
+
+src/pages/Guides.tsx
+  - visibleCount: 9 → 6
 ```
-
-Her iki dosyada da aynı Load More bloku kullanılacak — tutarlılık sağlanacak.
 
