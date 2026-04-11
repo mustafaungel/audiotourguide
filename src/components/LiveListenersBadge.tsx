@@ -1,10 +1,10 @@
 import { Headphones } from 'lucide-react';
 import { useLiveListeners } from '@/hooks/useLiveListeners';
+import { usePresenceTracker } from '@/hooks/usePresenceTracker';
 
 interface LiveListenersBadgeProps {
   guideId: string;
   size?: 'default' | 'compact';
-  realCount?: number;
 }
 
 function MiniEqualizer({ small = false }: { small?: boolean }) {
@@ -19,8 +19,9 @@ function MiniEqualizer({ small = false }: { small?: boolean }) {
   );
 }
 
-export function LiveListenersBadge({ guideId, size = 'default', realCount }: LiveListenersBadgeProps) {
-  const count = useLiveListeners(guideId, realCount);
+export function LiveListenersBadge({ guideId, size = 'default' }: LiveListenersBadgeProps) {
+  const presenceCount = usePresenceTracker(guideId);
+  const count = useLiveListeners(guideId, presenceCount);
 
   const isCompact = size === 'compact';
 

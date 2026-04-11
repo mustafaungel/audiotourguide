@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { GuestReviewForm } from "@/components/GuestReviewForm";
 import { GuideLanguageSelector } from '@/components/GuideLanguageSelector';
 import { LiveListenersBadge } from '@/components/LiveListenersBadge';
-import { usePresenceTracker } from '@/hooks/usePresenceTracker';
+
 import { Badge } from "@/components/ui/badge";
 import { Star, MapPin, Clock, ChevronLeft, Lock, Wifi, WifiOff, RotateCcw, Headphones } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -42,7 +42,7 @@ export default function AudioAccess() {
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [hasMiniPlayer, setHasMiniPlayer] = useState(false);
-  const realListenerCount = usePresenceTracker(guideId);
+  
 
   // Detect MiniPlayer presence in DOM (it's portaled to document.body)
   useEffect(() => {
@@ -753,7 +753,7 @@ export default function AudioAccess() {
               {guide.title}
             </h1>
             <div className="flex justify-center mt-1">
-              <LiveListenersBadge guideId={guide.id} realCount={realListenerCount} />
+              <LiveListenersBadge guideId={guide.id} />
             </div>
             <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground">
               <span className="inline-flex items-center gap-1.5">
