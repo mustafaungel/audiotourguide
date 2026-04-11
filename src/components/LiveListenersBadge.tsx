@@ -23,9 +23,10 @@ export function LiveListenersBadge({ guideId, variant = 'badge' }: LiveListeners
 
   if (variant === 'inline') {
     return (
-      <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground font-medium">
-        <Headphones className="w-2.5 h-2.5" />
-        {count} listening
+      <span className="inline-flex items-center gap-1 text-[10px] text-primary/70 font-medium">
+        <Headphones className="w-2.5 h-2.5 animate-pulse" />
+        <span className="font-mono tabular-nums">{count}</span>
+        <span className="italic">listening</span>
       </span>
     );
   }

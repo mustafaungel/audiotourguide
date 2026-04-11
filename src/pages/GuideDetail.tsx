@@ -734,12 +734,6 @@ const GuideDetail = () => {
             <ChevronLeft className={`w-5 h-5 ${isFeaturedGuide ? 'text-amber-600 dark:text-amber-400' : 'text-primary'}`} />
           </button>
           <Headphones className={`w-3.5 h-3.5 shrink-0 ${isFeaturedGuide ? 'text-amber-600 dark:text-amber-400' : 'text-primary'}`} />
-          {isFeaturedGuide && (
-            <Badge className="bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-50 border-0 text-[9px] font-bold px-1.5 py-0 shrink-0">
-              <Star className="w-2.5 h-2.5 mr-0.5" fill="currentColor" />
-              Featured
-            </Badge>
-          )}
           <span className="text-xs font-bold font-heading min-w-0 truncate">{guide.title}</span>
           <span className="text-base ml-0.5 shrink-0">{getLanguageFlag(selectedLanguage)}</span>
         </div>
@@ -770,12 +764,6 @@ const GuideDetail = () => {
                 <h1 className="font-bold text-lg md:text-2xl leading-tight font-heading">{guide.title}</h1>
                 <div className="mt-1 flex items-center gap-2">
                   <LiveListenersBadge guideId={guide.id} />
-                  {isFeaturedGuide && (
-                    <Badge className="bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-50 border-0 text-[9px] font-bold px-1.5 py-0">
-                      <Star className="w-2.5 h-2.5 mr-0.5" fill="currentColor" />
-                      Featured
-                    </Badge>
-                  )}
                 </div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
                   <MapPin className="w-3 h-3 text-primary/60 shrink-0" />
