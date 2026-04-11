@@ -702,7 +702,7 @@ const GuideDetail = () => {
                     <span className="break-words">{guide.location}</span>
                   </span>
                 </div>
-                <div className="flex-1 min-w-0 flex items-start">
+                <div className="flex-1 min-w-0 space-y-2">
                   {guide?.id && (
                     <GuideLanguageSelector
                       guideId={guide.id}
@@ -710,11 +710,9 @@ const GuideDetail = () => {
                       onLanguageChange={handleLanguageChange}
                     />
                   )}
+                  <LiveListenersBadge guideId={guide.id} />
                 </div>
               </div>
-
-              {/* Listening now — below image */}
-              <LiveListenersBadge guideId={guide.id} />
             </div>
 
             {/* Description — compact */}
