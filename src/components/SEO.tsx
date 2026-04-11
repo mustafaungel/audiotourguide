@@ -35,6 +35,7 @@ export const SEO: React.FC<SEOProps> = ({
   hreflangLinks,
   geoPlaceName,
   geoRegion,
+  geoPosition,
 }) => {
   const fullTitle = `${title} | Audio Tour Guides`;
   const siteUrl = 'https://audiotourguide.app';
