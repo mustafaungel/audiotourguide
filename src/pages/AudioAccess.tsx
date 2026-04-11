@@ -750,7 +750,7 @@ export default function AudioAccess() {
             <h1 className="text-xl font-bold text-foreground leading-tight">
               {guide.title}
             </h1>
-            <div className="flex justify-center">
+            <div className="flex justify-center mt-1">
               <LiveListenersBadge guideId={guide.id} />
             </div>
             <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground">

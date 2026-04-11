@@ -23,15 +23,16 @@ export function LiveListenersBadge({ guideId, variant = 'badge' }: LiveListeners
 
   if (variant === 'inline') {
     return (
-      <span className="flex items-center gap-1 text-[10px] text-primary/70">
+      <span className="flex items-center gap-1.5 text-[10px] text-primary font-medium">
         <MiniEqualizer small />
+        <Headphones className="w-2.5 h-2.5" />
         {count} listening
       </span>
     );
   }
 
   return (
-    <div className="flex items-center gap-1.5 bg-primary/5 backdrop-blur-sm text-primary border border-primary/10 px-2 py-0.5 rounded-full text-[10px] font-medium">
+    <div className="inline-flex items-center gap-1.5 bg-primary/5 backdrop-blur-sm text-primary border border-primary/10 px-2.5 py-1 rounded-full text-[11px] font-medium">
       <MiniEqualizer />
       <Headphones className="w-3 h-3" />
       <span>{count} listening now</span>

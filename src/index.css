@@ -678,7 +678,7 @@ All colors MUST be HSL.
     width: 2px;
     border-radius: 1px;
     background: hsl(var(--primary));
-    animation: equalizer-bar 0.8s ease-in-out infinite;
+    animation: equalizer-bar 1.6s ease-in-out infinite;
     will-change: height;
   }
 
@@ -686,7 +686,7 @@ All colors MUST be HSL.
     width: 1.5px;
     border-radius: 1px;
     background: hsl(var(--primary));
-    animation: equalizer-bar 0.8s ease-in-out infinite;
+    animation: equalizer-bar 1.6s ease-in-out infinite;
     will-change: height;
   }
 
