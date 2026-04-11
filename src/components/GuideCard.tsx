@@ -77,9 +77,9 @@ export function GuideCard({
       onClick={handleView}
     >
       {/* Top band */}
-      <div className={`px-4 py-2 flex items-center gap-2 ${bandGradient}`}>
-        <Headphones className="w-4 h-4 text-primary-foreground shrink-0" />
-        <span className="text-[12px] font-extrabold font-heading truncate tracking-normal text-primary-foreground drop-shadow-sm">
+      <div className={`px-4 py-2.5 flex items-start gap-2 ${bandGradient}`}>
+        <Headphones className="w-4 h-4 text-primary-foreground shrink-0 mt-0.5" />
+        <span className="flex-1 min-w-0 text-[12px] font-extrabold font-heading line-clamp-2 break-words leading-tight tracking-normal text-primary-foreground drop-shadow-sm">
           {title}
         </span>
       </div>
