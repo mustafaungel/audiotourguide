@@ -1,36 +1,33 @@
 
 
-## Library Loading Skeleton + GuideDetail Skeleton İyileştirmesi
+## Featured Guide — "Get Full Access" Özel Tasarım
 
 ### Mevcut Durum
 
-| Sayfa | Themed Skeleton | Durum |
-|-------|----------------|-------|
-| Index | ✅ AudioGuideLoader card | Tamam |
-| Guides | ✅ AudioGuideLoader card | Tamam |
-| FeaturedGuides | ✅ AudioGuideLoader card | Tamam |
-| Countries | ✅ AudioGuideLoader grid | Tamam |
-| CountryDetail | ✅ AudioGuideLoader card | Tamam |
-| AudioAccess | ✅ AudioGuideLoader page | Tamam |
-| GuideDetail | ⚠️ Kısmen themed — sidebar düz gri skeleton | İyileştirilecek |
-| Library | ❌ Loading state yok — `loading=true` iken hiçbir şey gösterilmiyor | Eklenecek |
+"Get Full Access" kutusu tüm rehberler için aynı: `bg-gradient-to-r from-primary via-primary/90 to-primary` gradyanı ve standart primary renk. Featured rehberlerde sticky header, kategori badge'i ve geri butonu zaten amber/altın tonlarına dönüşüyor — ama satın alma kutusu standart kalıyor.
 
-### Yapılacak Değişiklikler
+### Yapılacak Değişiklik
 
-**1. `src/pages/Library.tsx`**
-- `loading` state'i true iken AudioGuideLoader `variant="card"` göster
-- Kullanıcı verisi yüklenirken boş ekran yerine themed skeleton kartlar görünsün
+**`src/pages/GuideDetail.tsx`** — Satır 917-942 arası "Get Full Access" bloğu
 
-**2. `src/pages/GuideDetail.tsx`** (satır 500-540 arası loading bloğu)
-- Sidebar skeleton'a kulaklık ikonu ve audio wave ekle
-- Düz gri `animate-pulse` divleri AudioGuideLoader tarzı elemanlara dönüştür
-- Tutarlı görünüm: hem ana içerik hem sidebar audio-themed
+Featured rehberler için:
+- Dış border: `border-amber-500/30` (altın çerçeve)
+- Üst bant gradyanı: `from-amber-500 via-yellow-500 to-amber-500` (altın gradyan)
+- İkon ve metin rengi: `text-amber-50`
+- "Already Purchased" durumunda da amber tonları
+- Kutu içine hafif `bg-amber-500/5` arka plan
+
+Standart rehberler için mevcut tasarım korunur.
+
+Koşul zaten mevcut: `isFeaturedGuide` değişkeni (satır 86).
 
 ### Teknik Özet
 
 ```
-2 dosya:
-  src/pages/Library.tsx — loading state için AudioGuideLoader variant="card" ekle
-  src/pages/GuideDetail.tsx — sidebar skeleton'ı audio-themed yap
+1 dosya: src/pages/GuideDetail.tsx
+  - Get Full Access container border: isFeaturedGuide ? border-amber-500/30 : border-border/40
+  - Üst bant gradyanı: isFeaturedGuide ? amber/yellow : primary
+  - İç alan arka planı: isFeaturedGuide ? bg-amber-500/5 : varsayılan
+  - Already Purchased rengi: isFeaturedGuide ? text-amber-600 : text-green-600
 ```
 
