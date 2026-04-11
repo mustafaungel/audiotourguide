@@ -662,13 +662,13 @@ const GuideDetail = () => {
       <Navigation sticky={false} />
       
       {/* Sticky header — below navigation bar */}
-      <div className={`sticky top-0 z-40 backdrop-blur-xl border-b px-3 py-2 will-change-transform transform-gpu ${isFeaturedGuide ? 'bg-amber-500/15 dark:bg-amber-900/40 border-amber-500/20' : 'bg-background/70 border-border/30'}`}>
+      <div className={`sticky top-0 z-40 backdrop-blur-xl border-b px-3 py-2.5 will-change-transform transform-gpu ${isFeaturedGuide ? 'bg-amber-500/15 dark:bg-amber-900/40 border-amber-500/20' : 'bg-primary/5 dark:bg-primary/10 border-primary/15'}`}>
         <div className="flex items-center gap-2.5">
-          <button onClick={() => navigate(-1)} className={`w-10 h-10 shrink-0 rounded-full flex items-center justify-center transition-colors active:scale-90 ${isFeaturedGuide ? 'bg-amber-500/15 hover:bg-amber-500/25' : 'bg-primary/15 hover:bg-primary/25'}`}>
-            <ChevronLeft className={`w-5 h-5 ${isFeaturedGuide ? 'text-amber-600 dark:text-amber-400' : 'text-primary'}`} />
+          <button onClick={() => navigate(-1)} className={`w-11 h-11 shrink-0 rounded-full flex items-center justify-center transition-colors active:scale-90 ${isFeaturedGuide ? 'bg-amber-500/15 hover:bg-amber-500/25' : 'bg-primary/15 hover:bg-primary/25'}`}>
+            <ChevronLeft className={`w-[22px] h-[22px] ${isFeaturedGuide ? 'text-amber-600 dark:text-amber-400' : 'text-primary'}`} />
           </button>
-          <Headphones className={`w-3.5 h-3.5 shrink-0 ${isFeaturedGuide ? 'text-amber-600 dark:text-amber-400' : 'text-primary'}`} />
-          <span className="text-xs font-bold font-heading min-w-0 truncate">{guide.title}</span>
+          <Headphones className={`w-4 h-4 shrink-0 ${isFeaturedGuide ? 'text-amber-600 dark:text-amber-400' : 'text-primary'}`} />
+          <span className="text-sm font-bold font-heading min-w-0 truncate">{guide.title}</span>
           <span className="text-base ml-0.5 shrink-0">{getLanguageFlag(selectedLanguage)}</span>
         </div>
       </div>
@@ -690,7 +690,7 @@ const GuideDetail = () => {
                   loading="eager"
                   className="w-full h-full object-cover object-center"
                 />
-                <Badge className={`absolute top-1.5 left-1.5 border-0 text-[9px] px-1.5 py-0 capitalize backdrop-blur-sm ${isFeaturedGuide ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-50' : 'bg-black/50 text-white'}`}>
+                <Badge className={`absolute top-1.5 left-1.5 border-0 text-[9px] px-1.5 py-0 capitalize backdrop-blur-sm ${isFeaturedGuide ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-50' : 'bg-primary/80 text-primary-foreground'}`}>
                   {guide.category}
                 </Badge>
               </div>

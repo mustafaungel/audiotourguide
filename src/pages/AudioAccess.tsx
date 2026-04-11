@@ -697,17 +697,17 @@ export default function AudioAccess() {
         />
       )}
       {/* iOS-style minimal navbar */}
-      <div className="sticky top-0 z-50 bg-background/70 backdrop-blur-xl border-b border-border/30 shadow-sm will-change-transform transform-gpu">
-        <div className="grid grid-cols-[48px_1fr_48px] items-center px-2 min-h-12 h-auto py-1">
+      <div className="sticky top-0 z-50 bg-primary/5 dark:bg-primary/10 backdrop-blur-xl border-b border-primary/15 shadow-sm will-change-transform transform-gpu">
+        <div className="grid grid-cols-[52px_1fr_48px] items-center px-2 min-h-12 h-auto py-1.5">
           <button
             onClick={() => navigate('/')}
-            className="w-10 h-10 shrink-0 rounded-full bg-primary/15 hover:bg-primary/25 flex items-center justify-center transition-colors active:scale-90"
+            className="w-11 h-11 shrink-0 rounded-full bg-primary/15 hover:bg-primary/25 flex items-center justify-center transition-colors active:scale-90"
             aria-label={t('back', selectedLanguage)}
           >
-            <ChevronLeft className="w-5 h-5 text-primary" />
+            <ChevronLeft className="w-[22px] h-[22px] text-primary" />
           </button>
           <span className="text-sm font-semibold text-foreground text-center px-1 line-clamp-2 break-words inline-flex items-center justify-center gap-1.5">
-            <Headphones className="h-3.5 w-3.5 text-primary shrink-0" />
+            <Headphones className="h-4 w-4 text-primary shrink-0" />
             {guide.title}
           </span>
           <div className="flex items-center justify-center">
