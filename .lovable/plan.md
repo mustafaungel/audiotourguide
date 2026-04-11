@@ -1,61 +1,54 @@
 
 
-## Arama İyileştirmeleri: Otomatik Tamamlama + Mobil Zoom Engelleme + UX
+## Guides Listeleme — "Load More" ile Kademeli Yükleme
 
-### Yapılacaklar
+### Problem
 
-**1. Otomatik Tamamlama (Autocomplete) Bileşeni**
+Şu anda hem Index hem Guides sayfasında tüm rehberler tek seferde çekiliyor ve render ediliyor. 10-20 rehberde sorun yok, ama 50+ rehbere ulaşıldığında:
+- İlk render yavaşlar (tüm kartlar + görseller aynı anda DOM'a eklenir)
+- Mobilde scroll performansı düşer
+- Veri transferi gereksiz büyür
 
-Yeni bir `SearchAutocomplete` bileşeni oluşturulacak. Kullanıcı yazdıkça mevcut rehber verilerinden eşleşen sonuçları dropdown olarak gösterecek (şehir adı, rehber adı, kategori). Mobilde tam genişlikte, masaüstünde max-width ile sınırlı.
+### Çözüm: Client-Side "Load More"
 
-- Debounce (300ms) ile performans koruması
-- Dropdown'da eşleşen rehber başlığı + lokasyon gösterilecek
-- Tıklayınca direkt o rehberin detay sayfasına gidecek VEYA arama terimini dolduracak
-- Dışarı tıklayınca dropdown kapanacak
+Veritabanı sorgusuna dokunmadan, mevcut verileri client tarafında sayfalayarak göstermek en temiz çözüm. Neden server-side pagination değil? Çünkü filtreleme ve arama zaten client-side çalışıyor — ikisini karıştırmak karmaşıklık getirir.
 
-**2. Mobil Zoom Engelleme**
+**Mantık:**
+- İlk açılışta 9 rehber göster (mobilde 3x3 grid)
+- "Load More" butonuna basınca 9 tane daha ekle
+- Filtreleme/arama yapılınca sayaç sıfırlansın, sonuçlar baştan gösterilsin
+- Tüm rehberler gösterildiyse buton kaybolsun
 
-Tüm arama input'larına `text-[16px]` class'ı eklenecek (iOS'ta 16px altı font zoom tetikliyor). Bu zaten memory'de belirtilmiş ama bazı sayfalarda uygulanmamış.
+### Uygulanacak Sayfalar
 
-**3. X (Temizle) Butonu**
+| Sayfa | Değişiklik |
+|-------|-----------|
+| **Guides.tsx** | `visibleCount` state + "Load More" butonu |
+| **Index.tsx** | `visibleCount` state + "Load More" butonu |
+| **FeaturedGuides.tsx** | Zaten az sayıda rehber — değişiklik yok |
 
-Guides sayfasında zaten "Clear" butonu var ama ayrı bir buton olarak. FeaturedGuides ve Countries sayfalarında yok. Tüm arama input'larının içine (sağ tarafa) küçük X ikonu eklenecek.
-
-**4. Kategori Chip'leri (Guides Sayfası)**
-
-Arama altına yatay kaydırılabilir kategori chip'leri: mevcut rehberlerden unique kategoriler çekilip gösterilecek. Tek dokunuşla filtreleme.
-
-**5. Filters Butonu (Guides Sayfası)**
-
-Mevcut çalışmayan Filters butonunu aktif hale getir — Bottom Sheet (mobil) açılacak, içinde kategori seçenekleri olacak.
-
-### Dosyalar
+### Teknik Özet
 
 ```
-Yeni dosya:
-  src/components/SearchAutocomplete.tsx — Autocomplete dropdown bileşeni
+2 dosya:
 
-Düzenlenecek dosyalar:
-  src/pages/Guides.tsx
-    - SearchAutocomplete entegrasyonu
-    - Kategori chip'leri (yatay scroll)
-    - Filters butonu → Bottom Sheet aç
-    - Input'a text-[16px] ekle
+src/pages/Guides.tsx
+  - visibleCount state (başlangıç: 9)
+  - filteredGuides.slice(0, visibleCount) ile render
+  - searchTerm veya selectedCategory değişince visibleCount = 9
+  - "Show More Guides" butonu (kalan sayıyı gösterir)
 
-  src/pages/FeaturedGuides.tsx
-    - SearchAutocomplete entegrasyonu
-    - X temizle butonu
-    - Input'a touch-target, mobile-text, text-[16px] ekle
-
-  src/pages/Countries.tsx
-    - Input içine X temizle butonu
-    - Input'a text-[16px] ekle (zaten mobile-text var ama doğrulama)
+src/pages/Index.tsx
+  - visibleCount state (başlangıç: 9)
+  - filteredGuides.slice(0, visibleCount) ile render
+  - Filtre değişince visibleCount = 9
+  - "Show More" butonu
 ```
 
-### Autocomplete Mantığı
+### "Load More" Buton Tasarımı
 
-- Guides/FeaturedGuides: Mevcut `guides` array'inden `title` ve `location` alanlarını filtrele
-- Countries: Mevcut `countries` array'inden `country` alanını filtrele
-- Minimum 2 karakter sonrası öneriler gösterilecek
-- Maksimum 5 öneri gösterilecek
+Mevcut CTA bölümüyle uyumlu, minimal:
+- `variant="outline"` + tam genişlik mobilde
+- "Show 9 More Guides (24 remaining)" gibi bilgilendirici metin
+- Tüm rehberler gösterildiyse buton gizlenir
 
