@@ -1,43 +1,36 @@
 
 
-## GuideDetail Tema Flash Düzeltmesi + Badge Ekolayzır Kaldırma
+## Metadata Bilgilerini Resmin Altına Taşıma
 
-### Problem 1: Tasarım "sonradan yükleniyormuş gibi" görünüyor
-`GuideCard`'dan navigasyon sırasında `guidePreview` objesi aktarılıyor ama `is_featured` bilgisi dahil değil. Sayfa ilk açıldığında `isFeaturedGuide = false` oluyor (primary tema), ardından gerçek veri yüklenince `is_featured = true` ile amber temaya geçiyor — bu geçiş "flash" yaratıyor.
+### Problem
+Şu an resim ve metadata (konum, süre, stops, dil seçici) yan yana (`flex gap-4`) duruyor. Mobilde resim 128px genişliğinde kalınca metadata'ya az alan kalıyor.
 
-**Çözüm:** `GuideCard`'ın `guidePreview` objesine `isFeatured` bilgisini ekle, `GuideDetail`'da bunu kullan.
+### Çözüm
+Satır 682'deki `flex gap-4` layout'u `space-y-3` (dikey yığın) olarak değiştirilecek. Resim mevcut boyutunda kalacak, metadata bilgileri resmin hemen altına geçecek.
 
-### Problem 2: LiveListenersBadge ekolayzer kaldırma
-Default size'da MiniEqualizer gösteriliyor. Yerine kulaklık ikonuna yavaş bir `animate-pulse` eklenecek.
+### Değişiklik — `src/pages/GuideDetail.tsx` (satır 682-718)
 
-### Değişiklikler
-
-**1. `src/components/GuideCard.tsx` (satır 56)**
 ```
-Önce:  guidePreview: { id, slug, title, description, location, price, duration, category, imageUrl }
-Sonra: guidePreview: { id, slug, title, description, location, price, duration, category, imageUrl, isFeatured }
+Önce:
+<div className="flex gap-4">
+  <div className="relative w-32 h-32 ...">  {/* image */}
+  </div>
+  <div className="flex-1 min-w-0 flex flex-col justify-center">
+    {/* LiveListeners, location, duration, language */}
+  </div>
+</div>
+
+Sonra:
+<div className="space-y-3">
+  <div className="relative w-32 h-32 ...">  {/* image — boyut aynı */}
+  </div>
+  <div className="flex flex-col gap-1">
+    {/* LiveListeners, location, duration, language — artık resmin altında */}
+  </div>
+</div>
 ```
 
-**2. `src/pages/GuideDetail.tsx` (satır 50-67)**
-Preview data'dan `is_featured` bilgisini al:
-```tsx
-const [realGuideData, setRealGuideData] = useState<any>(guidePreview ? {
-  ...mevcut alanlar,
-  is_featured: guidePreview.isFeatured || false,
-} : null);
-```
-
-**3. `src/components/LiveListenersBadge.tsx` (satır 34-35)**
-Ekolayzer yerine pulse animasyonlu kulaklık:
-```
-Önce:  {!isCompact && <MiniEqualizer />}
-       <Headphones className={`${iconSize} shrink-0`} />
-Sonra: <Headphones className={`${iconSize} shrink-0 animate-pulse`} />
-```
-`animate-pulse` Tailwind'in varsayılan 2s süreli yavaş pulse animasyonu — tam istenen etki.
-
-### Özet
-- 3 dosya, minimal değişiklik
-- Flash sorunu kökten çözülür (preview'da tema bilgisi taşınır)
-- Badge'de ekolayzer kalkar, kulaklık yavaşça yanıp söner
+- Resim boyutu değişmez
+- Köklü tasarım değişikliği yok, sadece layout yönü değişiyor
+- Tek dosya, tek bölüm değişikliği
 
