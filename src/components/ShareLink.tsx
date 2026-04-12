@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Copy, Check, Share2, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { getShareUrl } from '@/lib/url-utils';
 import {
   Dialog,
   DialogContent,
@@ -29,9 +30,8 @@ export const ShareLink: React.FC<ShareLinkProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
 
-  // Share URL goes through edge function for proper OG meta tags (WhatsApp/Telegram previews)
-  // The edge function returns OG tags to crawlers and redirects real users to the SPA
-  const shareUrl = `https://dsaqlgxajdnwoqvtsrqd.supabase.co/functions/v1/og-image?id=${guideId}${accessCode ? `&access_code=${accessCode}` : ''}`;
+  // Share URL goes through Cloudflare Worker → og-image Edge Function for proper OG meta tags
+  const shareUrl = getShareUrl(guideId, accessCode);
 
   const handleCopy = async () => {
     try {

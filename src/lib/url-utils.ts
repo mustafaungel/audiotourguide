@@ -4,6 +4,7 @@
 
 const SUPABASE_STORAGE_BASE = 'https://dsaqlgxajdnwoqvtsrqd.supabase.co/storage/v1/object/public/';
 const SUPABASE_FUNCTIONS_BASE = 'https://dsaqlgxajdnwoqvtsrqd.supabase.co/functions/v1';
+const CDN_BASE = 'https://audiotourguide.app/cdn';
 
 /**
  * Gets the base URL of the current application
@@ -72,13 +73,23 @@ function isSupabaseStorageUrl(url: string): boolean {
 }
 
 /**
- * Returns a proxied image URL that serves the image through the main domain's
- * Edge Function, so Google treats it as same-domain for sitemap indexing.
+ * Converts a Supabase storage URL to a CDN URL served from the main domain.
+ * e.g. https://dsaqlgxajdnwoqvtsrqd.supabase.co/storage/v1/object/public/guide-images/abc.jpg
+ *   → https://audiotourguide.app/cdn/guide-images/abc.jpg
+ */
+function toCdnUrl(supabaseUrl: string): string {
+  const storagePath = supabaseUrl.replace(SUPABASE_STORAGE_BASE, '');
+  return `${CDN_BASE}/${storagePath}`;
+}
+
+/**
+ * Returns a proxied image URL served through the main domain's Cloudflare Worker,
+ * so Google treats it as same-domain for sitemap indexing and SEO.
  */
 export function getProxiedImageUrl(imageUrl: string | null | undefined): string {
   if (!imageUrl) return '/placeholder.svg';
   if (!isSupabaseStorageUrl(imageUrl)) return imageUrl;
-  return `${SUPABASE_FUNCTIONS_BASE}/proxy-image?url=${encodeURIComponent(imageUrl)}`;
+  return toCdnUrl(imageUrl);
 }
 
 /**
@@ -87,12 +98,21 @@ export function getProxiedImageUrl(imageUrl: string | null | undefined): string 
  */
 export function getDirectImageUrl(imageUrl: string | null | undefined): string {
   if (!imageUrl) return '/placeholder.svg';
+  // Also route through CDN for consistency
+  if (isSupabaseStorageUrl(imageUrl)) return toCdnUrl(imageUrl);
   return imageUrl;
 }
 
 /**
+ * Generates a share URL for a guide that goes through the main domain.
+ * The Cloudflare Worker proxies /share/* to the og-image Edge Function.
+ */
+export function getShareUrl(guideId: string, accessCode?: string): string {
+  return `https://audiotourguide.app/share/${guideId}${accessCode ? `?access_code=${accessCode}` : ''}`;
+}
+
+/**
  * @deprecated Use getDirectImageUrl() for rendering, getProxiedImageUrl() for SEO.
- * This function now returns the direct URL to avoid broken Supabase Image Transformation 404s.
  */
 export function getOptimizedImageUrl(
   imageUrl: string | null | undefined,
