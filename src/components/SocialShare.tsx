@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Share2, Facebook, Twitter, Instagram, MessageCircle, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { getShareUrl } from '@/lib/url-utils';
 
 interface SocialShareProps {
   title: string;
@@ -23,9 +24,9 @@ export const SocialShare: React.FC<SocialShareProps> = ({
   url: urlProp,
   guide 
 }) => {
-  // Use edge function URL for guide sharing so crawlers get proper OG tags
+  // Use main domain share URL so crawlers get proper OG tags via Cloudflare Worker
   const url = guide?.id
-    ? `https://dsaqlgxajdnwoqvtsrqd.supabase.co/functions/v1/og-image?id=${guide.id}`
+    ? getShareUrl(guide.id)
     : (urlProp || window.location.href);
   const { toast } = useToast();
 
