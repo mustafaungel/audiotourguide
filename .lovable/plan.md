@@ -1,29 +1,87 @@
 
 
-## Sorun: OG Image Edge Function Deploy Edilmemiş
+## Cloudflare Worker ile Görselleri ve Paylaşım Linklerini Ana Domain Altına Taşıma
 
-### Analiz
-- `og-image` Edge Function'ı test ettim — her iki çağrıda da SPA'nın varsayılan `index.html`'i döndü
-- Bu da demek ki fonksiyon hiç çalışmıyor — WhatsApp/Telegram crawlerları `index.html`'deki varsayılan OG tag'lerini okuyor
-- Varsayılan OG tag'ler: `og:image = logo-audio-tour-guides.png` (site logosu)
-- Fonksiyon kodu doğru yazılmış, sadece deploy edilmesi gerekiyor
+### Durum
+- DNS başarıyla Cloudflare'e taşınmış ✓
+- Site Cloudflare proxy üzerinden çalışıyor ✓
+- Şimdi Cloudflare Worker kurulumu ve kod değişiklikleri yapılacak
 
 ### Plan
 
-**Adım 1: `og-image` Edge Function'ı deploy et**
-- `supabase--deploy_edge_functions` ile fonksiyonu deploy et
-- Fonksiyon kodu zaten doğru — guide bilgilerini DB'den çekip rehber görseli ile OG tag döndürüyor
+**Adım 1: Cloudflare Worker Oluşturma (Kullanıcı yapacak — adım adım talimat vereceğim)**
 
-**Adım 2: Deploy sonrası test et**
-- Gerçek bir guide ID ile fonksiyonu çağır
-- Dönen HTML'de `og:image`'ın rehber görseli olduğunu doğrula (site logosu değil)
+Cloudflare Dashboard'da bir Worker oluşturulacak. Bu Worker iki route'u handle edecek:
 
-**Adım 3: Varsa küçük iyileştirme**
-- Fonksiyonda XSS koruması ekle (title/description'daki HTML karakterlerini escape et)
-- CORS header ekle (bazı crawlerlar için gerekebilir)
+```text
+audiotourguide.app/cdn/*  → Supabase Storage'dan görsel çeker
+audiotourguide.app/share/* → og-image Edge Function'dan OG HTML çeker
+```
+
+Worker kodu ~40 satır, kopyala-yapıştır ile kurulacak. İki route Cloudflare'de tanımlanacak.
+
+**Adım 2: Kod Değişiklikleri (Lovable'da yapacağım)**
+
+| Dosya | Değişiklik |
+|-------|-----------|
+| `src/lib/url-utils.ts` | `getProxiedImageUrl()` → `https://audiotourguide.app/cdn/...` formatında dönsün |
+| `src/components/ShareLink.tsx` | Share URL → `https://audiotourguide.app/share/{guideId}` |
+| `src/components/SEO.tsx` | OG image URL'lerini yeni `audiotourguide.app/cdn/...` formatıyla güncelle |
+| `supabase/functions/og-image/index.ts` | `og:image`'da `audiotourguide.app/cdn/...` kullan + `noindex`/`canonical` ekle |
+
+**Adım 3: og-image Edge Function'ı Deploy Et**
+
+Güncellenen fonksiyonu deploy edip test et.
+
+**Adım 4: Test**
+- WhatsApp'ta paylaşım linki test et — rehber görseli ve başlığı görünmeli
+- Google'da `site:dsaqlgxajdnwoqvtsrqd.supabase.co` kontrolü — zamanla temizlenmeli
+
+### Cloudflare Worker Şablonu (referans)
+
+```javascript
+export default {
+  async fetch(request) {
+    const url = new URL(request.url);
+    
+    // /cdn/* → Supabase Storage proxy
+    if (url.pathname.startsWith('/cdn/')) {
+      const storagePath = url.pathname.replace('/cdn/', '');
+      const supabaseUrl = `https://dsaqlgxajdnwoqvtsrqd.supabase.co/storage/v1/object/public/${storagePath}`;
+      const res = await fetch(supabaseUrl);
+      return new Response(res.body, {
+        headers: {
+          'Content-Type': res.headers.get('Content-Type') || 'image/jpeg',
+          'Cache-Control': 'public, max-age=31536000, immutable',
+        }
+      });
+    }
+    
+    // /share/* → og-image Edge Function proxy
+    if (url.pathname.startsWith('/share/')) {
+      const guideId = url.pathname.replace('/share/', '');
+      const accessCode = url.searchParams.get('access_code') || '';
+      const ogUrl = `https://dsaqlgxajdnwoqvtsrqd.supabase.co/functions/v1/og-image?id=${guideId}${accessCode ? `&access_code=${accessCode}` : ''}`;
+      return fetch(ogUrl);
+    }
+    
+    // Diğer istekleri olduğu gibi geçir (Lovable hosting'e)
+    return fetch(request);
+  }
+}
+```
+
+Cloudflare'de route'lar:
+- `audiotourguide.app/cdn/*`
+- `audiotourguide.app/share/*`
 
 ### Sonuç
-Deploy sonrası ShareLink bileşenindeki URL (`/functions/v1/og-image?id=...`) düzgün çalışacak ve paylaşımlarda rehber görseli + başlığı görünecek.
+- Tüm görseller `audiotourguide.app/cdn/...` altından sunulacak
+- Paylaşım linkleri `audiotourguide.app/share/...` olacak
+- Google Search Console hataları zamanla temizlenecek
+- Mevcut işlevsellik bozulmayacak
+- Ek maliyet: $0 (Cloudflare Workers ücretsiz plan günde 100K istek)
 
-Kod değişikliği: minimal (sadece XSS escape ekleme). Ana iş: deployment + test.
+### Önemli Not
+Cloudflare Worker kurulumu için adım adım talimat vereceğim (ekran görüntüleri ile). Siz Worker'ı oluşturduktan sonra kod değişikliklerini yapacağım.
 
