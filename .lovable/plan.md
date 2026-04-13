@@ -1,11 +1,17 @@
 
 
-## Test Planı
+## Worker Endpoint Test Planı
 
-Worker kodu güncellenmiş ve deploy edilmiş. Şimdi:
+DNS kayıtları doğru yapılandırılmış (her ikisi de Proxied). Worker kodu da güncellendi. Şimdi endpoint'leri test edeceğim:
 
-1. **Veritabanından bir rehber bilgisi çek** — test için gerçek bir guide ID ve image_url lazım
-2. **CDN endpoint'ini test et** — `curl` ile `audiotourguide.app/cdn/guide-images/...` çağır, content-type ve cache header'larını kontrol et
-3. **Share endpoint'ini test et** — `curl` ile `audiotourguide.app/share/{guideId}` çağır, og:title ve og:image tag'lerini kontrol et
-4. **Sorun varsa düzelt** — url-utils.ts veya Worker kodunda gerekli değişiklikleri yap
+1. **Veritabanından test verisi çek** — Bir rehber ID ve image_url al
+2. **CDN endpoint test** — `curl -I https://audiotourguide.app/cdn/guide-images/...` ile görsel dönüp dönmediğini kontrol et
+3. **Share endpoint test** — `curl https://audiotourguide.app/share/{guideId}` ile OG tag'li HTML dönüp dönmediğini kontrol et
+4. **Başarılıysa** — `url-utils.ts` zaten doğru URL'leri üretiyor, ek değişiklik gerekmez
+5. **Başarısızsa** — Worker kodunu veya route ayarlarını debug et
+
+### Teknik Detay
+- `supabase--read_query` ile rehber bilgisi alacağım
+- `code--exec` ile `curl` kullanarak her iki endpoint'i test edeceğim
+- Header'larda `Content-Type`, `Cache-Control` ve `cf-worker` kontrolü yapacağım
 
