@@ -2,15 +2,10 @@
 
 ## Test Planı
 
-Worker kodu ve route'lar doğru yapılandırılmış. Şimdi endpoint'leri test edeceğim:
+Worker kodu güncellenmiş ve deploy edilmiş. Şimdi:
 
-1. **Veritabanından bir rehber bul** — Supabase'den bir guide ID ve image_url al
-2. **CDN endpoint'ini test et** — `audiotourguide.app/cdn/guide-images/...` üzerinden görsel çek, header'ları kontrol et
-3. **Share endpoint'ini test et** — `audiotourguide.app/share/{guideId}` üzerinden OG tag'li HTML dönüp dönmediğini kontrol et
-4. **Sorun varsa** — url-utils.ts dosyasını güncelleyerek CDN/share URL'lerinin doğru üretilmesini sağla
-
-### Teknik Detay
-- `supabase--read_query` ile rehber bilgisi alacağım
-- `code--exec` ile `curl` kullanarak her iki endpoint'i test edeceğim
-- Başarılıysa `url-utils.ts`'deki URL helper'larını kontrol edip gerekirse güncelleyeceğim
+1. **Veritabanından bir rehber bilgisi çek** — test için gerçek bir guide ID ve image_url lazım
+2. **CDN endpoint'ini test et** — `curl` ile `audiotourguide.app/cdn/guide-images/...` çağır, content-type ve cache header'larını kontrol et
+3. **Share endpoint'ini test et** — `curl` ile `audiotourguide.app/share/{guideId}` çağır, og:title ve og:image tag'lerini kontrol et
+4. **Sorun varsa düzelt** — url-utils.ts veya Worker kodunda gerekli değişiklikleri yap
 
