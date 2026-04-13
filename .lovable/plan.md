@@ -1,58 +1,16 @@
 
 
-## Sorun Analizi
+## Test Planı
 
-Worker route'ları Cloudflare'de doğru ayarlanmış (ekran görüntüsünde onaylandı). Worker 8 istek alıyor ve 0 hata veriyor — yani **Cloudflare Worker çalışıyor**, ama `/cdn/*` ve `/share/*` isteklerini yakalamak yerine doğrudan origin'e (Lovable hosting) yönlendiriyor. Bu, büyük ihtimalle Worker kodunun düzgün kaydedilmemiş olmasından kaynaklanıyor.
+Worker kodu ve route'lar doğru yapılandırılmış. Şimdi endpoint'leri test edeceğim:
 
-### Yapılacaklar
+1. **Veritabanından bir rehber bul** — Supabase'den bir guide ID ve image_url al
+2. **CDN endpoint'ini test et** — `audiotourguide.app/cdn/guide-images/...` üzerinden görsel çek, header'ları kontrol et
+3. **Share endpoint'ini test et** — `audiotourguide.app/share/{guideId}` üzerinden OG tag'li HTML dönüp dönmediğini kontrol et
+4. **Sorun varsa** — url-utils.ts dosyasını güncelleyerek CDN/share URL'lerinin doğru üretilmesini sağla
 
-**Adım 1: Worker kodunu doğrula (Kullanıcı yapacak)**
-
-Cloudflare Dashboard'dan Worker'ın "Edit Code" bölümüne gidip kodun gerçekten güncellenmiş olduğunu kontrol et. Eğer hâlâ `addEventListener("fetch", ...)` veya `Hello World` görüyorsan, aşağıdaki kodu yapıştırıp **Save and Deploy** tıkla:
-
-```javascript
-export default {
-  async fetch(request) {
-    const url = new URL(request.url);
-    
-    if (url.pathname.startsWith('/cdn/')) {
-      const storagePath = url.pathname.replace('/cdn/', '');
-      const supabaseUrl = `https://dsaqlgxajdnwoqvtsrqd.supabase.co/storage/v1/object/public/${storagePath}`;
-      const res = await fetch(supabaseUrl, {
-        cf: { cacheEverything: true, cacheTtl: 86400 }
-      });
-      if (!res.ok) {
-        return new Response('Not found', { status: 404 });
-      }
-      const response = new Response(res.body, res);
-      response.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
-      response.headers.set('Access-Control-Allow-Origin', '*');
-      return response;
-    }
-    
-    if (url.pathname.startsWith('/share/')) {
-      const guideId = url.pathname.replace('/share/', '');
-      const params = url.searchParams;
-      const accessCode = params.get('access_code');
-      const ogUrl = `https://dsaqlgxajdnwoqvtsrqd.supabase.co/functions/v1/og-image?id=${guideId}${accessCode ? '&access_code=' + accessCode : ''}`;
-      return fetch(ogUrl);
-    }
-    
-    return fetch(request);
-  }
-}
-```
-
-**Adım 2: Test et (Ben yapacağım)**
-
-Worker kodu güncellendikten sonra şu endpoint'leri test edeceğim:
-- `audiotourguide.app/cdn/guide-images/` altından bir görsel
-- `audiotourguide.app/share/` altından bir rehber paylaşım linki
-
-**Adım 3: Kod değişiklikleri (Ben yapacağım — Worker çalıştıktan sonra)**
-
-`url-utils.ts` dosyasında CDN ve share URL'lerinin doğru üretildiğini onaylayıp gerekirse güncelleyeceğim.
-
-### Önemli Not
-Domain veya DNS'te sorun yok. Route'lar doğru yerde, Worker istek alıyor. Sorun sadece Worker'ın iç kodunun doğru çalışıp çalışmadığıyla ilgili.
+### Teknik Detay
+- `supabase--read_query` ile rehber bilgisi alacağım
+- `code--exec` ile `curl` kullanarak her iki endpoint'i test edeceğim
+- Başarılıysa `url-utils.ts`'deki URL helper'larını kontrol edip gerekirse güncelleyeceğim
 
