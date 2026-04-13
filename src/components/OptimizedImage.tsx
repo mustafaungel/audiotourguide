@@ -19,19 +19,30 @@ export function OptimizedImage({
   height,
   loading = 'lazy'
 }: OptimizedImageProps) {
-  const directUrl = getDirectImageUrl(src);
+  const cdnUrl = getDirectImageUrl(src);
+  const fallbackUrl = src || '/placeholder.svg';
   const [loaded, setLoaded] = useState(false);
+  const [showFallback, setShowFallback] = useState(false);
   const [error, setError] = useState(false);
 
-  // Reset when src changes
   useEffect(() => {
     setLoaded(false);
     setError(false);
+    setShowFallback(false);
   }, [src]);
+
+  const currentSrc = showFallback ? fallbackUrl : cdnUrl;
+
+  const handleError = () => {
+    if (!showFallback && cdnUrl !== fallbackUrl) {
+      setShowFallback(true);
+    } else {
+      setError(true);
+    }
+  };
 
   return (
     <div className="relative overflow-hidden w-full h-full">
-      {/* Shimmer placeholder — visible until image loads */}
       {(!loaded || error) && (
         <div className="absolute inset-0 bg-muted flex items-center justify-center">
           {error ? (
@@ -45,7 +56,7 @@ export function OptimizedImage({
       )}
       {!error && (
         <img
-          src={directUrl}
+          src={currentSrc}
           alt={alt}
           width={width}
           height={height}
@@ -53,7 +64,7 @@ export function OptimizedImage({
           loading={loading}
           decoding="async"
           onLoad={() => setLoaded(true)}
-          onError={() => setError(true)}
+          onError={handleError}
         />
       )}
     </div>
