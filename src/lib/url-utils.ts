@@ -4,7 +4,7 @@
 
 const SUPABASE_STORAGE_BASE = 'https://dsaqlgxajdnwoqvtsrqd.supabase.co/storage/v1/object/public/';
 const SUPABASE_FUNCTIONS_BASE = 'https://dsaqlgxajdnwoqvtsrqd.supabase.co/functions/v1';
-const CDN_BASE = 'https://audiotourguide.app/cdn';
+const CDN_BASE = 'https://cdn.audiotourguide.app';
 
 /**
  * Gets the base URL of the current application
@@ -108,7 +108,7 @@ export function getDirectImageUrl(imageUrl: string | null | undefined): string {
  * The Cloudflare Worker proxies /share/* to the og-image Edge Function.
  */
 export function getShareUrl(guideId: string, accessCode?: string): string {
-  return `https://audiotourguide.app/share/${guideId}${accessCode ? `?access_code=${accessCode}` : ''}`;
+  return `https://cdn.audiotourguide.app/share/${guideId}${accessCode ? `?access_code=${accessCode}` : ''}`;
 }
 
 /**

@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const SUPABASE_STORAGE_BASE = 'https://dsaqlgxajdnwoqvtsrqd.supabase.co/storage/v1/object/public/';
-const CDN_BASE = 'https://audiotourguide.app/cdn';
+const CDN_BASE = 'https://cdn.audiotourguide.app';
 
 function escapeHtml(str: string): string {
   return str
