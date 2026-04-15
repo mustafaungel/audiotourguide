@@ -9,32 +9,24 @@ import { haptics } from '@/lib/haptics';
 import { t } from '@/lib/translations';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
-// Apple Music style lyrics view — paragraph-level tracking with audio
-// Paragraphs = longer time windows (~20-30s each) = less drift & fewer misaligned transitions
-const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; duration: number; isPlaying: boolean; lang?: string }> = ({ scriptText, currentTime, duration, lang }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const userScrolling = useRef(false);
-  const scrollTimer = useRef<ReturnType<typeof setTimeout>>();
-  const rafRef = useRef<number>(0);
-  const isAutoScrolling = useRef(false);
-  const lastActiveIdx = useRef(-1);
-
-  // Split into paragraphs — each paragraph is one tracking unit
+// Clean reading mode — all paragraphs equally readable, user scrolls manually
+const ScriptReadingView: React.FC<{ scriptText: string; lang?: string }> = ({ scriptText, lang }) => {
   const paragraphs = useMemo(() => {
-    if (!scriptText || duration <= 0) return [];
+    if (!scriptText) return [];
 
-    // Split by double-newlines (paragraph breaks)
+    // Split by double-newlines
     const rawParagraphs = scriptText.split(/\n\n+/);
     const cleaned: string[] = [];
 
     for (const p of rawParagraphs) {
-      const text = p.replace(/\n/g, ' ').trim();
+      // Normalize whitespace: collapse multiple spaces, trim lines
+      const text = p.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
       if (text.length >= 10) cleaned.push(text);
     }
 
-    // If no paragraph breaks found (single block of text), split into ~3-4 chunks by sentences
+    // If no paragraph breaks, split by sentences into chunks
     if (cleaned.length <= 1 && scriptText.length > 200) {
-      const allText = scriptText.replace(/\n/g, ' ').trim();
+      const allText = scriptText.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
       const sentences = allText.split(/(?<=[.!?。！？])\s+/).filter(s => s.trim().length > 5);
       if (sentences.length >= 4) {
         const chunkSize = Math.ceil(sentences.length / Math.min(5, Math.ceil(sentences.length / 3)));
@@ -42,196 +34,58 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
         for (let i = 0; i < sentences.length; i += chunkSize) {
           chunks.push(sentences.slice(i, i + chunkSize).join(' '));
         }
-        if (chunks.length >= 2) return buildTimings(chunks, duration);
+        if (chunks.length >= 2) return chunks;
       }
     }
 
-    if (cleaned.length === 0) return [];
-    return buildTimings(cleaned, duration);
-  }, [scriptText, duration]);
-
-  // Active paragraph index based on currentTime
-  const activeIdx = useMemo(() => {
-    if (duration <= 0 || paragraphs.length === 0) return 0;
-    for (let i = paragraphs.length - 1; i >= 0; i--) {
-      if (currentTime >= paragraphs[i].startTime) return i;
+    // Merge very short paragraphs into previous
+    const merged: string[] = [];
+    for (const text of cleaned) {
+      if (text.length < 30 && merged.length > 0) {
+        merged[merged.length - 1] += ' ' + text;
+      } else {
+        merged.push(text);
+      }
     }
-    return 0;
-  }, [currentTime, paragraphs, duration]);
 
-  // Reset all scroll state when script changes (new section loaded)
-  useEffect(() => {
-    userScrolling.current = false;
-    isAutoScrolling.current = false;
-    lastActiveIdx.current = -1;
-    cancelAnimationFrame(rafRef.current);
-    clearTimeout(scrollTimer.current);
-    if (containerRef.current) containerRef.current.scrollTop = 0;
+    return merged.length > 0 ? merged : cleaned;
   }, [scriptText]);
 
-  // Detect user scroll (ignore our own programmatic scrolls)
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-    const onScroll = () => {
-      if (isAutoScrolling.current) return;
-      userScrolling.current = true;
-      clearTimeout(scrollTimer.current);
-      scrollTimer.current = setTimeout(() => { userScrolling.current = false; }, 6000);
-    };
-    container.addEventListener('scroll', onScroll, { passive: true });
-    return () => container.removeEventListener('scroll', onScroll);
-  }, []);
-
-  // Smooth auto-scroll — triggers on each paragraph change (less frequent than sentence-level)
-  useEffect(() => {
-    if (userScrolling.current || !containerRef.current) return;
-    if (activeIdx === lastActiveIdx.current) return;
-    lastActiveIdx.current = activeIdx;
-
-    const el = containerRef.current.querySelector(`[data-para="${activeIdx}"]`) as HTMLElement;
-    if (!el) return;
-
-    const container = containerRef.current;
-    const targetTop = el.offsetTop - container.clientHeight * 0.3;
-    const scrollTarget = Math.max(0, targetTop);
-    const startScroll = container.scrollTop;
-    const diff = scrollTarget - startScroll;
-    if (Math.abs(diff) < 2) return;
-
-    // Gentle scroll — paragraphs change less often so we can take our time
-    const animDuration = Math.min(2200, Math.max(1000, Math.abs(diff) * 3));
-    let animStart: number | null = null;
-
-    cancelAnimationFrame(rafRef.current);
-    isAutoScrolling.current = true;
-
-    const animate = (timestamp: number) => {
-      if (!animStart) animStart = timestamp;
-      const elapsed = timestamp - animStart;
-      const progress = Math.min(1, elapsed / animDuration);
-      const eased = -(Math.cos(Math.PI * progress) - 1) / 2;
-      container.scrollTop = startScroll + diff * eased;
-      if (progress < 1) {
-        rafRef.current = requestAnimationFrame(animate);
-      } else {
-        isAutoScrolling.current = false;
-      }
-    };
-    rafRef.current = requestAnimationFrame(animate);
-
-    return () => { cancelAnimationFrame(rafRef.current); isAutoScrolling.current = false; };
-  }, [activeIdx]);
+  if (paragraphs.length === 0) return null;
 
   return (
     <div className="h-full relative">
-      {/* Book page container */}
       <div
-        className="absolute inset-2 inset-y-0 rounded-2xl bg-amber-50/80 dark:bg-stone-900/80 border-l border-amber-200/40 dark:border-stone-700/40"
-        style={{
-          boxShadow: 'inset 0 2px 12px rgba(0,0,0,0.05), inset 0 -2px 12px rgba(0,0,0,0.03), 0 4px 24px rgba(0,0,0,0.08)',
-          backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(180,140,80,0.03) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(160,120,60,0.02) 0%, transparent 50%)',
-        }}
-      />
-
-      {/* Paragraph counter — top right */}
-      <div className="absolute top-3 right-5 z-20 transition-opacity duration-500">
-        <span className="text-[11px] font-medium text-stone-400/70 dark:text-stone-500/60 font-sans tabular-nums">
-          § {activeIdx + 1} / {paragraphs.length}
-        </span>
-      </div>
-
-      <div
-        ref={containerRef}
-        className="relative h-full overflow-y-auto overscroll-contain script-scroll-container"
+        className="h-full overflow-y-auto overscroll-contain script-scroll-container"
         style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
       >
-        {/* Top spacer */}
-        <div className="h-[7vh]" />
-        <div className="px-6 pb-8 mx-auto" style={{ maxWidth: '85%' }}>
-          {paragraphs.map((para, i) => {
-            const isActive = i === activeIdx;
-            const isPast = i < activeIdx;
-
-            return (
-              <div
-                key={i}
-                data-para={i}
-                lang={lang || 'en'}
-                className={cn(
-                  "relative mb-6 rounded-lg",
-                  "transition-[color,border-color,background,padding,font-size] duration-[1000ms] ease-in-out",
-                  isActive
-                    ? "text-stone-800 dark:text-amber-100 border-l-2 border-amber-400/60 dark:border-amber-500/40 pl-4 pr-3 py-3"
-                    : "border-l-2 border-transparent pl-4 pr-3 py-1",
-                  isPast && !isActive
-                    ? "text-stone-600/80 dark:text-stone-400/60"
-                    : !isActive
-                      ? "text-stone-500/60 dark:text-stone-500/40"
-                      : ""
-                )}
-                style={{
-                  fontFamily: "'Lora', 'Playfair Display', Georgia, serif",
-                  fontSize: isActive ? '16px' : '14.5px',
-                  lineHeight: '2.0',
-                  fontWeight: isActive ? 500 : 400,
-                  letterSpacing: '0.02em',
-                  textAlign: 'justify',
-                  textJustify: 'inter-word' as any,
-                  hyphens: 'auto',
-                  WebkitHyphens: 'auto',
-                  wordBreak: 'break-word',
-                  overflowWrap: 'break-word',
-                  // Highlighter marker effect on active paragraph
-                  ...(isActive ? {
-                    background: 'linear-gradient(to right, rgba(251,191,36,0.15) 0%, rgba(251,146,60,0.10) 50%, rgba(251,191,36,0.15) 100%)',
-                    backgroundSize: '100% 2em',
-                    backgroundPosition: '0 0.15em',
-                  } : {}),
-                }}
-              >
-                {para.text}
-              </div>
-            );
-          })}
+        <div className="h-[4vh]" />
+        <div className="px-5">
+          {paragraphs.map((text, i) => (
+            <p
+              key={i}
+              lang={lang || 'en'}
+              className="mb-5 last:mb-0 text-[16px] font-normal leading-[1.85] text-white/90"
+              style={{
+                hyphens: 'auto',
+                WebkitHyphens: 'auto',
+                wordBreak: 'break-word',
+                overflowWrap: 'break-word',
+              }}
+            >
+              {text}
+            </p>
+          ))}
         </div>
-        {/* Bottom spacer */}
-        <div className="h-[20vh]" />
+        <div className="h-[12vh]" />
       </div>
 
-      {/* Gradient fades — paper-tinted */}
-      <div className="absolute top-0 left-2 right-2 h-28 rounded-t-2xl bg-gradient-to-b from-amber-50/90 dark:from-stone-900/90 via-amber-50/50 dark:via-stone-900/50 to-transparent pointer-events-none z-10" />
-      <div className="absolute bottom-0 left-2 right-2 h-24 rounded-b-2xl bg-gradient-to-t from-amber-50/90 dark:from-stone-900/90 via-amber-50/50 dark:via-stone-900/50 to-transparent pointer-events-none z-10" />
+      {/* Top/bottom fades — transparent to match blurred bg */}
+      <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-black/40 to-transparent pointer-events-none z-10" />
+      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/40 to-transparent pointer-events-none z-10" />
     </div>
   );
 };
-
-// Build paragraph timing weights — word-count proportional with punctuation pauses
-function buildTimings(texts: string[], duration: number) {
-  const PARA_GAP = 4;         // word-equivalents for inter-paragraph pause
-  const COMMA_WEIGHT = 0.3;
-  const PERIOD_WEIGHT = 0.5;
-  const TRACKING_DELAY = 0.8; // seconds — tracker stays slightly behind audio
-
-  const getWeight = (text: string) => {
-    const words = text.split(/\s+/).length;
-    const commas = (text.match(/[,;:]/g) || []).length;
-    const periods = (text.match(/[.!?。！？]/g) || []).length;
-    return words + commas * COMMA_WEIGHT + periods * PERIOD_WEIGHT;
-  };
-
-  const weights = texts.map(t => getWeight(t));
-  const totalWeight = weights.reduce((a, b) => a + b, 0) + PARA_GAP * (texts.length - 1);
-
-  let cumWeight = 0;
-  return texts.map((text, i) => {
-    if (i > 0) cumWeight += PARA_GAP;
-    const startTime = Math.min(duration, (cumWeight / totalWeight) * duration + TRACKING_DELAY);
-    cumWeight += weights[i];
-    const endTime = Math.min(duration, (cumWeight / totalWeight) * duration + TRACKING_DELAY);
-    return { text, startTime, endTime };
-  });
-}
 
 interface ExpandedPlayerProps {
   open: boolean;
@@ -401,9 +255,9 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
           </div>
 
           {/* Script Lyrics View (Spotify-style with paragraph tracking) */}
-          <div className="flex-1 relative overflow-hidden px-6 py-4">
+          <div className="flex-1 relative overflow-hidden px-0 py-2">
             {scriptText ? (
-              <ScriptLyricsView scriptText={scriptText} currentTime={currentTime} duration={duration} isPlaying={isPlaying} lang={lang} />
+              <ScriptReadingView scriptText={scriptText} lang={lang} />
             ) : imageUrl ? (
               <div className="h-full flex items-center justify-center">
                 <img
