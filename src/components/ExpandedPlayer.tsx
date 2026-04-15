@@ -68,7 +68,7 @@ const ScriptReadingView: React.FC<{ scriptText: string; lang?: string }> = ({ sc
             return (
               <React.Fragment key={i}>
                 <div
-                  className="rounded-xl p-5 backdrop-blur-sm border bg-black/[0.04] border-black/[0.08] shadow-[0_2px_12px_rgba(0,0,0,0.08)] dark:bg-white/[0.06] dark:border-white/[0.08] dark:shadow-[0_4px_24px_rgba(0,0,0,0.4)]"
+                  className="rounded-xl p-5 backdrop-blur-md border bg-black/[0.04] border-black/[0.08] shadow-[0_2px_12px_rgba(0,0,0,0.08)] dark:bg-white/[0.06] dark:border-white/[0.08] dark:shadow-[0_4px_24px_rgba(0,0,0,0.4)]"
                 >
                   <p
                     lang={lang || 'en'}
@@ -237,7 +237,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
         }}
       >
         {/* Blurred background image — visible but readable */}
-        {imageUrl && !scriptText && (
+        {imageUrl && (
           <>
             <div
               className="absolute inset-0 scale-110"
@@ -245,11 +245,14 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
                 backgroundImage: `url(${imageUrl})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                filter: 'blur(20px) saturate(1.3) brightness(0.9)',
-                opacity: 0.55,
+                filter: 'blur(40px) saturate(1.2) brightness(0.9)',
+                opacity: scriptText ? 0.2 : 0.55,
               }}
             />
-            <div className="absolute inset-0 bg-background/55 dark:bg-background/60" />
+            <div className={cn(
+              "absolute inset-0",
+              scriptText ? "bg-background/75 dark:bg-background/70" : "bg-background/55 dark:bg-background/60"
+            )} />
           </>
         )}
         {!imageUrl && <div className="absolute inset-0 bg-background" />}
