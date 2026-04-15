@@ -1,10 +1,10 @@
 import { Headphones } from 'lucide-react';
 import { useLiveListeners } from '@/hooks/useLiveListeners';
-import { usePresenceTracker } from '@/hooks/usePresenceTracker';
 
 interface LiveListenersBadgeProps {
   guideId: string;
   size?: 'default' | 'compact';
+  realCount?: number;
 }
 
 function MiniEqualizer({ small = false }: { small?: boolean }) {
@@ -19,9 +19,8 @@ function MiniEqualizer({ small = false }: { small?: boolean }) {
   );
 }
 
-export function LiveListenersBadge({ guideId, size = 'default' }: LiveListenersBadgeProps) {
-  const presenceCount = usePresenceTracker(guideId);
-  const count = useLiveListeners(guideId, presenceCount);
+export function LiveListenersBadge({ guideId, size = 'default', realCount }: LiveListenersBadgeProps) {
+  const count = useLiveListeners(guideId, realCount);
 
   const isCompact = size === 'compact';
 
@@ -34,7 +33,7 @@ export function LiveListenersBadge({ guideId, size = 'default' }: LiveListenersB
     <div className={`inline-flex w-fit max-w-full self-start rounded-full overflow-hidden glass-badge ${outerPadding} shadow-[0_2px_12px_hsl(var(--primary)/0.12)]`}>
       <div className={`inline-flex w-fit max-w-full items-center gap-1.5 ${innerPadding} rounded-full ${fontSize} text-primary`}>
         <Headphones className={`${iconSize} shrink-0 animate-pulse`} />
-        <span className="min-w-0 truncate whitespace-nowrap"><span className="min-w-0 truncate whitespace-nowrap"><span className="font-semibold">{count}</span> Listening</span></span>
+        <span className="min-w-0 truncate whitespace-nowrap"><span className="font-semibold">{count}</span> Listening</span>
       </div>
     </div>
   );
