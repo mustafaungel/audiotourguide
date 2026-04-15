@@ -126,7 +126,7 @@ export const MiniPlayer = React.memo<MiniPlayerProps>(({
         onClick={() => { haptics.light(); onExpand(); }}
       >
         <div className="w-10 h-1 rounded-full bg-primary/35" />
-        <span className="text-[10px] font-medium text-primary/50 mt-0.5 tracking-wide">View Script</span>
+        <span className="text-[10px] font-medium text-primary/50 mt-0.5 tracking-wide">📖 Script ↑</span>
       </div>
 
       {/* Progress bar */}
