@@ -123,22 +123,6 @@ export const MiniPlayer = React.memo<MiniPlayerProps>(({
       )}
       style={{ willChange: 'transform', transform: 'translateZ(0)' }}
     >
-      {/* Expand hint — handle + script label */}
-      <div
-        className="flex flex-col items-center pt-1.5 pb-0.5 cursor-pointer active:opacity-70 transition-opacity"
-        onClick={() => { haptics.light(); onExpand(); }}
-      >
-        <div className="w-10 h-1 rounded-full bg-primary/35" />
-        <span className="text-[10px] font-medium text-primary/50 mt-0.5 tracking-wide">{t('viewScript', lang)}</span>
-      </div>
-
-      {/* Progress bar */}
-      <div className="h-[3px] bg-muted/30 w-full">
-        <div
-          className="h-full bg-gradient-to-r from-primary/70 via-primary to-primary/80 transition-[width] duration-300"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
       <div
         className="bg-background/95 backdrop-blur-lg border-t border-border/30 shadow-[0_-4px_24px_-4px_hsl(var(--primary)/0.2)]"
         onClick={(e) => {
@@ -147,6 +131,19 @@ export const MiniPlayer = React.memo<MiniPlayerProps>(({
           onExpand();
         }}
       >
+        {/* Expand hint — handle + script label (inside player bg) */}
+        <div className="flex flex-col items-center pt-2 pb-1">
+          <div className="w-10 h-1 rounded-full bg-primary/35" />
+          <span className="text-[10px] font-medium text-primary/50 mt-0.5 tracking-wide">{t('viewScript', lang)}</span>
+        </div>
+
+        {/* Progress bar */}
+        <div className="h-[3px] bg-muted/30 w-full">
+          <div
+            className="h-full bg-gradient-to-r from-primary/70 via-primary to-primary/80 transition-[width] duration-300"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
 
         {/* Row 1: Now Playing title + time */}
         <div className="flex items-center gap-2 px-4 pb-1.5">
