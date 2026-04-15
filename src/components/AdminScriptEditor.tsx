@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Save, Loader2, ChevronDown, ChevronUp, AlertTriangle, CheckCircle } from 'lucide-react';
+import { FileText, Save, Loader2, ChevronDown, ChevronUp, AlertTriangle, CheckCircle, Mic } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Section {
@@ -16,6 +16,7 @@ interface Section {
   order_index: number;
   language_code: string;
   duration_seconds: number | null;
+  audio_url: string | null;
 }
 
 interface AdminScriptEditorProps {
@@ -35,6 +36,8 @@ export function AdminScriptEditor({ open, onClose, guideId, guideTitle }: AdminS
   const [savingId, setSavingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editedSections, setEditedSections] = useState<Record<string, { title?: string; description?: string }>>({});
+  const [transcribing, setTranscribing] = useState(false);
+  const [transcribeProgress, setTranscribeProgress] = useState('');
 
   // Load sections when dialog opens
   useEffect(() => {
@@ -60,7 +63,7 @@ export function AdminScriptEditor({ open, onClose, guideId, guideTitle }: AdminS
     setLoading(true);
     const { data, error } = await supabase
       .from('guide_sections')
-      .select('id, title, description, order_index, language_code, duration_seconds')
+      .select('id, title, description, order_index, language_code, duration_seconds, audio_url')
       .eq('guide_id', guideId)
       .eq('language_code', langCode)
       .order('order_index');
@@ -120,6 +123,48 @@ export function AdminScriptEditor({ open, onClose, guideId, guideTitle }: AdminS
     setSavingId(null);
   };
 
+  // Auto-transcribe all sections with missing scripts
+  const handleTranscribeAll = async () => {
+    const emptySections = sections.filter(s => !s.description || s.description.length < 10);
+    const withAudio = emptySections.filter(s => s.audio_url);
+
+    if (withAudio.length === 0) {
+      toast.info('No sections need transcription');
+      return;
+    }
+
+    setTranscribing(true);
+    let completed = 0;
+
+    for (const section of withAudio) {
+      setTranscribeProgress(`Transcribing ${completed + 1}/${withAudio.length}: ${section.title?.substring(0, 30)}...`);
+
+      try {
+        const { data, error } = await supabase.functions.invoke('transcribe-audio', {
+          body: { audio_url: section.audio_url, language: selectedLang }
+        });
+
+        if (error || !data?.transcript) {
+          toast.error(`Failed: ${section.title?.substring(0, 20)}`);
+          continue;
+        }
+
+        // Save transcript to DB
+        await supabase.from('guide_sections').update({ description: data.transcript }).eq('id', section.id);
+
+        // Update local state
+        setSections(prev => prev.map(s => s.id === section.id ? { ...s, description: data.transcript } : s));
+        completed++;
+      } catch (e: any) {
+        toast.error(`Error: ${e.message}`);
+      }
+    }
+
+    setTranscribing(false);
+    setTranscribeProgress('');
+    toast.success(`Transcribed ${completed}/${withAudio.length} sections`);
+  };
+
   const getDisplayValue = (section: Section, field: 'title' | 'description') => {
     return editedSections[section.id]?.[field] ?? section[field] ?? '';
   };
@@ -158,6 +203,18 @@ export function AdminScriptEditor({ open, onClose, guideId, guideTitle }: AdminS
           <span className="text-sm text-muted-foreground">
             {sections.length} sections
           </span>
+          {sections.some(s => (!s.description || s.description.length < 10) && s.audio_url) && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleTranscribeAll}
+              disabled={transcribing}
+              className="ml-auto text-xs gap-1"
+            >
+              {transcribing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Mic className="w-3 h-3" />}
+              {transcribing ? transcribeProgress : 'Auto Transcribe'}
+            </Button>
+          )}
         </div>
 
         {/* Sections list */}
