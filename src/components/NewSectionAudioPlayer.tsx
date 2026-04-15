@@ -390,6 +390,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
       onNext={currentSectionIndex < displaySections.length - 1 ? nextSection : undefined}
       autoAdvance={autoAdvanceEnabled}
       onToggleAutoAdvance={() => setAutoAdvance(!autoAdvanceEnabled)}
+      lang={lang}
     />,
     document.body
   ) : null;

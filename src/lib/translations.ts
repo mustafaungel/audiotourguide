@@ -74,6 +74,7 @@ type TranslationKeys = {
   close: string;
   autoPlay: string;
   speed: string;
+  viewScript: string;
 };
 
 const translations: Record<string, TranslationKeys> = {
@@ -145,6 +146,7 @@ const translations: Record<string, TranslationKeys> = {
     close: 'Close',
     autoPlay: 'Autoplay',
     speed: 'Speed',
+    viewScript: '📖 Script ↑',
   },
   tr: {
     upNext: 'Sıradaki',
@@ -214,6 +216,7 @@ const translations: Record<string, TranslationKeys> = {
     close: 'Kapat',
     autoPlay: 'Otomatik',
     speed: 'Hız',
+    viewScript: '📖 Metin ↑',
   },
   es: {
     upNext: 'A continuación',
@@ -283,6 +286,7 @@ const translations: Record<string, TranslationKeys> = {
     close: 'Cerrar',
     autoPlay: 'Automático',
     speed: 'Velocidad',
+    viewScript: '📖 Guión ↑',
   },
   fr: {
     upNext: 'À suivre',
@@ -352,6 +356,7 @@ const translations: Record<string, TranslationKeys> = {
     close: 'Fermer',
     autoPlay: 'Lecture auto',
     speed: 'Vitesse',
+    viewScript: '📖 Texte ↑',
   },
   de: {
     upNext: 'Als Nächstes',
@@ -421,6 +426,7 @@ const translations: Record<string, TranslationKeys> = {
     close: 'Schließen',
     autoPlay: 'Automatisch',
     speed: 'Geschwindigkeit',
+    viewScript: '📖 Skript ↑',
   },
   it: {
     upNext: 'Prossimo',
@@ -490,6 +496,7 @@ const translations: Record<string, TranslationKeys> = {
     close: 'Chiudi',
     autoPlay: 'Auto',
     speed: 'Velocità',
+    viewScript: '📖 Testo ↑',
   },
   pt: {
     upNext: 'A seguir',
@@ -559,6 +566,7 @@ const translations: Record<string, TranslationKeys> = {
     close: 'Fechar',
     autoPlay: 'Automático',
     speed: 'Velocidade',
+    viewScript: '📖 Roteiro ↑',
   },
   ru: {
     upNext: 'Далее',
@@ -628,6 +636,7 @@ const translations: Record<string, TranslationKeys> = {
     close: 'Закрыть',
     autoPlay: 'Авто',
     speed: 'Скорость',
+    viewScript: '📖 Текст ↑',
   },
   zh: {
     upNext: '下一个',
@@ -697,6 +706,7 @@ const translations: Record<string, TranslationKeys> = {
     close: '关闭',
     autoPlay: '自动播放',
     speed: '速度',
+    viewScript: '📖 文本 ↑',
   },
   ja: {
     upNext: '次の再生',
@@ -766,6 +776,7 @@ const translations: Record<string, TranslationKeys> = {
     close: '閉じる',
     autoPlay: '自動再生',
     speed: '速度',
+    viewScript: '📖 テキスト ↑',
   },
   ko: {
     upNext: '다음 재생',
@@ -835,6 +846,7 @@ const translations: Record<string, TranslationKeys> = {
     close: '닫기',
     autoPlay: '자동재생',
     speed: '속도',
+    viewScript: '📖 스크립트 ↑',
   },
   ar: {
     upNext: 'التالي',
@@ -904,6 +916,7 @@ const translations: Record<string, TranslationKeys> = {
     close: 'إغلاق',
     autoPlay: 'تشغيل تلقائي',
     speed: 'السرعة',
+    viewScript: '📖 النص ↑',
   },
 };
 

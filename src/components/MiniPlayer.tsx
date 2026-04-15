@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { Play, Pause, ChevronUp, SkipBack, SkipForward, Headphones } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { haptics } from '@/lib/haptics';
+import { t } from '@/lib/translations';
 
 // Marquee component for long titles
 const MarqueeText: React.FC<{ text: string; className?: string }> = ({ text, className }) => {
@@ -65,6 +66,7 @@ interface MiniPlayerProps {
   onNext?: () => void;
   autoAdvance?: boolean;
   onToggleAutoAdvance?: () => void;
+  lang?: string;
 }
 
 const SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5, 2];
@@ -87,6 +89,7 @@ export const MiniPlayer = React.memo<MiniPlayerProps>(({
   onToggleAutoAdvance,
   playbackSpeed = 1,
   variant = 'fixed',
+  lang = 'en',
 }) => {
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
@@ -126,7 +129,7 @@ export const MiniPlayer = React.memo<MiniPlayerProps>(({
         onClick={() => { haptics.light(); onExpand(); }}
       >
         <div className="w-10 h-1 rounded-full bg-primary/35" />
-        <span className="text-[10px] font-medium text-primary/50 mt-0.5 tracking-wide">📖 Script ↑</span>
+        <span className="text-[10px] font-medium text-primary/50 mt-0.5 tracking-wide">{t('viewScript', lang)}</span>
       </div>
 
       {/* Progress bar */}
