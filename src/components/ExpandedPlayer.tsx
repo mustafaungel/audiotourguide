@@ -60,33 +60,44 @@ const ScriptReadingView: React.FC<{ scriptText: string; lang?: string }> = ({ sc
         style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
       >
         <div className="h-[4vh]" />
-        <div className="px-6">
+        <div className="px-4 flex flex-col gap-5">
           {paragraphs.map((text, i) => {
-            const firstChar = text.charAt(0);
-            const rest = text.slice(1);
+            const spaceIdx = text.indexOf(' ');
+            const firstWord = spaceIdx > 0 ? text.slice(0, spaceIdx) : text;
+            const rest = spaceIdx > 0 ? text.slice(spaceIdx) : '';
             return (
               <React.Fragment key={i}>
-                <p
-                  lang={lang || 'en'}
-                  className="mb-2 text-[17px] font-light leading-[1.9] text-foreground/85"
+                <div
+                  className="rounded-xl p-5 border border-white/10 bg-white/5 dark:bg-white/[0.08] backdrop-blur-sm"
                   style={{
-                    hyphens: 'auto',
-                    WebkitHyphens: 'auto',
-                    wordBreak: 'break-word',
-                    overflowWrap: 'break-word',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
                   }}
                 >
-                  <span
-                    className="float-left text-[3rem] font-bold leading-none mr-2 mt-1 text-primary/80"
-                    style={{ lineHeight: '0.8' }}
+                  <p
+                    lang={lang || 'en'}
+                    className="text-[17px] font-normal leading-[1.9] text-foreground/90"
+                    style={{
+                      hyphens: 'auto',
+                      WebkitHyphens: 'auto',
+                      wordBreak: 'break-word',
+                      overflowWrap: 'break-word',
+                      textShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                    }}
                   >
-                    {firstChar}
-                  </span>
-                  {rest}
-                </p>
+                    <span
+                      className="text-[1.6rem] font-black uppercase tracking-wide text-foreground"
+                      style={{
+                        textShadow: '2px 2px 4px rgba(0,0,0,0.4), 0 0 12px hsl(var(--primary) / 0.25)',
+                      }}
+                    >
+                      {firstWord}
+                    </span>
+                    {rest}
+                  </p>
+                </div>
                 {i < paragraphs.length - 1 && (
-                  <div className="flex justify-center my-6">
-                    <span className="text-muted-foreground/30 text-sm tracking-[0.5em] select-none">· · ·</span>
+                  <div className="flex justify-center">
+                    <div className="w-2/3 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
                   </div>
                 )}
               </React.Fragment>
