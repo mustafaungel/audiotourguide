@@ -120,32 +120,14 @@ export const MiniPlayer = React.memo<MiniPlayerProps>(({
       )}
       style={{ willChange: 'transform', transform: 'translateZ(0)' }}
     >
-      {/* Expand peek — blurred thumbnail + handle above player */}
-      {imageUrl && (
-        <div
-          className="relative h-7 overflow-hidden cursor-pointer"
-          onClick={() => { haptics.light(); onExpand(); }}
-        >
-          <div
-            className="absolute inset-0 scale-150"
-            style={{
-              backgroundImage: `url(${imageUrl})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              filter: 'blur(12px) brightness(0.85)',
-            }}
-          />
-          <div className="absolute inset-0 bg-background/40 dark:bg-background/50" />
-          <div className="relative flex justify-center items-center h-full">
-            <div className="w-10 h-1 rounded-full bg-white/50 dark:bg-white/40" />
-          </div>
-        </div>
-      )}
-      {!imageUrl && (
-        <div className="flex justify-center pt-1.5 pb-0.5 cursor-pointer" onClick={() => { haptics.light(); onExpand(); }}>
-          <div className="w-10 h-1 rounded-full bg-primary/30" />
-        </div>
-      )}
+      {/* Expand hint — handle + script label */}
+      <div
+        className="flex flex-col items-center pt-1.5 pb-0.5 cursor-pointer active:opacity-70 transition-opacity"
+        onClick={() => { haptics.light(); onExpand(); }}
+      >
+        <div className="w-10 h-1 rounded-full bg-primary/35" />
+        <span className="text-[10px] font-medium text-primary/50 mt-0.5 tracking-wide">View Script</span>
+      </div>
 
       {/* Progress bar */}
       <div className="h-[3px] bg-muted/30 w-full">
