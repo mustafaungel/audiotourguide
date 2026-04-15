@@ -81,8 +81,8 @@ const ScriptReadingView: React.FC<{ scriptText: string; lang?: string }> = ({ sc
       </div>
 
       {/* Top/bottom fades — transparent to match blurred bg */}
-      <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-black/40 to-transparent pointer-events-none z-10" />
-      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/40 to-transparent pointer-events-none z-10" />
+      <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-background/60 to-transparent pointer-events-none z-10" />
+      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background/60 to-transparent pointer-events-none z-10" />
     </div>
   );
 };
