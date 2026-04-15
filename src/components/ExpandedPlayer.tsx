@@ -363,11 +363,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
               <ThemeToggle />
             </div>
             <button
-              onClick={() => {
-                haptics.light();
-                setDragY(250);
-                setTimeout(() => onClose(), 280);
-              }}
+              onClick={() => { haptics.light(); onClose(); }}
               className="w-12 h-8 flex items-center justify-center text-muted-foreground/60 active:opacity-60 -mt-0.5"
             >
               <ChevronDown className="w-7 h-7" />
