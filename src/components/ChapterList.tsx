@@ -189,7 +189,6 @@ export const ChapterList: React.FC<ChapterListProps> = ({
         <CardContent className="space-y-1.5 px-4 pb-4">
         {sections.map((section, index) => {
           const isCurrent = index === currentSectionIndex;
-          const progress = isCurrent ? (currentTime / duration) * 100 : 0;
 
           return (
             <button
@@ -261,30 +260,6 @@ export const ChapterList: React.FC<ChapterListProps> = ({
                     </p>
                   )}
 
-                  {/* Progress Bar for Current Chapter — Spotify Style */}
-                  {isCurrent && (
-                    <div className="mt-3">
-                      <div className="relative h-1 bg-muted rounded-full overflow-visible">
-                        <div
-                          className="h-full bg-gradient-to-r from-primary/60 via-primary to-primary/80 rounded-full shadow-sm shadow-primary/30"
-                          style={{ width: `${progress}%` }}
-                        />
-                        {/* Scrubber Dot */}
-                        <div
-                          className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-primary rounded-full shadow-md shadow-primary/40"
-                          style={{ left: `calc(${progress}% - 5px)` }}
-                        />
-                      </div>
-                      <div className="flex justify-between mt-1.5">
-                        <span className="text-xs text-muted-foreground font-medium">
-                          {formatTime(currentTime)}
-                        </span>
-                        <span className="text-xs text-muted-foreground font-medium">
-                          {formatTime(duration)}
-                        </span>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             </button>
