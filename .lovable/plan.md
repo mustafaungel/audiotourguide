@@ -1,38 +1,38 @@
 
 
-## Expanded Player — Dark/Light Tema Ayrımı ve Tam Ekran Kullanımı
+## Expanded Player Script — Crystal Glass Arka Plan
 
-### Sorunlar (ekran görüntüsünden)
-1. **Arka plan görseli ekranı daraltıyor** — blurred image + overlay katmanı gereksiz alan kaplıyor ve script alanını sıkıştırıyor
-2. **Dark/Light tema ayrımı yok** — kart ve metin renkleri her iki temada aynı görünüyor, light modda okunabilirlik düşük
+### Fikir
+Script alanı şu an düz `bg-background` — hiçbir hissiyat yok. Çözüm: Rehberin kapak görselini script arkasında **çok hafif blurlu** göstermek. Ama `backdrop-blur` kullanmak yerine (her kart için GPU yükü), **tek bir sabit blurlu arka plan katmanı** + üzerine yarı-saydam overlay. Performans sıfır etki.
 
-### Değişiklikler — `src/components/ExpandedPlayer.tsx`
+### Yaklaşım — Sabit Blurlu Arka Plan (GPU-friendly)
 
-**1. Arka Plan Görseli Kaldırılacak (Script Varsa)**
-- Script text varken blurred background image render edilmeyecek — sadece düz `bg-background` kullanılacak
-- Bu sayede ekranın tamamı script için kullanılır, görsel alan kaybı sıfır
-- Script yoksa mevcut blurred image veya cover art gösterilmeye devam eder
+**1. Arka plan görseli — script varken de göster**
+- Şu an `imageUrl && !scriptText` koşulu var → bunu `imageUrl` olarak değiştir (script varken de göster)
+- Blur: `blur(40px)` (daha yoğun, metin okunabilirliği korunur)
+- Saturation: `saturate(1.2)` — hafif renk canlılığı
+- Opacity: Dark modda `0.25`, light modda `0.15` — çok hafif ama hissedilir
+- `scale-110` ile kenar boşlukları kapatılır
 
-**2. Dark/Light Tema Ayrımlı Kart Tasarımı**
-- **Dark mod**: `bg-white/[0.06]`, `border-white/[0.08]`, `shadow-[0_4px_24px_rgba(0,0,0,0.4)]`
-- **Light mod**: `bg-black/[0.04]`, `border-black/[0.08]`, `shadow-[0_2px_12px_rgba(0,0,0,0.08)]`
-- Tailwind dark variant ile ayrım: `dark:bg-white/[0.06] bg-black/[0.04]`
+**2. Overlay katmanı — tema duyarlı**
+- Script varken daha güçlü overlay: `bg-background/75 dark:bg-background/70`
+- Bu sayede metin okunabilirliği korunur ama arkada hafif renk/ışık hissedilir
 
-**3. Metin Renkleri Tema Duyarlı**
-- Gövde metin: `text-foreground/85 dark:text-foreground/90`
-- İlk kelime (drop word): `text-foreground dark:text-foreground` (her iki temada tam kontrast)
-- Text shadow: Dark modda `rgba(0,0,0,0.3)`, light modda `rgba(0,0,0,0.05)` — inline style ile
-- İlk kelime shadow: Dark modda mevcut 3D efekt, light modda daha hafif gölge
+**3. Kart glassmorphism güçlendir**
+- Kartlardaki `backdrop-blur-sm` → `backdrop-blur-md` (biraz daha cam hissi)
+- Bu tek katman blur olduğu için performans etkisi minimal
 
-**4. Gradient Fade Düzeltmesi**
-- Üst/alt fade: `from-background/80` → tema ile uyumlu, arka plan düz olduğu için daha güçlü fade
+**4. Top/bottom fade — arka planla uyumlu**
+- Gradient fade zaten `from-background/80` — arka plandaki blur ile güzel geçiş yapar
 
-**5. Overlay Katmanı**
-- Script varken overlay tamamen kaldırılacak (arka plan görseli zaten yok)
-- Script yokken mevcut overlay korunur
+### Teknik Detay — Tek Dosya
+`src/components/ExpandedPlayer.tsx`:
 
-### Teknik Detay
-- Tek dosya: `src/components/ExpandedPlayer.tsx`
-- Background image render koşulu: `{imageUrl && !scriptText && (...)}`
-- Kart class: `cn("rounded-xl p-5 backdrop-blur-sm", "bg-black/[0.04] border-black/[0.08] shadow-[0_2px_12px_rgba(0,0,0,0.08)]", "dark:bg-white/[0.06] dark:border-white/[0.08] dark:shadow-[0_4px_24px_rgba(0,0,0,0.4)]")`
+- Satır 240: `{imageUrl && !scriptText && (` → `{imageUrl && (`
+- Satır 248-249: Blur `20px` → `40px`, opacity `0.55` → `0.2`
+- Satır 252: Overlay — script varken `bg-background/75`, yokken mevcut `bg-background/55`
+- Satır 71: Kart `backdrop-blur-sm` → `backdrop-blur-md`
+
+### Sonuç
+Düz beyaz/siyah arka plan yerine, rehberin kapak görselinin çok hafif, bulanık, kristal cam arkasındaymış gibi hissedilen bir arka plan. Kartlar da hafif cam efektiyle üzerinde yüzüyor. Performans etkisi sıfır — tek bir CSS `filter: blur()` katmanı.
 
