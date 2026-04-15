@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -6,17 +6,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Languages, Mic, Loader2, CheckCircle, Globe } from 'lucide-react';
+import { Languages, Mic, Loader2, CheckCircle, Globe, Copy, Play, Pause } from 'lucide-react';
 import { ELEVENLABS_LANGUAGES } from '@/data/countries-full';
 import { toast } from 'sonner';
-
-interface Voice {
-  voice_id: string;
-  name: string;
-  gender: string;
-  accent: string;
-  preview_url: string | null;
-}
 
 interface AddLanguageDialogProps {
   open: boolean;
@@ -26,140 +18,47 @@ interface AddLanguageDialogProps {
   guideLocation: string;
 }
 
-type Step = 'select' | 'working' | 'done';
+type Step = 'select' | 'translating' | 'upload' | 'saving' | 'done';
 
 export function AddLanguageDialog({ open, onClose, guideId, guideTitle, guideLocation }: AddLanguageDialogProps) {
   const [existingLanguages, setExistingLanguages] = useState<string[]>([]);
   const [selectedLang, setSelectedLang] = useState('');
-  const [voiceGender, setVoiceGender] = useState<'female' | 'male'>('female');
-  const [selectedVoiceId, setSelectedVoiceId] = useState('');
-  const [voices, setVoices] = useState<Voice[]>([]);
-  const [loadingVoices, setLoadingVoices] = useState(false);
   const [step, setStep] = useState<Step>('select');
   const [progress, setProgress] = useState({ current: 0, total: 0, message: '' });
-  const [previewAudio, setPreviewAudio] = useState<HTMLAudioElement | null>(null);
-  const [playingPreview, setPlayingPreview] = useState(false);
-  const [generatingPreview, setGeneratingPreview] = useState(false);
-  // Cache translated preview text per language (avoid re-translating on voice change)
-  const translatedPreviewRef = useRef<Record<string, string>>({});
 
-  // Load existing languages and voices on open
+  // Translation results
+  const [translatedSections, setTranslatedSections] = useState<{ title: string; description: string; original: any }[]>([]);
+  // Audio upload
+  const [uploadedAudio, setUploadedAudio] = useState<{ audio_url: string; duration_seconds: number }[]>([]);
+  const [uploadingIdx, setUploadingIdx] = useState<number | null>(null);
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const [playingIdx, setPlayingIdx] = useState<number | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const availableLanguages = ELEVENLABS_LANGUAGES.filter(l => !existingLanguages.includes(l.code));
+  const selectedLangName = ELEVENLABS_LANGUAGES.find(l => l.code === selectedLang)?.name || '';
+
+  // Reset on open
   useEffect(() => {
     if (!open || !guideId) return;
     setStep('select');
     setSelectedLang('');
-    setSelectedVoiceId('');
+    setTranslatedSections([]);
+    setUploadedAudio([]);
 
-    // Fetch existing languages
     (async () => {
       const { data } = await supabase.rpc('get_guide_languages', { p_guide_id: guideId });
       if (data) setExistingLanguages(data.map((l: any) => l.language_code));
     })();
-
-    // Voices fetched when language is selected (below)
   }, [open, guideId]);
 
-  // Fetch voices filtered by selected language
-  useEffect(() => {
+  // === TRANSLATE ALL SCRIPTS ===
+  const handleTranslate = async () => {
     if (!selectedLang) return;
-    const langName = ELEVENLABS_LANGUAGES.find(l => l.code === selectedLang)?.name;
-    (async () => {
-      setLoadingVoices(true);
-      setSelectedVoiceId('');
-      try {
-        const { data } = await supabase.functions.invoke('list-voices', {
-          body: { language: langName || selectedLang }
-        });
-        if (data?.voices) setVoices(data.voices);
-      } catch { /* silent */ }
-      finally { setLoadingVoices(false); }
-    })();
-  }, [selectedLang]);
-
-  const filteredVoices = voices.filter(v => v.gender === voiceGender);
-  const availableLanguages = ELEVENLABS_LANGUAGES.filter(l => !existingLanguages.includes(l.code));
-  const selectedLangName = ELEVENLABS_LANGUAGES.find(l => l.code === selectedLang)?.name || '';
-
-  // Preview sentences per language
-  const PREVIEW: Record<string, string> = {
-    en: 'Welcome to this audio tour guide.',
-    es: 'Bienvenidos a esta guía de audio.',
-    fr: 'Bienvenue dans ce guide audio.',
-    de: 'Willkommen zu diesem Audio-Reiseführer.',
-    it: 'Benvenuti in questa guida audio.',
-    pt: 'Bem-vindos a este guia de áudio.',
-    tr: 'Bu sesli tura hoş geldiniz.',
-    ja: 'このオーディオツアーへようこそ。',
-    ko: '이 오디오 투어에 오신 것을 환영합니다.',
-    zh: '欢迎来到这次语音导览。',
-    ru: 'Добро пожаловать в этот аудиотур.',
-    ar: 'مرحبًا بكم في هذه الجولة الصوتية.',
-  };
-
-  const handlePreview = useCallback(async () => {
-    if (previewAudio) { previewAudio.pause(); setPreviewAudio(null); }
-    if (playingPreview) { setPlayingPreview(false); return; }
-    if (!selectedVoiceId || !selectedLang) return;
-
-    setGeneratingPreview(true);
-    try {
-      // Check cache first - avoid re-translating for same language
-      let previewText = translatedPreviewRef.current[selectedLang];
-
-      if (!previewText) {
-        // First preview for this language - translate once
-        const { data: sections } = await supabase.from('guide_sections')
-          .select('description')
-          .eq('guide_id', guideId)
-          .eq('language_code', 'en')
-          .order('order_index')
-          .limit(1);
-
-        if (sections?.[0]?.description && sections[0].description.length > 100) {
-          const snippet = sections[0].description.substring(0, 300);
-          const { data: transData } = await supabase.functions.invoke('translate-script', {
-            body: { script: snippet, source_language: 'English', target_language: selectedLangName, place: guideTitle }
-          });
-          previewText = transData?.translated_script?.replace(/^---\s*/gm, '').replace(/\s*---$/gm, '').trim() || '';
-        }
-        if (!previewText) previewText = PREVIEW[selectedLang] || PREVIEW.en;
-        // Cache for next voice change
-        translatedPreviewRef.current[selectedLang] = previewText;
-      }
-
-      // Try ElevenLabs preview_url first (instant, free), then generate
-      const voice = filteredVoices.find((v: any) => v.voice_id === selectedVoiceId);
-      let audioUrl = voice?.preview_url;
-
-      if (!audioUrl) {
-        const { data, error } = await supabase.functions.invoke('generate-audio', {
-          body: { text: previewText, voiceId: selectedVoiceId, modelId: 'eleven_multilingual_v2', isPreview: true }
-        });
-        if (error || !data?.audio_url) {
-          toast.error(`Preview failed: ${error?.message || data?.error || 'No audio URL'}`);
-          return;
-        }
-        audioUrl = data.audio_url;
-      }
-
-      const audio = new Audio(audioUrl);
-      audio.onended = () => { setPlayingPreview(false); setPreviewAudio(null); };
-      audio.onerror = () => { toast.error('Audio playback failed'); setPlayingPreview(false); };
-      await audio.play();
-      setPlayingPreview(true);
-      setPreviewAudio(audio);
-    } catch (e: any) { toast.error(`Preview error: ${e?.message || 'Unknown'}`); }
-    finally { setGeneratingPreview(false); }
-  }, [selectedVoiceId, selectedLang, previewAudio, playingPreview]);
-
-  // Start translation + audio generation
-  const handleStart = async () => {
-    if (!selectedLang || !selectedVoiceId) return;
-
-    setStep('working');
+    setStep('translating');
 
     try {
-      // 1. Fetch English sections as source for translation
+      // Fetch English source sections
       const { data: origSections, error: fetchErr } = await supabase
         .from('guide_sections')
         .select('id, title, description, order_index, duration_seconds')
@@ -167,66 +66,124 @@ export function AddLanguageDialog({ open, onClose, guideId, guideTitle, guideLoc
         .eq('language_code', 'en')
         .order('order_index');
 
-      if (fetchErr || !origSections?.length) {
-        throw new Error('No English sections found to translate from');
-      }
+      if (fetchErr || !origSections?.length) throw new Error('No English sections found to translate from');
 
-      // Filter out sections with empty descriptions (no script to translate)
-      const validSections = origSections!.filter(s => s.description && s.description.length > 50);
+      const validSections = origSections.filter(s => s.description && s.description.length > 50);
       const total = validSections.length;
-      setProgress({ current: 0, total: total * 3, message: 'Starting...' });
+      setProgress({ current: 0, total: total * 2, message: 'Starting translation...' });
 
-      // Clean --- markers from translated text
-      const cleanMarkers = (text: string) => text.replace(/^---\s*/gm, '').replace(/\s*---$/gm, '').replace(/^"""\s*/gm, '').replace(/\s*"""$/gm, '').trim();
+      const cleanMarkers = (text: string) =>
+        text.replace(/^---\s*/gm, '').replace(/\s*---$/gm, '').replace(/^"""\s*/gm, '').replace(/\s*"""$/gm, '').trim();
 
-      const newSections: any[] = [];
+      const results: { title: string; description: string; original: any }[] = [];
 
       for (let i = 0; i < total; i++) {
         const orig = validSections[i];
 
-        // Step 1: Translate title
-        setProgress({ current: i * 3, total: total * 3, message: `Translating section ${i + 1}/${total}...` });
+        // Translate title
+        setProgress({ current: i * 2, total: total * 2, message: `Translating ${i + 1}/${total}: ${orig.title.substring(0, 30)}...` });
         const { data: titleTrans } = await supabase.functions.invoke('translate-script', {
           body: { script: orig.title, source_language: 'English', target_language: selectedLangName, place: guideTitle, section_title: orig.title }
         });
-        // Keep only first line of title (GPT sometimes adds full paragraphs)
         const rawTitle = cleanMarkers(titleTrans?.translated_script || orig.title);
         const translatedTitle = rawTitle.split('\n')[0].trim();
 
-        // Step 2: Translate description/script
-        setProgress({ current: i * 3 + 1, total: total * 3, message: `Translating script ${i + 1}/${total}...` });
+        // Translate description
+        setProgress({ current: i * 2 + 1, total: total * 2, message: `Translating script ${i + 1}/${total}...` });
         const { data: descTrans } = await supabase.functions.invoke('translate-script', {
           body: { script: orig.description, source_language: 'English', target_language: selectedLangName, place: guideTitle, section_title: orig.title }
         });
         const translatedDesc = cleanMarkers(descTrans?.translated_script || orig.description);
 
-        // Step 3: Generate audio
-        setProgress({ current: i * 3 + 2, total: total * 3, message: `Generating audio ${i + 1}/${total}...` });
-        const audioText = translatedDesc;
-        const { data: audioData } = await supabase.functions.invoke('generate-audio', {
-          body: { text: audioText, voiceId: selectedVoiceId, modelId: 'eleven_multilingual_v2' }
-        });
-
-        newSections.push({
-          guide_id: guideId,
-          title: translatedTitle,
-          description: translatedDesc,
-          audio_url: audioData?.audio_url || null,
-          duration_seconds: audioData?.duration_seconds || orig.duration_seconds || 180,
-          language: selectedLangName,
-          language_code: selectedLang,
-          order_index: orig.order_index,
-          is_original: false,
-          original_section_id: orig.id,
-        });
+        results.push({ title: translatedTitle, description: translatedDesc, original: orig });
       }
 
-      // Save all translated sections to DB
-      setProgress({ current: total * 3, total: total * 3, message: 'Saving sections...' });
+      setTranslatedSections(results);
+      setUploadedAudio(results.map(() => ({ audio_url: '', duration_seconds: 0 })));
+      setStep('upload');
+      toast.success(`${total} sections translated to ${selectedLangName}!`);
+    } catch (error: any) {
+      toast.error(`Translation failed: ${error.message}`);
+      setStep('select');
+    }
+  };
+
+  // === AUDIO HELPERS ===
+  const getAudioDuration = (file: File): Promise<number> => {
+    return new Promise((resolve) => {
+      const audio = new Audio();
+      audio.addEventListener('loadedmetadata', () => { resolve(Math.round(audio.duration)); URL.revokeObjectURL(audio.src); });
+      audio.addEventListener('error', () => { resolve(0); URL.revokeObjectURL(audio.src); });
+      audio.src = URL.createObjectURL(file);
+    });
+  };
+
+  const handleCopyScript = async (index: number) => {
+    try {
+      await navigator.clipboard.writeText(translatedSections[index].description);
+      setCopiedIdx(index);
+      toast.success('Script copied! Paste it in ElevenLabs');
+      setTimeout(() => setCopiedIdx(null), 3000);
+    } catch { toast.error('Failed to copy'); }
+  };
+
+  const handleAudioUpload = async (index: number, file: File) => {
+    setUploadingIdx(index);
+    try {
+      const duration = await getAudioDuration(file);
+      const ext = file.name.split('.').pop() || 'mp3';
+      const path = `uploaded-${Date.now()}-${crypto.randomUUID()}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from('guide-audio').upload(path, file, { contentType: file.type });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from('guide-audio').getPublicUrl(path);
+      setUploadedAudio(prev => prev.map((a, i) => i === index ? { audio_url: urlData.publicUrl, duration_seconds: duration } : a));
+      toast.success(`Audio uploaded for section ${index + 1}`);
+    } catch (e: any) { toast.error(`Upload failed: ${e.message}`); }
+    setUploadingIdx(null);
+  };
+
+  const handleRemoveAudio = (index: number) => {
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    setPlayingIdx(null);
+    setUploadedAudio(prev => prev.map((a, i) => i === index ? { audio_url: '', duration_seconds: 0 } : a));
+  };
+
+  const playAudio = (index: number) => {
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    if (playingIdx === index) { setPlayingIdx(null); return; }
+    const url = uploadedAudio[index]?.audio_url;
+    if (!url) return;
+    const audio = new Audio(url);
+    audio.onended = () => { setPlayingIdx(null); audioRef.current = null; };
+    audio.play();
+    setPlayingIdx(index);
+    audioRef.current = audio;
+  };
+
+  // === SAVE TO DATABASE ===
+  const handleSave = async () => {
+    setStep('saving');
+    setProgress({ current: 0, total: 2, message: 'Saving sections...' });
+
+    try {
+      const newSections = translatedSections.map((section, i) => ({
+        guide_id: guideId,
+        title: section.title,
+        description: section.description,
+        audio_url: uploadedAudio[i]?.audio_url || null,
+        duration_seconds: uploadedAudio[i]?.duration_seconds || section.original.duration_seconds || 180,
+        language: selectedLangName,
+        language_code: selectedLang,
+        order_index: section.original.order_index,
+        is_original: false,
+        original_section_id: section.original.id,
+      }));
+
       const { error: insertErr } = await supabase.from('guide_sections').insert(newSections);
       if (insertErr) throw new Error(`Failed to save: ${insertErr.message}`);
 
       // Update guide languages array
+      setProgress({ current: 1, total: 2, message: 'Updating guide...' });
       const { data: guide } = await supabase.from('audio_guides').select('languages').eq('id', guideId).single();
       const currentLangs: string[] = guide?.languages || [];
       if (!currentLangs.includes(selectedLangName)) {
@@ -234,17 +191,19 @@ export function AddLanguageDialog({ open, onClose, guideId, guideTitle, guideLoc
       }
 
       setStep('done');
-      toast.success(`${selectedLangName} language added with ${total} sections!`);
-
+      toast.success(`${selectedLangName} added with ${newSections.length} sections!`);
     } catch (error: any) {
-      toast.error(`Failed: ${error.message}`);
-      setStep('select');
+      toast.error(`Save failed: ${error.message}`);
+      setStep('upload');
     }
   };
 
+  const uploadedCount = uploadedAudio.filter(a => a?.audio_url).length;
+  const allUploaded = translatedSections.length > 0 && uploadedCount >= translatedSections.length;
+
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className={step === 'upload' ? 'max-w-2xl max-h-[85vh] overflow-hidden flex flex-col' : 'max-w-lg'}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Globe className="w-5 h-5" />
@@ -257,7 +216,6 @@ export function AddLanguageDialog({ open, onClose, guideId, guideTitle, guideLoc
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">{guideLocation}</p>
 
-            {/* Existing languages */}
             {existingLanguages.length > 0 && (
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">Existing Languages</Label>
@@ -270,7 +228,6 @@ export function AddLanguageDialog({ open, onClose, guideId, guideTitle, guideLoc
               </div>
             )}
 
-            {/* Language selection */}
             <div className="space-y-2">
               <Label className="flex items-center gap-1.5"><Languages className="w-3.5 h-3.5" /> New Language</Label>
               {availableLanguages.length === 0 ? (
@@ -287,59 +244,112 @@ export function AddLanguageDialog({ open, onClose, guideId, guideTitle, guideLoc
               )}
             </div>
 
-            {/* Voice selection */}
-            {selectedLang && (
-              <div className="space-y-2">
-                <Label className="flex items-center gap-1.5"><Mic className="w-3.5 h-3.5" /> Voice for {selectedLangName}</Label>
-                <div className="flex gap-2 mb-1">
-                  <button onClick={() => setVoiceGender('female')}
-                    className={`flex-1 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${voiceGender === 'female' ? 'bg-primary/15 border-primary text-primary' : 'border-border hover:bg-muted'}`}>
-                    Female
-                  </button>
-                  <button onClick={() => setVoiceGender('male')}
-                    className={`flex-1 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${voiceGender === 'male' ? 'bg-primary/15 border-primary text-primary' : 'border-border hover:bg-muted'}`}>
-                    Male
-                  </button>
-                </div>
-                {loadingVoices ? (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="w-4 h-4 animate-spin" /> Loading...</div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <Select value={selectedVoiceId} onValueChange={setSelectedVoiceId}>
-                      <SelectTrigger className="flex-1"><SelectValue placeholder="Select voice..." /></SelectTrigger>
-                      <SelectContent className="max-h-[200px]">
-                        {filteredVoices.map(v => (
-                          <SelectItem key={v.voice_id} value={v.voice_id}>
-                            {v.name} {v.accent && v.accent !== 'unknown' && v.accent !== 'multilingual' ? `(${v.accent})` : ''}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {selectedVoiceId && (
-                      <Button variant="outline" size="sm" disabled={generatingPreview} onClick={handlePreview}>
-                        {generatingPreview ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : playingPreview ? '⏹' : '▶'}
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Start button */}
-            <Button onClick={handleStart} disabled={!selectedLang || !selectedVoiceId} className="w-full">
-              Translate & Generate Audio
+            <Button onClick={handleTranslate} disabled={!selectedLang} className="w-full">
+              Translate Scripts to {selectedLangName || '...'}
             </Button>
           </div>
         )}
 
-        {/* WORKING STEP */}
-        {step === 'working' && (
+        {/* TRANSLATING STEP */}
+        {step === 'translating' && (
           <div className="py-8 text-center space-y-4">
             <Loader2 className="w-10 h-10 text-primary animate-spin mx-auto" />
             <div>
               <p className="text-sm font-medium">{progress.message}</p>
-              <p className="text-xs text-muted-foreground mt-1">Adding {selectedLangName} to {guideTitle}</p>
+              <p className="text-xs text-muted-foreground mt-1">Translating to {selectedLangName} for {guideTitle}</p>
             </div>
+            <Progress value={progress.total > 0 ? (progress.current / progress.total) * 100 : 0} className="h-2" />
+          </div>
+        )}
+
+        {/* UPLOAD STEP */}
+        {step === 'upload' && (
+          <div className="flex-1 overflow-hidden flex flex-col space-y-3">
+            <div className="bg-muted/50 border rounded-lg p-3 text-sm text-muted-foreground space-y-1 shrink-0">
+              <p><strong>Workflow:</strong> Copy each translated script, paste into <a href="https://elevenlabs.io/app/speech-synthesis" target="_blank" rel="noopener noreferrer" className="text-primary underline">ElevenLabs</a>, generate audio, then upload the MP3 here.</p>
+              <p className="text-xs">{uploadedCount}/{translatedSections.length} sections uploaded</p>
+            </div>
+
+            <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+              {translatedSections.map((section, i) => {
+                const hasAudio = uploadedAudio[i]?.audio_url;
+                const dur = uploadedAudio[i]?.duration_seconds || 0;
+                const words = section.description.split(/\s+/).length;
+
+                return (
+                  <div key={i} className={`border rounded-lg p-3 space-y-2 ${hasAudio ? 'border-green-500/30 bg-green-500/5' : ''}`}>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shrink-0 ${hasAudio ? 'bg-green-500/20 text-green-600' : 'bg-primary/10 text-primary'}`}>
+                        {hasAudio ? <CheckCircle className="w-3.5 h-3.5" /> : i + 1}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{section.title}</p>
+                        <p className="text-xs text-muted-foreground">{words} words · ~{Math.round(words / 150)} min</p>
+                      </div>
+                      <Button
+                        size="sm" variant="outline"
+                        className={`shrink-0 gap-1 text-xs ${copiedIdx === i ? 'text-green-600 border-green-500' : ''}`}
+                        onClick={() => handleCopyScript(i)}
+                      >
+                        {copiedIdx === i ? <CheckCircle className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                        {copiedIdx === i ? 'Copied!' : 'Copy'}
+                      </Button>
+                    </div>
+
+                    {hasAudio ? (
+                      <div className="flex items-center gap-2 bg-background rounded-lg p-2 border">
+                        <Button size="sm" variant="ghost" className="shrink-0" onClick={() => playAudio(i)}>
+                          {playingIdx === i ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                        </Button>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium text-green-600">Audio uploaded</p>
+                          <p className="text-[10px] text-muted-foreground">{Math.floor(dur / 60)}:{String(Math.floor(dur % 60)).padStart(2, '0')}</p>
+                        </div>
+                        <Button size="sm" variant="ghost" className="text-destructive text-xs shrink-0" onClick={() => handleRemoveAudio(i)}>
+                          Remove
+                        </Button>
+                      </div>
+                    ) : (
+                      <label className={`flex items-center justify-center gap-2 p-3 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${uploadingIdx === i ? 'border-primary/50 bg-primary/5' : 'border-muted-foreground/20 hover:border-primary/30 hover:bg-muted/30'}`}>
+                        {uploadingIdx === i ? (
+                          <><Loader2 className="w-4 h-4 animate-spin text-primary" /><span className="text-sm text-primary">Uploading...</span></>
+                        ) : (
+                          <><Mic className="w-4 h-4 text-muted-foreground" /><span className="text-sm text-muted-foreground">Upload MP3</span></>
+                        )}
+                        <input
+                          type="file"
+                          accept="audio/*"
+                          className="hidden"
+                          disabled={uploadingIdx !== null}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleAudioUpload(i, file);
+                            e.target.value = '';
+                          }}
+                        />
+                      </label>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="flex gap-2 pt-2 shrink-0">
+              <Button onClick={handleSave} className="flex-1" disabled={!allUploaded}>
+                {allUploaded ? 'Save & Add Language' : `Upload ${translatedSections.length - uploadedCount} more audio files`}
+              </Button>
+              <Button variant="outline" onClick={() => { setStep('select'); setTranslatedSections([]); setUploadedAudio([]); }}>
+                Back
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* SAVING STEP */}
+        {step === 'saving' && (
+          <div className="py-8 text-center space-y-4">
+            <Loader2 className="w-10 h-10 text-primary animate-spin mx-auto" />
+            <p className="text-sm font-medium">{progress.message}</p>
             <Progress value={progress.total > 0 ? (progress.current / progress.total) * 100 : 0} className="h-2" />
           </div>
         )}
@@ -350,7 +360,7 @@ export function AddLanguageDialog({ open, onClose, guideId, guideTitle, guideLoc
             <CheckCircle className="w-12 h-12 text-green-600 mx-auto" />
             <div>
               <h3 className="text-lg font-bold">{selectedLangName} Added!</h3>
-              <p className="text-sm text-muted-foreground">All sections translated and audio generated.</p>
+              <p className="text-sm text-muted-foreground">All sections translated and audio uploaded.</p>
             </div>
             <Button onClick={onClose} className="w-full">Done</Button>
           </div>
