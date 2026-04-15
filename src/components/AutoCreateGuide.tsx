@@ -34,18 +34,7 @@ interface PlannedSection {
   fun_fact: string;
 }
 
-interface Voice {
-  voice_id: string;
-  name: string;
-  gender: string;
-  category: string;
-  accent: string;
-  description: string;
-  preview_url: string | null;
-  languages: string[];
-}
-
-type Step = 'form' | 'plan_review' | 'generating_scripts' | 'script_review' | 'creating_audio' | 'audio_review' | 'creating_image' | 'done_review' | 'published' | 'error';
+type Step = 'form' | 'plan_review' | 'generating_scripts' | 'script_review' | 'audio_upload' | 'creating_image' | 'done_review' | 'published' | 'error';
 
 interface CreationProgress {
   step: number;
@@ -62,12 +51,7 @@ export function AutoCreateGuide() {
   const [place, setPlace] = useState('');
   const [placeInput, setPlaceInput] = useState('');
   const [category, setCategory] = useState('');
-  const [voiceGender, setVoiceGender] = useState<'female' | 'male'>('female');
-  const [voices, setVoices] = useState<Voice[]>([]);
-  const [loadingVoices, setLoadingVoices] = useState(false);
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(['en']);
-  // Per-language voice selection: { langCode: voiceId }
-  const [voiceByLanguage, setVoiceByLanguage] = useState<Record<string, string>>({});
   const [priceUsd, setPriceUsd] = useState('499');
 
   // Suggestion state
@@ -90,43 +74,15 @@ export function AutoCreateGuide() {
   const [regeneratingScript, setRegeneratingScript] = useState<number | null>(null);
   // Audio review state
   const [generatedAudio, setGeneratedAudio] = useState<{ audio_url: string; duration_seconds: number }[]>([]);
-  const [regeneratingAudio, setRegeneratingAudio] = useState<number | null>(null);
-  const [reviewAudio, setReviewAudio] = useState<HTMLAudioElement | null>(null);
-  const [playingSection, setPlayingSection] = useState<number | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
-  // Voice preview
-  const [previewAudio, setPreviewAudio] = useState<HTMLAudioElement | null>(null);
-  const [playingPreview, setPlayingPreview] = useState<string | null>(null);
+  // Audio upload state
+  const [uploadingSection, setUploadingSection] = useState<number | null>(null);
+  const [copiedScript, setCopiedScript] = useState<number | null>(null);
+  const [playingUploadAudio, setPlayingUploadAudio] = useState<number | null>(null);
+  const uploadAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Load voices when primary language changes
   const primaryLangCode = selectedLanguages[0] || 'en';
-  const primaryLangNameForVoices = ELEVENLABS_LANGUAGES.find(l => l.code === primaryLangCode)?.name || 'English';
-
-  useEffect(() => {
-    (async () => {
-      setLoadingVoices(true);
-      try {
-        const { data, error } = await supabase.functions.invoke('list-voices', { body: { language: primaryLangNameForVoices } });
-        if (!error && data?.voices) {
-          setVoices(data.voices);
-          const firstFemale = data.voices.find((v: Voice) => v.gender === 'female');
-          if (firstFemale) {
-            setVoiceByLanguage(prev => ({ ...prev, [primaryLangCode]: prev[primaryLangCode] || firstFemale.voice_id }));
-          }
-        }
-      } catch { /* silent */ }
-      finally { setLoadingVoices(false); }
-    })();
-  }, [primaryLangNameForVoices]);
-
-  // Filter voices by gender
-  const filteredVoices = voices.filter(v => v.gender === voiceGender);
-
-  // Set voice for a specific language
-  const setVoiceForLang = useCallback((langCode: string, voiceId: string) => {
-    setVoiceByLanguage(prev => ({ ...prev, [langCode]: voiceId }));
-  }, []);
 
   // Country selection → load cities
   const handleCountryChange = useCallback(async (countryName: string) => {
@@ -187,97 +143,16 @@ export function AutoCreateGuide() {
     }
   }, []);
 
-  // Language toggle - auto-assign a different voice for each new language
+  // Language toggle
   const toggleLanguage = useCallback((langCode: string) => {
     setSelectedLanguages(prev => {
       if (prev.includes(langCode)) {
         if (prev.length === 1) return prev;
-        setVoiceByLanguage(vbl => { const copy = { ...vbl }; delete copy[langCode]; return copy; });
         return prev.filter(l => l !== langCode);
-      }
-      // Auto-assign: prefer native voice for this language, then unused voice
-      const usedVoices = Object.values(voiceByLanguage);
-      const nativeVoices = filteredVoices.filter(v => v.languages?.includes(langCode));
-      const nativeAvailable = nativeVoices.find(v => !usedVoices.includes(v.voice_id));
-      const anyAvailable = filteredVoices.find(v => !usedVoices.includes(v.voice_id));
-      const picked = nativeAvailable || anyAvailable || filteredVoices[prev.length % Math.max(1, filteredVoices.length)];
-      if (picked) {
-        setVoiceByLanguage(vbl => ({ ...vbl, [langCode]: picked.voice_id }));
       }
       return [...prev, langCode];
     });
-  }, [filteredVoices, voiceByLanguage]);
-
-  // Location-specific preview script — generated once, cached, reused across voice changes
-  const previewScriptCache = useRef<Record<string, string>>({});
-  const [generatingPreview, setGeneratingPreview] = useState<string | null>(null);
-
-  const getPreviewScript = async (langCode: string): Promise<string> => {
-    const finalPlace = place || placeInput;
-    const finalCity = city || cityInput;
-    const cacheKey = `${finalPlace}_${finalCity}_${langCode}`;
-
-    if (previewScriptCache.current[cacheKey]) return previewScriptCache.current[cacheKey];
-
-    const langName = ELEVENLABS_LANGUAGES.find(l => l.code === langCode)?.name || 'English';
-
-    // Generate a 30-second location-specific preview script via GPT
-    const { data, error } = await supabase.functions.invoke('generate-section-script', {
-      body: {
-        country: country || '', city: finalCity || '', place: finalPlace || '',
-        section: {
-          title: `Preview of ${finalPlace}`,
-          subtitle: 'A captivating 30-second introduction',
-          key_topics: [finalPlace, finalCity, 'welcome'],
-          estimated_minutes: 0.5,
-          mood: 'awe-inspiring',
-          fun_fact: ''
-        },
-        language: langName
-      }
-    });
-
-    const script = data?.script || `Welcome to ${finalPlace} in ${finalCity}. This stunning location awaits your discovery.`;
-    // Trim to ~80 words for 30 seconds
-    const words = script.split(/\s+/);
-    const trimmed = words.slice(0, 80).join(' ') + (words.length > 80 ? '...' : '');
-
-    previewScriptCache.current[cacheKey] = trimmed;
-    return trimmed;
-  };
-
-  const playVoicePreview = useCallback(async (voiceId: string, langCode: string) => {
-    if (previewAudio) { previewAudio.pause(); setPreviewAudio(null); }
-    if (playingPreview === `${voiceId}_${langCode}`) { setPlayingPreview(null); return; }
-
-    const previewKey = `${voiceId}_${langCode}`;
-    setGeneratingPreview(previewKey);
-
-    try {
-      // Get location-specific preview script (cached after first generation)
-      const previewText = await getPreviewScript(langCode);
-
-      // Generate audio with this voice
-      const { data, error } = await supabase.functions.invoke('generate-audio', {
-        body: { text: previewText, voiceId, modelId: 'eleven_multilingual_v2', isPreview: true }
-      });
-      if (error || !data?.audio_url) {
-        toast.error(`Preview failed: ${error?.message || data?.error || 'No audio URL'}`);
-        return;
-      }
-
-      const audio = new Audio(data.audio_url);
-      audio.onended = () => { setPlayingPreview(null); setPreviewAudio(null); };
-      audio.onerror = () => { toast.error('Audio playback failed'); setPlayingPreview(null); setGeneratingPreview(null); };
-      await audio.play();
-      setPlayingPreview(previewKey);
-      setPreviewAudio(audio);
-    } catch (e: any) {
-      toast.error(`Preview error: ${e?.message || 'Unknown'}`);
-    } finally {
-      setGeneratingPreview(null);
-    }
-  }, [previewAudio, playingPreview, country, city, cityInput, place, placeInput]);
+  }, []);
 
   // Form validation
   const isFormValid = country && (city || cityInput) && (place || placeInput) && selectedLanguages.length > 0;
@@ -395,99 +270,64 @@ export function AutoCreateGuide() {
   };
 
   // === REGENERATE SINGLE AUDIO ===
-  const handleRegenerateAudio = async (index: number) => {
-    const primaryLang = selectedLanguages[0];
-    const defaultVoice = voiceGender === 'female' ? '9BWtsMINqrJLrRacOk9x' : 'pNInz6obpgDQGcFmaJgB';
-    const voiceId = voiceByLanguage[primaryLang] || defaultVoice;
+  // === AUDIO UPLOAD HELPERS ===
+  const getAudioDuration = (file: File): Promise<number> => {
+    return new Promise((resolve) => {
+      const audio = new Audio();
+      audio.addEventListener('loadedmetadata', () => { resolve(Math.round(audio.duration)); URL.revokeObjectURL(audio.src); });
+      audio.addEventListener('error', () => { resolve(0); URL.revokeObjectURL(audio.src); });
+      audio.src = URL.createObjectURL(file);
+    });
+  };
 
-    setRegeneratingAudio(index);
+  const handleCopyScript = async (index: number) => {
     try {
-      const { data, error } = await supabase.functions.invoke('generate-audio', {
-        body: { text: generatedScripts[index], voiceId, modelId: 'eleven_multilingual_v2' }
+      await navigator.clipboard.writeText(generatedScripts[index]);
+      setCopiedScript(index);
+      toast.success('Script copied! Paste it in ElevenLabs');
+      setTimeout(() => setCopiedScript(null), 3000);
+    } catch { toast.error('Failed to copy'); }
+  };
+
+  const handleAudioUpload = async (index: number, file: File) => {
+    setUploadingSection(index);
+    try {
+      const duration = await getAudioDuration(file);
+      const ext = file.name.split('.').pop() || 'mp3';
+      const path = `uploaded-${Date.now()}-${crypto.randomUUID()}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from('guide-audio').upload(path, file, { contentType: file.type });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from('guide-audio').getPublicUrl(path);
+      setGeneratedAudio(prev => {
+        const next = [...prev];
+        while (next.length <= index) next.push({ audio_url: '', duration_seconds: 0 });
+        next[index] = { audio_url: urlData.publicUrl, duration_seconds: duration };
+        return next;
       });
-      if (error || !data?.audio_url) throw new Error('Audio regeneration failed');
-      setGeneratedAudio(prev => prev.map((a, i) => i === index ? { audio_url: data.audio_url, duration_seconds: data.duration_seconds } : a));
-      toast.success(`Section ${index + 1} audio regenerated`);
-    } catch (e: any) {
-      toast.error(e.message);
-    } finally {
-      setRegeneratingAudio(null);
-    }
+      toast.success(`Audio uploaded for section ${index + 1}`);
+    } catch (e: any) { toast.error(`Upload failed: ${e.message}`); }
+    setUploadingSection(null);
   };
 
-  // === PLAY SECTION AUDIO IN REVIEW ===
-  const playSectionAudio = (index: number) => {
-    if (reviewAudio) { reviewAudio.pause(); setReviewAudio(null); }
-    if (playingSection === index) { setPlayingSection(null); return; }
-    const audio = new Audio(generatedAudio[index]?.audio_url);
-    audio.onended = () => { setPlayingSection(null); setReviewAudio(null); };
+  const handleRemoveAudio = (index: number) => {
+    if (uploadAudioRef.current) { uploadAudioRef.current.pause(); uploadAudioRef.current = null; }
+    setPlayingUploadAudio(null);
+    setGeneratedAudio(prev => prev.map((a, i) => i === index ? { audio_url: '', duration_seconds: 0 } : a));
+  };
+
+  const playUploadedAudio = (index: number) => {
+    if (uploadAudioRef.current) { uploadAudioRef.current.pause(); uploadAudioRef.current = null; }
+    if (playingUploadAudio === index) { setPlayingUploadAudio(null); return; }
+    const url = generatedAudio[index]?.audio_url;
+    if (!url) return;
+    const audio = new Audio(url);
+    audio.onended = () => { setPlayingUploadAudio(null); uploadAudioRef.current = null; };
     audio.play();
-    setPlayingSection(index);
-    setReviewAudio(audio);
+    setPlayingUploadAudio(index);
+    uploadAudioRef.current = audio;
   };
 
-  // === RETRY HELPER ===
-  const generateAudioWithRetry = async (text: string, voiceId: string, maxRetries = 2): Promise<{ audio_url: string; duration_seconds: number } | null> => {
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
-      try {
-        const { data, error } = await supabase.functions.invoke('generate-audio', {
-          body: { text, voiceId, modelId: 'eleven_multilingual_v2' }
-        });
-        if (!error && data?.audio_url) return data;
-        if (attempt < maxRetries) await new Promise(r => setTimeout(r, 3000));
-      } catch (e) {
-        if (attempt < maxRetries) await new Promise(r => setTimeout(r, 3000));
-      }
-    }
-    return null;
-  };
-
-  // === STEP 3: CREATE AUDIO ONLY (after script approval) ===
-  const handleStartAudioCreation = async () => {
-    if (!country || !(city || cityInput) || !(place || placeInput)) return;
-
-    setCurrentStep('creating_audio');
-    const defaultVoice = voiceGender === 'female' ? '9BWtsMINqrJLrRacOk9x' : 'pNInz6obpgDQGcFmaJgB';
-    const primaryLang = selectedLanguages[0];
-    const voiceId = voiceByLanguage[primaryLang] || defaultVoice;
-    const sections = plannedSections;
-    const scripts = generatedScripts;
-    const BATCH_SIZE = 3;
-
-    try {
-      const audioResults: { audio_url: string; duration_seconds: number }[] = [];
-      const audioStartTime = Date.now();
-
-      for (let i = 0; i < sections.length; i += BATCH_SIZE) {
-        const batch = sections.slice(i, Math.min(i + BATCH_SIZE, sections.length));
-        const done = Math.min(i + BATCH_SIZE, sections.length);
-        const elapsed = Math.floor((Date.now() - audioStartTime) / 1000);
-        const perBatch = i > 0 ? elapsed / (i / BATCH_SIZE) : 20;
-        const remaining = Math.ceil(((sections.length - done) / BATCH_SIZE) * perBatch);
-        setProgress({
-          step: 1, totalSteps: 2,
-          message: `Producing audio files...`,
-          detail: `${done}/${sections.length} · ~${remaining}s remaining`
-        });
-        const results = await Promise.all(batch.map((_, batchIdx) => {
-          const idx = i + batchIdx;
-          return generateAudioWithRetry(scripts[idx], voiceId);
-        }));
-        for (const r of results) {
-          audioResults.push(r || { audio_url: '', duration_seconds: 0 });
-        }
-      }
-
-      setGeneratedAudio(audioResults);
-      setCurrentStep('audio_review');
-      toast.success('Audio generated! Review each section.');
-    } catch (error: any) {
-      setCreationError({ message: error.message, step: 'audio' });
-      setCurrentStep('error');
-    }
-  };
-
-  // === STEP 4: CREATE IMAGE + SAVE (after audio approval) ===
+  // === STEP 3: CREATE IMAGE + SAVE (after audio upload) ===
   const handleFinalize = async () => {
     const finalCity = city || cityInput;
     const finalPlace = place || placeInput;
@@ -496,15 +336,11 @@ export function AutoCreateGuide() {
     setCurrentStep('creating_image');
     const primaryLang = selectedLanguages[0];
     const primaryLangName = ELEVENLABS_LANGUAGES.find(l => l.code === primaryLang)?.name || 'English';
-    const defaultVoice = voiceGender === 'female' ? '9BWtsMINqrJLrRacOk9x' : 'pNInz6obpgDQGcFmaJgB';
-    const getVoiceForLang = (langCode: string) => voiceByLanguage[langCode] || defaultVoice;
     const sections = plannedSections;
     const scripts = generatedScripts;
-    const BATCH_SIZE = 3;
 
     try {
-      // Generate cover image
-      setProgress({ step: 1, totalSteps: 3, message: 'Generating cover image...' });
+      setProgress({ step: 1, totalSteps: 2, message: 'Generating cover image...' });
       const { data: imgData } = await supabase.functions.invoke('generate-image', {
         body: {
           title: finalPlace, city: finalCity, country,
@@ -514,7 +350,7 @@ export function AutoCreateGuide() {
       });
       setImageUrl(imgData?.image_url || null);
 
-      // Build primary sections from approved audio
+      // Build sections from uploaded audio
       const primarySections = sections.map((section, idx) => ({
         title: section.title,
         description: scripts[idx],
@@ -525,30 +361,8 @@ export function AutoCreateGuide() {
         order_index: idx
       }));
 
-      // Generate translations + audio for other languages
-      const additionalSections: typeof primarySections = [];
-      const otherLangs = selectedLanguages.filter(l => l !== primaryLang);
-      for (const langCode of otherLangs) {
-        const langName = ELEVENLABS_LANGUAGES.find(l => l.code === langCode)?.name || langCode;
-        for (let i = 0; i < sections.length; i += BATCH_SIZE) {
-          const batch = sections.slice(i, Math.min(i + BATCH_SIZE, sections.length));
-          setProgress({ step: 2, totalSteps: 3, message: `Translating to ${langName}...`, detail: `${Math.min(i + BATCH_SIZE, sections.length)}/${sections.length}` });
-          const batchResults = await Promise.all(batch.map(async (_, batchIdx) => {
-            const idx = i + batchIdx;
-            const { data: transData } = await supabase.functions.invoke('translate-script', {
-              body: { script: scripts[idx], source_language: primaryLangName, target_language: langName, place: finalPlace, section_title: sections[idx].title }
-            });
-            const translated = transData?.translated_script || scripts[idx];
-            const audioData = await generateAudioWithRetry(translated, getVoiceForLang(langCode));
-            return { title: sections[idx].title, description: translated, audio_url: audioData?.audio_url || '', duration_seconds: audioData?.duration_seconds || sections[idx].estimated_minutes * 60, language: langName, language_code: langCode, order_index: idx };
-          }));
-          additionalSections.push(...batchResults);
-        }
-      }
-
       // Save to database
-      setProgress({ step: 3, totalSteps: 3, message: 'Saving guide...' });
-      const allSections = [...primarySections, ...additionalSections];
+      setProgress({ step: 2, totalSteps: 2, message: 'Saving guide...' });
       const totalDuration = primarySections.reduce((sum, s) => sum + s.duration_seconds, 0);
       const guideTitle = `${finalPlace} Audio Guide`;
       const guideDescription = `Explore ${finalPlace} in ${finalCity}, ${country}. Professional audio tour guide with ${sections.length} stops covering history, culture, and hidden stories.`;
@@ -561,7 +375,7 @@ export function AutoCreateGuide() {
           languages: selectedLanguages.map(c => ELEVENLABS_LANGUAGES.find(l => l.code === c)?.name || c),
           price_usd: parseInt(priceUsd) || 499,
           image_content: null, image_urls: imgData?.image_url ? [imgData.image_url] : [],
-          sections: allSections, is_published: false, is_featured: false
+          sections: primarySections, is_published: false, is_featured: false
         }
       });
 
@@ -713,63 +527,7 @@ export function AutoCreateGuide() {
               </div>
             </div>
 
-            {/* Per-language Voice Selection */}
-            {selectedLanguages.length > 0 && (
-              <div className="space-y-3">
-                <Label className="flex items-center gap-1.5"><Mic className="w-3.5 h-3.5" /> Voice per Language</Label>
-                <div className="flex gap-3 mb-1">
-                  <button
-                    onClick={() => setVoiceGender('female')}
-                    className={`flex-1 px-3 py-2 rounded-xl text-sm font-medium border transition-all ${
-                      voiceGender === 'female' ? 'bg-primary/15 border-primary text-primary ring-2 ring-primary/30' : 'border-border hover:bg-muted'
-                    }`}
-                  >Female</button>
-                  <button
-                    onClick={() => setVoiceGender('male')}
-                    className={`flex-1 px-3 py-2 rounded-xl text-sm font-medium border transition-all ${
-                      voiceGender === 'male' ? 'bg-primary/15 border-primary text-primary ring-2 ring-primary/30' : 'border-border hover:bg-muted'
-                    }`}
-                  >Male</button>
-                </div>
-                {loadingVoices ? (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
-                    <Loader2 className="w-4 h-4 animate-spin" /> Loading voices...
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {selectedLanguages.map(langCode => {
-                      const langInfo = ELEVENLABS_LANGUAGES.find(l => l.code === langCode);
-                      const selectedVoice = voiceByLanguage[langCode] || '';
-                      // Filter voices: prefer native speakers of this language, fallback to all
-                      const langVoices = filteredVoices.filter(v => v.languages?.includes(langCode));
-                      const voicesForLang = langVoices.length > 0 ? langVoices : filteredVoices;
-                      return (
-                        <div key={langCode} className="flex items-center gap-2">
-                          <span className="text-sm font-medium w-24 shrink-0 truncate">{langInfo?.flag} {langInfo?.name}</span>
-                          <Select value={selectedVoice} onValueChange={(v) => setVoiceForLang(langCode, v)}>
-                            <SelectTrigger className="flex-1 h-9 text-xs"><SelectValue placeholder="Select voice..." /></SelectTrigger>
-                            <SelectContent className="max-h-[200px]">
-                              {voicesForLang.map(v => (
-                                <SelectItem key={v.voice_id} value={v.voice_id}>
-                                  {v.name} {v.accent !== 'unknown' ? `(${v.accent})` : ''} {v.languages?.includes(langCode) ? '★' : ''}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          {selectedVoice && (
-                            <Button variant="ghost" size="sm" className="shrink-0 px-2"
-                              disabled={generatingPreview === `${selectedVoice}_${langCode}`}
-                              onClick={() => playVoicePreview(selectedVoice, langCode)}>
-                              {generatingPreview === `${selectedVoice}_${langCode}` ? <Loader2 className="w-3 h-3 animate-spin" /> : playingPreview === `${selectedVoice}_${langCode}` ? '⏹' : '▶'}
-                            </Button>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
+            {/* Note: Voice selection removed — audio files are uploaded manually from ElevenLabs */}
 
             {/* Price */}
             <div className="space-y-2">
@@ -919,8 +677,8 @@ export function AutoCreateGuide() {
               })}
             </div>
             <div className="flex gap-2 pt-2">
-              <Button onClick={handleStartAudioCreation} className="flex-1">
-                Approve Scripts & Generate Audio
+              <Button onClick={() => setCurrentStep('audio_upload')} className="flex-1">
+                Approve Scripts & Upload Audio
               </Button>
               <Button variant="outline" onClick={() => { setCurrentStep('plan_review'); setGeneratedScripts([]); }}>
                 Back
@@ -932,63 +690,94 @@ export function AutoCreateGuide() {
     );
   }
 
-  // === RENDER: CREATING AUDIO ===
-  if (currentStep === 'creating_audio') {
-    const pct = Math.round((progress.step / progress.totalSteps) * 100);
-    return (
-      <div className="max-w-xl mx-auto">
-        <Card>
-          <CardContent className="py-12 text-center space-y-6">
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-              <Mic className="w-8 h-8 text-primary animate-pulse" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold mb-1">Generating Audio</h2>
-              <p className="text-muted-foreground text-sm">{place || placeInput} — {city || cityInput}, {country}</p>
-            </div>
-            <Progress value={pct} className="h-2" />
-            <p className="text-sm font-medium">{progress.message}</p>
-            {progress.detail && <p className="text-xs text-muted-foreground">{progress.detail}</p>}
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  // === RENDER: AUDIO UPLOAD ===
+  if (currentStep === 'audio_upload') {
+    const uploadedCount = generatedAudio.filter(a => a?.audio_url).length;
+    const totalSections = plannedSections.length;
+    const allUploaded = uploadedCount >= totalSections;
+    const totalDur = generatedAudio.reduce((sum, a) => sum + (a?.duration_seconds || 0), 0);
 
-  // === RENDER: AUDIO REVIEW ===
-  if (currentStep === 'audio_review') {
-    const totalDur = generatedAudio.reduce((sum, a) => sum + (a.duration_seconds || 0), 0);
     return (
       <div className="max-w-3xl">
         <Card>
           <CardHeader>
-            <CardTitle>Review Audio — {generatedAudio.length} Sections ({Math.floor(totalDur / 60)} min)</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Mic className="w-5 h-5" />
+              Upload Audio — {uploadedCount}/{totalSections} sections
+              {totalDur > 0 && <span className="text-sm font-normal text-muted-foreground ml-2">({Math.floor(totalDur / 60)} min total)</span>}
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="text-sm text-muted-foreground">Listen to each section. Regenerate any you don't like.</p>
+            <div className="bg-muted/50 border rounded-lg p-3 text-sm text-muted-foreground space-y-1">
+              <p><strong>Workflow:</strong> Copy each script below, paste it into <a href="https://elevenlabs.io/app/speech-synthesis" target="_blank" rel="noopener noreferrer" className="text-primary underline">ElevenLabs</a>, generate audio with your preferred voice settings, download the MP3, and upload it here.</p>
+            </div>
             <div className="max-h-[500px] overflow-y-auto space-y-2 border rounded-lg p-3">
-              {generatedAudio.map((audio, i) => (
-                <div key={i} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 border">
-                  <span className="text-xs font-bold text-primary bg-primary/10 rounded-full w-6 h-6 flex items-center justify-center shrink-0">{i + 1}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{plannedSections[i]?.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {Math.floor(audio.duration_seconds / 60)}:{String(Math.floor(audio.duration_seconds % 60)).padStart(2, '0')}
-                      {!audio.audio_url && <span className="text-destructive ml-1">⚠ failed</span>}
-                    </p>
+              {plannedSections.map((section, i) => {
+                const hasAudio = generatedAudio[i]?.audio_url;
+                const dur = generatedAudio[i]?.duration_seconds || 0;
+                const words = (generatedScripts[i] || '').split(/\s+/).length;
+
+                return (
+                  <div key={i} className={`border rounded-lg p-3 space-y-2 ${hasAudio ? 'border-green-500/30 bg-green-500/5' : ''}`}>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shrink-0 ${hasAudio ? 'bg-green-500/20 text-green-600' : 'bg-primary/10 text-primary'}`}>
+                        {hasAudio ? <CheckCircle className="w-3.5 h-3.5" /> : i + 1}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{section.title}</p>
+                        <p className="text-xs text-muted-foreground">{words} words · ~{Math.round(words / 150)} min</p>
+                      </div>
+                      <Button
+                        size="sm" variant="outline"
+                        className={`shrink-0 gap-1 text-xs ${copiedScript === i ? 'text-green-600 border-green-500' : ''}`}
+                        onClick={() => handleCopyScript(i)}
+                      >
+                        {copiedScript === i ? <CheckCircle className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                        {copiedScript === i ? 'Copied!' : 'Copy Script'}
+                      </Button>
+                    </div>
+
+                    {/* Audio upload area */}
+                    {hasAudio ? (
+                      <div className="flex items-center gap-2 bg-background rounded-lg p-2 border">
+                        <Button size="sm" variant="ghost" className="shrink-0" onClick={() => playUploadedAudio(i)}>
+                          {playingUploadAudio === i ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                        </Button>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium text-green-600 truncate">Audio uploaded</p>
+                          <p className="text-[10px] text-muted-foreground">{Math.floor(dur / 60)}:{String(Math.floor(dur % 60)).padStart(2, '0')}</p>
+                        </div>
+                        <Button size="sm" variant="ghost" className="text-destructive text-xs shrink-0" onClick={() => handleRemoveAudio(i)}>
+                          Remove
+                        </Button>
+                      </div>
+                    ) : (
+                      <label className={`flex items-center justify-center gap-2 p-4 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${uploadingSection === i ? 'border-primary/50 bg-primary/5' : 'border-muted-foreground/20 hover:border-primary/30 hover:bg-muted/30'}`}>
+                        {uploadingSection === i ? (
+                          <><Loader2 className="w-4 h-4 animate-spin text-primary" /><span className="text-sm text-primary">Uploading...</span></>
+                        ) : (
+                          <><Mic className="w-4 h-4 text-muted-foreground" /><span className="text-sm text-muted-foreground">Upload MP3 audio file</span></>
+                        )}
+                        <input
+                          type="file"
+                          accept="audio/*"
+                          className="hidden"
+                          disabled={uploadingSection !== null}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleAudioUpload(i, file);
+                            e.target.value = '';
+                          }}
+                        />
+                      </label>
+                    )}
                   </div>
-                  <Button size="sm" variant="ghost" onClick={() => playSectionAudio(i)} disabled={!audio.audio_url}>
-                    {playingSection === i ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                  </Button>
-                  <Button size="sm" variant="outline" disabled={regeneratingAudio !== null} onClick={() => handleRegenerateAudio(i)}>
-                    {regeneratingAudio === i ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Music className="w-3.5 h-3.5" />}
-                  </Button>
-                </div>
-              ))}
+                );
+              })}
             </div>
             <div className="flex gap-2 pt-2">
-              <Button onClick={handleFinalize} className="flex-1">
-                Approve Audio & Finalize Guide
+              <Button onClick={handleFinalize} className="flex-1" disabled={!allUploaded}>
+                {allUploaded ? 'Finalize Guide' : `Upload ${totalSections - uploadedCount} more audio files`}
               </Button>
               <Button variant="outline" onClick={() => setCurrentStep('script_review')}>
                 Back to Scripts
@@ -1050,9 +839,9 @@ export function AutoCreateGuide() {
                   Back to Scripts
                 </Button>
               )}
-              {(creationError.step === 'audio' || creationError.step === 'creation') && generatedScripts.length > 0 && (
-                <Button onClick={() => { setCreationError(null); handleStartAudioCreation(); }}>
-                  Retry Audio
+              {creationError.step === 'audio' && generatedScripts.length > 0 && (
+                <Button onClick={() => { setCreationError(null); setCurrentStep('audio_upload'); }}>
+                  Back to Upload
                 </Button>
               )}
               {creationError.step === 'finalize' && generatedAudio.length > 0 && (

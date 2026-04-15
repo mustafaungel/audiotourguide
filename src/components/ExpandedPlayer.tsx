@@ -9,7 +9,8 @@ import { haptics } from '@/lib/haptics';
 import { t } from '@/lib/translations';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
-// Apple Music style lyrics view — sentence-level tracking with audio
+// Apple Music style lyrics view — paragraph-level tracking with audio
+// Paragraphs = longer time windows (~20-30s each) = less drift & fewer misaligned transitions
 const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; duration: number; isPlaying: boolean }> = ({ scriptText, currentTime, duration }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const userScrolling = useRef(false);
@@ -18,70 +19,45 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
   const isAutoScrolling = useRef(false);
   const lastActiveIdx = useRef(-1);
 
-  // Split into sentences for granular tracking (every ~5-15s)
-  const lines = useMemo(() => {
+  // Split into paragraphs — each paragraph is one tracking unit
+  const paragraphs = useMemo(() => {
     if (!scriptText || duration <= 0) return [];
 
-    // Split by paragraphs first, then sentences — track paragraph breaks for pause timing
-    const sentenceData: { text: string; paraBreakBefore: boolean }[] = [];
-    const paragraphs = scriptText.split(/\n\n+/);
+    // Split by double-newlines (paragraph breaks)
+    const rawParagraphs = scriptText.split(/\n\n+/);
+    const cleaned: string[] = [];
 
-    for (let pi = 0; pi < paragraphs.length; pi++) {
-      const cleaned = paragraphs[pi].replace(/\n/g, ' ').trim();
-      if (cleaned.length < 15) continue;
+    for (const p of rawParagraphs) {
+      const text = p.replace(/\n/g, ' ').trim();
+      if (text.length >= 10) cleaned.push(text);
+    }
 
-      // Split by sentence boundaries — language-agnostic
-      const parts = cleaned.split(/(?<=[.!?。！？])\s+/);
-      let isFirst = true;
-      for (const part of parts) {
-        const s = part.trim();
-        if (s.length > 10) {
-          sentenceData.push({
-            text: s,
-            paraBreakBefore: isFirst && sentenceData.length > 0, // paragraph gap before this sentence
-          });
-          isFirst = false;
+    // If no paragraph breaks found (single block of text), split into ~3-4 chunks by sentences
+    if (cleaned.length <= 1 && scriptText.length > 200) {
+      const allText = scriptText.replace(/\n/g, ' ').trim();
+      const sentences = allText.split(/(?<=[.!?。！？])\s+/).filter(s => s.trim().length > 5);
+      if (sentences.length >= 4) {
+        const chunkSize = Math.ceil(sentences.length / Math.min(5, Math.ceil(sentences.length / 3)));
+        const chunks: string[] = [];
+        for (let i = 0; i < sentences.length; i += chunkSize) {
+          chunks.push(sentences.slice(i, i + chunkSize).join(' '));
         }
+        if (chunks.length >= 2) return buildTimings(chunks, duration);
       }
     }
 
-    if (sentenceData.length === 0) return [];
-
-    // Word-based timing — more accurate than character-based for TTS
-    // TTS speaks at ~150 words/min, pauses at punctuation and paragraph breaks
-    const PARA_PAUSE = 6;     // ~0.8s pause between paragraphs (in word-equivalents)
-    const COMMA_WEIGHT = 0.3; // each comma/semicolon adds ~0.2s pause
-    const PERIOD_WEIGHT = 0.5; // sentence-ending punctuation adds ~0.3s pause
-    const TRACKING_DELAY = 1.0; // seconds — tracker stays slightly behind audio
-
-    const getWeight = (text: string, hasParagraphBreak: boolean) => {
-      const words = text.split(/\s+/).length;
-      const commas = (text.match(/[,;:]/g) || []).length;
-      const periods = (text.match(/[.!?]/g) || []).length;
-      return words + commas * COMMA_WEIGHT + periods * PERIOD_WEIGHT + (hasParagraphBreak ? PARA_PAUSE : 0);
-    };
-
-    const totalWeight = sentenceData.reduce(
-      (sum, s) => sum + getWeight(s.text, s.paraBreakBefore), 0
-    );
-
-    let cumWeight = 0;
-    return sentenceData.map(({ text, paraBreakBefore }) => {
-      if (paraBreakBefore) cumWeight += PARA_PAUSE;
-      const startTime = Math.min(duration, (cumWeight / totalWeight) * duration + TRACKING_DELAY);
-      cumWeight += getWeight(text, false);
-      const endTime = Math.min(duration, (cumWeight / totalWeight) * duration + TRACKING_DELAY);
-      return { text, startTime, endTime };
-    });
+    if (cleaned.length === 0) return [];
+    return buildTimings(cleaned, duration);
   }, [scriptText, duration]);
 
+  // Active paragraph index based on currentTime
   const activeIdx = useMemo(() => {
-    if (duration <= 0) return 0;
-    for (let i = lines.length - 1; i >= 0; i--) {
-      if (currentTime >= lines[i].startTime) return i;
+    if (duration <= 0 || paragraphs.length === 0) return 0;
+    for (let i = paragraphs.length - 1; i >= 0; i--) {
+      if (currentTime >= paragraphs[i].startTime) return i;
     }
     return 0;
-  }, [currentTime, lines, duration]);
+  }, [currentTime, paragraphs, duration]);
 
   // Reset all scroll state when script changes (new section loaded)
   useEffect(() => {
@@ -90,7 +66,6 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
     lastActiveIdx.current = -1;
     cancelAnimationFrame(rafRef.current);
     clearTimeout(scrollTimer.current);
-    // Scroll to top for new section
     if (containerRef.current) containerRef.current.scrollTop = 0;
   }, [scriptText]);
 
@@ -102,30 +77,30 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
       if (isAutoScrolling.current) return;
       userScrolling.current = true;
       clearTimeout(scrollTimer.current);
-      scrollTimer.current = setTimeout(() => { userScrolling.current = false; }, 5000);
+      scrollTimer.current = setTimeout(() => { userScrolling.current = false; }, 6000);
     };
     container.addEventListener('scroll', onScroll, { passive: true });
     return () => container.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Smooth auto-scroll — triggers on each sentence change
+  // Smooth auto-scroll — triggers on each paragraph change (less frequent than sentence-level)
   useEffect(() => {
     if (userScrolling.current || !containerRef.current) return;
     if (activeIdx === lastActiveIdx.current) return;
     lastActiveIdx.current = activeIdx;
 
-    const el = containerRef.current.querySelector(`[data-line="${activeIdx}"]`) as HTMLElement;
+    const el = containerRef.current.querySelector(`[data-para="${activeIdx}"]`) as HTMLElement;
     if (!el) return;
 
     const container = containerRef.current;
-    const targetTop = el.offsetTop - container.clientHeight * 0.35;
+    const targetTop = el.offsetTop - container.clientHeight * 0.3;
     const scrollTarget = Math.max(0, targetTop);
     const startScroll = container.scrollTop;
     const diff = scrollTarget - startScroll;
     if (Math.abs(diff) < 2) return;
 
-    // Slow, human-eye smooth scroll — longer duration, gentle curve
-    const animDuration = Math.min(1800, Math.max(800, Math.abs(diff) * 3));
+    // Gentle scroll — paragraphs change less often so we can take our time
+    const animDuration = Math.min(2200, Math.max(1000, Math.abs(diff) * 3));
     let animStart: number | null = null;
 
     cancelAnimationFrame(rafRef.current);
@@ -135,7 +110,6 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
       if (!animStart) animStart = timestamp;
       const elapsed = timestamp - animStart;
       const progress = Math.min(1, elapsed / animDuration);
-      // Ease-in-out sine — natural, gentle acceleration and deceleration
       const eased = -(Math.cos(Math.PI * progress) - 1) / 2;
       container.scrollTop = startScroll + diff * eased;
       if (progress < 1) {
@@ -156,56 +130,44 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
         className="h-full overflow-y-auto overscroll-contain"
         style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
       >
-        {/* Top spacer — pushes first sentence to ~35% from top */}
-        <div className="h-[30vh]" />
-        <div className="px-7 pb-8 max-w-md mx-auto">
-          {lines.map((line, i) => {
+        {/* Top spacer — small gap below header */}
+        <div className="h-[8vh]" />
+        <div className="px-5 pb-8 max-w-lg mx-auto">
+          {paragraphs.map((para, i) => {
             const isActive = i === activeIdx;
             const isPast = i < activeIdx;
-            const dist = Math.abs(i - activeIdx);
-
-            // Opacity: strong contrast between active and rest
-            let opacity: number;
-            if (isActive) opacity = 1;
-            else if (isPast) opacity = Math.max(0.12, 0.3 - dist * 0.05);
-            else opacity = Math.max(0.06, 0.25 - dist * 0.04); // future = dimmer
-
-            // Blur: only future sentences, increases with distance
-            const blur = !isActive && !isPast ? Math.min(3.5, dist * 0.9) : 0;
-            const filterVal = blur > 0.3 ? `blur(${blur.toFixed(1)}px)` : 'none';
 
             return (
-              <p
+              <div
                 key={i}
-                data-line={i}
+                data-para={i}
                 className={cn(
-                  "mb-6 text-center leading-relaxed",
-                  "transition-[filter,opacity,transform] duration-[1200ms] ease-in-out",
+                  "relative mb-5 text-left leading-relaxed rounded-lg",
+                  "transition-[color,border-color,background-color,padding] duration-[800ms] ease-in-out",
                   isActive
-                    ? "text-foreground dark:text-white font-semibold"
-                    : isPast
-                      ? "text-muted-foreground/60 dark:text-white/25 font-normal"
-                      : "text-muted-foreground/50 dark:text-white/20 font-normal"
+                    ? "text-primary dark:text-primary border-l-[3px] border-primary bg-primary/[0.06] dark:bg-primary/[0.10] pl-4 pr-3 py-3"
+                    : "border-l-[3px] border-transparent pl-4 pr-3 py-1",
+                  isPast && !isActive
+                    ? "text-foreground/70 dark:text-white/60"
+                    : !isActive
+                      ? "text-foreground/50 dark:text-white/40"
+                      : ""
                 )}
                 style={{
                   fontFamily: "'Lora', 'Playfair Display', Georgia, serif",
-                  fontSize: isActive ? '17px' : '14.5px',
-                  lineHeight: isActive ? '2.0' : '1.9',
-                  letterSpacing: '0.01em',
-                  opacity,
-                  filter: filterVal,
-                  WebkitFilter: filterVal,
-                  transform: isActive ? 'scale(1.02)' : 'scale(0.97)',
-                  transformOrigin: 'center center',
+                  fontSize: isActive ? '15.5px' : '14px',
+                  lineHeight: '1.85',
+                  fontWeight: isActive ? 600 : 400,
+                  letterSpacing: '0.015em',
                 }}
               >
-                {line.text}
-              </p>
+                {para.text}
+              </div>
             );
           })}
         </div>
-        {/* Bottom spacer — allows last sentence to center */}
-        <div className="h-[45vh]" />
+        {/* Bottom spacer — allows last paragraph to scroll up */}
+        <div className="h-[20vh]" />
       </div>
       {/* Gradient fades */}
       <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-background via-background/70 to-transparent pointer-events-none z-10" />
@@ -213,6 +175,33 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
     </div>
   );
 };
+
+// Build paragraph timing weights — word-count proportional with punctuation pauses
+function buildTimings(texts: string[], duration: number) {
+  const PARA_GAP = 4;         // word-equivalents for inter-paragraph pause
+  const COMMA_WEIGHT = 0.3;
+  const PERIOD_WEIGHT = 0.5;
+  const TRACKING_DELAY = 0.8; // seconds — tracker stays slightly behind audio
+
+  const getWeight = (text: string) => {
+    const words = text.split(/\s+/).length;
+    const commas = (text.match(/[,;:]/g) || []).length;
+    const periods = (text.match(/[.!?。！？]/g) || []).length;
+    return words + commas * COMMA_WEIGHT + periods * PERIOD_WEIGHT;
+  };
+
+  const weights = texts.map(t => getWeight(t));
+  const totalWeight = weights.reduce((a, b) => a + b, 0) + PARA_GAP * (texts.length - 1);
+
+  let cumWeight = 0;
+  return texts.map((text, i) => {
+    if (i > 0) cumWeight += PARA_GAP;
+    const startTime = Math.min(duration, (cumWeight / totalWeight) * duration + TRACKING_DELAY);
+    cumWeight += weights[i];
+    const endTime = Math.min(duration, (cumWeight / totalWeight) * duration + TRACKING_DELAY);
+    return { text, startTime, endTime };
+  });
+}
 
 interface ExpandedPlayerProps {
   open: boolean;
@@ -270,6 +259,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
   const [showSpeedPicker, setShowSpeedPicker] = useState(false);
   const [dragY, setDragY] = useState(0);
   const dragStartRef = useRef(0);
+  const dragAllowed = useRef(false);
   const [shouldRender, setShouldRender] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
@@ -310,14 +300,21 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
           isVisible ? "opacity-100" : "opacity-0 translate-y-full"
         )}
         style={dragY > 0 ? { transform: `translateY(${dragY}px)`, opacity: Math.max(0.3, 1 - dragY / 400) } : undefined}
-        onTouchStart={(e) => { dragStartRef.current = e.touches[0].clientY; }}
+        onTouchStart={(e) => {
+          const y = e.touches[0].clientY;
+          dragStartRef.current = y;
+          // Only allow swipe-to-dismiss when touch starts in top 15% of screen (header area)
+          dragAllowed.current = y < window.innerHeight * 0.15;
+        }}
         onTouchMove={(e) => {
+          if (!dragAllowed.current) return;
           const diff = e.touches[0].clientY - dragStartRef.current;
           if (diff > 0) setDragY(diff);
         }}
         onTouchEnd={() => {
-          if (dragY > 120) { onClose(); }
+          if (dragAllowed.current && dragY > 120) { onClose(); }
           setDragY(0);
+          dragAllowed.current = false;
         }}
       >
         {/* Blurred background image — visible but readable */}
