@@ -1,34 +1,44 @@
 
 
-## Görsel Yükleme Sorunu - Analiz ve Çözüm
+## Expanded Player Script Görünümü — Temiz Okuma Modu
 
 ### Sorun
-`getDirectImageUrl()` fonksiyonu tüm Supabase Storage URL'lerini `cdn.audiotourguide.app` üzerinden yönlendiriyor. CDN curl ile çalışıyor ancak Lovable preview iframe'inde görseller yüklenmiyor olabilir (SSL propagation gecikmesi veya iframe kısıtlamaları).
+Mevcut script görünümü kitap temalı (amber arka plan, serif font, justify hizalama, aktif/pasif paragraf ayrımı, otomatik kaydırma). Alan daraltılmış (`maxWidth: 85%`, `px-6`). Otomatik geçiş ve paragraf takibi karmaşıklık ekliyor.
 
-### Plan
+### Yeni Yaklaşım — Tüm Paragraflar Eşit, Manuel Kaydırma
 
-1. **Yayınlanmış siteyi test et** — `https://audiotourguide.app` üzerinde görsellerin görünüp görünmediğini `curl` ve browser ile kontrol et
-2. **CDN erişimini browser'dan test et** — Doğrudan bir CDN görsel URL'sini browser'da aç
-3. **Fallback ekle** — Eğer CDN görselleri yüklenemezse, `OptimizedImage` bileşenine orijinal Supabase URL'sine geri dönme mekanizması ekle
+Kullanıcının istediği:
+- Otomatik kaydırma ve aktif/pasif paragraf ayrımı **yok**
+- Tüm paragraflar **eşit şekilde okunabilir** (hepsi "aktif" gibi)
+- Kullanıcı **kendi istediğinde** kaydırır
+- Temiz, modern, tam genişlik tasarım
+- Her cihazda uyumlu
 
-### Teknik Detay
+### Değişiklikler — `src/components/ExpandedPlayer.tsx`
 
-**`src/components/OptimizedImage.tsx`** — `onError` durumunda CDN URL yerine orijinal Supabase URL'sini dene:
+**ScriptLyricsView bileşeni (satır 14-207) tamamen yeniden yazılacak:**
 
-```tsx
-// getDirectImageUrl yerine, hem CDN hem fallback URL üret
-const cdnUrl = getDirectImageUrl(src);
-const fallbackUrl = src; // orijinal Supabase URL
+1. **Kaldırılacaklar:**
+   - Otomatik kaydırma sistemi (auto-scroll, RAF animasyonu, userScrolling tracking)
+   - `activeIdx` / paragraf zamanlama hesaplama (`buildTimings`)
+   - Aktif/pasif paragraf renk/boyut farkları
+   - Amber kitap arka planı, border-left, highlighter efekti
+   - Paragraf counter (`§ 1/8`)
+   - Gradient fade'ler (üst/alt amber)
+   - Serif font (`Lora`, `Playfair Display`)
 
-onError handler'da:
-- İlk hata → fallbackUrl'i dene
-- İkinci hata → placeholder göster
-```
+2. **Yeni tasarım:**
+   - **Arka plan**: Tamamen şeffaf (blurred image zaten arkada var)
+   - **Font**: Sans-serif sistem fontu, `text-[16px]`, `font-normal`, `leading-[1.85]`
+   - **Renk**: `text-white/90` (dark üzerinde rahat okunur, arka plan blur zaten koyu)
+   - **Hizalama**: `text-left` — doğal okuma akışı
+   - **Tam genişlik**: `px-5` padding, `maxWidth` kısıtlaması yok
+   - **Paragraf arası**: `mb-5` — tutarlı, rahat boşluk
+   - **Metin temizleme**: Fazla boşlukları temizle, çok kısa paragrafları birleştir (< 30 char)
+   - **Gradient fade**: Üst ve alt şeffaf-siyah fade (arka planla uyumlu)
 
-Bu sayede CDN çalışmadığında bile görseller doğrudan Supabase'den yüklenir.
+3. **Script container** (satır 404): `px-6 py-4` → `px-0 py-2` — alan genişler
 
-### Adımlar
-1. `curl` ile CDN görsel URL'sini browser context'inde test et
-2. `OptimizedImage.tsx`'e fallback mekanizması ekle
-3. Preview'da görsellerin düzeldiğini doğrula
+### Sonuç
+Basit, temiz, tam genişlik bir scroll-to-read deneyimi. Tüm metin eşit derecede okunabilir, kullanıcı kendi hızında kaydırır. Spotify lyrics yerine e-reader tarzı ama modern sans-serif ile.
 
