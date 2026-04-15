@@ -827,9 +827,16 @@ const GuideDetail = () => {
 
             {/* Tabs Content - Responsive sizing */}
             <Tabs defaultValue="chapters" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 h-10 md:h-11">
-                <TabsTrigger value="chapters" className="text-xs md:text-sm"><Headphones className="w-3 h-3 mr-1" />Chapters</TabsTrigger>
-                <TabsTrigger value="reviews" className="text-xs md:text-sm"><Star className="w-3 h-3 mr-1" />Reviews</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 h-11 md:h-12 p-1 bg-muted/50">
+                <TabsTrigger value="chapters" className="text-xs md:text-sm data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:font-bold data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-lg transition-all"><Headphones className="w-3.5 h-3.5 mr-1.5" />Chapters</TabsTrigger>
+                <TabsTrigger value="reviews" className="text-xs md:text-sm data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:font-bold data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-lg transition-all">
+                  <Star className="w-3.5 h-3.5 mr-1.5 fill-amber-400 text-amber-400" />
+                  {approvedReviews.length > 0 ? (
+                    <span>{(approvedReviews.reduce((s: number, r: any) => s + r.rating, 0) / approvedReviews.length).toFixed(1)} Reviews ({approvedReviews.length})</span>
+                  ) : (
+                    <span>Reviews</span>
+                  )}
+                </TabsTrigger>
               </TabsList>
               
               <TabsContent value="chapters" className="space-y-3 md:space-y-4">
