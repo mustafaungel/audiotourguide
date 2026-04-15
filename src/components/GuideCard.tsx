@@ -148,7 +148,7 @@ export function GuideCard({
             style={{
               height: `${4 + Math.sin(delay * 0.02) * 6}px`,
               animation: 'equalizer-bar 2.2s ease-in-out infinite',
-              animationDelay: `${delay}ms`,
+              animationDelay: `-${2200 - delay}ms`,
             }}
           />
         ))}

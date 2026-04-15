@@ -12,9 +12,9 @@ function MiniEqualizer({ small = false }: { small?: boolean }) {
   const height = small ? 'h-[8px]' : 'h-[12px]';
   return (
     <span className={`flex items-end gap-[1.5px] ${height}`}>
-      <span className={barClass} style={{ animationDelay: '0ms' }} />
-      <span className={barClass} style={{ animationDelay: '200ms' }} />
-      <span className={barClass} style={{ animationDelay: '400ms' }} />
+      <span className={barClass} style={{ animationDelay: '-2200ms' }} />
+      <span className={barClass} style={{ animationDelay: '-2000ms' }} />
+      <span className={barClass} style={{ animationDelay: '-1800ms' }} />
     </span>
   );
 }
@@ -32,7 +32,7 @@ export function LiveListenersBadge({ guideId, size = 'default', realCount }: Liv
   return (
     <div className={`inline-flex w-fit max-w-full self-start rounded-full overflow-hidden glass-badge ${outerPadding} shadow-[0_2px_12px_hsl(var(--primary)/0.12)]`}>
       <div className={`inline-flex w-fit max-w-full items-center gap-1.5 ${innerPadding} rounded-full ${fontSize} text-primary`}>
-        <Headphones className={`${iconSize} shrink-0 animate-pulse`} />
+        <Headphones className={`${iconSize} shrink-0`} style={{ animation: 'pulse 2.2s ease-in-out infinite', animationDelay: '-2200ms' }} />
         <span className="min-w-0 truncate whitespace-nowrap"><span className="font-semibold">{count}</span> Listening</span>
       </div>
     </div>
