@@ -18,37 +18,72 @@ serve(async (req) => {
 
     const { language } = await req.json().catch(() => ({}));
 
-    // Fetch premade voices from ElevenLabs account
-    // These are the highest quality voices — multilingual, 29 languages via eleven_multilingual_v2
-    const response = await fetch('https://api.elevenlabs.io/v1/voices', {
+    // 1. Fetch own/premade voices (multilingual — support 29 languages)
+    const ownResponse = await fetch('https://api.elevenlabs.io/v1/voices', {
       headers: { 'xi-api-key': elevenlabsApiKey },
     });
 
-    if (!response.ok) {
-      throw new Error(`ElevenLabs API error: ${response.status}`);
+    let ownVoices: any[] = [];
+    if (ownResponse.ok) {
+      const ownData = await ownResponse.json();
+      ownVoices = (ownData.voices || []).map((v: any) => ({
+        voice_id: v.voice_id,
+        name: `★ ${v.name}`,
+        category: v.category || 'premade',
+        gender: v.labels?.gender || 'unknown',
+        accent: v.labels?.accent || 'multilingual',
+        description: v.labels?.description || v.labels?.['use case'] || '',
+        preview_url: v.preview_url || null,
+        languages: ['multilingual'],
+        source: 'own',
+      }));
     }
 
-    const data = await response.json();
-    const voices = (data.voices || []).map((v: any) => ({
-      voice_id: v.voice_id,
-      name: `★ ${v.name}`,
-      category: v.category || 'premade',
-      gender: v.labels?.gender || 'unknown',
-      accent: v.labels?.accent || 'neutral',
-      description: v.labels?.description || v.labels?.['use case'] || '',
-      preview_url: v.preview_url || null,
-      languages: ['multilingual'],
-      source: 'own',
-    }));
+    // 2. Fetch shared voices that support the selected language
+    // This includes: native speakers + anyone who added this language
+    let sharedVoices: any[] = [];
+    if (language) {
+      const sharedParams = new URLSearchParams({
+        page_size: '100',
+        search: language, // Search by language name — finds native + supporting voices
+      });
 
-    // Filter by gender if needed (client can filter)
-    // Sort: premade first, then cloned, then generated
-    const sorted = voices.sort((a: any, b: any) => {
-      const order: Record<string, number> = { premade: 0, cloned: 1, generated: 2 };
-      return (order[a.category] ?? 3) - (order[b.category] ?? 3);
+      const sharedResponse = await fetch(
+        `https://api.elevenlabs.io/v1/shared-voices?${sharedParams.toString()}`,
+        { headers: { 'xi-api-key': elevenlabsApiKey } }
+      );
+
+      if (sharedResponse.ok) {
+        const sharedData = await sharedResponse.json();
+        sharedVoices = (sharedData.voices || []).map((v: any) => ({
+          voice_id: v.voice_id,
+          name: v.name,
+          category: 'shared',
+          gender: v.gender || 'unknown',
+          accent: v.accent || 'unknown',
+          description: v.description || '',
+          preview_url: v.preview_url || null,
+          languages: [v.language || language || 'en'],
+          source: 'library',
+        }));
+      }
+    }
+
+    // 3. Merge: when language selected → native/shared first, then premade
+    //    when no language → premade only
+    const allVoices = language
+      ? [...sharedVoices, ...ownVoices]  // Native speakers first
+      : [...ownVoices];                  // Default: premade only
+
+    // Deduplicate by voice_id
+    const seen = new Set();
+    const unique = allVoices.filter(v => {
+      if (seen.has(v.voice_id)) return false;
+      seen.add(v.voice_id);
+      return true;
     });
 
-    return new Response(JSON.stringify({ voices: sorted }), {
+    return new Response(JSON.stringify({ voices: unique }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     });
