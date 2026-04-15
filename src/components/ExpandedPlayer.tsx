@@ -68,10 +68,7 @@ const ScriptReadingView: React.FC<{ scriptText: string; lang?: string }> = ({ sc
             return (
               <React.Fragment key={i}>
                 <div
-                  className="rounded-xl p-5 border border-white/10 bg-white/5 dark:bg-white/[0.08] backdrop-blur-sm"
-                  style={{
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
-                  }}
+                  className="rounded-xl p-5 backdrop-blur-sm border bg-black/[0.04] border-black/[0.08] shadow-[0_2px_12px_rgba(0,0,0,0.08)] dark:bg-white/[0.06] dark:border-white/[0.08] dark:shadow-[0_4px_24px_rgba(0,0,0,0.4)]"
                 >
                   <p
                     lang={lang || 'en'}
@@ -108,8 +105,8 @@ const ScriptReadingView: React.FC<{ scriptText: string; lang?: string }> = ({ sc
       </div>
 
       {/* Top/bottom fades — transparent to match blurred bg */}
-      <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-background/60 to-transparent pointer-events-none z-10" />
-      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background/60 to-transparent pointer-events-none z-10" />
+      <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-background/80 to-transparent pointer-events-none z-10" />
+      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background/80 to-transparent pointer-events-none z-10" />
     </div>
   );
 };
@@ -240,7 +237,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
         }}
       >
         {/* Blurred background image — visible but readable */}
-        {imageUrl && (
+        {imageUrl && !scriptText && (
           <>
             <div
               className="absolute inset-0 scale-110"
@@ -252,7 +249,6 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
                 opacity: 0.55,
               }}
             />
-            {/* Light: semi-transparent overlay. Dark: darker overlay for text contrast */}
             <div className="absolute inset-0 bg-background/55 dark:bg-background/60" />
           </>
         )}
