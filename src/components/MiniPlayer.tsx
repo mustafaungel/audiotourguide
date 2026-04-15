@@ -132,9 +132,9 @@ export const MiniPlayer = React.memo<MiniPlayerProps>(({
         }}
       >
         {/* Expand hint — handle + script label (inside player bg) */}
-        <div className="flex flex-col items-center pt-2 pb-1">
-          <div className="w-10 h-1 rounded-full bg-primary/35" />
-          <span className="text-[10px] font-medium text-primary/50 mt-0.5 tracking-wide">{t('viewScript', lang)}</span>
+        <div className="flex items-center justify-center gap-1.5 pt-2 pb-1">
+          <span className="text-[11px] font-bold text-primary/60 tracking-wide">{t('viewScript', lang).replace(' ↑', '')}</span>
+          <span className="text-primary/60" style={{ animation: 'bounce-arrow 1.5s ease-in-out infinite', display: 'inline-block' }}>↑</span>
         </div>
 
         {/* Progress bar */}

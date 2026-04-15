@@ -680,6 +680,11 @@ All colors MUST be HSL.
   }
 
   /* Live Listeners Equalizer — synced across all components */
+  @keyframes bounce-arrow {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+  }
+
   @keyframes equalizer-bar {
     0%, 100% { height: 3px; }
     50% { height: 12px; }
