@@ -112,11 +112,21 @@ export const MiniPlayer = React.memo<MiniPlayerProps>(({
   };
 
   return (
-    <div className={cn(
-      variant === 'fixed'
-        ? "fixed bottom-0 left-0 right-0 z-50 safe-area-bottom"
-        : "w-full z-10"
-    )}>
+    <div
+      className={cn(
+        variant === 'fixed'
+          ? "fixed bottom-0 left-0 right-0 z-50 safe-area-bottom"
+          : "w-full z-10"
+      )}
+      style={{ willChange: 'transform', transform: 'translateZ(0)' }}
+    >
+      {/* Progress bar — top edge of mini player */}
+      <div className="h-[3px] bg-muted/30 w-full">
+        <div
+          className="h-full bg-gradient-to-r from-primary/70 via-primary to-primary/80 transition-[width] duration-300"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
       <div
         className="bg-background/95 backdrop-blur-lg border-t border-border/30 shadow-[0_-4px_24px_-4px_hsl(var(--primary)/0.2)]"
         onClick={(e) => {
@@ -215,13 +225,6 @@ export const MiniPlayer = React.memo<MiniPlayerProps>(({
           </div>
         </div>
 
-        {/* Progress bar at bottom */}
-        <div className="h-[5px] bg-muted/30 w-full">
-          <div
-            className="h-full bg-gradient-to-r from-primary/70 via-primary to-primary/80 transition-[width] duration-300"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
       </div>
     </div>
   );

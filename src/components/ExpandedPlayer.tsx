@@ -307,7 +307,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
       <div
         className={cn(
           "fixed inset-0 z-[70] bg-background flex flex-col overscroll-contain",
-          dragY > 0 ? "" : "transition-all duration-300 ease-out",
+          dragY > 0 ? "" : "transition-[transform,opacity] duration-300 ease-out",
           isVisible ? "opacity-100" : "opacity-0 translate-y-full"
         )}
         style={dragY > 0 ? { transform: `translateY(${dragY}px)`, opacity: Math.max(0.3, 1 - dragY / 400) } : undefined}
