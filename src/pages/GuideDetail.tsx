@@ -72,6 +72,7 @@ const GuideDetail = () => {
   const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
   const [guideSections, setGuideSections] = useState<any[]>([]);
   const [linkedGuides, setLinkedGuides] = useState<any[]>([]);
+  const [approvedReviews, setApprovedReviews] = useState<any[]>([]);
   const [currentAccessCode, setCurrentAccessCode] = useState<string | null>(null);
   const { toast: showToast } = useToast();
 
@@ -201,11 +202,13 @@ const GuideDetail = () => {
       setRealGuideData(transformedData);
       setError(null);
       
-      // Fetch linked + related guides in parallel
-      await Promise.all([
+      // Fetch linked + related guides + approved reviews in parallel
+      const [,, reviewsResult] = await Promise.all([
         fetchLinkedGuides(guideData.id),
         fetchRelatedGuides(transformedData.category, transformedData.location, guideData.id),
+        supabase.from('public_guest_reviews').select('*').eq('guide_id', guideData.id).order('created_at', { ascending: false }),
       ]);
+      if (reviewsResult.data) setApprovedReviews(reviewsResult.data);
       
       // Track guide view once data is loaded
       if (guideData.id) {
@@ -629,11 +632,24 @@ const GuideDetail = () => {
         "priceCurrency": "USD",
         "availability": "https://schema.org/InStock"
       } : undefined,
-      "aggregateRating": guide.rating ? {
-        "@type": "AggregateRating",
-        "ratingValue": guide.rating,
-        "reviewCount": guide.total_reviews || guide.totalReviews || 0
-      } : undefined
+      ...(approvedReviews.length > 0 ? {
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": (approvedReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / approvedReviews.length).toFixed(1),
+          "reviewCount": approvedReviews.length,
+          "bestRating": 5,
+          "worstRating": 1
+        },
+        "review": approvedReviews.slice(0, 20).map((r: any) => ({
+          "@type": "Review",
+          "author": { "@type": "Person", "name": r.name || r.reviewer_name || 'Guest' },
+          "reviewRating": { "@type": "Rating", "ratingValue": r.rating, "bestRating": 5 },
+          "reviewBody": r.comment,
+          "datePublished": r.created_at?.substring(0, 10)
+        }))
+      } : guide.rating ? {
+        "aggregateRating": { "@type": "AggregateRating", "ratingValue": guide.rating, "reviewCount": guide.total_reviews || 0 }
+      } : {})
     },
     {
       "@context": "https://schema.org",
@@ -648,7 +664,15 @@ const GuideDetail = () => {
         "priceCurrency": "USD",
         "availability": "https://schema.org/InStock"
       },
-      ...(guide.rating ? { "aggregateRating": { "@type": "AggregateRating", "ratingValue": guide.rating, "reviewCount": guide.total_reviews || 0 } } : {})
+      ...(approvedReviews.length > 0 ? {
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": (approvedReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / approvedReviews.length).toFixed(1),
+          "reviewCount": approvedReviews.length
+        }
+      } : guide.rating ? {
+        "aggregateRating": { "@type": "AggregateRating", "ratingValue": guide.rating, "reviewCount": guide.total_reviews || 0 }
+      } : {})
     }
   ] : undefined;
 
