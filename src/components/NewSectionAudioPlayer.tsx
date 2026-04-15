@@ -94,8 +94,11 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   const prevSectionsRef = useRef<Section[]>(sections);
   useEffect(() => {
     if (prevSectionsRef.current !== sections && sections.length > 0) {
-      // Clear resolved URLs so new language URLs are used
+      // Clear resolved URLs and blob cache so new language URLs are used
       resolvedUrlsRef.current = [];
+      // Revoke old blob URLs to free memory
+      Object.values(blobUrlCache.current).forEach(url => { try { URL.revokeObjectURL(url); } catch {} });
+      blobUrlCache.current = {};
 
       if (audioRef.current) {
         const wasPlaying = isPlaying;
@@ -201,7 +204,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     });
   };
 
-  const resolveAudioUrl = (audioPath?: string): string => {
+  const resolveRawUrl = (audioPath?: string): string => {
     if (!audioPath) return `/tmp/${guideId}.mp3`;
     if (audioPath.startsWith('http://') || audioPath.startsWith('https://')) return audioPath;
     if (audioPath.startsWith('/storage/v1/object/public')) {
@@ -211,7 +214,25 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     return data?.publicUrl || `/tmp/${guideId}.mp3`;
   };
 
-  const playSection = (sectionIndex: number) => {
+  // Fetch audio as blob to hide direct URL from browser DevTools
+  const blobUrlCache = useRef<Record<number, string>>({});
+  const resolveBlobUrl = async (sectionIndex: number): Promise<string> => {
+    if (blobUrlCache.current[sectionIndex]) return blobUrlCache.current[sectionIndex];
+    const section = displaySections[sectionIndex];
+    const rawUrl = resolveRawUrl(section?.audio_url);
+    try {
+      const response = await fetch(rawUrl);
+      if (!response.ok) return rawUrl; // fallback to direct URL
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      blobUrlCache.current[sectionIndex] = blobUrl;
+      return blobUrl;
+    } catch {
+      return rawUrl; // fallback on error
+    }
+  };
+
+  const playSection = async (sectionIndex: number) => {
     if (sectionIndex < 0 || sectionIndex >= displaySections.length) return;
     
     if (sectionIndex === currentSectionIndex && isPlaying) {
@@ -224,27 +245,23 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     
     setLoading(true);
     setCurrentSectionIndex(sectionIndex);
-    
+
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
     }
-    
-    let audioUrl = resolvedUrlsRef.current[sectionIndex];
-    if (!audioUrl) {
-      const section = displaySections[sectionIndex];
-      audioUrl = resolveAudioUrl(section.audio_url);
-      resolvedUrlsRef.current[sectionIndex] = audioUrl;
-    }
-    
+
     if (!audioRef.current) {
       audioRef.current = new Audio();
       audioRef.current.preload = 'auto';
       audioRef.current.setAttribute('playsinline', '');
-      
+      audioRef.current.setAttribute('controlsList', 'nodownload');
+
       setupAudioElement(audioRef.current);
     }
-    
+
+    // Use blob URL to hide direct MP3 URL from browser DevTools
+    const audioUrl = await resolveBlobUrl(sectionIndex);
     audioRef.current.src = audioUrl;
     audioRef.current.volume = volume;
     audioRef.current.playbackRate = playbackSpeed;
@@ -340,11 +357,11 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   // Pre-resolve all audio URLs
   useEffect(() => {
     const resolved = displaySections.map((section) => {
-      if (!section.audio_url) return mainAudioUrl ? resolveAudioUrl(mainAudioUrl) : `/tmp/${guideId}.mp3`;
-      return resolveAudioUrl(section.audio_url);
+      if (!section.audio_url) return mainAudioUrl ? resolveRawUrl(mainAudioUrl) : `/tmp/${guideId}.mp3`;
+      return resolveRawUrl(section.audio_url);
     });
     resolvedUrlsRef.current = resolved;
-    if (mainAudioUrl) resolvedMainRef.current = resolveAudioUrl(mainAudioUrl);
+    if (mainAudioUrl) resolvedMainRef.current = resolveRawUrl(mainAudioUrl);
     setPreResolved(true);
   }, [displaySections, mainAudioUrl, guideId]);
 
