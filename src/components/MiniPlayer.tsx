@@ -205,17 +205,17 @@ export const MiniPlayer = React.memo<MiniPlayerProps>(({
             </button>
           </div>
 
-          {/* Speed + Auto */}
-          <div className="flex items-center gap-1 shrink-0">
+          {/* Speed + Auto — stacked vertically */}
+          <div className="flex flex-col items-center gap-1 shrink-0">
             {onSpeedChange && (
               <button data-play-btn onClick={(e) => { e.stopPropagation(); cycleSpeed(); }}
-                className="h-8 min-w-[34px] px-2 rounded-lg flex items-center justify-center text-[11px] font-bold text-foreground bg-muted/60 border border-border/30 active:scale-90 active:bg-muted transition-all tabular-nums">
+                className="h-7 min-w-[38px] px-2 rounded-lg flex items-center justify-center text-[11px] font-bold text-foreground bg-muted/60 border border-border/30 active:scale-90 active:bg-muted transition-all tabular-nums">
                 {playbackSpeed}x
               </button>
             )}
             {onToggleAutoAdvance && (
               <button data-play-btn onClick={(e) => { e.stopPropagation(); haptics.medium(); onToggleAutoAdvance(); }}
-                className={cn("h-8 px-2.5 rounded-lg flex items-center justify-center active:scale-90 transition-colors duration-200 border text-[11px] font-bold",
+                className={cn("h-7 min-w-[38px] px-2 rounded-lg flex items-center justify-center active:scale-90 transition-colors duration-200 border text-[10px] font-bold",
                   autoAdvance
                     ? "bg-green-500 text-white border-green-500 shadow-sm shadow-green-500/30"
                     : "bg-muted/60 text-muted-foreground/50 border-border/30")}>
