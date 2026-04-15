@@ -60,22 +60,38 @@ const ScriptReadingView: React.FC<{ scriptText: string; lang?: string }> = ({ sc
         style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
       >
         <div className="h-[4vh]" />
-        <div className="px-5">
-          {paragraphs.map((text, i) => (
-            <p
-              key={i}
-              lang={lang || 'en'}
-              className="mb-5 last:mb-0 text-[16px] font-normal leading-[1.85] text-foreground/90"
-              style={{
-                hyphens: 'auto',
-                WebkitHyphens: 'auto',
-                wordBreak: 'break-word',
-                overflowWrap: 'break-word',
-              }}
-            >
-              {text}
-            </p>
-          ))}
+        <div className="px-6">
+          {paragraphs.map((text, i) => {
+            const firstChar = text.charAt(0);
+            const rest = text.slice(1);
+            return (
+              <React.Fragment key={i}>
+                <p
+                  lang={lang || 'en'}
+                  className="mb-2 text-[17px] font-light leading-[1.9] text-foreground/85"
+                  style={{
+                    hyphens: 'auto',
+                    WebkitHyphens: 'auto',
+                    wordBreak: 'break-word',
+                    overflowWrap: 'break-word',
+                  }}
+                >
+                  <span
+                    className="float-left text-[3rem] font-bold leading-none mr-2 mt-1 text-primary/80"
+                    style={{ lineHeight: '0.8' }}
+                  >
+                    {firstChar}
+                  </span>
+                  {rest}
+                </p>
+                {i < paragraphs.length - 1 && (
+                  <div className="flex justify-center my-6">
+                    <span className="text-muted-foreground/30 text-sm tracking-[0.5em] select-none">· · ·</span>
+                  </div>
+                )}
+              </React.Fragment>
+            );
+          })}
         </div>
         <div className="h-[12vh]" />
       </div>
