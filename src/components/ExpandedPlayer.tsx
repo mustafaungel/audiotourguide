@@ -127,7 +127,7 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
     <div className="h-full relative">
       <div
         ref={containerRef}
-        className="h-full overflow-y-auto overscroll-contain"
+        className="h-full overflow-y-auto overscroll-contain script-scroll-container"
         style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
       >
         {/* Top spacer — small gap below header */}
@@ -276,9 +276,21 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
     if (open) {
       setShouldRender(true);
       document.body.style.overflow = 'hidden';
+      // iOS Safari: prevent body scroll while expanded player is open
+      const preventBodyScroll = (e: TouchEvent) => {
+        // Allow scroll inside script container, block everywhere else
+        if (!(e.target as HTMLElement)?.closest('.script-scroll-container')) {
+          e.preventDefault();
+        }
+      };
+      document.addEventListener('touchmove', preventBodyScroll, { passive: false });
       requestAnimationFrame(() => {
         requestAnimationFrame(() => setIsVisible(true));
       });
+      return () => {
+        document.body.style.overflow = '';
+        document.removeEventListener('touchmove', preventBodyScroll);
+      };
     } else {
       document.body.style.overflow = '';
       setDragY(0);
@@ -286,7 +298,6 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
       const timer = setTimeout(() => setShouldRender(false), 300);
       return () => clearTimeout(timer);
     }
-    return () => { document.body.style.overflow = ''; };
   }, [open]);
 
   if (!shouldRender) return null;
@@ -295,7 +306,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
     <>
       <div
         className={cn(
-          "fixed inset-0 z-[70] bg-background flex flex-col",
+          "fixed inset-0 z-[70] bg-background flex flex-col overscroll-contain",
           dragY > 0 ? "" : "transition-all duration-300 ease-out",
           isVisible ? "opacity-100" : "opacity-0 translate-y-full"
         )}
@@ -342,7 +353,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
           <div className="flex justify-center pt-2 pb-1">
             <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
           </div>
-          {/* Header — collapse button */}
+          {/* Header — collapse + close buttons */}
           <div className="flex items-center justify-between px-4 pb-2">
             <button
               onClick={() => { haptics.light(); onClose(); }}
@@ -353,7 +364,19 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
               {t('nowPlaying', lang)}
             </span>
-            <ThemeToggle />
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => {
+                  haptics.light();
+                  setDragY(250);
+                  setTimeout(() => onClose(), 280);
+                }}
+                className="w-10 h-10 flex items-center justify-center text-muted-foreground active:opacity-60"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <ThemeToggle />
+            </div>
           </div>
 
           {/* Script Lyrics View (Spotify-style with paragraph tracking) */}
