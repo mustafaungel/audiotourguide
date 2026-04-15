@@ -65,7 +65,7 @@ const ScriptReadingView: React.FC<{ scriptText: string; lang?: string }> = ({ sc
             <p
               key={i}
               lang={lang || 'en'}
-              className="mb-5 last:mb-0 text-[16px] font-normal leading-[1.85] text-white/90"
+              className="mb-5 last:mb-0 text-[16px] font-normal leading-[1.85] text-foreground/90"
               style={{
                 hyphens: 'auto',
                 WebkitHyphens: 'auto',
