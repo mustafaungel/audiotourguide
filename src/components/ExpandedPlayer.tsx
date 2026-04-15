@@ -125,14 +125,30 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
 
   return (
     <div className="h-full relative">
+      {/* Book page container */}
+      <div
+        className="absolute inset-2 inset-y-0 rounded-2xl bg-amber-50/80 dark:bg-stone-900/80 border-l border-amber-200/40 dark:border-stone-700/40"
+        style={{
+          boxShadow: 'inset 0 2px 12px rgba(0,0,0,0.05), inset 0 -2px 12px rgba(0,0,0,0.03), 0 4px 24px rgba(0,0,0,0.08)',
+          backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(180,140,80,0.03) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(160,120,60,0.02) 0%, transparent 50%)',
+        }}
+      />
+
+      {/* Paragraph counter — top right */}
+      <div className="absolute top-3 right-5 z-20 transition-opacity duration-500">
+        <span className="text-[11px] font-medium text-stone-400/70 dark:text-stone-500/60 font-sans tabular-nums">
+          § {activeIdx + 1} / {paragraphs.length}
+        </span>
+      </div>
+
       <div
         ref={containerRef}
-        className="h-full overflow-y-auto overscroll-contain script-scroll-container"
+        className="relative h-full overflow-y-auto overscroll-contain script-scroll-container"
         style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
       >
-        {/* Top spacer — small gap below header */}
-        <div className="h-[8vh]" />
-        <div className="px-5 pb-8 max-w-lg mx-auto">
+        {/* Top spacer */}
+        <div className="h-[7vh]" />
+        <div className="px-7 pb-8 max-w-lg mx-auto">
           {paragraphs.map((para, i) => {
             const isActive = i === activeIdx;
             const isPast = i < activeIdx;
@@ -142,23 +158,29 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
                 key={i}
                 data-para={i}
                 className={cn(
-                  "relative mb-5 text-left leading-relaxed rounded-lg",
-                  "transition-[color,border-color,background-color,padding] duration-[800ms] ease-in-out",
+                  "relative mb-6 text-left rounded-lg",
+                  "transition-[color,border-color,background,padding,font-size] duration-[1000ms] ease-in-out",
                   isActive
-                    ? "text-primary dark:text-primary border-l-[3px] border-primary bg-primary/[0.06] dark:bg-primary/[0.10] pl-4 pr-3 py-3"
-                    : "border-l-[3px] border-transparent pl-4 pr-3 py-1",
+                    ? "text-stone-800 dark:text-amber-100 border-l-2 border-amber-400/60 dark:border-amber-500/40 pl-4 pr-3 py-3"
+                    : "border-l-2 border-transparent pl-4 pr-3 py-1",
                   isPast && !isActive
-                    ? "text-foreground/70 dark:text-white/60"
+                    ? "text-stone-600/80 dark:text-stone-400/60"
                     : !isActive
-                      ? "text-foreground/50 dark:text-white/40"
+                      ? "text-stone-500/60 dark:text-stone-500/40"
                       : ""
                 )}
                 style={{
                   fontFamily: "'Lora', 'Playfair Display', Georgia, serif",
-                  fontSize: isActive ? '15.5px' : '14px',
-                  lineHeight: '1.85',
-                  fontWeight: isActive ? 600 : 400,
-                  letterSpacing: '0.015em',
+                  fontSize: isActive ? '16px' : '14.5px',
+                  lineHeight: '2.0',
+                  fontWeight: isActive ? 500 : 400,
+                  letterSpacing: '0.02em',
+                  // Highlighter marker effect on active paragraph
+                  ...(isActive ? {
+                    background: 'linear-gradient(to right, rgba(251,191,36,0.15) 0%, rgba(251,146,60,0.10) 50%, rgba(251,191,36,0.15) 100%)',
+                    backgroundSize: '100% 2em',
+                    backgroundPosition: '0 0.15em',
+                  } : {}),
                 }}
               >
                 {para.text}
@@ -166,12 +188,13 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
             );
           })}
         </div>
-        {/* Bottom spacer — allows last paragraph to scroll up */}
+        {/* Bottom spacer */}
         <div className="h-[20vh]" />
       </div>
-      {/* Gradient fades */}
-      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-background via-background/70 to-transparent pointer-events-none z-10" />
-      <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-background via-background/70 to-transparent pointer-events-none z-10" />
+
+      {/* Gradient fades — paper-tinted */}
+      <div className="absolute top-0 left-2 right-2 h-28 rounded-t-2xl bg-gradient-to-b from-amber-50/90 dark:from-stone-900/90 via-amber-50/50 dark:via-stone-900/50 to-transparent pointer-events-none z-10" />
+      <div className="absolute bottom-0 left-2 right-2 h-24 rounded-b-2xl bg-gradient-to-t from-amber-50/90 dark:from-stone-900/90 via-amber-50/50 dark:via-stone-900/50 to-transparent pointer-events-none z-10" />
     </div>
   );
 };
