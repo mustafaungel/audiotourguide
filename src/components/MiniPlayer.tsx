@@ -135,21 +135,18 @@ export const MiniPlayer = React.memo<MiniPlayerProps>(({
           onExpand();
         }}
       >
-        {/* Row 1: Now Playing title + time + expand hint */}
-        <div className="flex items-center gap-2 px-4 pt-3 pb-1.5">
+        {/* Drag handle — expand hint */}
+        <div className="flex justify-center pt-2 pb-0.5">
+          <div className="w-9 h-1 rounded-full bg-muted-foreground/25" />
+        </div>
+
+        {/* Row 1: Now Playing title + time */}
+        <div className="flex items-center gap-2 px-4 pb-1.5">
           <Headphones className="w-4 h-4 text-primary shrink-0" />
           <MarqueeText text={title} className="text-[15px] font-semibold text-foreground flex-1" />
           <span className="text-xs text-muted-foreground tabular-nums shrink-0">
             {formatTime(currentTime)} / {formatTime(duration)}
           </span>
-          <button
-            data-play-btn
-            onClick={(e) => { e.stopPropagation(); haptics.light(); onExpand(); }}
-            className="w-9 h-9 flex items-center justify-center text-primary shrink-0 animate-pulse"
-            aria-label="Expand player"
-          >
-            <ChevronUp className="w-5 h-5" />
-          </button>
         </div>
 
         {/* Row 2: Album art + controls */}
