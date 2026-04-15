@@ -1,33 +1,38 @@
 
 
-## Expanded Player Script — 3D Premium Okuma Tasarımı
+## Expanded Player — Dark/Light Tema Ayrımı ve Tam Ekran Kullanımı
 
-### Değişiklik — `src/components/ExpandedPlayer.tsx` (ScriptReadingView)
+### Sorunlar (ekran görüntüsünden)
+1. **Arka plan görseli ekranı daraltıyor** — blurred image + overlay katmanı gereksiz alan kaplıyor ve script alanını sıkıştırıyor
+2. **Dark/Light tema ayrımı yok** — kart ve metin renkleri her iki temada aynı görünüyor, light modda okunabilirlik düşük
 
-**1. İlk Kelime Vurgusu (Drop Cap → Drop Word)**
-- Her paragrafın **ilk kelimesi** (ilk harf değil) ayrıştırılacak
-- İlk kelime: `text-[1.6rem]`, `font-black`, `uppercase`, `tracking-wide`
-- 3D efekti: `text-shadow` ile derinlik hissi — `2px 2px 4px rgba(0,0,0,0.4)` + hafif `text-primary` glow
-- Geri kalan metin normal akışta devam eder (inline, aynı satırda)
+### Değişiklikler — `src/components/ExpandedPlayer.tsx`
 
-**2. Paragraf Kartları — 3D Derinlik**
-- Her paragraf yarı-saydam glassmorphism kart içinde: `bg-white/5 dark:bg-white/8`, `backdrop-blur-sm`
-- `rounded-xl`, `border border-white/10`
-- 3D gölge: `shadow-[0_4px_20px_rgba(0,0,0,0.3)]` — kartlar yüzeyden yükselmiş hissi
-- Hover/touch efekti yok (okuma modunda dikkat dağıtmasın)
+**1. Arka Plan Görseli Kaldırılacak (Script Varsa)**
+- Script text varken blurred background image render edilmeyecek — sadece düz `bg-background` kullanılacak
+- Bu sayede ekranın tamamı script için kullanılır, görsel alan kaybı sıfır
+- Script yoksa mevcut blurred image veya cover art gösterilmeye devam eder
 
-**3. Divider İyileştirmesi**
-- `· · ·` yerine ince gradient çizgi: `bg-gradient-to-r from-transparent via-primary/30 to-transparent`
-- `h-px` ince çizgi, paragraf kartları arasında zarif geçiş
+**2. Dark/Light Tema Ayrımlı Kart Tasarımı**
+- **Dark mod**: `bg-white/[0.06]`, `border-white/[0.08]`, `shadow-[0_4px_24px_rgba(0,0,0,0.4)]`
+- **Light mod**: `bg-black/[0.04]`, `border-black/[0.08]`, `shadow-[0_2px_12px_rgba(0,0,0,0.08)]`
+- Tailwind dark variant ile ayrım: `dark:bg-white/[0.06] bg-black/[0.04]`
 
-**4. Tipografi**
-- Gövde metin: `text-[17px]`, `font-normal` (light değil — okunabilirlik), `leading-[1.9]`
-- Renk: `text-foreground/90` — biraz daha güçlü kontrast
-- `text-shadow: 0 1px 3px rgba(0,0,0,0.15)` — tüm metinde hafif derinlik
+**3. Metin Renkleri Tema Duyarlı**
+- Gövde metin: `text-foreground/85 dark:text-foreground/90`
+- İlk kelime (drop word): `text-foreground dark:text-foreground` (her iki temada tam kontrast)
+- Text shadow: Dark modda `rgba(0,0,0,0.3)`, light modda `rgba(0,0,0,0.05)` — inline style ile
+- İlk kelime shadow: Dark modda mevcut 3D efekt, light modda daha hafif gölge
 
-**5. Padding**
-- Kart iç padding: `p-5`
-- Kartlar arası boşluk: `gap-5` (flex column ile)
+**4. Gradient Fade Düzeltmesi**
+- Üst/alt fade: `from-background/80` → tema ile uyumlu, arka plan düz olduğu için daha güçlü fade
 
-Tek dosya: `src/components/ExpandedPlayer.tsx`
+**5. Overlay Katmanı**
+- Script varken overlay tamamen kaldırılacak (arka plan görseli zaten yok)
+- Script yokken mevcut overlay korunur
+
+### Teknik Detay
+- Tek dosya: `src/components/ExpandedPlayer.tsx`
+- Background image render koşulu: `{imageUrl && !scriptText && (...)}`
+- Kart class: `cn("rounded-xl p-5 backdrop-blur-sm", "bg-black/[0.04] border-black/[0.08] shadow-[0_2px_12px_rgba(0,0,0,0.08)]", "dark:bg-white/[0.06] dark:border-white/[0.08] dark:shadow-[0_4px_24px_rgba(0,0,0,0.4)]")`
 
