@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Play, Pause, SkipBack, SkipForward, ChevronDown, X } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, ChevronDown } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 // BottomSheet removed - using inline speed picker (z-index conflict with expanded player)
@@ -353,30 +353,25 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
           <div className="flex justify-center pt-2 pb-1">
             <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
           </div>
-          {/* Header — collapse + close buttons */}
-          <div className="flex items-center justify-between px-4 pb-2">
-            <button
-              onClick={() => { haptics.light(); onClose(); }}
-              className="w-10 h-10 flex items-center justify-center text-muted-foreground active:opacity-60"
-            >
-              <ChevronDown className="w-6 h-6" />
-            </button>
-            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              {t('nowPlaying', lang)}
-            </span>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => {
-                  haptics.light();
-                  setDragY(250);
-                  setTimeout(() => onClose(), 280);
-                }}
-                className="w-10 h-10 flex items-center justify-center text-muted-foreground active:opacity-60"
-              >
-                <X className="w-5 h-5" />
-              </button>
+          {/* Header — now playing + collapse arrow */}
+          <div className="flex flex-col items-center px-4 pb-1">
+            <div className="w-full flex items-center justify-between">
+              <div className="w-10" />
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                {t('nowPlaying', lang)}
+              </span>
               <ThemeToggle />
             </div>
+            <button
+              onClick={() => {
+                haptics.light();
+                setDragY(250);
+                setTimeout(() => onClose(), 280);
+              }}
+              className="w-12 h-8 flex items-center justify-center text-muted-foreground/60 active:opacity-60 -mt-0.5"
+            >
+              <ChevronDown className="w-7 h-7" />
+            </button>
           </div>
 
           {/* Script Lyrics View (Spotify-style with paragraph tracking) */}
