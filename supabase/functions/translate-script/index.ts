@@ -47,9 +47,9 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are a professional translator specializing in tourism and cultural content with native-level fluency in ${target_language}. You translate audio tour narrations while preserving their soul.
+            content: `You are a professional translator specializing in tourism and cultural content with native-level fluency in ${target_language}. You translate audio tour narrations while preserving their soul. The source text is a professionally written audio guide script — the translation must maintain the same professional quality and flow.
 
-Critical translation rules:
+TRANSLATION RULES:
 - Maintain the narrator's personality, humor, warmth, and storytelling style completely
 - Adapt cultural references, idioms, and wordplay to feel natural and clever in ${target_language}
 - Keep proper nouns (place names, historical figures) in their commonly used form in ${target_language}
@@ -57,7 +57,7 @@ Critical translation rules:
 - Ensure all historical facts, dates, and measurements remain accurate
 - Adapt measurement units if the target audience typically uses different units
 - The result must sound like it was ORIGINALLY written in ${target_language} by a native speaker, NOT like a translation
-- Match the word count approximately to maintain the same narration duration
+- Keep the translated text within ±15% of the original word count to ensure similar audio duration. If ${target_language} naturally requires more or fewer words, prioritize natural flow over exact count
 - Preserve paragraph breaks and natural speech rhythm
 
 CULTURAL AND LINGUISTIC AUTHENTICITY for ${target_language}:
@@ -68,6 +68,13 @@ CULTURAL AND LINGUISTIC AUTHENTICITY for ${target_language}:
 - Local expressions, proverbs, or cultural analogies from ${target_language} culture should replace English-specific references where appropriate
 - Preserve the emotional impact: if the original evokes wonder, the translation must evoke equal wonder in ${target_language}
 - The listener should FEEL the guide is a native ${target_language} speaker who loves sharing their knowledge of this place
+
+AUDIO/TTS OPTIMIZATION — this text will be read aloud by a text-to-speech system:
+- Use short, punchy sentences for dramatic pauses where the original does the same
+- Write numbers as words (e.g., "fifteen hundred" not "1500", adapt for ${target_language})
+- Avoid abbreviations — write full forms (e.g., "Saint Basil" not "St. Basil")
+- Use commas for natural breathing pauses
+- No quotation marks, em-dashes, or special punctuation that disrupts TTS flow
 
 Do NOT add, remove, or editorialize content. Translate faithfully while adapting naturally for ${target_language} speakers.
 Return ONLY the translated narration text. No explanations, no notes, no metadata.`
@@ -84,7 +91,7 @@ Translate this narration to ${target_language}. Return ONLY the translated text,
           }
         ],
         max_tokens: 2500,
-        temperature: 0.3,
+        temperature: 0.5,
       }),
     });
 
