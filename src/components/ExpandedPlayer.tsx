@@ -11,7 +11,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 
 // Apple Music style lyrics view — paragraph-level tracking with audio
 // Paragraphs = longer time windows (~20-30s each) = less drift & fewer misaligned transitions
-const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; duration: number; isPlaying: boolean }> = ({ scriptText, currentTime, duration }) => {
+const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; duration: number; isPlaying: boolean; lang?: string }> = ({ scriptText, currentTime, duration, lang }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const userScrolling = useRef(false);
   const scrollTimer = useRef<ReturnType<typeof setTimeout>>();
@@ -148,7 +148,7 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
       >
         {/* Top spacer */}
         <div className="h-[7vh]" />
-        <div className="px-7 pb-8 max-w-lg mx-auto">
+        <div className="px-6 pb-8 mx-auto" style={{ maxWidth: '85%' }}>
           {paragraphs.map((para, i) => {
             const isActive = i === activeIdx;
             const isPast = i < activeIdx;
@@ -157,8 +157,9 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
               <div
                 key={i}
                 data-para={i}
+                lang={lang || 'en'}
                 className={cn(
-                  "relative mb-6 text-left rounded-lg",
+                  "relative mb-6 rounded-lg",
                   "transition-[color,border-color,background,padding,font-size] duration-[1000ms] ease-in-out",
                   isActive
                     ? "text-stone-800 dark:text-amber-100 border-l-2 border-amber-400/60 dark:border-amber-500/40 pl-4 pr-3 py-3"
@@ -175,6 +176,12 @@ const ScriptLyricsView: React.FC<{ scriptText: string; currentTime: number; dura
                   lineHeight: '2.0',
                   fontWeight: isActive ? 500 : 400,
                   letterSpacing: '0.02em',
+                  textAlign: 'justify',
+                  textJustify: 'inter-word' as any,
+                  hyphens: 'auto',
+                  WebkitHyphens: 'auto',
+                  wordBreak: 'break-word',
+                  overflowWrap: 'break-word',
                   // Highlighter marker effect on active paragraph
                   ...(isActive ? {
                     background: 'linear-gradient(to right, rgba(251,191,36,0.15) 0%, rgba(251,146,60,0.10) 50%, rgba(251,191,36,0.15) 100%)',
@@ -396,7 +403,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
           {/* Script Lyrics View (Spotify-style with paragraph tracking) */}
           <div className="flex-1 relative overflow-hidden px-6 py-4">
             {scriptText ? (
-              <ScriptLyricsView scriptText={scriptText} currentTime={currentTime} duration={duration} isPlaying={isPlaying} />
+              <ScriptLyricsView scriptText={scriptText} currentTime={currentTime} duration={duration} isPlaying={isPlaying} lang={lang} />
             ) : imageUrl ? (
               <div className="h-full flex items-center justify-center">
                 <img
