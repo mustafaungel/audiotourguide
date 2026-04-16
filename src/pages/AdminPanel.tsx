@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
-import { Plus, Copy, QrCode, BarChart3, FileText } from 'lucide-react';
+import { Plus, Copy, QrCode, BarChart3, FileText, PenLine } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SegmentedControl, SegmentItem } from '@/components/ui/segmented-control';
 import { Textarea } from '@/components/ui/textarea';
@@ -28,6 +28,7 @@ import { CountrySelector } from '@/components/CountrySelector';
 import { AudioGuideSectionManager } from '@/components/AudioGuideSectionManager';
 import { AdminGuideEditForm } from '@/components/AdminGuideEditForm';
 import { AutoCreateGuide } from '@/components/AutoCreateGuide';
+import { ManualGuideCreator } from '@/components/ManualGuideCreator';
 
 import { AdminGuideOrderManager } from '@/components/AdminGuideOrderManager';
 
@@ -353,6 +354,7 @@ const AdminPanel = () => {
             items={[
               { value: 'dashboard', label: 'Dashboard', icon: BarChart3 },
               { value: 'auto-create', label: 'Auto Create', icon: Plus },
+              { value: 'manual-create', label: 'Manual', icon: PenLine },
               { value: 'content-management', label: 'Content', icon: FileText },
             ]}
             value={activeTab}
@@ -369,6 +371,10 @@ const AdminPanel = () => {
 
           <TabsContent value="auto-create">
             <AutoCreateGuide />
+          </TabsContent>
+
+          <TabsContent value="manual-create">
+            <ManualGuideCreator />
           </TabsContent>
 
           <TabsContent value="content-management">

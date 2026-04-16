@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Save, Loader2, ChevronDown, ChevronUp, AlertTriangle, CheckCircle, Mic } from 'lucide-react';
+import { FileText, Save, Loader2, ChevronDown, ChevronUp, AlertTriangle, CheckCircle, Mic, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Section {
@@ -38,6 +38,7 @@ export function AdminScriptEditor({ open, onClose, guideId, guideTitle }: AdminS
   const [editedSections, setEditedSections] = useState<Record<string, { title?: string; description?: string }>>({});
   const [transcribing, setTranscribing] = useState(false);
   const [transcribeProgress, setTranscribeProgress] = useState('');
+  const [polishingId, setPolishingId] = useState<string | null>(null);
 
   // Load sections when dialog opens
   useEffect(() => {
@@ -163,6 +164,24 @@ export function AdminScriptEditor({ open, onClose, guideId, guideTitle }: AdminS
     setTranscribing(false);
     setTranscribeProgress('');
     toast.success(`Transcribed ${completed}/${withAudio.length} sections`);
+  };
+
+  // Polish script with AI
+  const handlePolish = async (sectionId: string) => {
+    const desc = editedSections[sectionId]?.description ?? sections.find(s => s.id === sectionId)?.description ?? '';
+    if (!desc || desc.length < 20) { toast.error('Script too short to polish'); return; }
+
+    setPolishingId(sectionId);
+    try {
+      const langName = selectedLang === 'en' ? 'English' : selectedLang;
+      const { data, error } = await supabase.functions.invoke('polish-script', {
+        body: { script: desc, language: langName, place: guideTitle }
+      });
+      if (error || !data?.polished_script) { toast.error('Polish failed'); return; }
+      handleFieldChange(sectionId, 'description', data.polished_script);
+      toast.success('Script polished! Review and save.');
+    } catch (e: any) { toast.error(`Error: ${e.message}`); }
+    setPolishingId(null);
   };
 
   const getDisplayValue = (section: Section, field: 'title' | 'description') => {
@@ -299,18 +318,32 @@ export function AdminScriptEditor({ open, onClose, guideId, guideTitle }: AdminS
                           </span>
                         )}
                       </div>
-                      <Button
-                        size="sm"
-                        disabled={!edited || savingId === section.id}
-                        onClick={() => handleSave(section.id)}
-                      >
-                        {savingId === section.id ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
-                        ) : (
-                          <Save className="w-3.5 h-3.5 mr-1" />
-                        )}
-                        Save
-                      </Button>
+                      <div className="flex items-center gap-1.5">
+                        <Button
+                          size="sm" variant="outline"
+                          disabled={polishingId !== null || chars < 20}
+                          onClick={() => handlePolish(section.id)}
+                        >
+                          {polishingId === section.id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
+                          ) : (
+                            <Sparkles className="w-3.5 h-3.5 mr-1" />
+                          )}
+                          Polish
+                        </Button>
+                        <Button
+                          size="sm"
+                          disabled={!edited || savingId === section.id}
+                          onClick={() => handleSave(section.id)}
+                        >
+                          {savingId === section.id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
+                          ) : (
+                            <Save className="w-3.5 h-3.5 mr-1" />
+                          )}
+                          Save
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 )}
