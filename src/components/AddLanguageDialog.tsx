@@ -125,9 +125,16 @@ export function AddLanguageDialog({ open, onClose, guideId, guideTitle, guideLoc
     setUploadingIdx(index);
     try {
       const { blob, duration } = await mergeAudioFiles(fileArray);
+      console.log('Upload:', { files: fileArray.length, blobSize: blob.size, blobType: blob.type, duration });
       const path = `uploaded-${Date.now()}-${crypto.randomUUID()}.mp3`;
-      const { error: uploadError } = await supabase.storage.from('guide-audio').upload(path, blob, { contentType: 'audio/mpeg' });
-      if (uploadError) throw uploadError;
+      const { error: uploadError } = await supabase.storage.from('guide-audio').upload(path, blob, {
+        contentType: 'audio/mpeg',
+        upsert: false,
+      });
+      if (uploadError) {
+        console.error('Storage upload error:', uploadError);
+        throw new Error(uploadError.message || 'Storage upload failed');
+      }
       const { data: urlData } = supabase.storage.from('guide-audio').getPublicUrl(path);
       setUploadedAudio(prev => prev.map((a, i) => i === index ? { audio_url: urlData.publicUrl, duration_seconds: duration } : a));
       toast.success(fileArray.length > 1
