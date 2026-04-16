@@ -166,8 +166,10 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
 }) => {
   const [showSpeedPicker, setShowSpeedPicker] = useState(false);
   const [dragY, setDragY] = useState(0);
+  const dragYRef = useRef(0);
   const dragStartRef = useRef(0);
   const dragAllowed = useRef(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [shouldRender, setShouldRender] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
@@ -215,24 +217,47 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
       <div
         className={cn(
           "fixed inset-0 z-[70] bg-background flex flex-col overscroll-contain will-change-transform",
-          dragY > 0 ? "" : "transition-[transform,opacity] duration-300 ease-out",
+          "transition-[transform,opacity] duration-300 ease-out",
           isVisible ? "opacity-100" : "opacity-0 translate-y-full"
         )}
-        style={dragY > 0 ? { transform: `translateY(${dragY}px)`, opacity: Math.max(0.3, 1 - dragY / 400) } : undefined}
+        ref={containerRef}
         onTouchStart={(e) => {
           const y = e.touches[0].clientY;
           dragStartRef.current = y;
-          // Only allow swipe-to-dismiss when touch starts in top 15% of screen (header area)
           dragAllowed.current = y < window.innerHeight * 0.15;
+          if (dragAllowed.current && containerRef.current) {
+            // Disable CSS transition during drag for direct manipulation
+            containerRef.current.style.transition = 'none';
+          }
         }}
         onTouchMove={(e) => {
-          if (!dragAllowed.current) return;
+          if (!dragAllowed.current || !containerRef.current) return;
           const diff = e.touches[0].clientY - dragStartRef.current;
-          if (diff > 0) setDragY(diff);
+          if (diff > 0) {
+            dragYRef.current = diff;
+            // Direct DOM manipulation — no React re-render per pixel
+            containerRef.current.style.transform = `translateY(${diff}px)`;
+            containerRef.current.style.opacity = `${Math.max(0.3, 1 - diff / 400)}`;
+          }
         }}
         onTouchEnd={() => {
-          if (dragAllowed.current && dragY > 120) { onClose(); }
-          setDragY(0);
+          if (!containerRef.current) return;
+          const shouldClose = dragAllowed.current && dragYRef.current > 120;
+
+          if (shouldClose) {
+            // Animate out smoothly then close
+            containerRef.current.style.transition = 'transform 250ms ease-out, opacity 250ms ease-out';
+            containerRef.current.style.transform = 'translateY(100%)';
+            containerRef.current.style.opacity = '0';
+            setTimeout(() => onClose(), 260);
+          } else {
+            // Snap back
+            containerRef.current.style.transition = 'transform 200ms ease-out, opacity 200ms ease-out';
+            containerRef.current.style.transform = '';
+            containerRef.current.style.opacity = '';
+          }
+
+          dragYRef.current = 0;
           dragAllowed.current = false;
         }}
       >
