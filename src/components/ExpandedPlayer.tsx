@@ -94,17 +94,31 @@ const ScriptReadingView: React.FC<{ scriptText: string; lang?: string }> = ({ sc
                     overflowWrap: 'break-word',
                   }}
                 >
-                  {/* First sentence — bold, slightly larger, primary color */}
+                  {/* Drop cap — first letter */}
+                  <span
+                    className="text-primary dark:text-amber-400"
+                    style={{
+                      float: 'left',
+                      fontFamily: "'Playfair Display', Georgia, serif",
+                      fontSize: '3.2em',
+                      lineHeight: '0.85',
+                      fontWeight: 700,
+                      marginRight: '6px',
+                      marginTop: '4px',
+                    }}
+                  >
+                    {firstSentence.charAt(0)}
+                  </span>
+                  {/* First sentence — bold, primary color */}
                   <span
                     className="text-primary dark:text-amber-400"
                     style={{
                       fontFamily: "'Playfair Display', 'Lora', Georgia, serif",
                       fontSize: '17px',
                       fontWeight: 700,
-                      letterSpacing: '0.01em',
                     }}
                   >
-                    {firstSentence}
+                    {firstSentence.slice(1)}
                   </span>
                   {restText && <> {restText}</>}
                 </p>
