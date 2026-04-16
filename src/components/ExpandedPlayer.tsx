@@ -214,7 +214,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
     <>
       <div
         className={cn(
-          "fixed inset-0 z-[70] bg-background flex flex-col overscroll-contain",
+          "fixed inset-0 z-[70] bg-background flex flex-col overscroll-contain will-change-transform",
           dragY > 0 ? "" : "transition-[transform,opacity] duration-300 ease-out",
           isVisible ? "opacity-100" : "opacity-0 translate-y-full"
         )}

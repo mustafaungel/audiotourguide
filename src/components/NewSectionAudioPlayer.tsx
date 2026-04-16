@@ -214,21 +214,33 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     return data?.publicUrl || `/tmp/${guideId}.mp3`;
   };
 
-  // Fetch audio as blob to hide direct URL from browser DevTools
+  // Fetch audio as blob for small files to hide URL, stream large files directly
+  const MAX_BLOB_SIZE = 5 * 1024 * 1024; // 5MB — above this, stream directly for faster playback
   const blobUrlCache = useRef<Record<number, string>>({});
   const resolveBlobUrl = async (sectionIndex: number): Promise<string> => {
     if (blobUrlCache.current[sectionIndex]) return blobUrlCache.current[sectionIndex];
     const section = displaySections[sectionIndex];
     const rawUrl = resolveRawUrl(section?.audio_url);
     try {
+      // Check file size first with HEAD request
+      const headResp = await fetch(rawUrl, { method: 'HEAD' });
+      const contentLength = parseInt(headResp.headers.get('content-length') || '0');
+
+      // Large files (>5MB): stream directly for instant playback
+      if (contentLength > MAX_BLOB_SIZE || !headResp.ok) {
+        blobUrlCache.current[sectionIndex] = rawUrl;
+        return rawUrl;
+      }
+
+      // Small files (<5MB): convert to blob URL to hide direct link
       const response = await fetch(rawUrl);
-      if (!response.ok) return rawUrl; // fallback to direct URL
+      if (!response.ok) return rawUrl;
       const blob = await response.blob();
       const blobUrl = URL.createObjectURL(blob);
       blobUrlCache.current[sectionIndex] = blobUrl;
       return blobUrl;
     } catch {
-      return rawUrl; // fallback on error
+      return rawUrl;
     }
   };
 
