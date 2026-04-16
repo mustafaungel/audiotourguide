@@ -60,7 +60,7 @@ ${place ? `Location: ${place}` : ''}`
             content: `Polish this audio tour narration script. Fix errors, improve flow, optimize for TTS. Keep the same meaning and structure:\n\n${script}`
           }
         ],
-        max_tokens: 3000,
+        max_tokens: 8000,
         temperature: 0.3,
       }),
     });

@@ -90,7 +90,7 @@ ${cleanScript}
 Translate this narration to ${target_language}. Return ONLY the translated text, nothing else. No dashes, no markers, no explanations.`
           }
         ],
-        max_tokens: 2500,
+        max_tokens: 8000,
         temperature: 0.5,
       }),
     });
