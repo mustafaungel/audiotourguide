@@ -9,22 +9,24 @@ import { haptics } from '@/lib/haptics';
 import { t } from '@/lib/translations';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
-// Clean reading mode — all paragraphs equally readable, user scrolls manually
+// Parchment scroll reading view — antique tour guide aesthetic
+const toRoman = (n: number): string => {
+  const vals = [1000,900,500,400,100,90,50,40,10,9,5,4,1];
+  const syms = ['M','CM','D','CD','C','XC','L','XL','X','IX','V','IV','I'];
+  let r = '';
+  for (let i = 0; i < vals.length; i++) { while (n >= vals[i]) { r += syms[i]; n -= vals[i]; } }
+  return r;
+};
+
 const ScriptReadingView: React.FC<{ scriptText: string; lang?: string }> = ({ scriptText, lang }) => {
   const paragraphs = useMemo(() => {
     if (!scriptText) return [];
-
-    // Split by double-newlines
     const rawParagraphs = scriptText.split(/\n\n+/);
     const cleaned: string[] = [];
-
     for (const p of rawParagraphs) {
-      // Normalize whitespace: collapse multiple spaces, trim lines
       const text = p.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
       if (text.length >= 10) cleaned.push(text);
     }
-
-    // If no paragraph breaks, split by sentences into chunks
     if (cleaned.length <= 1 && scriptText.length > 200) {
       const allText = scriptText.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
       const sentences = allText.split(/(?<=[.!?。！？])\s+/).filter(s => s.trim().length > 5);
@@ -37,8 +39,6 @@ const ScriptReadingView: React.FC<{ scriptText: string; lang?: string }> = ({ sc
         if (chunks.length >= 2) return chunks;
       }
     }
-
-    // Merge very short paragraphs into previous
     const merged: string[] = [];
     for (const text of cleaned) {
       if (text.length < 30 && merged.length > 0) {
@@ -47,7 +47,6 @@ const ScriptReadingView: React.FC<{ scriptText: string; lang?: string }> = ({ sc
         merged.push(text);
       }
     }
-
     return merged.length > 0 ? merged : cleaned;
   }, [scriptText]);
 
@@ -55,58 +54,88 @@ const ScriptReadingView: React.FC<{ scriptText: string; lang?: string }> = ({ sc
 
   return (
     <div className="h-full relative">
+      {/* Parchment page */}
       <div
-        className="h-full overflow-y-auto overscroll-contain script-scroll-container"
+        className="absolute inset-1 inset-y-0 rounded-2xl bg-amber-50/85 dark:bg-stone-900/85 border border-amber-200/30 dark:border-stone-700/30"
+        style={{
+          boxShadow: 'inset 0 3px 15px rgba(120,80,30,0.08), inset 0 -3px 15px rgba(120,80,30,0.05), 0 4px 30px rgba(0,0,0,0.1)',
+          backgroundImage: 'radial-gradient(ellipse at 15% 50%, rgba(180,140,80,0.05) 0%, transparent 60%), radial-gradient(ellipse at 85% 20%, rgba(160,120,60,0.04) 0%, transparent 50%), radial-gradient(ellipse at 50% 80%, rgba(140,100,40,0.03) 0%, transparent 50%)',
+        }}
+      />
+
+      <div
+        className="relative h-full overflow-y-auto overscroll-contain script-scroll-container"
         style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
       >
-        <div className="h-[4vh]" />
-        <div className="px-4 flex flex-col gap-5">
+        <div className="h-[5vh]" />
+        <div className="px-6 pb-8" style={{ maxWidth: '88%', margin: '0 auto' }}>
           {paragraphs.map((text, i) => {
-            const spaceIdx = text.indexOf(' ');
-            const firstWord = spaceIdx > 0 ? text.slice(0, spaceIdx) : text;
-            const rest = spaceIdx > 0 ? text.slice(spaceIdx) : '';
+            const firstChar = text.charAt(0);
+            const restText = text.slice(1);
+
             return (
               <React.Fragment key={i}>
-                <div
-                  className="rounded-xl p-5 backdrop-blur-md border bg-black/[0.04] border-black/[0.08] shadow-[0_2px_12px_rgba(0,0,0,0.08)] dark:bg-white/[0.06] dark:border-white/[0.08] dark:shadow-[0_4px_24px_rgba(0,0,0,0.4)]"
+                <p
+                  lang={lang || 'en'}
+                  className="mb-1 text-stone-800 dark:text-amber-100/90"
+                  style={{
+                    fontFamily: "'Lora', 'Playfair Display', Georgia, serif",
+                    fontSize: '15.5px',
+                    lineHeight: '2.0',
+                    fontWeight: 400,
+                    letterSpacing: '0.02em',
+                    textAlign: 'justify',
+                    textJustify: 'inter-word' as any,
+                    hyphens: 'auto',
+                    WebkitHyphens: 'auto',
+                    wordBreak: 'break-word',
+                    overflowWrap: 'break-word',
+                  }}
                 >
-                  <p
-                    lang={lang || 'en'}
-                    className="text-[17px] font-normal leading-[1.9] text-foreground/90"
+                  {/* Drop cap — first letter */}
+                  <span
+                    className="text-primary dark:text-amber-400"
                     style={{
-                      hyphens: 'auto',
-                      WebkitHyphens: 'auto',
-                      wordBreak: 'break-word',
-                      overflowWrap: 'break-word',
-                      textShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                      float: 'left',
+                      fontFamily: "'Playfair Display', Georgia, serif",
+                      fontSize: '3.2em',
+                      lineHeight: '0.85',
+                      fontWeight: 700,
+                      marginRight: '6px',
+                      marginTop: '4px',
                     }}
                   >
-                    <span
-                      className="text-[1.6rem] font-black uppercase tracking-wide text-foreground"
-                      style={{
-                        textShadow: '2px 2px 4px rgba(0,0,0,0.4), 0 0 12px hsl(var(--primary) / 0.25)',
-                      }}
-                    >
-                      {firstWord}
-                    </span>
-                    {rest}
-                  </p>
-                </div>
+                    {firstChar}
+                  </span>
+                  {restText}
+                </p>
+
+                {/* Ornamental divider between paragraphs */}
                 {i < paragraphs.length - 1 && (
-                  <div className="flex justify-center">
-                    <div className="w-2/3 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+                  <div className="flex items-center justify-center gap-2 my-5">
+                    <div className="flex-1 h-px bg-gradient-to-r from-transparent to-amber-400/25 dark:to-amber-500/20" />
+                    <span className="text-amber-400/50 dark:text-amber-500/30 text-[10px] tracking-[0.3em]">✦ ✦ ✦</span>
+                    <div className="flex-1 h-px bg-gradient-to-l from-transparent to-amber-400/25 dark:to-amber-500/20" />
                   </div>
                 )}
               </React.Fragment>
             );
           })}
         </div>
-        <div className="h-[12vh]" />
+
+        {/* Roman numeral page counter — bottom center */}
+        <div className="flex justify-center pb-6">
+          <span className="text-[11px] font-medium text-stone-400/60 dark:text-stone-500/40 tracking-[0.2em] font-serif">
+            — {toRoman(paragraphs.length)} —
+          </span>
+        </div>
+
+        <div className="h-[10vh]" />
       </div>
 
-      {/* Top/bottom fades — transparent to match blurred bg */}
-      <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-background/80 to-transparent pointer-events-none z-10" />
-      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background/80 to-transparent pointer-events-none z-10" />
+      {/* Parchment-tinted fades */}
+      <div className="absolute top-0 left-1 right-1 h-20 rounded-t-2xl bg-gradient-to-b from-amber-50/95 dark:from-stone-900/95 via-amber-50/60 dark:via-stone-900/60 to-transparent pointer-events-none z-10" />
+      <div className="absolute bottom-0 left-1 right-1 h-16 rounded-b-2xl bg-gradient-to-t from-amber-50/95 dark:from-stone-900/95 via-amber-50/60 dark:via-stone-900/60 to-transparent pointer-events-none z-10" />
     </div>
   );
 };
