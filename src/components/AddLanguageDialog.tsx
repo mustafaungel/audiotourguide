@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { mergeAudioFiles } from '@/utils/audioMerge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -109,15 +110,6 @@ export function AddLanguageDialog({ open, onClose, guideId, guideTitle, guideLoc
   };
 
   // === AUDIO HELPERS ===
-  const getAudioDuration = (file: File): Promise<number> => {
-    return new Promise((resolve) => {
-      const audio = new Audio();
-      audio.addEventListener('loadedmetadata', () => { resolve(Math.round(audio.duration)); URL.revokeObjectURL(audio.src); });
-      audio.addEventListener('error', () => { resolve(0); URL.revokeObjectURL(audio.src); });
-      audio.src = URL.createObjectURL(file);
-    });
-  };
-
   const handleCopyScript = async (index: number) => {
     try {
       await navigator.clipboard.writeText(translatedSections[index].description);
@@ -127,17 +119,20 @@ export function AddLanguageDialog({ open, onClose, guideId, guideTitle, guideLoc
     } catch { toast.error('Failed to copy'); }
   };
 
-  const handleAudioUpload = async (index: number, file: File) => {
+  const handleAudioUpload = async (index: number, files: FileList | File[]) => {
+    const fileArray = Array.from(files);
+    if (fileArray.length === 0) return;
     setUploadingIdx(index);
     try {
-      const duration = await getAudioDuration(file);
-      const ext = file.name.split('.').pop() || 'mp3';
-      const path = `uploaded-${Date.now()}-${crypto.randomUUID()}.${ext}`;
-      const { error: uploadError } = await supabase.storage.from('guide-audio').upload(path, file, { contentType: file.type });
+      const { blob, duration } = await mergeAudioFiles(fileArray);
+      const path = `uploaded-${Date.now()}-${crypto.randomUUID()}.mp3`;
+      const { error: uploadError } = await supabase.storage.from('guide-audio').upload(path, blob, { contentType: 'audio/mpeg' });
       if (uploadError) throw uploadError;
       const { data: urlData } = supabase.storage.from('guide-audio').getPublicUrl(path);
       setUploadedAudio(prev => prev.map((a, i) => i === index ? { audio_url: urlData.publicUrl, duration_seconds: duration } : a));
-      toast.success(`Audio uploaded for section ${index + 1}`);
+      toast.success(fileArray.length > 1
+        ? `${fileArray.length} files merged & uploaded for section ${index + 1}`
+        : `Audio uploaded for section ${index + 1}`);
     } catch (e: any) { toast.error(`Upload failed: ${e.message}`); }
     setUploadingIdx(null);
   };
@@ -314,16 +309,17 @@ export function AddLanguageDialog({ open, onClose, guideId, guideTitle, guideLoc
                         {uploadingIdx === i ? (
                           <><Loader2 className="w-4 h-4 animate-spin text-primary" /><span className="text-sm text-primary">Uploading...</span></>
                         ) : (
-                          <><Mic className="w-4 h-4 text-muted-foreground" /><span className="text-sm text-muted-foreground">Upload MP3</span></>
+                          <><Mic className="w-4 h-4 text-muted-foreground" /><span className="text-sm text-muted-foreground">Upload MP3 (multiple auto-merged)</span></>
                         )}
                         <input
                           type="file"
                           accept="audio/*"
+                          multiple
                           className="hidden"
                           disabled={uploadingIdx !== null}
                           onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) handleAudioUpload(i, file);
+                            const files = e.target.files;
+                            if (files && files.length > 0) handleAudioUpload(i, files);
                             e.target.value = '';
                           }}
                         />
