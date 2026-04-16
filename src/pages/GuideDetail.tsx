@@ -236,16 +236,18 @@ const GuideDetail = () => {
       if (error) throw error;
       
       if (languages && languages.length > 0) {
-        // ONLY auto-select if localStorage has a saved preference
+        // Check localStorage for saved preference
         const savedLanguage = localStorage.getItem(`guide_lang_${slug}`);
         if (savedLanguage && languages.find((l: any) => l.language_code === savedLanguage)) {
           setSelectedLanguage(savedLanguage);
           await fetchGuideSections(guideId, savedLanguage);
           return;
         }
-        
-        // Otherwise, wait for user to select - no automatic selection
-        console.log('Available languages:', languages.map((l: any) => l.language_code));
+
+        // Auto-select first available language (fallback when default 'en' has no audio)
+        const firstLang = languages[0].language_code;
+        setSelectedLanguage(firstLang);
+        await fetchGuideSections(guideId, firstLang);
       } else {
         console.warn('No languages available for guide:', guideId);
       }
