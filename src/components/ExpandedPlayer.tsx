@@ -70,8 +70,10 @@ const ScriptReadingView: React.FC<{ scriptText: string; lang?: string }> = ({ sc
         <div className="h-[5vh]" />
         <div className="px-6 pb-8" style={{ maxWidth: '88%', margin: '0 auto' }}>
           {paragraphs.map((text, i) => {
-            const firstChar = text.charAt(0);
-            const restText = text.slice(1);
+            // Split first sentence from rest
+            const sentenceMatch = text.match(/^(.+?[.!?。！？])\s*(.*)/s);
+            const firstSentence = sentenceMatch ? sentenceMatch[1] : text;
+            const restText = sentenceMatch ? sentenceMatch[2] : '';
 
             return (
               <React.Fragment key={i}>
@@ -92,22 +94,19 @@ const ScriptReadingView: React.FC<{ scriptText: string; lang?: string }> = ({ sc
                     overflowWrap: 'break-word',
                   }}
                 >
-                  {/* Drop cap — first letter */}
+                  {/* First sentence — bold, slightly larger, primary color */}
                   <span
                     className="text-primary dark:text-amber-400"
                     style={{
-                      float: 'left',
-                      fontFamily: "'Playfair Display', Georgia, serif",
-                      fontSize: '3.2em',
-                      lineHeight: '0.85',
+                      fontFamily: "'Playfair Display', 'Lora', Georgia, serif",
+                      fontSize: '17px',
                       fontWeight: 700,
-                      marginRight: '6px',
-                      marginTop: '4px',
+                      letterSpacing: '0.01em',
                     }}
                   >
-                    {firstChar}
+                    {firstSentence}
                   </span>
-                  {restText}
+                  {restText && <> {restText}</>}
                 </p>
 
                 {/* Ornamental divider between paragraphs */}
