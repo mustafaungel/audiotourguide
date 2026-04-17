@@ -219,22 +219,48 @@ export const ChapterList: React.FC<ChapterListProps> = ({
                   <div className="w-[2px] h-1.5 bg-primary rounded-full" style={{ animationDelay: '0.3s' }} />
                 </div>
 
-                {/* Chapter Number Badge */}
+                {/* Chapter Number Badge OR Maps Pin */}
                 <div className="flex-shrink-0">
-                  <div className={cn(
-                    "w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold",
-                    isCurrent 
-                      ? "bg-gradient-to-br from-primary to-primary/70 text-primary-foreground" 
-                      : "bg-primary/10 text-muted-foreground"
-                  )}>
-                    {isCurrent && isPlaying ? (
-                      <Pause className="w-4 h-4" fill="currentColor" />
-                    ) : isCurrent ? (
-                      <Play className="w-4 h-4" />
-                    ) : (
-                      index + 1
-                    )}
-                  </div>
+                  {section.maps_url ? (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        haptics.medium();
+                        openMapsLink(section.maps_url);
+                      }}
+                      aria-label="Open this location in Google Maps"
+                      title="Open in Google Maps"
+                      className={cn(
+                        "w-9 h-9 rounded-full flex items-center justify-center relative",
+                        "transition-all duration-200 active:scale-95 hover:scale-110",
+                        "bg-gradient-to-br from-red-500 to-red-600 text-white",
+                        "shadow-[0_4px_12px_rgba(239,68,68,0.45)] hover:shadow-[0_6px_18px_rgba(239,68,68,0.6)]"
+                      )}
+                    >
+                      <MapPin className="w-4 h-4" fill="currentColor" strokeWidth={2} />
+                      {isCurrent && isPlaying && (
+                        <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-primary border-2 border-background flex items-center justify-center">
+                          <Pause className="w-1.5 h-1.5 text-primary-foreground" fill="currentColor" />
+                        </span>
+                      )}
+                    </button>
+                  ) : (
+                    <div className={cn(
+                      "w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold",
+                      isCurrent
+                        ? "bg-gradient-to-br from-primary to-primary/70 text-primary-foreground"
+                        : "bg-primary/10 text-muted-foreground"
+                    )}>
+                      {isCurrent && isPlaying ? (
+                        <Pause className="w-4 h-4" fill="currentColor" />
+                      ) : isCurrent ? (
+                        <Play className="w-4 h-4" />
+                      ) : (
+                        index + 1
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Chapter Info */}
