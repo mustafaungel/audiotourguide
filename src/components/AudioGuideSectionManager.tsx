@@ -13,7 +13,7 @@ import { Plus, Trash2, Upload, MoveUp, MoveDown, Play, X, FileAudio, MapPin, Ext
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { getLanguageFlag } from '@/lib/language-utils';
-import { isSectionMapsEnabled, openMapsLink } from '@/lib/maps-utils';
+import { isSectionMapsEnabled, openMapsLink, normalizeMapsUrl } from '@/lib/maps-utils';
 
 export interface GuideSection {
   id: string;
