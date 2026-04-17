@@ -187,6 +187,7 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
         if (updates.audio_url !== undefined) dbUpdates.audio_url = updates.audio_url;
         if (updates.duration_seconds !== undefined) dbUpdates.duration_seconds = updates.duration_seconds;
         if (updates.order_index !== undefined) dbUpdates.order_index = updates.order_index;
+        if (updates.maps_url !== undefined) dbUpdates.maps_url = updates.maps_url || null;
 
         const { error } = await supabase
           .from('guide_sections')
