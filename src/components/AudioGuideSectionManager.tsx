@@ -9,11 +9,10 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { Plus, Trash2, Upload, MoveUp, MoveDown, Play, X, FileAudio, MapPin, ExternalLink } from 'lucide-react';
+import { Plus, Trash2, Upload, MoveUp, MoveDown, Play, X, FileAudio } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { getLanguageFlag } from '@/lib/language-utils';
-import { isSectionMapsEnabled, openMapsLink, normalizeMapsUrl } from '@/lib/maps-utils';
 
 export interface GuideSection {
   id: string;
@@ -24,7 +23,6 @@ export interface GuideSection {
   language: string;
   language_code?: string;
   order_index: number;
-  maps_url?: string | null;
 }
 
 interface AudioGuideSectionManagerProps {
@@ -188,7 +186,6 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
         if (updates.audio_url !== undefined) dbUpdates.audio_url = updates.audio_url;
         if (updates.duration_seconds !== undefined) dbUpdates.duration_seconds = updates.duration_seconds;
         if (updates.order_index !== undefined) dbUpdates.order_index = updates.order_index;
-        if (updates.maps_url !== undefined) dbUpdates.maps_url = updates.maps_url || null;
 
         const { error } = await supabase
           .from('guide_sections')
@@ -841,45 +838,6 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
                                 rows={3}
                               />
                             </div>
-
-                            {isSectionMapsEnabled(undefined, guideTitle) && (
-                              <div>
-                                <Label htmlFor={`maps-${section.id}`} className="text-sm mb-2 flex items-center gap-1.5">
-                                  <MapPin className="h-3.5 w-3.5 text-red-500" />
-                                  Google Maps Link
-                                  <span className="text-xs font-normal text-muted-foreground">— auto-synced across all languages</span>
-                                </Label>
-                                <div className="flex gap-2">
-                                  <Input
-                                    id={`maps-${section.id}`}
-                                    value={section.maps_url || ''}
-                                    onChange={(e) => {
-                                      const updated = sections.map(s =>
-                                        s.id === section.id ? { ...s, maps_url: e.target.value } : s
-                                      );
-                                      onSectionsChange(updated);
-                                    }}
-                                    onBlur={(e) => updateSection(section.id, { maps_url: normalizeMapsUrl(e.target.value) })}
-                                    placeholder="https://maps.app.goo.gl/... or https://www.google.com/maps/..."
-                                    className="flex-1"
-                                  />
-                                  {section.maps_url && (
-                                    <a
-                                      href={normalizeMapsUrl(section.maps_url)}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="inline-flex items-center gap-1 px-3 h-9 rounded-md border border-input bg-background hover:bg-muted text-sm font-medium transition-colors whitespace-nowrap"
-                                    >
-                                      <ExternalLink className="h-4 w-4" />
-                                      Test
-                                    </a>
-                                  )}
-                                </div>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  Paste any Google Maps link. Saved automatically and applied to every language version of this section.
-                                </p>
-                              </div>
-                            )}
 
                             <div>
                               <Label htmlFor={`language-${section.id}`} className="text-sm mb-2 block">

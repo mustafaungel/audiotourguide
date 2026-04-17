@@ -18,7 +18,6 @@ interface Section {
   audio_url?: string;
   duration_seconds?: number;
   order_index?: number;
-  maps_url?: string | null;
 }
 
 interface NewSectionAudioPlayerProps {

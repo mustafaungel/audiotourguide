@@ -1,16 +1,3 @@
-// Strip Google Maps tracking params for cleaner, more reliable URLs
-export function normalizeMapsUrl(url: string | null | undefined): string {
-  if (!url) return '';
-  const trimmed = url.trim();
-  try {
-    const u = new URL(trimmed);
-    ['entry', 'g_ep', 'shorturl', 'ved', 'g_st'].forEach(p => u.searchParams.delete(p));
-    return u.toString();
-  } catch {
-    return trimmed;
-  }
-}
-
 // Convert various Google Maps URL formats to embeddable URL
 export function getMapEmbedUrl(mapsUrl: string | null | undefined): string | null {
   if (!mapsUrl) return null;
@@ -42,6 +29,7 @@ export function getMapEmbedUrl(mapsUrl: string | null | undefined): string | nul
   } catch {}
 
   // Short links (maps.app.goo.gl, goo.gl/maps) — can't resolve client-side
+  // Use the guide's location name instead
   return null;
 }
 
@@ -49,79 +37,17 @@ export function getMapEmbedUrl(mapsUrl: string | null | undefined): string | nul
 export function parseCoordinates(mapsUrl: string | null | undefined): { lat: number; lng: number } | null {
   if (!mapsUrl) return null;
 
+  // Format: @41.0082,28.9784 or @41.0082,28.9784,17z
   const match = mapsUrl.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
   if (match) {
     return { lat: parseFloat(match[1]), lng: parseFloat(match[2]) };
   }
 
+  // Format: !3d41.0082!4d28.9784 (embed URL format)
   const embedMatch = mapsUrl.match(/!3d(-?\d+\.?\d*)!4d(-?\d+\.?\d*)/);
   if (embedMatch) {
     return { lat: parseFloat(embedMatch[1]), lng: parseFloat(embedMatch[2]) };
   }
 
   return null;
-}
-
-/**
- * Smart open: tries native maps app on iOS/Android, falls back to web Google Maps.
- * On desktop opens in a new tab.
- */
-export function openMapsLink(url: string | null | undefined): void {
-  if (!url) return;
-
-  const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
-  const isIOS = /iPad|iPhone|iPod/.test(ua);
-  const isAndroid = /Android/.test(ua);
-
-  // Always-safe fallback
-  const openWeb = () => {
-    try {
-      window.open(url, '_blank', 'noopener,noreferrer');
-    } catch {
-      window.location.href = url;
-    }
-  };
-
-  if (isIOS) {
-    // Try Apple Maps via maps:// — falls back to web after a short delay if app not installed
-    const coords = parseCoordinates(url);
-    let nativeUrl: string | null = null;
-
-    if (coords) {
-      nativeUrl = `maps://?q=${coords.lat},${coords.lng}`;
-    } else {
-      // For short links / place links, just open in browser — Google Maps app intent will catch it
-      openWeb();
-      return;
-    }
-
-    const timeout = setTimeout(() => openWeb(), 700);
-    const visibilityHandler = () => {
-      if (document.hidden) clearTimeout(timeout);
-    };
-    document.addEventListener('visibilitychange', visibilityHandler, { once: true });
-    window.location.href = nativeUrl;
-    return;
-  }
-
-  if (isAndroid) {
-    // Google Maps app catches https links via intent automatically
-    openWeb();
-    return;
-  }
-
-  // Desktop
-  openWeb();
-}
-
-// Title slug for the special Cappadocia guide where per-section maps are enabled.
-// Used to gate the admin UI so other guides stay clean.
-export const SECTION_MAPS_ENABLED_SLUGS = new Set<string>([
-  'cappadocia-discover-hidden-valleys',
-]);
-
-export function isSectionMapsEnabled(slug?: string | null, title?: string | null): boolean {
-  if (slug && SECTION_MAPS_ENABLED_SLUGS.has(slug)) return true;
-  if (title && /cappadocia/i.test(title) && /hidden\s*valleys/i.test(title)) return true;
-  return false;
 }

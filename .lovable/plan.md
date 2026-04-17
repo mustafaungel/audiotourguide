@@ -1,29 +1,38 @@
 
 
-## Sorun: Hidden Valleys Access Sayfasında Audio Görünmüyor
+## Expanded Player Script — Crystal Glass Arka Plan
 
-### Kök Neden
-Son migration'ım (`20260417092621`) iki RPC'yi (`get_sections_with_access` + `get_linked_guide_sections_with_access`) **DROP edip yeniden CREATE** etti. Yeni `CREATE FUNCTION` ile birlikte **EXECUTE yetkileri (anon, authenticated) silindi** — eski migration'larda verilen `GRANT EXECUTE` artık geçerli değil. Bu nedenle frontend RPC'yi çağırınca PostgreSQL `permission denied` döner, sections boş gelir, audio görünmez.
+### Fikir
+Script alanı şu an düz `bg-background` — hiçbir hissiyat yok. Çözüm: Rehberin kapak görselini script arkasında **çok hafif blurlu** göstermek. Ama `backdrop-blur` kullanmak yerine (her kart için GPU yükü), **tek bir sabit blurlu arka plan katmanı** + üzerine yarı-saydam overlay. Performans sıfır etki.
 
-Ek olarak `MultiTabAudioPlayer.tsx` linked guides için RPC çağırırken parametre adı `p_target_guide_id` kullanıyor — yeni signatür ile uyumlu, sorun değil. Asıl sorun GRANT.
+### Yaklaşım — Sabit Blurlu Arka Plan (GPU-friendly)
 
-### Çözüm — Tek Migration
-Yeni migration ile her iki fonksiyona EXECUTE yetkilerini geri ver:
+**1. Arka plan görseli — script varken de göster**
+- Şu an `imageUrl && !scriptText` koşulu var → bunu `imageUrl` olarak değiştir (script varken de göster)
+- Blur: `blur(40px)` (daha yoğun, metin okunabilirliği korunur)
+- Saturation: `saturate(1.2)` — hafif renk canlılığı
+- Opacity: Dark modda `0.25`, light modda `0.15` — çok hafif ama hissedilir
+- `scale-110` ile kenar boşlukları kapatılır
 
-```sql
-GRANT EXECUTE ON FUNCTION public.get_sections_with_access(uuid, text, text) TO anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.get_linked_guide_sections_with_access(uuid, uuid, text, text) TO anon, authenticated;
-```
+**2. Overlay katmanı — tema duyarlı**
+- Script varken daha güçlü overlay: `bg-background/75 dark:bg-background/70`
+- Bu sayede metin okunabilirliği korunur ama arkada hafif renk/ışık hissedilir
 
-### Test Akışı
-1. Migration uygula
-2. Hidden Valleys access link'i aç → sections yüklenir, audio player görünür
-3. Diller arası geçişte de sections görünmeye devam eder
-4. Linked guide tabları açılırken section listesi gelir
+**3. Kart glassmorphism güçlendir**
+- Kartlardaki `backdrop-blur-sm` → `backdrop-blur-md` (biraz daha cam hissi)
+- Bu tek katman blur olduğu için performans etkisi minimal
 
-### Dosya Değişiklikleri (1)
-- **Migration**: GRANT EXECUTE iki RPC için anon + authenticated rollerine
+**4. Top/bottom fade — arka planla uyumlu**
+- Gradient fade zaten `from-background/80` — arka plandaki blur ile güzel geçiş yapar
 
-### Not
-Bu hata, "bir şeyi bozma" dediğin halde dolaylı olarak yaşandı çünkü RPC'leri `maps_url` kolonu döndürmesi için `DROP + CREATE` yapmak zorundaydım (PostgreSQL `RETURNS TABLE` signatürünü değiştirmek için drop gerekir), ama GRANT'ları yeniden vermeyi atladım. Bu fix bunu kapatır. Diğer bütün fonksiyonalite (Maps pin, dil senkronu, admin input) olduğu gibi kalır.
+### Teknik Detay — Tek Dosya
+`src/components/ExpandedPlayer.tsx`:
+
+- Satır 240: `{imageUrl && !scriptText && (` → `{imageUrl && (`
+- Satır 248-249: Blur `20px` → `40px`, opacity `0.55` → `0.2`
+- Satır 252: Overlay — script varken `bg-background/75`, yokken mevcut `bg-background/55`
+- Satır 71: Kart `backdrop-blur-sm` → `backdrop-blur-md`
+
+### Sonuç
+Düz beyaz/siyah arka plan yerine, rehberin kapak görselinin çok hafif, bulanık, kristal cam arkasındaymış gibi hissedilen bir arka plan. Kartlar da hafif cam efektiyle üzerinde yüzüyor. Performans etkisi sıfır — tek bir CSS `filter: blur()` katmanı.
 
