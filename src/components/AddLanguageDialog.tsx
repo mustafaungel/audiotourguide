@@ -121,10 +121,42 @@ export function AddLanguageDialog({ open, onClose, guideId, guideTitle, guideLoc
         results.push({ title: translatedTitle, description: translatedDesc, original: orig });
       }
 
-      setTranslatedSections(results);
-      setUploadedAudio(results.map(() => ({ audio_url: '', duration_seconds: 0 })));
+      // === IMMEDIATELY PERSIST translations to DB (prevent data loss) ===
+      setProgress({ current: total * 2, total: total * 2, message: 'Saving translations to database...' });
+      const newSections = results.map((section) => ({
+        guide_id: guideId,
+        title: section.title,
+        description: section.description,
+        audio_url: null,
+        duration_seconds: section.original.duration_seconds || 180,
+        language: selectedLangName,
+        language_code: selectedLang,
+        order_index: section.original.order_index,
+        is_original: false,
+        original_section_id: section.original.id,
+      }));
+      const { data: inserted, error: insertErr } = await supabase
+        .from('guide_sections')
+        .insert(newSections)
+        .select('id, original_section_id');
+      if (insertErr) throw new Error(`Failed to save translations: ${insertErr.message}`);
+
+      const { data: guide } = await supabase.from('audio_guides').select('languages').eq('id', guideId).single();
+      const currentLangs: string[] = guide?.languages || [];
+      if (!currentLangs.includes(selectedLangName)) {
+        await supabase.from('audio_guides').update({ languages: [...currentLangs, selectedLangName] }).eq('id', guideId);
+      }
+
+      // Attach DB ids so audio uploads can UPDATE the right row
+      const resultsWithIds = results.map((r) => {
+        const match = inserted?.find((i: any) => i.original_section_id === r.original.id);
+        return { ...r, original: { ...r.original, dbId: match?.id } };
+      });
+
+      setTranslatedSections(resultsWithIds);
+      setUploadedAudio(resultsWithIds.map(() => ({ audio_url: '', duration_seconds: 0 })));
       setStep('upload');
-      toast.success(`${total} sections translated to ${selectedLangName}!`);
+      toast.success(`${total} sections translated & saved! Now upload audio files.`);
     } catch (error: any) {
       toast.error(`Translation failed: ${error.message}`);
       setStep('select');
@@ -149,20 +181,61 @@ export function AddLanguageDialog({ open, onClose, guideId, guideTitle, guideLoc
       const { blob, duration } = await mergeAudioFiles(fileArray);
       console.log('Upload:', { files: fileArray.length, blobSize: blob.size, blobType: blob.type, duration });
       const path = `uploaded-${Date.now()}-${crypto.randomUUID()}.mp3`;
-      const { error: uploadError } = await supabase.storage.from('guide-audio').upload(path, blob, {
-        contentType: 'audio/mpeg',
-        upsert: false,
-      });
-      if (uploadError) {
-        console.error('Storage upload error:', uploadError);
-        throw new Error(uploadError.message || 'Storage upload failed');
+
+      // Try SDK upload first; fall back to raw fetch if SDK chokes on plain-text errors
+      try {
+        const { error: uploadError } = await supabase.storage.from('guide-audio').upload(path, blob, {
+          contentType: 'audio/mpeg',
+          upsert: false,
+        });
+        if (uploadError) throw uploadError;
+      } catch (sdkErr: any) {
+        const msg = String(sdkErr?.message || sdkErr || '');
+        console.warn('SDK upload failed, retrying via fetch:', msg);
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token;
+        const SUPABASE_URL = 'https://dsaqlgxajdnwoqvtsrqd.supabase.co';
+        const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRzYXFsZ3hhamRud29xdnRzcnFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxOTA0MzgsImV4cCI6MjA3Mjc2NjQzOH0.qTVG_v_NqqX-vi7PDuf8p9qu_6pD5xKNhiPksqwJuzA';
+        const res = await fetch(`${SUPABASE_URL}/storage/v1/object/guide-audio/${path}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'audio/mpeg',
+            'Authorization': `Bearer ${token || ANON}`,
+            'apikey': ANON,
+            'x-upsert': 'true',
+          },
+          body: blob,
+        });
+        if (!res.ok) {
+          const text = await res.text().catch(() => '');
+          if (text.toLowerCase().includes('audio not available')) {
+            throw new Error('Storage temporarily unavailable. Please try again in a moment.');
+          }
+          throw new Error(`Upload failed (${res.status}): ${text || res.statusText}`);
+        }
       }
+
       const { data: urlData } = supabase.storage.from('guide-audio').getPublicUrl(path);
-      setUploadedAudio(prev => prev.map((a, i) => i === index ? { audio_url: urlData.publicUrl, duration_seconds: duration } : a));
+      const publicUrl = urlData.publicUrl;
+
+      // Persist audio_url immediately (row already exists from translation step)
+      const dbId = (translatedSections[index] as any)?.original?.dbId;
+      if (dbId) {
+        const { error: updErr } = await supabase
+          .from('guide_sections')
+          .update({ audio_url: publicUrl, duration_seconds: Math.round(duration) })
+          .eq('id', dbId);
+        if (updErr) console.warn('Audio URL update failed:', updErr.message);
+      }
+
+      setUploadedAudio(prev => prev.map((a, i) => i === index ? { audio_url: publicUrl, duration_seconds: duration } : a));
       toast.success(fileArray.length > 1
         ? `${fileArray.length} files merged & uploaded for section ${index + 1}`
         : `Audio uploaded for section ${index + 1}`);
-    } catch (e: any) { toast.error(`Upload failed: ${e.message}`); }
+    } catch (e: any) {
+      console.error('Audio upload error:', e);
+      toast.error(`Upload failed: ${e.message}`);
+    }
     setUploadingIdx(null);
   };
 
