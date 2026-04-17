@@ -284,8 +284,21 @@ export function AddLanguageDialog({ open, onClose, guideId, guideTitle, guideLoc
   const allUploaded = translatedSections.length > 0 && uploadedCount >= translatedSections.length;
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
-      <DialogContent className={step === 'upload' ? 'max-w-2xl max-h-[85vh] overflow-hidden flex flex-col' : 'max-w-lg'}>
+    <Dialog open={open} onOpenChange={(v) => {
+      if (v) return;
+      // Block accidental close while busy or with unsaved upload progress
+      if (step === 'translating' || step === 'saving') return;
+      if (step === 'upload') {
+        const ok = window.confirm('Translations are saved. You can come back later to upload remaining audio. Close now?');
+        if (!ok) return;
+      }
+      onClose();
+    }}>
+      <DialogContent
+        onPointerDownOutside={(e) => { if (step !== 'select' && step !== 'done') e.preventDefault(); }}
+        onEscapeKeyDown={(e) => { if (step === 'translating' || step === 'saving') e.preventDefault(); }}
+        className={step === 'upload' ? 'max-w-2xl max-h-[85vh] overflow-hidden flex flex-col' : 'max-w-lg'}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Globe className="w-5 h-5" />
