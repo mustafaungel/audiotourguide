@@ -59,6 +59,28 @@ export function AddLanguageDialog({ open, onClose, guideId, guideTitle, guideLoc
     setStep('translating');
 
     try {
+      // First check if this language already has sections (resume mode)
+      const { data: existing } = await supabase
+        .from('guide_sections')
+        .select('id, title, description, order_index, duration_seconds, audio_url, original_section_id')
+        .eq('guide_id', guideId)
+        .eq('language_code', selectedLang)
+        .order('order_index');
+
+      if (existing && existing.length > 0) {
+        // Resume: load already-translated sections from DB
+        const results = existing.map((s: any) => ({
+          title: s.title,
+          description: s.description || '',
+          original: { id: s.original_section_id, order_index: s.order_index, duration_seconds: s.duration_seconds, dbId: s.id },
+        }));
+        setTranslatedSections(results);
+        setUploadedAudio(existing.map((s: any) => ({ audio_url: s.audio_url || '', duration_seconds: s.duration_seconds || 0 })));
+        setStep('upload');
+        toast.success(`Resumed: ${existing.length} ${selectedLangName} sections loaded`);
+        return;
+      }
+
       // Fetch English source sections
       const { data: origSections, error: fetchErr } = await supabase
         .from('guide_sections')
