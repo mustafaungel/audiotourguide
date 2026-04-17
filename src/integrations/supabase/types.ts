@@ -1218,53 +1218,30 @@ export type Database = {
           updated_at: string
         }[]
       }
-      get_linked_guide_sections_with_access:
-        | {
-            Args: {
-              p_access_code: string
-              p_language_code?: string
-              p_main_guide_id: string
-              p_target_guide_id: string
-            }
-            Returns: {
-              audio_url: string
-              created_at: string
-              description: string
-              duration_seconds: number
-              guide_id: string
-              id: string
-              is_original: boolean
-              language: string
-              language_code: string
-              order_index: number
-              original_section_id: string
-              title: string
-              updated_at: string
-            }[]
-          }
-        | {
-            Args: {
-              p_access_code: string
-              p_language_code?: string
-              p_linked_guide_id: string
-              p_main_guide_id: string
-            }
-            Returns: {
-              audio_url: string
-              created_at: string
-              description: string
-              duration_seconds: number
-              guide_id: string
-              id: string
-              is_original: boolean
-              language: string
-              language_code: string
-              order_index: number
-              original_section_id: string
-              title: string
-              updated_at: string
-            }[]
-          }
+      get_linked_guide_sections_with_access: {
+        Args: {
+          p_access_code: string
+          p_language_code?: string
+          p_main_guide_id: string
+          p_target_guide_id: string
+        }
+        Returns: {
+          audio_url: string
+          created_at: string
+          description: string
+          duration_seconds: number
+          guide_id: string
+          id: string
+          is_original: boolean
+          language: string
+          language_code: string
+          maps_url: string
+          order_index: number
+          original_section_id: string
+          title: string
+          updated_at: string
+        }[]
+      }
       get_linked_guides_with_access: {
         Args: { p_access_code: string; p_guide_id: string }
         Returns: {
@@ -1358,6 +1335,7 @@ export type Database = {
           is_original: boolean
           language: string
           language_code: string
+          maps_url: string
           order_index: number
           original_section_id: string
           title: string
