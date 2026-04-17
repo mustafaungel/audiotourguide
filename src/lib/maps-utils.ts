@@ -1,3 +1,16 @@
+// Strip Google Maps tracking params for cleaner, more reliable URLs
+export function normalizeMapsUrl(url: string | null | undefined): string {
+  if (!url) return '';
+  const trimmed = url.trim();
+  try {
+    const u = new URL(trimmed);
+    ['entry', 'g_ep', 'shorturl', 'ved', 'g_st'].forEach(p => u.searchParams.delete(p));
+    return u.toString();
+  } catch {
+    return trimmed;
+  }
+}
+
 // Convert various Google Maps URL formats to embeddable URL
 export function getMapEmbedUrl(mapsUrl: string | null | undefined): string | null {
   if (!mapsUrl) return null;
