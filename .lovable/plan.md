@@ -1,38 +1,55 @@
 
 
-## Expanded Player Script — Crystal Glass Arka Plan
+## Sorun Özeti
 
-### Fikir
-Script alanı şu an düz `bg-background` — hiçbir hissiyat yok. Çözüm: Rehberin kapak görselini script arkasında **çok hafif blurlu** göstermek. Ama `backdrop-blur` kullanmak yerine (her kart için GPU yükü), **tek bir sabit blurlu arka plan katmanı** + üzerine yarı-saydam overlay. Performans sıfır etki.
+`Cappadocia Green (South) Tour` için Portekizce dilini eklerken `AddLanguageDialog` kullanıldı. 3 ayrı sorun var:
 
-### Yaklaşım — Sabit Blurlu Arka Plan (GPU-friendly)
+### 1. Audio Upload Hatası: "Audio not available" is not valid JSON
+**Sebep**: `AddLanguageDialog.tsx` (satır 130) Supabase SDK'sı ile direkt upload yapıyor. Storage zaman zaman düz metin (`Audio not available`) döndürüyor ve SDK bunu JSON parse etmeye çalışınca çöküyor. `AudioGuideSectionManager`'da bu sorun için zaten **fetch fallback** mekanizması var (satır 398-415) ama `AddLanguageDialog`'da yok.
 
-**1. Arka plan görseli — script varken de göster**
-- Şu an `imageUrl && !scriptText` koşulu var → bunu `imageUrl` olarak değiştir (script varken de göster)
-- Blur: `blur(40px)` (daha yoğun, metin okunabilirliği korunur)
-- Saturation: `saturate(1.2)` — hafif renk canlılığı
-- Opacity: Dark modda `0.25`, light modda `0.15` — çok hafif ama hissedilir
-- `scale-110` ile kenar boşlukları kapatılır
+### 2. Portekizce Çeviri Kaydedilmemiş Olabilir (KRİTİK)
+**Sebep**: Çeviriler `translatedSections` state'inde tutuluyor. DB'ye yazılması için kullanıcının **tüm sectionlara audio yükleyip** son adımda "Save" butonuna basması gerekiyor (satır 184). Audio upload hatası sonrası dialog kapandıysa **çeviriler kaybolmuş** demektir.
 
-**2. Overlay katmanı — tema duyarlı**
-- Script varken daha güçlü overlay: `bg-background/75 dark:bg-background/70`
-- Bu sayede metin okunabilirliği korunur ama arkada hafif renk/ışık hissedilir
+### 3. Ekranın Kapanması
+Dialog `onOpenChange` ile dış tıklamada kapanıyor — kullanıcı yanlışlıkla dışına tıklamış olabilir, ya da hata sonrası state kaybı yaşandı.
 
-**3. Kart glassmorphism güçlendir**
-- Kartlardaki `backdrop-blur-sm` → `backdrop-blur-md` (biraz daha cam hissi)
-- Bu tek katman blur olduğu için performans etkisi minimal
+---
 
-**4. Top/bottom fade — arka planla uyumlu**
-- Gradient fade zaten `from-background/80` — arka plandaki blur ile güzel geçiş yapar
+## Plan
 
-### Teknik Detay — Tek Dosya
-`src/components/ExpandedPlayer.tsx`:
+### Değişiklik 1 — `src/components/AddLanguageDialog.tsx`
+Audio upload akışını `AudioGuideSectionManager`'daki proven pattern ile değiştir:
+- SDK upload dene → JSON parse hatası alırsan direkt `fetch` ile retry
+- Hata mesajını anlamlı hale getir (`Audio not available` → "Storage geçici olarak yanıt vermiyor, tekrar deneyin")
 
-- Satır 240: `{imageUrl && !scriptText && (` → `{imageUrl && (`
-- Satır 248-249: Blur `20px` → `40px`, opacity `0.55` → `0.2`
-- Satır 252: Overlay — script varken `bg-background/75`, yokken mevcut `bg-background/55`
-- Satır 71: Kart `backdrop-blur-sm` → `backdrop-blur-md`
+### Değişiklik 2 — Çeviriyi DB'ye anında kaydet (data loss önleme)
+Çeviri tamamlandığı an (`step === 'upload'` geçişinde) sectionları DB'ye `audio_url: null` ile **hemen insert** et. Audio sonra eklenince UPDATE yapılır.
+- Avantaj: Dialog kapansa bile çeviriler güvende
+- "Save" butonu artık sadece eksik audio URL'lerini günceller
+- Idempotent: Aynı dil için tekrar açılırsa mevcut sectionları yükle
 
-### Sonuç
-Düz beyaz/siyah arka plan yerine, rehberin kapak görselinin çok hafif, bulanık, kristal cam arkasındaymış gibi hissedilen bir arka plan. Kartlar da hafif cam efektiyle üzerinde yüzüyor. Performans etkisi sıfır — tek bir CSS `filter: blur()` katmanı.
+### Değişiklik 3 — Dialog'u accidental close'a karşı koru
+- `onOpenChange`'i sadece `step === 'select'` veya `step === 'done'` iken serbest bırak
+- Translating/upload/saving sırasında dış tıklama dialog'u kapatmasın
+- Açık X butonu ile kapatma her zaman çalışır (uyarı confirmation ile)
+
+### Acil Doğrulama (bu sohbette yapılacak)
+Mevcut `Cappadocia Green Tour` için Portekizce sectionlar DB'ye yazılmış mı? Plan onaylanır onaylanmaz şu sorguyu çalıştıracağım:
+```sql
+SELECT language_code, count(*), 
+       count(audio_url) as with_audio
+FROM guide_sections 
+WHERE guide_id = '<cappadocia-green-tour-id>'
+GROUP BY language_code;
+```
+Sonuca göre:
+- **Kayıtlı ise**: Sadece audio yükleme akışı düzeltilecek, kullanıcı dialog'u tekrar açıp audioları ekleyebilir
+- **Kayıtlı değilse**: Çeviri tekrar yapılacak (English scriptler hâlâ duruyor) + yukarıdaki fix'ler
+
+### Etkilenen Dosyalar
+- `src/components/AddLanguageDialog.tsx` (tek dosya değişikliği — ~40 satır)
+
+### Etkilenmeyenler
+- Çeviri/translate-script edge function'ı (zaten çalışıyor)
+- AudioGuideSectionManager (zaten doğru pattern var)
 
