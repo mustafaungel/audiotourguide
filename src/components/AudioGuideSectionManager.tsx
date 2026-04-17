@@ -9,10 +9,11 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { Plus, Trash2, Upload, MoveUp, MoveDown, Play, X, FileAudio } from 'lucide-react';
+import { Plus, Trash2, Upload, MoveUp, MoveDown, Play, X, FileAudio, MapPin, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { getLanguageFlag } from '@/lib/language-utils';
+import { isSectionMapsEnabled, openMapsLink } from '@/lib/maps-utils';
 
 export interface GuideSection {
   id: string;
