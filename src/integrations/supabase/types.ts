@@ -465,6 +465,7 @@ export type Database = {
           is_original: boolean
           language: string
           language_code: string
+          maps_url: string | null
           order_index: number
           original_section_id: string | null
           title: string
@@ -480,6 +481,7 @@ export type Database = {
           is_original?: boolean
           language?: string
           language_code?: string
+          maps_url?: string | null
           order_index?: number
           original_section_id?: string | null
           title: string
@@ -495,6 +497,7 @@ export type Database = {
           is_original?: boolean
           language?: string
           language_code?: string
+          maps_url?: string | null
           order_index?: number
           original_section_id?: string | null
           title?: string
