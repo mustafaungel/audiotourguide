@@ -23,6 +23,7 @@ export interface GuideSection {
   language: string;
   language_code?: string;
   order_index: number;
+  maps_url?: string | null;
 }
 
 interface AudioGuideSectionManagerProps {

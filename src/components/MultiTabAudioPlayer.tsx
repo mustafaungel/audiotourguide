@@ -12,6 +12,7 @@ interface Section {
   description?: string;
   audio_url?: string;
   duration_seconds?: number;
+  maps_url?: string | null;
 }
 
 interface LinkedGuide {
