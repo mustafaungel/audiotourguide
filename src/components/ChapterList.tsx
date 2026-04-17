@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Play, Pause, SkipBack, SkipForward, Headphones } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Headphones, MapPin } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { BottomSheet } from './ui/bottom-sheet';
 import { haptics } from '@/lib/haptics';
 import { cn } from '@/lib/utils';
 import { t } from '@/lib/translations';
+import { openMapsLink } from '@/lib/maps-utils';
 
 interface Section {
   id: string;
@@ -13,6 +14,7 @@ interface Section {
   description?: string;
   audio_url?: string;
   duration_seconds?: number;
+  maps_url?: string | null;
 }
 
 interface ChapterListProps {
