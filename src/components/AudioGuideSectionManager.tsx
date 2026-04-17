@@ -842,6 +842,45 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
                               />
                             </div>
 
+                            {isSectionMapsEnabled(undefined, guideTitle) && (
+                              <div>
+                                <Label htmlFor={`maps-${section.id}`} className="text-sm mb-2 flex items-center gap-1.5">
+                                  <MapPin className="h-3.5 w-3.5 text-red-500" />
+                                  Google Maps Link
+                                  <span className="text-xs font-normal text-muted-foreground">— auto-synced across all languages</span>
+                                </Label>
+                                <div className="flex gap-2">
+                                  <Input
+                                    id={`maps-${section.id}`}
+                                    value={section.maps_url || ''}
+                                    onChange={(e) => {
+                                      const updated = sections.map(s =>
+                                        s.id === section.id ? { ...s, maps_url: e.target.value } : s
+                                      );
+                                      onSectionsChange(updated);
+                                    }}
+                                    onBlur={(e) => updateSection(section.id, { maps_url: e.target.value.trim() })}
+                                    placeholder="https://maps.app.goo.gl/... or https://www.google.com/maps/..."
+                                    className="flex-1"
+                                  />
+                                  {section.maps_url && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      type="button"
+                                      onClick={() => openMapsLink(section.maps_url)}
+                                    >
+                                      <ExternalLink className="h-4 w-4 mr-1" />
+                                      Test
+                                    </Button>
+                                  )}
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Paste any Google Maps link. Saved automatically and applied to every language version of this section.
+                                </p>
+                              </div>
+                            )}
+
                             <div>
                               <Label htmlFor={`language-${section.id}`} className="text-sm mb-2 block">
                                 Language
