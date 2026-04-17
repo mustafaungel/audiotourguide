@@ -859,20 +859,20 @@ export function AudioGuideSectionManager({ sections, onSectionsChange, guideId, 
                                       );
                                       onSectionsChange(updated);
                                     }}
-                                    onBlur={(e) => updateSection(section.id, { maps_url: e.target.value.trim() })}
+                                    onBlur={(e) => updateSection(section.id, { maps_url: normalizeMapsUrl(e.target.value) })}
                                     placeholder="https://maps.app.goo.gl/... or https://www.google.com/maps/..."
                                     className="flex-1"
                                   />
                                   {section.maps_url && (
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      type="button"
-                                      onClick={() => openMapsLink(section.maps_url)}
+                                    <a
+                                      href={normalizeMapsUrl(section.maps_url)}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-1 px-3 h-9 rounded-md border border-input bg-background hover:bg-muted text-sm font-medium transition-colors whitespace-nowrap"
                                     >
-                                      <ExternalLink className="h-4 w-4 mr-1" />
+                                      <ExternalLink className="h-4 w-4" />
                                       Test
-                                    </Button>
+                                    </a>
                                   )}
                                 </div>
                                 <p className="text-xs text-muted-foreground mt-1">
