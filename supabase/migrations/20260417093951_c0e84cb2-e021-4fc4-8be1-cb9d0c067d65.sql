@@ -1,0 +1,2 @@
+GRANT EXECUTE ON FUNCTION public.get_sections_with_access(uuid, text, text) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_linked_guide_sections_with_access(uuid, uuid, text, text) TO anon, authenticated;
