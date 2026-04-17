@@ -257,40 +257,25 @@ export function AddLanguageDialog({ open, onClose, guideId, guideTitle, guideLoc
     audioRef.current = audio;
   };
 
-  // === SAVE TO DATABASE ===
+  // === FINALIZE (data is already in DB; just verify + close) ===
   const handleSave = async () => {
     setStep('saving');
-    setProgress({ current: 0, total: 2, message: 'Saving sections...' });
-
+    setProgress({ current: 0, total: 1, message: 'Finalizing...' });
     try {
-      const newSections = translatedSections.map((section, i) => ({
-        guide_id: guideId,
-        title: section.title,
-        description: section.description,
-        audio_url: uploadedAudio[i]?.audio_url || null,
-        duration_seconds: uploadedAudio[i]?.duration_seconds || section.original.duration_seconds || 180,
-        language: selectedLangName,
-        language_code: selectedLang,
-        order_index: section.original.order_index,
-        is_original: false,
-        original_section_id: section.original.id,
+      // Sync any audio_urls that may have been missed (defensive)
+      await Promise.all(translatedSections.map(async (section, i) => {
+        const dbId = (section as any)?.original?.dbId;
+        const url = uploadedAudio[i]?.audio_url;
+        if (dbId && url) {
+          await supabase.from('guide_sections')
+            .update({ audio_url: url, duration_seconds: Math.round(uploadedAudio[i]?.duration_seconds || 0) })
+            .eq('id', dbId);
+        }
       }));
-
-      const { error: insertErr } = await supabase.from('guide_sections').insert(newSections);
-      if (insertErr) throw new Error(`Failed to save: ${insertErr.message}`);
-
-      // Update guide languages array
-      setProgress({ current: 1, total: 2, message: 'Updating guide...' });
-      const { data: guide } = await supabase.from('audio_guides').select('languages').eq('id', guideId).single();
-      const currentLangs: string[] = guide?.languages || [];
-      if (!currentLangs.includes(selectedLangName)) {
-        await supabase.from('audio_guides').update({ languages: [...currentLangs, selectedLangName] }).eq('id', guideId);
-      }
-
       setStep('done');
-      toast.success(`${selectedLangName} added with ${newSections.length} sections!`);
+      toast.success(`${selectedLangName} ready with ${translatedSections.length} sections!`);
     } catch (error: any) {
-      toast.error(`Save failed: ${error.message}`);
+      toast.error(`Finalize failed: ${error.message}`);
       setStep('upload');
     }
   };
