@@ -1,49 +1,25 @@
 
+Mobilde ThemeToggle boyutunu küçültelim — masaüstünde mevcut boyut korunur.
 
-## iPhone Tarzı Tema Toggle (Sun/Moon Switch)
+### Değişiklik — `src/components/ThemeToggle.tsx`
 
-### Mevcut Durum
-- `next-themes` ile yönetiliyor — `attribute="class"`, `defaultTheme="light"`, `enableSystem`
-- `ThemeToggle` 3 yerde kullanılıyor: `Navigation`, `AudioAccess`, `ExpandedPlayer`
-- Şu an: 40x40 ghost button, Sun/Moon ikonları rotate/scale ile geçiş yapıyor — basit, premium hissi yok
+Track ve knob için responsive boyutlar:
 
-### Yeni Tasarım — iOS Tarzı Animated Switch
+| Eleman | Mobil | Desktop (sm+) |
+|---|---|---|
+| Track | `h-[26px] w-[48px]` | `h-[32px] w-[60px]` |
+| Knob | `h-[20px] w-[20px]` | `h-[26px] w-[26px]` |
+| Knob translate (light→dark) | `3px → 25px` | `3px → 31px` |
+| Sun/Moon ikon | `11px` | `14px` |
 
-**Görsel** (60x32 pill switch):
-```
-Light mode:               Dark mode:
-┌──────────────────┐      ┌──────────────────┐
-│ ☀️ ●           │      │           ● 🌙 │
-└──────────────────┘      └──────────────────┘
-gradient sky→amber        gradient indigo→slate
-```
+Tailwind ile: `h-[26px] w-[48px] sm:h-[32px] sm:w-[60px]` gibi.
 
-**Detaylar**:
-- **Track**: `w-[60px] h-[32px] rounded-full`, gradient arka plan
-  - Light: `from-amber-200 via-orange-200 to-sky-300` (gündüz/güneş)
-  - Dark: `from-indigo-900 via-slate-800 to-slate-900` (gece/yıldız)
-- **Thumb (knob)**: `w-[26px] h-[26px] rounded-full bg-white shadow-lg`
-  - `transform translate-x-0` (light) → `translate-x-[28px]` (dark)
-  - İçinde Sun (light) veya Moon (dark) ikonu — küçük (14px), renkli (amber-500 / slate-700)
-  - Spring transition: `transition-transform duration-300 ease-spring`
-- **Track içi süs**: 
-  - Light modda sağda küçük bulut SVG (opacity-40)
-  - Dark modda solda 2-3 küçük yıldız nokta (white, opacity-60)
-- **Etkileşim**:
-  - Hover: `scale-105`, shadow artışı
-  - Active: `scale-95` (haptic-like)
-  - `haptics.light()` çağrısı (mevcut `@/lib/haptics` kullanılarak)
-- **Erişilebilirlik**: `role="switch"`, `aria-checked`, `sr-only` label
+Knob translate için `sm:` varyantları kullanılacak. Touch target (44px min) için button'a görünmez padding değil — buton zaten tıklanabilir alan; mobilde 26x48 yeterli kontrol sağlar (iOS Switch standart 31x51, biz 26x48 ile biraz daha kompakt).
 
-### Performans
-Sadece `transform` ve `opacity` — GPU-accelerated, `mem://style/3d-depth-design` ve `mem://performance/animation-ux` ile uyumlu.
+Yıldız/bulut süslerinin pozisyonları da mobile için hafifçe içeri çekilecek (left-1.5/right-1).
 
 ### Etkilenen Dosya
-- `src/components/ThemeToggle.tsx` (tek dosya, ~50 satır)
-- Diğer 3 kullanım noktası (Navigation, AudioAccess, ExpandedPlayer) otomatik olarak yeni tasarımı alır — değişiklik gerekmez
+- `src/components/ThemeToggle.tsx` (sadece className güncellemeleri, ~8 satır)
 
-### Notlar
-- `defaultTheme="light"` ve `enableSystem` korunur
-- Boyut Navigation'daki 40x40 alanına sığar (60x32 pill)
-- Mevcut layout'u bozmaz
-
+### Performans
+Sadece boyut değişiklikleri — animasyon ve transformlar aynı, GPU yükü sıfır.
