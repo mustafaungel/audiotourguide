@@ -9,6 +9,15 @@ import { haptics } from '@/lib/haptics';
 import { t } from '@/lib/translations';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
+// On-demand Lora font loading (only when ExpandedPlayer is used; idempotent)
+if (typeof document !== 'undefined' && !document.querySelector('link[data-lora-font]')) {
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = 'https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap';
+  link.setAttribute('data-lora-font', 'true');
+  document.head.appendChild(link);
+}
+
 // Parchment scroll reading view — antique tour guide aesthetic
 const toRoman = (n: number): string => {
   const vals = [1000,900,500,400,100,90,50,40,10,9,5,4,1];
