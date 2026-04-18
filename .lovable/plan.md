@@ -1,55 +1,49 @@
 
 
-## Sorun Özeti
+## iPhone Tarzı Tema Toggle (Sun/Moon Switch)
 
-`Cappadocia Green (South) Tour` için Portekizce dilini eklerken `AddLanguageDialog` kullanıldı. 3 ayrı sorun var:
+### Mevcut Durum
+- `next-themes` ile yönetiliyor — `attribute="class"`, `defaultTheme="light"`, `enableSystem`
+- `ThemeToggle` 3 yerde kullanılıyor: `Navigation`, `AudioAccess`, `ExpandedPlayer`
+- Şu an: 40x40 ghost button, Sun/Moon ikonları rotate/scale ile geçiş yapıyor — basit, premium hissi yok
 
-### 1. Audio Upload Hatası: "Audio not available" is not valid JSON
-**Sebep**: `AddLanguageDialog.tsx` (satır 130) Supabase SDK'sı ile direkt upload yapıyor. Storage zaman zaman düz metin (`Audio not available`) döndürüyor ve SDK bunu JSON parse etmeye çalışınca çöküyor. `AudioGuideSectionManager`'da bu sorun için zaten **fetch fallback** mekanizması var (satır 398-415) ama `AddLanguageDialog`'da yok.
+### Yeni Tasarım — iOS Tarzı Animated Switch
 
-### 2. Portekizce Çeviri Kaydedilmemiş Olabilir (KRİTİK)
-**Sebep**: Çeviriler `translatedSections` state'inde tutuluyor. DB'ye yazılması için kullanıcının **tüm sectionlara audio yükleyip** son adımda "Save" butonuna basması gerekiyor (satır 184). Audio upload hatası sonrası dialog kapandıysa **çeviriler kaybolmuş** demektir.
-
-### 3. Ekranın Kapanması
-Dialog `onOpenChange` ile dış tıklamada kapanıyor — kullanıcı yanlışlıkla dışına tıklamış olabilir, ya da hata sonrası state kaybı yaşandı.
-
----
-
-## Plan
-
-### Değişiklik 1 — `src/components/AddLanguageDialog.tsx`
-Audio upload akışını `AudioGuideSectionManager`'daki proven pattern ile değiştir:
-- SDK upload dene → JSON parse hatası alırsan direkt `fetch` ile retry
-- Hata mesajını anlamlı hale getir (`Audio not available` → "Storage geçici olarak yanıt vermiyor, tekrar deneyin")
-
-### Değişiklik 2 — Çeviriyi DB'ye anında kaydet (data loss önleme)
-Çeviri tamamlandığı an (`step === 'upload'` geçişinde) sectionları DB'ye `audio_url: null` ile **hemen insert** et. Audio sonra eklenince UPDATE yapılır.
-- Avantaj: Dialog kapansa bile çeviriler güvende
-- "Save" butonu artık sadece eksik audio URL'lerini günceller
-- Idempotent: Aynı dil için tekrar açılırsa mevcut sectionları yükle
-
-### Değişiklik 3 — Dialog'u accidental close'a karşı koru
-- `onOpenChange`'i sadece `step === 'select'` veya `step === 'done'` iken serbest bırak
-- Translating/upload/saving sırasında dış tıklama dialog'u kapatmasın
-- Açık X butonu ile kapatma her zaman çalışır (uyarı confirmation ile)
-
-### Acil Doğrulama (bu sohbette yapılacak)
-Mevcut `Cappadocia Green Tour` için Portekizce sectionlar DB'ye yazılmış mı? Plan onaylanır onaylanmaz şu sorguyu çalıştıracağım:
-```sql
-SELECT language_code, count(*), 
-       count(audio_url) as with_audio
-FROM guide_sections 
-WHERE guide_id = '<cappadocia-green-tour-id>'
-GROUP BY language_code;
+**Görsel** (60x32 pill switch):
 ```
-Sonuca göre:
-- **Kayıtlı ise**: Sadece audio yükleme akışı düzeltilecek, kullanıcı dialog'u tekrar açıp audioları ekleyebilir
-- **Kayıtlı değilse**: Çeviri tekrar yapılacak (English scriptler hâlâ duruyor) + yukarıdaki fix'ler
+Light mode:               Dark mode:
+┌──────────────────┐      ┌──────────────────┐
+│ ☀️ ●           │      │           ● 🌙 │
+└──────────────────┘      └──────────────────┘
+gradient sky→amber        gradient indigo→slate
+```
 
-### Etkilenen Dosyalar
-- `src/components/AddLanguageDialog.tsx` (tek dosya değişikliği — ~40 satır)
+**Detaylar**:
+- **Track**: `w-[60px] h-[32px] rounded-full`, gradient arka plan
+  - Light: `from-amber-200 via-orange-200 to-sky-300` (gündüz/güneş)
+  - Dark: `from-indigo-900 via-slate-800 to-slate-900` (gece/yıldız)
+- **Thumb (knob)**: `w-[26px] h-[26px] rounded-full bg-white shadow-lg`
+  - `transform translate-x-0` (light) → `translate-x-[28px]` (dark)
+  - İçinde Sun (light) veya Moon (dark) ikonu — küçük (14px), renkli (amber-500 / slate-700)
+  - Spring transition: `transition-transform duration-300 ease-spring`
+- **Track içi süs**: 
+  - Light modda sağda küçük bulut SVG (opacity-40)
+  - Dark modda solda 2-3 küçük yıldız nokta (white, opacity-60)
+- **Etkileşim**:
+  - Hover: `scale-105`, shadow artışı
+  - Active: `scale-95` (haptic-like)
+  - `haptics.light()` çağrısı (mevcut `@/lib/haptics` kullanılarak)
+- **Erişilebilirlik**: `role="switch"`, `aria-checked`, `sr-only` label
 
-### Etkilenmeyenler
-- Çeviri/translate-script edge function'ı (zaten çalışıyor)
-- AudioGuideSectionManager (zaten doğru pattern var)
+### Performans
+Sadece `transform` ve `opacity` — GPU-accelerated, `mem://style/3d-depth-design` ve `mem://performance/animation-ux` ile uyumlu.
+
+### Etkilenen Dosya
+- `src/components/ThemeToggle.tsx` (tek dosya, ~50 satır)
+- Diğer 3 kullanım noktası (Navigation, AudioAccess, ExpandedPlayer) otomatik olarak yeni tasarımı alır — değişiklik gerekmez
+
+### Notlar
+- `defaultTheme="light"` ve `enableSystem` korunur
+- Boyut Navigation'daki 40x40 alanına sığar (60x32 pill)
+- Mevcut layout'u bozmaz
 
