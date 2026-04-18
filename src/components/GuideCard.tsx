@@ -90,8 +90,8 @@ export function GuideCard({
           <OptimizedImage
             src={imageUrl}
             alt={`${title} - Audio Guide`}
-            width={144}
-            height={144}
+            width={400}
+            height={225}
 
             loading={imageLoading}
             className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"

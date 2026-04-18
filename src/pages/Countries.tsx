@@ -3,7 +3,8 @@ import { AudioGuideLoader } from '@/components/AudioGuideLoader';
 import { useNavigate } from 'react-router-dom';
 import { SEO } from '@/components/SEO';
 import { Navigation } from '@/components/Navigation';
-import { Footer } from '@/components/Footer';
+import { lazy, Suspense } from 'react';
+const Footer = lazy(() => import('@/components/Footer').then(m => ({ default: m.Footer })));
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { MapPin, Headphones } from 'lucide-react';
@@ -191,7 +192,7 @@ const Countries = () => {
           </Button>
         </div>
       </section>
-      <Footer />
+      <Suspense fallback={null}><Footer /></Suspense>
     </div>
   );
 };
