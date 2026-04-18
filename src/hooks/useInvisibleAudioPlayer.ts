@@ -56,7 +56,7 @@ export const useInvisibleAudioPlayer = ({
 
     try {
       setLoading(true);
-      fallbackAttempted.current = false;
+      fallbackStep.current = 0;
       
       let audioUrl = audioSrc;
       if (!audioUrl && guideId) {
@@ -93,16 +93,32 @@ export const useInvisibleAudioPlayer = ({
       
       // Single unified error handler
       const handleError = () => {
-        // Try fallback once if primary was supabase
-        if (!fallbackAttempted.current && audioUrl!.includes('supabase.co') && guideId) {
-          fallbackAttempted.current = true;
-          const fallbackUrl = `/tmp/${guideId}.mp3`;
-          console.log(`[AUDIO] Trying fallback: ${fallbackUrl}`);
-          audio.src = fallbackUrl;
+        // Step 0 → try Supabase storage with {guideId}.mp3 format
+        if (fallbackStep.current === 0 && guideId) {
+          fallbackStep.current = 1;
+          const { data } = supabase.storage
+            .from('guide-audio')
+            .getPublicUrl(`${guideId}.mp3`);
+          const storageUrl = data.publicUrl;
+          // Skip if same URL we just tried
+          if (storageUrl && storageUrl !== audio.src) {
+            console.log(`[AUDIO] Trying storage fallback: ${storageUrl}`);
+            audio.src = storageUrl;
+            audio.load();
+            return;
+          }
+        }
+
+        // Step 1 → try local /tmp/{guideId}.mp3
+        if (fallbackStep.current <= 1 && guideId) {
+          fallbackStep.current = 2;
+          const tmpUrl = `/tmp/${guideId}.mp3`;
+          console.log(`[AUDIO] Trying tmp fallback: ${tmpUrl}`);
+          audio.src = tmpUrl;
           audio.load();
           return;
         }
-        
+
         console.error('[AUDIO] Audio failed to load');
         toast({
           title: "Audio Not Available",
