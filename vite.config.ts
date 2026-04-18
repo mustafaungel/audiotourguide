@@ -31,6 +31,7 @@ export default defineConfig(({ mode }) => ({
           'vendor-ui': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-tabs', '@radix-ui/react-toast', '@radix-ui/react-tooltip', '@radix-ui/react-select'],
           'vendor-stripe': ['@stripe/stripe-js', '@stripe/react-stripe-js'],
           'vendor-query': ['@tanstack/react-query'],
+          'vendor-icons': ['lucide-react'],
         }
       }
     },
