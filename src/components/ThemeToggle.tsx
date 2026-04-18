@@ -21,7 +21,7 @@ export const ThemeToggle = () => {
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
       onClick={handleToggle}
       className={cn(
-        "relative inline-flex h-[32px] w-[60px] shrink-0 items-center rounded-full",
+        "relative inline-flex h-[26px] w-[48px] sm:h-[32px] sm:w-[60px] shrink-0 items-center rounded-full",
         "transition-all duration-500 ease-out will-change-transform transform-gpu",
         "hover:scale-105 active:scale-95",
         "shadow-[inset_0_1px_2px_rgba(0,0,0,0.15),0_2px_6px_rgba(0,0,0,0.1)]",
