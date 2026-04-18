@@ -424,7 +424,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
 
   const currentSection = displaySections[currentSectionIndex];
 
-  const miniPlayerElement = isMobile && isActive && !isExpanded ? createPortal(
+  const miniPlayerElement = isMobile && isActive ? createPortal(
     <MiniPlayer
       title={currentSection?.title || guideTitle}
       currentTime={currentTime}
