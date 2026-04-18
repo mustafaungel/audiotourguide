@@ -6,6 +6,7 @@ import { ExpandedPlayer } from '@/components/ExpandedPlayer';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAudioProgress } from '@/hooks/useAudioProgress';
+import { useAudioPreload } from '@/hooks/useAudioPreload';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { t } from '@/lib/translations';
