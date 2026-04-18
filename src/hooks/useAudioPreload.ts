@@ -1,28 +1,30 @@
 import { useEffect } from 'react';
 
-interface Section {
-  audio_url?: string;
-}
-
 /**
- * Preloads the next audio section for seamless playback
+ * Preloads the next audio URL into the browser HTTP cache for seamless playback.
+ * Pass an array of resolved URLs and the current index — the hook will preload
+ * the next URL in the background using a hidden Audio element with preload='auto'.
  */
-export const useAudioPreload = (sections: Section[], currentIndex: number) => {
+export const useAudioPreload = (urls: (string | undefined)[], currentIndex: number) => {
   useEffect(() => {
-    if (currentIndex < 0 || currentIndex >= sections.length - 1) return;
-    
-    const nextSection = sections[currentIndex + 1];
-    if (!nextSection?.audio_url) return;
-    
-    // Preload next section in background
+    if (currentIndex < 0 || currentIndex >= urls.length - 1) return;
+
+    const nextUrl = urls[currentIndex + 1];
+    if (!nextUrl) return;
+
+    // Preload next section in background (browser HTTP cache)
     const audio = new Audio();
     audio.preload = 'auto';
-    audio.src = nextSection.audio_url;
-    
+    audio.src = nextUrl;
+
     return () => {
-      audio.pause();
-      audio.removeAttribute('src');
-      audio.load();
+      try {
+        audio.pause();
+        audio.removeAttribute('src');
+        audio.load();
+      } catch {
+        // ignore
+      }
     };
-  }, [currentIndex, sections]);
+  }, [currentIndex, urls]);
 };
