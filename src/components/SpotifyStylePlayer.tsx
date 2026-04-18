@@ -82,7 +82,7 @@ export const SpotifyStylePlayer: React.FC<SpotifyStylePlayerProps> = ({
   });
 
   // Preload next section
-  useAudioPreload(sections, currentSection);
+  useAudioPreload(sections.map(s => s.audio_url), currentSection);
 
   // Extract dominant color from album art
   useEffect(() => {
