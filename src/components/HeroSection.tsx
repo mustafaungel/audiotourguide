@@ -1,8 +1,20 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Headphones } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import heroImage from '@/assets/hero-world-travel.jpg';
+
+// Inject preload hint as early as possible (module-eval time)
+if (typeof document !== 'undefined' && !document.querySelector('link[data-hero-preload]')) {
+  const link = document.createElement('link');
+  link.rel = 'preload';
+  link.as = 'image';
+  link.href = heroImage;
+  link.setAttribute('data-hero-preload', 'true');
+  // @ts-ignore
+  link.fetchPriority = 'high';
+  document.head.appendChild(link);
+}
 
 export const HeroSection: React.FC = () => {
   const navigate = useNavigate();
@@ -17,6 +29,9 @@ export const HeroSection: React.FC = () => {
           height={675}
           className="w-full h-full object-cover opacity-60"
           loading="eager"
+          // @ts-ignore - fetchpriority is valid HTML
+          fetchpriority="high"
+          decoding="async"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-background/40 to-background/60" />
       </div>
