@@ -129,6 +129,15 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   const audioMode = hasIndividualSections ? 'sections' : 'main';
 
   const setupAudioElement = (audioElement: HTMLAudioElement) => {
+    audioElement.addEventListener('canplay', () => {
+      setLoading(false);
+    });
+    audioElement.addEventListener('waiting', () => {
+      setLoading(true);
+    });
+    audioElement.addEventListener('playing', () => {
+      setLoading(false);
+    });
     audioElement.addEventListener('timeupdate', () => {
       setCurrentTime(audioElement.currentTime);
 
