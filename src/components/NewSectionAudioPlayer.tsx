@@ -253,9 +253,9 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     }
   };
 
-  const playSection = async (sectionIndex: number) => {
+  const playSection = (sectionIndex: number) => {
     if (sectionIndex < 0 || sectionIndex >= displaySections.length) return;
-    
+
     if (sectionIndex === currentSectionIndex && isPlaying) {
       if (audioRef.current) {
         audioRef.current.pause();
@@ -263,7 +263,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
       }
       return;
     }
-    
+
     setLoading(true);
     setCurrentSectionIndex(sectionIndex);
 
@@ -281,24 +281,35 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
       setupAudioElement(audioRef.current);
     }
 
-    // Use blob URL to hide direct MP3 URL from browser DevTools
-    const audioUrl = await resolveBlobUrl(sectionIndex);
+    // STREAM-FIRST: Use cached blob if available, otherwise stream raw URL synchronously
+    // This keeps the user gesture context intact for iOS Safari
+    const cachedBlob = blobUrlCache.current[sectionIndex];
+    const section = displaySections[sectionIndex];
+    const audioUrl = cachedBlob || resolvedUrlsRef.current[sectionIndex] || resolveRawUrl(section?.audio_url);
+
     audioRef.current.src = audioUrl;
     audioRef.current.volume = volume;
     audioRef.current.playbackRate = playbackSpeed;
-    
+
     const playPromise = audioRef.current.play();
-    
+
     if (playPromise !== undefined) {
       playPromise
         .then(() => {
           setIsPlaying(true);
-          setLoading(false);
           onPlayStart?.();
           toast({
             title: t('nowPlaying', lang),
             description: displaySections[sectionIndex]?.title || guideTitle,
           });
+
+          // BACKGROUND CACHE: Fire-and-forget blob cache for offline playback
+          // Only if not already cached and using raw URL (not blob)
+          if (!cachedBlob) {
+            resolveBlobUrl(sectionIndex).catch(() => {
+              // Silent fail — playback continues from raw URL
+            });
+          }
         })
         .catch((error: any) => {
           setLoading(false);
