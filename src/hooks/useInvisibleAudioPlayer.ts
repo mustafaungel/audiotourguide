@@ -21,7 +21,7 @@ export const useInvisibleAudioPlayer = ({
   const [loading, setLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const toastRef = useRef<{ dismiss: () => void } | null>(null);
-  const fallbackAttempted = useRef(false);
+  const fallbackStep = useRef(0);
 
   const PREVIEW_DURATION = isPreview ? 30 : null;
 
