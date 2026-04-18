@@ -32,7 +32,7 @@ export const FeaturedGuides = () => {
     try {
       const { data, error } = await supabase
         .from('audio_guides')
-        .select('*')
+        .select('id, title, slug, description, location, category, difficulty, duration, price_usd, image_url, rating, total_reviews, languages')
         .eq('is_published', true)
         .eq('is_approved', true)
         .order('display_order', { ascending: true })
