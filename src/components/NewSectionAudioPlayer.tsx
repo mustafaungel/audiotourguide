@@ -76,6 +76,9 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
   useEffect(() => { autoAdvanceRef.current = autoAdvanceEnabled; }, [autoAdvanceEnabled]);
   useEffect(() => { currentSectionRef.current = currentSectionIndex; }, [currentSectionIndex]);
 
+  // Smart preload — fetch next section into browser HTTP cache for seamless auto-advance
+  useAudioPreload(resolvedUrlsRef.current, currentSectionIndex);
+
   // Stop playback when another guide starts playing (linked guides)
   useEffect(() => {
     if (shouldStop && isPlaying && audioRef.current) {
