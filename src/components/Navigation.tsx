@@ -42,7 +42,7 @@ export const Navigation = ({ sticky = true }: NavigationProps) => {
   };
 
   return (
-    <header className={`${sticky ? 'sticky top-0' : 'relative'} z-50 w-full border-b border-border/30 bg-background/95 backdrop-blur-2xl supports-[backdrop-filter]:bg-background/60 will-change-transform transform-gpu`}>
+    <header className={`${sticky ? 'sticky top-0' : 'relative'} z-50 w-full border-b border-border/30 bg-background/95 backdrop-blur-2xl supports-[backdrop-filter]:bg-background/60`}>
       <div className="mobile-container">
         <div className="flex h-14 sm:h-16 items-center justify-between">
           {/* Logo and Brand */}
