@@ -7,7 +7,8 @@ import StatsSection from '@/components/StatsSection';
 import { AudioPlayer } from '@/components/AudioPlayer';
 import { GuideCard } from '@/components/GuideCard';
 import { Navigation } from '@/components/Navigation';
-import { Footer } from '@/components/Footer';
+import { lazy, Suspense } from 'react';
+const Footer = lazy(() => import('@/components/Footer').then(m => ({ default: m.Footer })));
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Headphones, MapPin } from 'lucide-react';
@@ -350,7 +351,7 @@ const Index = () => {
           </div>
         </div>
        </section>
-       <Footer />
+       <Suspense fallback={null}><Footer /></Suspense>
     </div>;
 };
 export default Index;

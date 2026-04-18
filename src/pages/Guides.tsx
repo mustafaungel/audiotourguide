@@ -6,7 +6,8 @@ import { SEO } from '@/components/SEO';
 import { AudioPlayer } from '@/components/AudioPlayer';
 import { GuideCard } from '@/components/GuideCard';
 import { Navigation } from '@/components/Navigation';
-import { Footer } from '@/components/Footer';
+import { lazy, Suspense } from 'react';
+const Footer = lazy(() => import('@/components/Footer').then(m => ({ default: m.Footer })));
 import { Button } from '@/components/ui/button';
 import { Headphones, Filter, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -401,7 +402,7 @@ const Guides = () => {
         </div>
       </BottomSheet>
 
-      <Footer />
+      <Suspense fallback={null}><Footer /></Suspense>
     </div>
   );
 };
