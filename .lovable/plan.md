@@ -1,57 +1,71 @@
 
 
-## Sorun: 30s Preview Çalışmıyor — Yanlış Storage URL
+## Plan: Audio Playback Latency Fix + Offline Playback Korunması
 
-### Root Cause (Doğrulandı)
+### Sorun
+`NewSectionAudioPlayer.tsx` her bölümü çalmadan önce **tüm MP3'ü blob olarak indiriyor** (`resolveBlobUrl` → HEAD + full fetch). Bu mobilde 1-3 saniye gecikme yaratıyor.
 
-Konsol logu: `Using audio URL: .../guide-audio/uploaded-1776273161075-...mp3`
-HEAD test sonucu: **HTTP 400** (dosya yok)
+### Kritik Kısıt: Offline Playback
+Kullanıcı online iken access sayfasına girdiyse, sonradan internet kesilse bile sesler çalmaya devam etmeli. Mevcut blob-cache mantığı offline'a yardım ediyor (5MB altı dosyalar bellekte tutuluyor) — **bu davranışı kaybetmemeliyiz**.
 
-Diğer URL şablonu: `.../guide-audio/{guideId}.mp3`
-HEAD test sonucu: **HTTP 200, audio/mpeg, 4.7MB** ✅
+### Çözüm: Hibrit Yaklaşım
 
-`useInvisibleAudioPlayer.ts` (satır 13): `chapterAudioSrc = chapter.audio_url || guide?.audio_url` — bu DB'deki `audio_url` kolonunu kullanıyor ve içinde **eski/yanlış** path var (`uploaded-{timestamp}-{uuid}.mp3` formatı). Storage'da gerçek dosya `{guideId}.mp3` formatında duruyor.
+**İlk oynatma → Streaming (hızlı başlangıç)**
+**Arka plan → Blob cache (offline garanti)**
 
-Fallback de başarısız oluyor çünkü `/tmp/{guideId}.mp3` (lokal public path) bu rehber için mevcut değil.
+#### Değişiklik 1: `playSection` — Stream-First
+- `await resolveBlobUrl(...)` çağrısını **kaldır**
+- Pre-resolved raw URL'i (`resolvedUrlsRef.current[sectionIndex]`) **senkron** olarak `audio.src`'ye ata
+- `audio.play()` user gesture içinde anında çağrılır
+- **Kazanç**: ~1-3 saniye → ~200ms başlangıç
 
-### Çözüm — `useInvisibleAudioPlayer.ts` (Tek Dosya, ~15 Satır)
+#### Değişiklik 2: Arka Plan Blob Cache (Offline için)
+- `playSection` çağrıldıktan sonra, **fire-and-forget** şekilde:
+  - `resolveBlobUrl(currentIndex)` arkada çalışsın
+  - 5MB altı dosya blob olarak `blobUrlCache`'e kaydedilsin
+  - **Çalan ses kesintiye uğramaz** (sadece cache doldurulur)
+- Bir sonraki oynatmada (veya offline durumda) cache'den blob URL kullanılır
 
-`handleError` içindeki fallback mantığını **3 katmanlı** yapacağım:
+#### Değişiklik 3: Smart Preload — Sıradaki Bölüm
+- Mevcut `useAudioPreload.ts` hook'unu entegre et
+- Çalan bölüm bittiğinde **bir sonraki bölüm** zaten browser cache'inde
+- Auto-advance'te sıfır gecikme
+
+#### Değişiklik 4: Loading State İyileştirme
+- `canplay` event'inde `loading=false` (mevcut: `play().then` sonrası)
+- Daha hassas yükleme göstergesi
+
+### Offline Akış Garantisi
 
 ```
-1. denenen URL: audioSrc (DB'deki audio_url) → 400 alırsa
-2. fallback A: Supabase storage `{guideId}.mp3` → bulamazsa
-3. fallback B: /tmp/{guideId}.mp3 (mevcut davranış)
+Online + Access sayfasına gir:
+  → Bölüm 1 oynat: stream + arka planda blob cache'e ekle
+  → Bölüm 2 preload (browser HTTP cache)
+  → Kullanıcı bölümleri dinledikçe cache dolar
+
+Internet kesildi:
+  → Cache'lenmiş bölümler: blob URL'den çalar ✅
+  → Browser HTTP cache'indeki bölümler: çalar ✅
+  → Hiç açılmamış bölümler: çalmaz (mevcut davranışla aynı)
 ```
 
-**Mevcut davranış**: Supabase URL → `/tmp/` (atlanan adım: storage'daki doğru `{guideId}.mp3`)
-**Yeni davranış**: Yanlış URL → storage `{guideId}.mp3` → `/tmp/`
+**Not**: Mevcut sistem zaten offline-first değil — sadece blob cache'lenen dosyalar offline çalışır. Yeni sistem **aynı offline kapasitesini korur** ama ilk oynatma çok daha hızlı olur.
 
-### Değişiklik Detayı
+### Etkilenen Dosyalar
+- `src/components/NewSectionAudioPlayer.tsx` — `playSection`, event listener'lar
+- `src/hooks/useAudioPreload.ts` — entegrasyon
 
-`useInvisibleAudioPlayer.ts` içinde:
-- `fallbackAttempted.current` (boolean) → `fallbackStep` (number: 0/1/2)
-- `handleError`:
-  - Step 0 → storage'dan `{guideId}.mp3` URL üret, dene (step=1)
-  - Step 1 → `/tmp/{guideId}.mp3` dene (step=2)
-  - Step 2 → toast hata göster
+### DOKUNULMAYACAKLAR
+- ✅ `useAudioPlayer`, `useInvisibleAudioPlayer`, `LibraryAudioPlayer`
+- ✅ MediaSession API, mobile gesture chain
+- ✅ Dil değiştirme mantığı, linked guides
+- ✅ Mini/Expanded player UI
+- ✅ Blob cache mekanizması (sadece async hale geliyor)
 
-### Garanti — Audio Sistemi Bozulmaz
-
-- ✅ Sadece `useInvisibleAudioPlayer` (preview butonu) etkilenir
-- ✅ `useAudioPlayer`, `NewSectionAudioPlayer`, `MiniPlayer`, `ExpandedPlayer`, `LibraryAudioPlayer` — **DOKUNULMUYOR**
-- ✅ MediaSession, mobile gesture, language switch logic — **DOKUNULMUYOR**
-- ✅ Satın alma sonrası tam-uzunluk oynatma — bu hook'u kullanmıyor, etkilenmez
-- ✅ User gesture chain korunur (URL üretimi sync, sadece `audio.load()` async)
-
-### Etkilenen Dosya
-- `src/hooks/useInvisibleAudioPlayer.ts` (~15 satır değişim)
-
-### Doğrulama
-1. Build kontrolü
-2. Browser'da bir guide detay sayfasında 30s preview butonuna basılır → ses oynar
-3. Konsol: "Trying storage fallback: .../{guideId}.mp3" → 200 → çalar
-
-### Notu
-Bu, **veri sorununu** (DB'de yanlış `audio_url` değerleri) maskeleyen bir UX-koruma katmanıdır. İsterseniz ayrı bir görev olarak DB'deki yanlış `audio_url` değerlerini de düzeltme planı sunabilirim — ama bu yeni planın konusu değil.
+### Doğrulama Adımları
+1. Online: bölüm tıkla → <500ms başlasın
+2. Online: bölümü dinle, internet kes → bölüm çalmaya devam etsin
+3. Offline: aynı bölümü tekrar başlat → blob cache'den çalsın
+4. Auto-advance: kesintisiz geçiş
+5. Dil değiştir → mevcut davranış korunsun
 
