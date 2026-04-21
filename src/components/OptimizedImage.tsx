@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { getDirectImageUrl } from '@/lib/url-utils';
 
 interface OptimizedImageProps {
@@ -24,21 +24,12 @@ export function OptimizedImage({
   const [loaded, setLoaded] = useState(false);
   const [showFallback, setShowFallback] = useState(false);
   const [error, setError] = useState(false);
-  const imgRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
     setLoaded(false);
     setError(false);
     setShowFallback(false);
   }, [src]);
-
-  // Handle cached images where onLoad doesn't fire
-  useEffect(() => {
-    const img = imgRef.current;
-    if (img && img.complete && img.naturalWidth > 0) {
-      setLoaded(true);
-    }
-  }, [src, showFallback]);
 
   const currentSrc = showFallback ? fallbackUrl : cdnUrl;
 
@@ -65,12 +56,11 @@ export function OptimizedImage({
       )}
       {!error && (
         <img
-          ref={imgRef}
           src={currentSrc}
           alt={alt}
           width={width}
           height={height}
-          className={`absolute inset-0 w-full h-full ${loaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300 ${className || ''}`}
+          className={`${loaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300 ${className || ''}`}
           loading={loading}
           decoding="async"
           onLoad={() => setLoaded(true)}
