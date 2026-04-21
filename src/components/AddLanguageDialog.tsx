@@ -173,6 +173,8 @@ export function AddLanguageDialog({ open, onClose, guideId, guideTitle, guideLoc
     } catch { toast.error('Failed to copy'); }
   };
 
+  const MAX_UPLOAD_BYTES = 200 * 1024 * 1024; // 200 MB (matches bucket limit)
+
   const handleAudioUpload = async (index: number, files: FileList | File[]) => {
     const fileArray = Array.from(files);
     if (fileArray.length === 0) return;
@@ -180,6 +182,15 @@ export function AddLanguageDialog({ open, onClose, guideId, guideTitle, guideLoc
     try {
       const { blob, duration } = await mergeAudioFiles(fileArray);
       console.log('Upload:', { files: fileArray.length, blobSize: blob.size, blobType: blob.type, duration });
+
+      // Pre-validate file size before attempting upload
+      if (blob.size > MAX_UPLOAD_BYTES) {
+        const sizeMB = (blob.size / 1024 / 1024).toFixed(1);
+        toast.error(`File too large: ${sizeMB} MB (max 200 MB). Split the script into 2 parts in ElevenLabs and upload them together — they'll auto-merge.`);
+        setUploadingIdx(null);
+        return;
+      }
+
       const path = `uploaded-${Date.now()}-${crypto.randomUUID()}.mp3`;
 
       // Try SDK upload first; fall back to raw fetch if SDK chokes on plain-text errors
@@ -208,7 +219,12 @@ export function AddLanguageDialog({ open, onClose, guideId, guideTitle, guideLoc
         });
         if (!res.ok) {
           const text = await res.text().catch(() => '');
-          if (text.toLowerCase().includes('audio not available')) {
+          const lower = text.toLowerCase();
+          const sizeMB = (blob.size / 1024 / 1024).toFixed(1);
+          if (res.status === 413 || lower.includes('payload') || lower.includes('too large') || lower.includes('exceeded') || lower.includes('maximum')) {
+            throw new Error(`File too large (${sizeMB} MB). Split the script into 2 parts in ElevenLabs and upload them together.`);
+          }
+          if (lower.includes('audio not available')) {
             throw new Error('Storage temporarily unavailable. Please try again in a moment.');
           }
           throw new Error(`Upload failed (${res.status}): ${text || res.statusText}`);
@@ -379,7 +395,12 @@ export function AddLanguageDialog({ open, onClose, guideId, guideTitle, guideLoc
                       </span>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{section.title}</p>
-                        <p className="text-xs text-muted-foreground">{words} words · ~{Math.round(words / 150)} min</p>
+                        <p className="text-xs text-muted-foreground">
+                          {words} words · ~{Math.round(words / 150)} min
+                          {words > 1200 && (
+                            <span className="ml-1.5 text-amber-600 font-medium">· Long — split into 2 parts if upload fails</span>
+                          )}
+                        </p>
                       </div>
                       <Button
                         size="sm" variant="outline"
