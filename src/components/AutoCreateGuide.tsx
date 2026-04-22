@@ -835,18 +835,14 @@ export function AutoCreateGuide() {
   }
 
   if (currentStep === 'script_review') {
-    const totalWords = generatedScripts.reduce((sum, s) => sum + s.trim().split(/\s+/).filter(Boolean).length, 0);
-    const totalMinutes = Math.round(totalWords / 150);
-    const valleyCoverage = coveredValleys.map((valley) => ({
-      valley,
-      present: generatedScripts.join(' ').toLowerCase().includes(valley.toLowerCase().replace(' valley', '')),
-    }));
+    const totalWords = isBalloonMode ? combinedBalloonWordCount : generatedScripts.reduce((sum, s) => sum + s.trim().split(/\s+/).filter(Boolean).length, 0);
+    const totalMinutes = isBalloonMode ? combinedBalloonMinutes : Math.round(totalWords / 150);
 
     return (
       <div className="max-w-3xl">
         <Card>
           <CardHeader>
-            <CardTitle>Review Scripts — {generatedScripts.length} Sections ({totalMinutes} min, ~{totalWords} words)</CardTitle>
+            <CardTitle>Review Scripts — {isBalloonMode ? '1 Master Script' : `${generatedScripts.length} Sections`} ({totalMinutes} min, ~{totalWords} words)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">{finalPlace} — {finalCity}, {country} • {primaryLangName}</p>
@@ -858,17 +854,43 @@ export function AutoCreateGuide() {
                   <Badge variant="outline">Target {BALLOON_DEFAULT_DURATION} min</Badge>
                   {totalMinutes < BALLOON_DEFAULT_DURATION && <Badge variant="destructive">Script may be too short</Badge>}
                   {scriptWarnings.length > 0 && <Badge variant="destructive">Directional wording detected</Badge>}
+                  {unexpectedBalloonValleys.length > 0 && <Badge variant="destructive">Unselected valley mention detected</Badge>}
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {valleyCoverage.map((item) => (
+                  {balloonCoverage.map((item) => (
                     <Badge key={item.valley} variant={item.present ? 'secondary' : 'outline'}>
-                      {item.present ? '✓' : '○'} {item.valley}
+                      {item.present ? '✓' : '○'} {formatValleyName(item.valley)}
                     </Badge>
                   ))}
                 </div>
+                {unexpectedBalloonValleys.length > 0 && (
+                  <p className="text-xs text-destructive">Review needed: {unexpectedBalloonValleys.map(formatValleyName).join(', ')} seçilmediği halde metinde geçiyor.</p>
+                )}
               </div>
             )}
 
+            {isBalloonMode ? (
+              <div className="border rounded-lg overflow-hidden">
+                <div className="p-3 border-b bg-muted/30">
+                  <p className="text-sm font-medium">{balloonMasterTitle}</p>
+                  <p className="text-xs text-muted-foreground">Tek görünür script · iç üretim blokları birleşik gösterim</p>
+                </div>
+                <div className="p-3 space-y-3">
+                  <textarea
+                    value={combinedBalloonScript}
+                    onChange={(e) => setGeneratedScripts([e.target.value])}
+                    className="w-full min-h-[320px] max-h-[520px] rounded-md border border-input bg-background px-3 py-2 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-ring"
+                  />
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-xs text-muted-foreground">{combinedBalloonScript.length} chars · {combinedBalloonWordCount} words</span>
+                    <Button size="sm" variant="outline" disabled={regeneratingScript !== null} onClick={() => handleGenerateScripts()}>
+                      <Music className="w-3.5 h-3.5 mr-1" />
+                      Regenerate Master Script
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ) : (
             <div className="max-h-[600px] overflow-y-auto space-y-2 border rounded-lg p-3">
               {generatedScripts.map((script, i) => {
                 const words = script.trim().split(/\s+/).filter(Boolean).length;
@@ -912,6 +934,7 @@ export function AutoCreateGuide() {
                 );
               })}
             </div>
+            )}
             <div className="flex gap-2 pt-2">
               <Button onClick={() => setCurrentStep('audio_upload')} className="flex-1">Approve Scripts & Upload Audio</Button>
               <Button variant="outline" onClick={() => { setCurrentStep('plan_review'); setGeneratedScripts([]); }}>Back</Button>
