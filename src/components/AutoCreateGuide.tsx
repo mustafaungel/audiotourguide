@@ -13,6 +13,17 @@ import { ALL_COUNTRIES, ELEVENLABS_LANGUAGES, GUIDE_CATEGORIES } from '@/data/co
 import { toast } from 'sonner';
 import { StepIndicator } from '@/components/ui/step-indicator';
 import { LanguagePicker } from '@/components/ui/language-picker';
+import {
+  BALLOON_DEFAULT_DURATION,
+  BALLOON_DEFAULT_THEME,
+  BALLOON_VALLEYS,
+  DIRECTIONAL_WARNING_PATTERN,
+  buildBalloonMasterTitle,
+  combineBalloonScripts,
+  detectCoveredValleys,
+  detectUnexpectedValleys,
+  formatValleyName,
+} from '@/lib/balloon-guide';
 
 interface SuggestedCity {
   name: string;
@@ -48,18 +59,6 @@ interface CreationProgress {
   message: string;
   detail?: string;
 }
-
-const BALLOON_VALLEYS = [
-  'Goreme Valley',
-  'Soganli Valley',
-  'Ihlara Valley',
-  'Cat Valley',
-] as const;
-
-const BALLOON_DEFAULT_THEME = 'Premium storytelling';
-const BALLOON_DEFAULT_DURATION = 25;
-
-const DIRECTIONAL_WARNING_PATTERN = /\b(left|right|below|above|ahead|behind|currently|current altitude|now flying|to your|under you|over you|step closer|turn around|next stop)\b/i;
 
 const groupAttractions = (items: SuggestedAttraction[]) => {
   return items.reduce<Record<string, SuggestedAttraction[]>>((acc, item) => {
@@ -112,10 +111,16 @@ export function AutoCreateGuide() {
   const finalPlace = place || placeInput;
   const isBalloonMode = guideType === 'balloon';
   const groupedAttractions = groupAttractions(attractions);
+  const balloonMasterTitle = isBalloonMode ? buildBalloonMasterTitle(coveredValleys, finalCity || finalPlace || 'Cappadocia') : '';
+  const combinedBalloonScript = isBalloonMode ? combineBalloonScripts(generatedScripts) : '';
+  const combinedBalloonWordCount = combinedBalloonScript.trim().split(/\s+/).filter(Boolean).length;
+  const combinedBalloonMinutes = Math.round(combinedBalloonWordCount / 150);
   const scriptWarnings = generatedScripts
     .map((script, index) => ({ index, flagged: DIRECTIONAL_WARNING_PATTERN.test(script) }))
     .filter((item) => item.flagged)
     .map((item) => item.index);
+  const balloonCoverage = isBalloonMode ? detectCoveredValleys(combinedBalloonScript, coveredValleys) : [];
+  const unexpectedBalloonValleys = isBalloonMode ? detectUnexpectedValleys(combinedBalloonScript, coveredValleys) : [];
 
   const primaryLangCode = selectedLanguages[0] || 'en';
   const primaryLangName = ELEVENLABS_LANGUAGES.find((l) => l.code === primaryLangCode)?.name || 'English';
@@ -325,7 +330,7 @@ export function AutoCreateGuide() {
 
   const handleCopyScript = async (index: number) => {
     try {
-      await navigator.clipboard.writeText(generatedScripts[index]);
+      await navigator.clipboard.writeText(isBalloonMode ? combinedBalloonScript : generatedScripts[index]);
       setCopiedScript(index);
       toast.success('Script copied! Paste it in ElevenLabs');
       setTimeout(() => setCopiedScript(null), 3000);
@@ -410,19 +415,29 @@ export function AutoCreateGuide() {
         },
       });
 
-      const primarySections = sections.map((section, idx) => ({
-        title: section.title,
-        description: scripts[idx],
-        audio_url: generatedAudio[idx]?.audio_url || '',
-        duration_seconds: generatedAudio[idx]?.duration_seconds || section.estimated_minutes * 60,
-        language: primaryLangName,
-        language_code: primaryLangCode,
-        order_index: idx,
-      }));
+      const primarySections = isBalloonMode
+        ? [{
+            title: balloonMasterTitle || finalPlace,
+            description: combineBalloonScripts(scripts),
+            audio_url: generatedAudio[0]?.audio_url || '',
+            duration_seconds: generatedAudio.reduce((sum, item, idx) => sum + (item?.duration_seconds || sections[idx]?.estimated_minutes * 60 || 0), 0),
+            language: primaryLangName,
+            language_code: primaryLangCode,
+            order_index: 0,
+          }]
+        : sections.map((section, idx) => ({
+            title: section.title,
+            description: scripts[idx],
+            audio_url: generatedAudio[idx]?.audio_url || '',
+            duration_seconds: generatedAudio[idx]?.duration_seconds || section.estimated_minutes * 60,
+            language: primaryLangName,
+            language_code: primaryLangCode,
+            order_index: idx,
+          }));
 
       setProgress({ step: 2, totalSteps: 2, message: 'Saving guide...' });
       const totalDuration = primarySections.reduce((sum, s) => sum + s.duration_seconds, 0);
-      const guideTitle = isBalloonMode ? finalPlace : `${finalPlace} Audio Guide`;
+      const guideTitle = isBalloonMode ? (balloonMasterTitle || finalPlace) : `${finalPlace} Audio Guide`;
       const guideDescription = isBalloonMode
         ? `Long-form balloon experience narration for ${finalPlace} in ${finalCity}, ${country}. Covers ${coveredValleys.join(', ')} with geology, culture, and hidden details in a single evergreen listen.`
         : `Explore ${finalPlace} in ${finalCity}, ${country}. Professional audio tour guide with ${sections.length} stops covering history, culture, and hidden stories.`;
@@ -716,9 +731,9 @@ export function AutoCreateGuide() {
                       <span className="text-sm font-medium">Target duration</span>
                       <Badge variant="outline">{BALLOON_DEFAULT_DURATION} min</Badge>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Balloon guides use a fixed premium narration setup and are generated in chunked admin sections for easier upload management.
-                    </p>
+                      <p className="text-xs text-muted-foreground">
+                        Balloon guides use a fixed premium narration setup, but final output is reviewed and uploaded as one continuous guide.
+                      </p>
                   </div>
                 </div>
               )}
@@ -746,7 +761,7 @@ export function AutoCreateGuide() {
         <Card>
           <CardHeader>
             <CardTitle>
-              Review {isBalloonMode ? 'Balloon Plan' : 'Section Plan'} — {plannedSections.length} {plannedSections.length === 1 ? 'Section' : 'Sections'} ({totalMinutes} min)
+              Review {isBalloonMode ? 'Balloon Plan' : 'Section Plan'} — {isBalloonMode ? '1 Master Script' : `${plannedSections.length} ${plannedSections.length === 1 ? 'Section' : 'Sections'}`} ({totalMinutes} min)
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -760,9 +775,9 @@ export function AutoCreateGuide() {
               <div className="rounded-lg border bg-muted/30 p-3 space-y-2 text-sm">
                 <p className="font-medium text-foreground">Coverage</p>
                 <div className="flex flex-wrap gap-2">
-                  {coveredValleys.map((valley) => <Badge key={valley} variant="secondary">{valley}</Badge>)}
+                  {coveredValleys.map((valley) => <Badge key={valley} variant="secondary">{formatValleyName(valley)}</Badge>)}
                 </div>
-                <p className="text-muted-foreground">One long evergreen narration with no directional or live-flight cues.</p>
+                <p className="text-muted-foreground">Master title: {balloonMasterTitle}. İç bloklar üretilecek ama finalde tek section olarak kaydedilecek.</p>
               </div>
             )}
 
@@ -820,18 +835,14 @@ export function AutoCreateGuide() {
   }
 
   if (currentStep === 'script_review') {
-    const totalWords = generatedScripts.reduce((sum, s) => sum + s.trim().split(/\s+/).filter(Boolean).length, 0);
-    const totalMinutes = Math.round(totalWords / 150);
-    const valleyCoverage = coveredValleys.map((valley) => ({
-      valley,
-      present: generatedScripts.join(' ').toLowerCase().includes(valley.toLowerCase().replace(' valley', '')),
-    }));
+    const totalWords = isBalloonMode ? combinedBalloonWordCount : generatedScripts.reduce((sum, s) => sum + s.trim().split(/\s+/).filter(Boolean).length, 0);
+    const totalMinutes = isBalloonMode ? combinedBalloonMinutes : Math.round(totalWords / 150);
 
     return (
       <div className="max-w-3xl">
         <Card>
           <CardHeader>
-            <CardTitle>Review Scripts — {generatedScripts.length} Sections ({totalMinutes} min, ~{totalWords} words)</CardTitle>
+            <CardTitle>Review Scripts — {isBalloonMode ? '1 Master Script' : `${generatedScripts.length} Sections`} ({totalMinutes} min, ~{totalWords} words)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">{finalPlace} — {finalCity}, {country} • {primaryLangName}</p>
@@ -843,17 +854,43 @@ export function AutoCreateGuide() {
                   <Badge variant="outline">Target {BALLOON_DEFAULT_DURATION} min</Badge>
                   {totalMinutes < BALLOON_DEFAULT_DURATION && <Badge variant="destructive">Script may be too short</Badge>}
                   {scriptWarnings.length > 0 && <Badge variant="destructive">Directional wording detected</Badge>}
+                  {unexpectedBalloonValleys.length > 0 && <Badge variant="destructive">Unselected valley mention detected</Badge>}
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {valleyCoverage.map((item) => (
+                  {balloonCoverage.map((item) => (
                     <Badge key={item.valley} variant={item.present ? 'secondary' : 'outline'}>
-                      {item.present ? '✓' : '○'} {item.valley}
+                      {item.present ? '✓' : '○'} {formatValleyName(item.valley)}
                     </Badge>
                   ))}
                 </div>
+                {unexpectedBalloonValleys.length > 0 && (
+                  <p className="text-xs text-destructive">Review needed: {unexpectedBalloonValleys.map(formatValleyName).join(', ')} seçilmediği halde metinde geçiyor.</p>
+                )}
               </div>
             )}
 
+            {isBalloonMode ? (
+              <div className="border rounded-lg overflow-hidden">
+                <div className="p-3 border-b bg-muted/30">
+                  <p className="text-sm font-medium">{balloonMasterTitle}</p>
+                  <p className="text-xs text-muted-foreground">Tek görünür script · iç üretim blokları birleşik gösterim</p>
+                </div>
+                <div className="p-3 space-y-3">
+                  <textarea
+                    value={combinedBalloonScript}
+                    onChange={(e) => setGeneratedScripts([e.target.value])}
+                    className="w-full min-h-[320px] max-h-[520px] rounded-md border border-input bg-background px-3 py-2 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-ring"
+                  />
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-xs text-muted-foreground">{combinedBalloonScript.length} chars · {combinedBalloonWordCount} words</span>
+                    <Button size="sm" variant="outline" disabled={regeneratingScript !== null} onClick={() => handleGenerateScripts()}>
+                      <Music className="w-3.5 h-3.5 mr-1" />
+                      Regenerate Master Script
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ) : (
             <div className="max-h-[600px] overflow-y-auto space-y-2 border rounded-lg p-3">
               {generatedScripts.map((script, i) => {
                 const words = script.trim().split(/\s+/).filter(Boolean).length;
@@ -897,6 +934,7 @@ export function AutoCreateGuide() {
                 );
               })}
             </div>
+            )}
             <div className="flex gap-2 pt-2">
               <Button onClick={() => setCurrentStep('audio_upload')} className="flex-1">Approve Scripts & Upload Audio</Button>
               <Button variant="outline" onClick={() => { setCurrentStep('plan_review'); setGeneratedScripts([]); }}>Back</Button>
@@ -909,7 +947,7 @@ export function AutoCreateGuide() {
 
   if (currentStep === 'audio_upload') {
     const uploadedCount = generatedAudio.filter((a) => a?.audio_url).length;
-    const totalSections = plannedSections.length;
+    const totalSections = isBalloonMode ? 1 : plannedSections.length;
     const allUploaded = uploadedCount >= totalSections;
     const totalDur = generatedAudio.reduce((sum, a) => sum + (a?.duration_seconds || 0), 0);
 
@@ -919,19 +957,19 @@ export function AutoCreateGuide() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Mic className="w-5 h-5" />
-              Upload Audio — {uploadedCount}/{totalSections} sections
+               Upload Audio — {uploadedCount}/{totalSections} sections
               {totalDur > 0 && <span className="text-sm font-normal text-muted-foreground ml-2">({Math.floor(totalDur / 60)} min total)</span>}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="bg-muted/50 border rounded-lg p-3 text-sm text-muted-foreground space-y-1">
-              <p><strong>Workflow:</strong> Copy each script below, paste it into <a href="https://elevenlabs.io/app/speech-synthesis" target="_blank" rel="noopener noreferrer" className="text-primary underline">ElevenLabs</a>, generate audio with your preferred voice settings, download the MP3, and upload it here.</p>
+               <p><strong>Workflow:</strong> {isBalloonMode ? 'Copy the master script, generate one continuous audio in ElevenLabs, then upload one MP3 here. If you export multiple MP3 files, the uploader will merge them automatically.' : <>Copy each script below, paste it into <a href="https://elevenlabs.io/app/speech-synthesis" target="_blank" rel="noopener noreferrer" className="text-primary underline">ElevenLabs</a>, generate audio with your preferred voice settings, download the MP3, and upload it here.</>}</p>
             </div>
             <div className="max-h-[500px] overflow-y-auto space-y-2 border rounded-lg p-3">
-              {plannedSections.map((section, i) => {
+               {(isBalloonMode ? [{ title: balloonMasterTitle, estimated_minutes: BALLOON_DEFAULT_DURATION }] : plannedSections).map((section, i) => {
                 const hasAudio = generatedAudio[i]?.audio_url;
                 const dur = generatedAudio[i]?.duration_seconds || 0;
-                const words = (generatedScripts[i] || '').trim().split(/\s+/).filter(Boolean).length;
+                 const words = (isBalloonMode ? combinedBalloonScript : (generatedScripts[i] || '')).trim().split(/\s+/).filter(Boolean).length;
 
                 return (
                   <div key={i} className={`border rounded-lg p-3 space-y-2 ${hasAudio ? 'border-primary/30 bg-primary/5' : ''}`}>

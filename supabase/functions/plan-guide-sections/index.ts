@@ -61,10 +61,11 @@ Critical balloon rules:
 4. Do NOT use directional guidance such as left, right, below, ahead, behind, or above you.
 5. Do NOT describe live conditions such as altitude, wind, exact route, current visibility, or current movement.
 6. Do NOT write walking-tour logic such as next stop, step closer, turn around, or move forward.
-7. Focus on general knowledge, geology, history, culture, landscape character, and hidden details.
-8. If valleys are provided, distribute them across chunks — don't repeat the same valley in multiple chunks.
+7. Focus on geography that is truthfully associated with the selected flight corridor, plus geology, history, culture, landscape character, and hidden details.
+8. Never mention valleys or landmarks outside the selected flight corridor knowledge base.
 9. Each chunk should have a distinct focus (e.g., intro/geology, valley deep-dive, culture/history, hidden gems, reflection).
-10. Return ONLY a valid JSON array of ${balloonChunkCount} section objects.`
+10. Internal section titles must read like premium subchapters, never technical labels such as Chunk, Part, Block, or Section 1.
+11. Return ONLY a valid JSON array of ${balloonChunkCount} section objects.`
       : `You are a world-class audio tour guide planner and historian. Your expertise spans art history, architecture, archaeology, cultural anthropology, and local traditions. You create audio tour section plans that transform ordinary visits into unforgettable experiences.
 
 Your planning principles:
@@ -97,11 +98,11 @@ Target total listening length: ~${requestedMinutes} minutes (${chunkMinutes} min
 Include intro and closing notes: ${include_intro_outro_notes ? 'yes' : 'no'}
 
 IMPORTANT — WHAT TOURISTS WILL ACTUALLY SEE:
-This balloon flies from ${valleys.join(' / ')} but the flight corridor reveals ALL of the valleys and landmarks listed in the knowledge base above. The guide MUST cover these visible valleys and landmarks, not just the takeoff valley. Tourists expect deep, authoritative content about the ENTIRE visible landscape during their flight.
+This balloon experience is anchored to ${valleys.join(' / ')}. Only use valleys and landmarks that belong to this selected corridor in the knowledge base above. Do not widen the geography beyond that corridor, because incorrect valley claims would mislead the listener.
 
 Return EXACTLY ${balloonChunkCount} section objects as a JSON array. Each section is one chunk of the continuous narration. Format for each section:
 {
-  "title": "Chunk N: [Concise chunk title]" (max 60 chars),
+  "title": "[Premium concise subchapter title]" (max 60 chars, never use Chunk/Part/Section),
   "subtitle": "What this chunk covers" (max 100 chars),
   "key_topics": ["specific topic 1", "specific topic 2", "specific topic 3", "specific topic 4"],
   "estimated_minutes": ${chunkMinutes},
