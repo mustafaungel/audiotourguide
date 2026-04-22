@@ -13,7 +13,6 @@ import { ALL_COUNTRIES, ELEVENLABS_LANGUAGES, GUIDE_CATEGORIES } from '@/data/co
 import { toast } from 'sonner';
 import { StepIndicator } from '@/components/ui/step-indicator';
 import { LanguagePicker } from '@/components/ui/language-picker';
-import { Slider } from '@/components/ui/slider';
 
 interface SuggestedCity {
   name: string;
@@ -57,14 +56,8 @@ const BALLOON_VALLEYS = [
   'Cat Valley',
 ] as const;
 
-const FLIGHT_THEMES = [
-  'Geological story',
-  'Historical and cultural story',
-  'Balanced overview',
-  'Premium storytelling',
-] as const;
-
-const LISTENING_LENGTHS = [10, 15, 20, 25] as const;
+const BALLOON_DEFAULT_THEME = 'Premium storytelling';
+const BALLOON_DEFAULT_DURATION = 25;
 
 const DIRECTIONAL_WARNING_PATTERN = /\b(left|right|below|above|ahead|behind|currently|current altitude|now flying|to your|under you|over you|step closer|turn around|next stop)\b/i;
 
@@ -93,9 +86,6 @@ export function AutoCreateGuide() {
   const [priceUsd, setPriceUsd] = useState('499');
 
   const [coveredValleys, setCoveredValleys] = useState<string[]>(['Goreme Valley']);
-  const [flightTheme, setFlightTheme] = useState<string>('Balanced overview');
-  const [estimatedListeningMinutes, setEstimatedListeningMinutes] = useState<number>(15);
-  const [includeIntroOutroNotes, setIncludeIntroOutroNotes] = useState(true);
 
   const [cities, setCities] = useState<SuggestedCity[]>([]);
   const [attractions, setAttractions] = useState<SuggestedAttraction[]>([]);
@@ -145,9 +135,6 @@ export function AutoCreateGuide() {
     if (value === 'balloon') {
       setCategory('Local Experience');
       setCoveredValleys(['Goreme Valley']);
-      setFlightTheme('Balanced overview');
-      setEstimatedListeningMinutes(15);
-      setIncludeIntroOutroNotes(true);
     }
   };
 
@@ -235,9 +222,9 @@ export function AutoCreateGuide() {
     place_type: isBalloonMode ? 'balloon_flight_experience' : '',
     category: category || (isBalloonMode ? 'Local Experience' : 'Historical'),
     covered_valleys: isBalloonMode ? coveredValleys : [],
-    flight_theme: isBalloonMode ? flightTheme : null,
-    estimated_listening_minutes: isBalloonMode ? estimatedListeningMinutes : null,
-    include_intro_outro_notes: isBalloonMode ? includeIntroOutroNotes : false,
+    flight_theme: isBalloonMode ? BALLOON_DEFAULT_THEME : null,
+    estimated_listening_minutes: isBalloonMode ? BALLOON_DEFAULT_DURATION : null,
+    include_intro_outro_notes: isBalloonMode,
   });
 
   const handlePlanSections = async () => {
