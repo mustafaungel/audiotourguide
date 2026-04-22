@@ -135,11 +135,11 @@ ANTI-SHALLOW RULES (CRITICAL — SCRIPT WILL BE REJECTED IF VIOLATED):
 - Use SPECIFIC cultural references: Byzantine, Seljuk, Ottoman, Hittite, Phrygian (not just "ancient")
 
 VISIBLE LANDSCAPE COVERAGE (CRITICAL):
-- The balloon flies OVER the takeoff valley but the flight corridor reveals MANY more valleys and landmarks
-- Your narration MUST treat the visible landscape listed in the knowledge base as the true content
-- When this chunk covers valleys/landmarks, you MUST mention SPECIFIC ones from the knowledge base by name
-- Each visible valley/landmark deserves a distinct identity — do NOT treat them as interchangeable
-- If chunk focuses on "valleys", cover MULTIPLE visible valleys with their unique features (not just one)
+- Treat the selected flight corridor in the knowledge base as the only safe geography for this narration
+- Mention ONLY valleys and landmarks that belong to that selected corridor
+- When this chunk covers valleys or landmarks, you MUST mention SPECIFIC ones from the knowledge base by name
+- Each permitted valley or landmark deserves a distinct identity — do NOT treat them as interchangeable
+- Do NOT claim visibility for any valley outside the selected corridor
 
 STORYTELLING DEPTH REQUIREMENTS:
 - Weave local legends naturally: Camel Rock guarding Silk Road caravans, Love Valley's two lovers, Saint Simeon on his pillar, abandoned Cavusin, the dragon of Nar Lake
@@ -155,7 +155,7 @@ EVERGREEN LANGUAGE PATTERNS:
 - Use language that invites imagination without directing the gaze
 
 DELIVERY RULES:
-- This is ONE CHUNK of a larger continuous narration — focus only on this chunk's topic
+- This is ONE INTERNAL CHUNK of a larger continuous narration — focus only on this chunk's topic
 - Target EXACTLY ${wordCount} words — this chunk is ${estimatedMinutes} minutes of audio
 - The script MUST be at least ${Math.floor(wordCount * 0.9)} words and no more than ${Math.ceil(wordCount * 1.1)} words
 - Use short spoken paragraphs separated by blank lines
