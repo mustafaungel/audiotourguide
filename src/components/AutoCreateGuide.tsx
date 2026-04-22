@@ -330,7 +330,7 @@ export function AutoCreateGuide() {
 
   const handleCopyScript = async (index: number) => {
     try {
-      await navigator.clipboard.writeText(generatedScripts[index]);
+      await navigator.clipboard.writeText(isBalloonMode ? combinedBalloonScript : generatedScripts[index]);
       setCopiedScript(index);
       toast.success('Script copied! Paste it in ElevenLabs');
       setTimeout(() => setCopiedScript(null), 3000);
@@ -731,9 +731,9 @@ export function AutoCreateGuide() {
                       <span className="text-sm font-medium">Target duration</span>
                       <Badge variant="outline">{BALLOON_DEFAULT_DURATION} min</Badge>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Balloon guides use a fixed premium narration setup and are generated in chunked admin sections for easier upload management.
-                    </p>
+                      <p className="text-xs text-muted-foreground">
+                        Balloon guides use a fixed premium narration setup, but final output is reviewed and uploaded as one continuous guide.
+                      </p>
                   </div>
                 </div>
               )}
