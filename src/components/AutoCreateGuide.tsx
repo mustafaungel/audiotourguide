@@ -111,10 +111,16 @@ export function AutoCreateGuide() {
   const finalPlace = place || placeInput;
   const isBalloonMode = guideType === 'balloon';
   const groupedAttractions = groupAttractions(attractions);
+  const balloonMasterTitle = isBalloonMode ? buildBalloonMasterTitle(coveredValleys, finalCity || finalPlace || 'Cappadocia') : '';
+  const combinedBalloonScript = isBalloonMode ? combineBalloonScripts(generatedScripts) : '';
+  const combinedBalloonWordCount = combinedBalloonScript.trim().split(/\s+/).filter(Boolean).length;
+  const combinedBalloonMinutes = Math.round(combinedBalloonWordCount / 150);
   const scriptWarnings = generatedScripts
     .map((script, index) => ({ index, flagged: DIRECTIONAL_WARNING_PATTERN.test(script) }))
     .filter((item) => item.flagged)
     .map((item) => item.index);
+  const balloonCoverage = isBalloonMode ? detectCoveredValleys(combinedBalloonScript, coveredValleys) : [];
+  const unexpectedBalloonValleys = isBalloonMode ? detectUnexpectedValleys(combinedBalloonScript, coveredValleys) : [];
 
   const primaryLangCode = selectedLanguages[0] || 'en';
   const primaryLangName = ELEVENLABS_LANGUAGES.find((l) => l.code === primaryLangCode)?.name || 'English';
@@ -409,19 +415,29 @@ export function AutoCreateGuide() {
         },
       });
 
-      const primarySections = sections.map((section, idx) => ({
-        title: section.title,
-        description: scripts[idx],
-        audio_url: generatedAudio[idx]?.audio_url || '',
-        duration_seconds: generatedAudio[idx]?.duration_seconds || section.estimated_minutes * 60,
-        language: primaryLangName,
-        language_code: primaryLangCode,
-        order_index: idx,
-      }));
+      const primarySections = isBalloonMode
+        ? [{
+            title: balloonMasterTitle || finalPlace,
+            description: combineBalloonScripts(scripts),
+            audio_url: generatedAudio[0]?.audio_url || '',
+            duration_seconds: generatedAudio.reduce((sum, item, idx) => sum + (item?.duration_seconds || sections[idx]?.estimated_minutes * 60 || 0), 0),
+            language: primaryLangName,
+            language_code: primaryLangCode,
+            order_index: 0,
+          }]
+        : sections.map((section, idx) => ({
+            title: section.title,
+            description: scripts[idx],
+            audio_url: generatedAudio[idx]?.audio_url || '',
+            duration_seconds: generatedAudio[idx]?.duration_seconds || section.estimated_minutes * 60,
+            language: primaryLangName,
+            language_code: primaryLangCode,
+            order_index: idx,
+          }));
 
       setProgress({ step: 2, totalSteps: 2, message: 'Saving guide...' });
       const totalDuration = primarySections.reduce((sum, s) => sum + s.duration_seconds, 0);
-      const guideTitle = isBalloonMode ? finalPlace : `${finalPlace} Audio Guide`;
+      const guideTitle = isBalloonMode ? (balloonMasterTitle || finalPlace) : `${finalPlace} Audio Guide`;
       const guideDescription = isBalloonMode
         ? `Long-form balloon experience narration for ${finalPlace} in ${finalCity}, ${country}. Covers ${coveredValleys.join(', ')} with geology, culture, and hidden details in a single evergreen listen.`
         : `Explore ${finalPlace} in ${finalCity}, ${country}. Professional audio tour guide with ${sections.length} stops covering history, culture, and hidden stories.`;
