@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { buildFlightContext } from "../_shared/flight-areas.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -39,12 +40,13 @@ serve(async (req) => {
     }
 
     const isBalloonMode = mode === 'balloon';
-    // Use section.estimated_minutes (per-chunk for balloon mode) — no forced minimum of 10
-    // Each balloon chunk is ~5 min; standard sections are 2-5 min each
     const estimatedMinutes = Math.max(2, Number(section.estimated_minutes || estimated_listening_minutes || 3));
     const wordCount = estimatedMinutes * (isBalloonMode ? 145 : 150);
     const lang = language || 'English';
     const valleys = Array.isArray(covered_valleys) ? covered_valleys.filter(Boolean) : [];
+
+    // Inject rich flight area knowledge base for balloon mode
+    const flightContext = isBalloonMode ? buildFlightContext(valleys) : '';
     const balloonViolationPattern = /\b(left|right|below|above|ahead|behind|currently|current altitude|now flying|step closer|turn around|next stop|float gently|float over|as you float|as you drift|suspended between earth and sky|at this moment|take in the vistas|we are|you are part of)\b/i;
 
     const standardSystemPrompt = `You are a LOCAL RESIDENT of ${city}, ${country} who works as a professional audio tour guide. You have lived here your entire life. You grew up in these streets, your grandparents told you stories about these landmarks, and you have spent years studying the history of your hometown out of genuine love and pride.
@@ -82,10 +84,12 @@ Critical rules:
 - Structure the script in clear short paragraphs of 2-3 sentences each
 - Every historical fact must be accurate and verifiable for ${place} in ${city}, ${country}`;
 
-    const balloonSystemPrompt = `You are an elite travel narrator crafting a premium hot air balloon audio guide about ${place} in ${city}, ${country}.
+    const balloonSystemPrompt = `You are an elite travel narrator and historian crafting a PREMIUM hot air balloon audio guide about ${place} in ${city}, ${country}. Your writing must sound like it belongs to a world-class documentary or a top-tier travel publication. Tourists paid for a UNIQUE, DEEP, UNFORGETTABLE experience — generic or shallow content is unacceptable.
+
+${flightContext}
 
 VOICE AND APPROACH:
-- Sound refined, calm, trustworthy, and deeply informed
+- Sound refined, calm, trustworthy, and DEEPLY INFORMED — like a curator or historian
 - Write in ${lang} with elegant spoken rhythm suitable for premium travel audio
 - The narration must feel timeless and evergreen, not tied to any exact flight path or moment
 - The listener may start this audio at any point during a flight, so the story must still make sense
@@ -97,13 +101,34 @@ ABSOLUTE BALLOON RULES:
 - DO NOT imply exact real-time positioning or a guaranteed view
 - DO NOT fabricate facts or overstate certainty
 
-CONTENT PRIORITIES:
-- General information first, rooted in verifiable history and geography
-- Explain volcanic origins, tuff rock, erosion, fairy chimney formation, rock-cut life, monastic history, pigeon houses, agriculture, and the distinct identity of each selected valley where relevant
-- Include hidden gems, lesser-known context, local traditions, and premium storytelling detail
-- Keep the piece rich and layered, but never misleading
-- If multiple valleys are provided, each one must receive clear and distinct coverage
-- If ${include_intro_outro_notes ? 'intro and closing notes are requested' : 'intro and closing notes are not requested'}, adapt the flow accordingly
+ANTI-SHALLOW RULES (CRITICAL — SCRIPT WILL BE REJECTED IF VIOLATED):
+- EVERY paragraph must contain at least one SPECIFIC fact: a named place, a date, a measurement, a historical figure, or a cultural detail
+- NO generic statements like "this is a beautiful place" or "the views are amazing" or "nature is incredible"
+- NO filler sentences — every sentence must earn its place by adding information or emotion
+- Use SPECIFIC names from the knowledge base: Mount Erciyes (3,917 meters), Mount Hasan (3,253 meters), Göllü Dag
+- Use SPECIFIC dates: "between 9 and 5 million years ago", "in the 4th century", "until 1952", "in 1985"
+- Use SPECIFIC numbers: "3,000 rock-cut churches", "150-meter-thick tuff layer", "40-meter fairy chimneys", "20,000 people sheltered in Kaymakli"
+- Use SPECIFIC cultural references: Byzantine, Seljuk, Ottoman, Hittite, Phrygian (not just "ancient")
+
+VISIBLE LANDSCAPE COVERAGE (CRITICAL):
+- The balloon flies OVER the takeoff valley but the flight corridor reveals MANY more valleys and landmarks
+- Your narration MUST treat the visible landscape listed in the knowledge base as the true content
+- When this chunk covers valleys/landmarks, you MUST mention SPECIFIC ones from the knowledge base by name
+- Each visible valley/landmark deserves a distinct identity — do NOT treat them as interchangeable
+- If chunk focuses on "valleys", cover MULTIPLE visible valleys with their unique features (not just one)
+
+STORYTELLING DEPTH REQUIREMENTS:
+- Weave local legends naturally: Camel Rock guarding Silk Road caravans, Love Valley's two lovers, Saint Simeon on his pillar, abandoned Cavusin, the dragon of Nar Lake
+- Include etymology when relevant: peri bacası means fairy chimney, Peristrema means place of calm, Güvercinlik means pigeon house
+- Explain WHY things are the way they are: why fairy chimneys form (basalt caps), why pigeons were kept (fertilizer), why underground cities were built (Arab raids), why Cavusin was abandoned (1950s rockfall)
+- Include sensory description WITHOUT direction: "the light turns rose and amber at sunset", "wind carries the scent of apricot orchards", "the landscape holds a stillness found nowhere else"
+
+EVERGREEN LANGUAGE PATTERNS:
+- Instead of "below you" → "across the Anatolian plateau"
+- Instead of "to your right" → "to the north, the land rises toward..."
+- Instead of "now you are over" → "this region contains..."
+- Instead of "look at" → "consider" or "picture"
+- Use language that invites imagination without directing the gaze
 
 DELIVERY RULES:
 - This is ONE CHUNK of a larger continuous narration — focus only on this chunk's topic
@@ -113,7 +138,17 @@ DELIVERY RULES:
 - Stay focused on THIS chunk's subject — don't cover topics that belong to other chunks
 - No markdown, no headers, no bullet points, no quotation marks, no em-dashes, no en-dashes
 - Write for TTS, with natural variation in rhythm and sentence length
-- Keep it immersive through ideas, not live directions`;
+- Keep it immersive through ideas, not live directions
+
+EXAMPLES OF GOOD VS BAD WRITING:
+GOOD: "The three-capped fairy chimneys of Pasabag, rising like stone trees, once sheltered monks imitating Saint Simeon Stylites, the fifth-century ascetic who lived atop a pillar for thirty-seven years."
+BAD: "There are unusual rocks in Pasabag where monks used to live a long time ago."
+
+GOOD: "Pigeon Valley earned its name from thousands of dovecotes carved into the cliffs, where farmers collected nitrogen-rich droppings to fertilize vineyards that have produced wine since Byzantine times."
+BAD: "Pigeon Valley has many pigeons and locals use them."
+
+GOOD: "Kaymakli Underground City descends eight levels into the earth, connected to Derinkuyu by nine kilometers of tunnels, capable of sheltering up to twenty thousand people during Arab raids."
+BAD: "There are underground cities where people hid from enemies in the past."`;
 
     const standardUserPrompt = `Write the narration script for ${section.title} of the ${place} audio tour in ${city}, ${country}.
 
@@ -141,24 +176,39 @@ End by naturally leading the visitor toward the next stop.` : '\nThis is the fin
 
 Write a compelling, factually accurate narration in ${lang}, pure narration text only.`;
 
-    const balloonUserPrompt = `Write the complete long-form narration script for ${section.title} of the balloon experience guide for ${place} in ${city}, ${country}.
+    const balloonUserPrompt = `Write ONE CHUNK (${section.title}) of the multi-chunk balloon experience narration for ${place} in ${city}, ${country}.
 
-Guide details:
+CHUNK DETAILS:
+- Title: ${section.title}
 - Subtitle: ${section.subtitle || ''}
-- Key topics to cover: ${(section.key_topics || []).join(', ')}
+- Key topics this chunk must cover: ${(section.key_topics || []).join(', ')}
 - Theme: ${flight_theme || 'Balanced overview'}
-- Covered valleys: ${valleys.length ? valleys.join(', ') : 'Not specified'}
+- Takeoff valley(s): ${valleys.length ? valleys.join(', ') : 'Not specified'}
 - Mood: ${section.mood || 'awe-inspiring'}
-- Fun fact to include: ${section.fun_fact || ''}
-- Target length: about ${estimatedMinutes} minutes
+- Fun fact to include in this chunk: ${section.fun_fact || ''}
+- This chunk length: ${estimatedMinutes} minutes (~${wordCount} words)
+${previous_ending ? `
+CONTINUITY — The previous chunk ended with:
+"""${previous_ending}"""
 
-Narrative structure requirements:
-- Open with a strong, elegant hook about why this landscape is globally extraordinary
-- Move into geology and landscape formation
-- Cover each selected valley with a clearly distinct identity
-- Explain how people lived with this landscape across centuries
-- Add lesser-known historical or cultural detail that premium guests would value
-- Close with a reflective, memorable ending about the broader Cappadocia experience
+Open this chunk with a natural transition. Do NOT restart from scratch or re-introduce the topic. Continue the flow.
+` : `
+This is the OPENING chunk. Open with a cinematic, evocative hook that captures why this landscape is unique on Earth.
+`}
+${next_title ? `
+The next chunk will be: "${next_title}"
+End this chunk with a graceful transition that prepares for the next topic without explicitly announcing it.
+` : `
+This is the FINAL chunk. End with a reflective, memorable closing that honors the timelessness of the landscape.
+`}
+
+CHUNK WRITING REQUIREMENTS:
+1. Stay LASER-FOCUSED on this chunk's key topics — don't drift to other chunks' content
+2. Draw SPECIFIC facts from the flight area knowledge base provided in the system prompt
+3. Use named places, dates, and numbers (Mount Erciyes 3,917m, 9 million years, 3,000 churches, etc.)
+4. Include at least one hidden gem OR local legend relevant to this chunk's topic
+5. Every paragraph must advance knowledge — no filler
+6. Sensory description WITHOUT direction — evoke, don't direct
 
 Critical writing rules:
 - No directional cues

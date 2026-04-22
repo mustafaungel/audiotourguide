@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { buildFlightContext, getVisibleHighlights } from "../_shared/flight-areas.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -39,10 +40,14 @@ serve(async (req) => {
     const requestedMinutes = Math.max(10, Math.min(30, Number(estimated_listening_minutes) || 15));
 
     // Balloon mode: split long narrations into multiple chunks for reliable generation
-    // GPT-4o struggles to produce 2000+ words in a single call, so we chunk by duration
-    // Each chunk targets 5 minutes (~725 words) for reliable output
     const balloonChunkCount = isBalloonMode ? Math.max(2, Math.min(6, Math.ceil(requestedMinutes / 5))) : 1;
     const chunkMinutes = isBalloonMode ? Math.round(requestedMinutes / balloonChunkCount) : requestedMinutes;
+
+    // Flight area knowledge base — richly informs the planner about visible valleys/landmarks
+    const flightContext = isBalloonMode ? buildFlightContext(valleys) : '';
+    const { valleys: visibleValleys, landmarks: visibleLandmarks } = isBalloonMode
+      ? getVisibleHighlights(valleys)
+      : { valleys: [], landmarks: [] };
 
     const systemPrompt = isBalloonMode
       ? `You are a world-class travel editor and premium audio guide planner specializing in aerial sightseeing experiences.
@@ -80,54 +85,66 @@ EVERY notable room, courtyard, artwork, architectural feature, and historical ma
 
     const userPrompt = isBalloonMode
       ? `Create a ${balloonChunkCount}-chunk narrative plan for a premium balloon flight audio guide about ${place} in ${city}, ${country}.
+
+${flightContext}
+
+LOCATION DETAILS:
 Location type: ${place_type || 'balloon flight experience'}
 Category: ${category || 'Local Experience'}
-Covered valleys: ${valleys.length ? valleys.join(', ') : 'Not specified'}
+Takeoff valley(s): ${valleys.length ? valleys.join(', ') : 'Not specified'}
 Theme: ${flight_theme || 'Balanced overview'}
 Target total listening length: ~${requestedMinutes} minutes (${chunkMinutes} minutes per chunk)
 Include intro and closing notes: ${include_intro_outro_notes ? 'yes' : 'no'}
+
+IMPORTANT — WHAT TOURISTS WILL ACTUALLY SEE:
+This balloon flies from ${valleys.join(' / ')} but the flight corridor reveals ALL of the valleys and landmarks listed in the knowledge base above. The guide MUST cover these visible valleys and landmarks, not just the takeoff valley. Tourists expect deep, authoritative content about the ENTIRE visible landscape during their flight.
 
 Return EXACTLY ${balloonChunkCount} section objects as a JSON array. Each section is one chunk of the continuous narration. Format for each section:
 {
   "title": "Chunk N: [Concise chunk title]" (max 60 chars),
   "subtitle": "What this chunk covers" (max 100 chars),
-  "key_topics": ["topic1", "topic2", "topic3", "topic4"],
+  "key_topics": ["specific topic 1", "specific topic 2", "specific topic 3", "specific topic 4"],
   "estimated_minutes": ${chunkMinutes},
   "mood": "one of: awe-inspiring, mysterious, playful, solemn, adventurous, romantic, dramatic, educational, contemplative",
   "transition_hint": "How this chunk connects to the next",
-  "fun_fact": "One surprising detail specific to this chunk"
+  "fun_fact": "One specific, verifiable detail unique to this chunk"
 }
 
-Chunk structure guide for ${balloonChunkCount} chunks:
-${balloonChunkCount === 2 ? `- Chunk 1: Introduction + geological foundations (tuff rock, erosion, fairy chimneys)
-- Chunk 2: Valley highlights + cultural history + reflection` : ''}
-${balloonChunkCount === 3 ? `- Chunk 1: Introduction + geological foundations
-- Chunk 2: Valley-by-valley deep dive + cultural history
-- Chunk 3: Hidden gems + closing reflection` : ''}
-${balloonChunkCount === 4 ? `- Chunk 1: Introduction + welcome + why this landscape is unique
-- Chunk 2: Geology + tuff formation + fairy chimneys
-- Chunk 3: Valleys + rock-cut life + monastic history
-- Chunk 4: Hidden gems + local culture + closing reflection` : ''}
-${balloonChunkCount === 5 ? `- Chunk 1: Introduction + cinematic opening + sense of place
-- Chunk 2: Volcanic geology + tuff + erosion story
-- Chunk 3: Valleys deep-dive (distribute ${valleys.length || 'all selected'} valleys)
-- Chunk 4: Human history + rock-cut churches + pigeon houses + agriculture
-- Chunk 5: Hidden gems + cultural reflections + closing` : ''}
-${balloonChunkCount === 6 ? `- Chunk 1: Cinematic intro + welcome
-- Chunk 2: Volcanic origins + landscape formation
-- Chunk 3: First valley group + geological features
-- Chunk 4: Second valley group + rock-cut heritage
-- Chunk 5: Cultural layers + monastic history + daily life
-- Chunk 6: Hidden gems + reflection + closing` : ''}
+CHUNK STRUCTURE (follow this exact distribution — no deviation):
+${balloonChunkCount === 2 ? `- Chunk 1: Cinematic welcome + WHY this landscape is globally unique (scale, UNESCO, 3 volcanoes) + geological origins (Erciyes/Hasan/Göllü, 9 million years)
+- Chunk 2: Comprehensive valley tour — cover EACH visible valley listed above + human heritage + hidden gems + closing` : ''}
+${balloonChunkCount === 3 ? `- Chunk 1: Cinematic intro + geological foundations (named volcanoes, tuff/basalt, fairy chimney formation with specific dimensions)
+- Chunk 2: Visible valleys deep-dive — MUST cover EACH valley from the knowledge base with distinctive features
+- Chunk 3: Human heritage (Byzantine churches, underground cities, rock-cut life) + hidden gems + closing reflection` : ''}
+${balloonChunkCount === 4 ? `- Chunk 1: Cinematic welcome + why this landscape is unique on Earth + three volcanoes + UNESCO status
+- Chunk 2: Volcanic geology deep-dive (Erciyes 3917m, Hasan 3253m, Göllü, tuff formation, erosion rates, fairy chimney dimensions)
+- Chunk 3: Visible valleys panorama — cover EACH visible valley in the knowledge base with its distinctive character
+- Chunk 4: Human heritage + Byzantine painted churches + underground cities + hidden gems + closing` : ''}
+${balloonChunkCount === 5 ? `- Chunk 1: Cinematic opening + sense of place + why this landscape is extraordinary globally
+- Chunk 2: Volcanic geology (three named volcanoes, specific dates, tuff/basalt, erosion mechanics, fairy chimney dimensions)
+- Chunk 3: Visible valleys tour — MUST cover EACH visible valley from knowledge base with distinctive identity (Love, Rose, Red, Pigeon, Meskendir, Sword, etc.)
+- Chunk 4: Human heritage deep-dive (3000 rock-cut churches, underground cities, Byzantine painting, Seljuk caravanserais, troglodyte life until 1952)
+- Chunk 5: Hidden gems + local legends (Camel Rock, Saint Simeon, abandoned Cavusin) + closing reflection on timelessness` : ''}
+${balloonChunkCount === 6 ? `- Chunk 1: Cinematic welcome + why Cappadocia is Earth's most unique landscape
+- Chunk 2: Volcanic origins (three volcanoes, specific dates, tuff deposition)
+- Chunk 3: First valley group — deeply cover 3-4 visible valleys with distinctive features
+- Chunk 4: Second valley group — remaining visible valleys + Uçhisar Castle + major landmarks
+- Chunk 5: Human heritage (Byzantine churches, underground cities, troglodyte life, Silk Road)
+- Chunk 6: Hidden gems + local legends + closing reflection on eternity` : ''}
+
+KEY TOPICS REQUIREMENTS (critical — populate these richly):
+- Use SPECIFIC names from the knowledge base (valleys, landmarks, volcano heights, dates)
+- Each chunk's key_topics should be 4 distinct, specific topics (not generic phrases)
+- Visible valleys covered in middle chunks MUST reference valleys listed in the knowledge base
+- Fun facts should be specific and verifiable, drawn from hidden gems or legends
 
 Requirements:
 - Exactly ${balloonChunkCount} sections
 - Each chunk is ~${chunkMinutes} minutes (~${chunkMinutes * 145} words when generated)
-- Each chunk has a distinct focus — NO repetition of topics across chunks
-- If multiple valleys, distribute them across middle chunks (don't stack in one chunk)
-- Flow must feel continuous — transition_hint connects each chunk to the next
-- The plan must remain correct regardless of the balloon route on a given day
-- Do not mention live movement or directional cues`
+- Each chunk has a distinct focus — NO repetition
+- Flow must feel continuous — transition_hint connects to next
+- Plan must remain accurate regardless of flight route
+- Do not use directional cues`
       : `Create a comprehensive section plan for a professional audio tour of ${place} in ${city}, ${country}.
 Location type: ${place_type || 'tourist attraction'}
 Category: ${category || 'Historical'}
