@@ -17,10 +17,12 @@ serve(async (req) => {
       throw new Error('OPENAI_API_KEY is not configured');
     }
 
-    const { country } = await req.json();
+    const { country, mode } = await req.json();
     if (!country) {
       throw new Error('Country is required');
     }
+
+    const isBalloonMode = mode === 'balloon';
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -33,21 +35,34 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are a travel expert with encyclopedic knowledge of global tourism. Return ONLY a valid JSON array, no other text.`
+            content: 'You are a travel expert with encyclopedic knowledge of global tourism. Return ONLY a valid JSON array, no other text.',
           },
           {
             role: 'user',
-            content: `List the top 30 cities and tourist destinations in ${country} that are popular with international tourists and have notable attractions worth creating audio guides for.
+            content: isBalloonMode
+              ? `List the top 40 tourist cities, destination regions, and travel hubs in ${country} that are useful for creating premium sightseeing or balloon-style audio guides.
+
+For each result provide:
+- name: destination name in English
+- description: one-line explanation, max 90 chars
+- kind: one of city, region, destination_hub
+
+Requirements:
+- Include famous cities AND destination regions such as Cappadocia-style areas when relevant
+- Include UNESCO zones, scenic regions, and tourism hubs
+- Sort by international tourism relevance
+- Return ONLY a valid JSON array`
+              : `List the top 30 cities and tourist destinations in ${country} that are popular with international tourists and have notable attractions worth creating audio guides for.
 
 For each city provide:
-- "name": City/destination name in English
-- "description": One-line description (max 80 chars) highlighting its main tourist appeal
+- name: city or destination name in English
+- description: one-line description, max 80 chars
+- kind: one of city, region, destination_hub
 
-Return ONLY a valid JSON array sorted by popularity. Example format:
-[{"name": "Istanbul", "description": "Ancient crossroads of civilizations with stunning mosques and bazaars"}]`
-          }
+Return ONLY a valid JSON array sorted by popularity.`,
+          },
         ],
-        max_tokens: 2000,
+        max_tokens: 2500,
         temperature: 0.3,
       }),
     });
@@ -60,7 +75,6 @@ Return ONLY a valid JSON array sorted by popularity. Example format:
     const data = await response.json();
     const content = data.choices[0].message.content.trim();
 
-    // Parse JSON from response (handle markdown code blocks)
     let cities;
     try {
       const jsonStr = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
@@ -73,7 +87,6 @@ Return ONLY a valid JSON array sorted by popularity. Example format:
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     });
-
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,

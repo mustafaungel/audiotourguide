@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { mergeAudioFiles } from '@/utils/audioMerge';
 import { Button } from '@/components/ui/button';
@@ -8,13 +8,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Globe, MapPin, Landmark, Languages, DollarSign, Mic, Loader2, CheckCircle, Music, Image, Save, Copy, ChevronDown, Play, Pause } from 'lucide-react';
+import { Globe, MapPin, Landmark, Languages, DollarSign, Mic, Loader2, CheckCircle, Music, Image, Copy, ChevronDown, Play, Pause, Wind, Sparkles } from 'lucide-react';
 import { ALL_COUNTRIES, ELEVENLABS_LANGUAGES, GUIDE_CATEGORIES } from '@/data/countries-full';
 import { toast } from 'sonner';
 
 interface SuggestedCity {
   name: string;
   description: string;
+  kind?: string;
 }
 
 interface SuggestedAttraction {
@@ -23,6 +24,7 @@ interface SuggestedAttraction {
   description: string;
   suggested_category: string;
   significance: string;
+  group?: string;
 }
 
 interface PlannedSection {
@@ -36,6 +38,7 @@ interface PlannedSection {
 }
 
 type Step = 'form' | 'plan_review' | 'generating_scripts' | 'script_review' | 'audio_upload' | 'creating_image' | 'done_review' | 'published' | 'error';
+type GuideType = 'standard' | 'balloon';
 
 interface CreationProgress {
   step: number;
@@ -44,8 +47,36 @@ interface CreationProgress {
   detail?: string;
 }
 
+const BALLOON_VALLEYS = [
+  'Goreme Valley',
+  'Soganli Valley',
+  'Ihlara Valley',
+  'Cat Valley',
+] as const;
+
+const FLIGHT_THEMES = [
+  'Geological story',
+  'Historical and cultural story',
+  'Balanced overview',
+  'Premium storytelling',
+] as const;
+
+const LISTENING_LENGTHS = [10, 15, 20, 25] as const;
+
+const DIRECTIONAL_WARNING_PATTERN = /\b(left|right|below|above|ahead|behind|currently|current altitude|now flying|to your|under you|over you|step closer|turn around|next stop)\b/i;
+
+const groupAttractions = (items: SuggestedAttraction[]) => {
+  return items.reduce<Record<string, SuggestedAttraction[]>>((acc, item) => {
+    const key = item.group || item.suggested_category || 'More ideas';
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(item);
+    return acc;
+  }, {});
+};
+
 export function AutoCreateGuide() {
-  // Form state
+  const [guideType, setGuideType] = useState<GuideType>('standard');
+
   const [country, setCountry] = useState('');
   const [city, setCity] = useState('');
   const [cityInput, setCityInput] = useState('');
@@ -55,63 +86,84 @@ export function AutoCreateGuide() {
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(['en']);
   const [priceUsd, setPriceUsd] = useState('499');
 
-  // Suggestion state
+  const [coveredValleys, setCoveredValleys] = useState<string[]>(['Goreme Valley']);
+  const [flightTheme, setFlightTheme] = useState<string>('Balanced overview');
+  const [estimatedListeningMinutes, setEstimatedListeningMinutes] = useState<number>(15);
+  const [includeIntroOutroNotes, setIncludeIntroOutroNotes] = useState(true);
+
   const [cities, setCities] = useState<SuggestedCity[]>([]);
   const [attractions, setAttractions] = useState<SuggestedAttraction[]>([]);
   const [loadingCities, setLoadingCities] = useState(false);
   const [loadingAttractions, setLoadingAttractions] = useState(false);
 
-  // Creation state
   const [currentStep, setCurrentStep] = useState<Step>('form');
-  const [progress, setProgress] = useState<CreationProgress>({ step: 0, totalSteps: 6, message: '' });
+  const [progress, setProgress] = useState<CreationProgress>({ step: 0, totalSteps: 1, message: '' });
   const [result, setResult] = useState<{ shareUrl: string; accessCode: string; guideId: string } | null>(null);
   const [creationError, setCreationError] = useState<{ message: string; step: string } | null>(null);
 
-  // Plan review state
   const [plannedSections, setPlannedSections] = useState<PlannedSection[]>([]);
-  // Script review state
   const [generatedScripts, setGeneratedScripts] = useState<string[]>([]);
   const [expandedScript, setExpandedScript] = useState<number | null>(null);
   const [regeneratingScript, setRegeneratingScript] = useState<number | null>(null);
-  // Audio review state
   const [generatedAudio, setGeneratedAudio] = useState<{ audio_url: string; duration_seconds: number }[]>([]);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
 
-  // Audio upload state
   const [uploadingSection, setUploadingSection] = useState<number | null>(null);
   const [copiedScript, setCopiedScript] = useState<number | null>(null);
   const [playingUploadAudio, setPlayingUploadAudio] = useState<number | null>(null);
   const uploadAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  const primaryLangCode = selectedLanguages[0] || 'en';
+  const finalCity = city || cityInput;
+  const finalPlace = place || placeInput;
+  const isBalloonMode = guideType === 'balloon';
+  const groupedAttractions = groupAttractions(attractions);
+  const scriptWarnings = generatedScripts
+    .map((script, index) => ({ index, flagged: DIRECTIONAL_WARNING_PATTERN.test(script) }))
+    .filter((item) => item.flagged)
+    .map((item) => item.index);
 
-  // Country selection → load cities
-  const handleCountryChange = useCallback(async (countryName: string) => {
-    setCountry(countryName);
+  const primaryLangCode = selectedLanguages[0] || 'en';
+  const primaryLangName = ELEVENLABS_LANGUAGES.find((l) => l.code === primaryLangCode)?.name || 'English';
+
+  const resetLocationState = () => {
     setCity('');
     setCityInput('');
     setPlace('');
     setPlaceInput('');
     setAttractions([]);
     setCities([]);
+  };
+
+  const handleGuideTypeChange = (value: GuideType) => {
+    setGuideType(value);
+    resetLocationState();
+    if (value === 'balloon') {
+      setCategory('Local Experience');
+      setCoveredValleys(['Goreme Valley']);
+      setFlightTheme('Balanced overview');
+      setEstimatedListeningMinutes(15);
+      setIncludeIntroOutroNotes(true);
+    }
+  };
+
+  const handleCountryChange = useCallback(async (countryName: string) => {
+    setCountry(countryName);
+    resetLocationState();
 
     if (!countryName) return;
     setLoadingCities(true);
     try {
       const { data, error } = await supabase.functions.invoke('suggest-cities', {
-        body: { country: countryName }
+        body: { country: countryName, mode: guideType },
       });
       if (!error && data?.cities) {
         setCities(data.cities);
       }
     } catch {
-      // Silently fail - user can type manually
     } finally {
       setLoadingCities(false);
     }
-  }, []);
+  }, [guideType]);
 
-  // City selection → load attractions
   const handleCitySelect = useCallback(async (cityName: string) => {
     setCity(cityName);
     setCityInput(cityName);
@@ -123,19 +175,17 @@ export function AutoCreateGuide() {
     setLoadingAttractions(true);
     try {
       const { data, error } = await supabase.functions.invoke('suggest-attractions', {
-        body: { country, city: cityName }
+        body: { country, city: cityName, mode: guideType },
       });
       if (!error && data?.attractions) {
         setAttractions(data.attractions);
       }
     } catch {
-      // Silently fail
     } finally {
       setLoadingAttractions(false);
     }
-  }, [country]);
+  }, [country, guideType]);
 
-  // Attraction selection → set category
   const handleAttractionSelect = useCallback((attraction: SuggestedAttraction) => {
     setPlace(attraction.name);
     setPlaceInput(attraction.name);
@@ -144,32 +194,55 @@ export function AutoCreateGuide() {
     }
   }, []);
 
-  // Language toggle
   const toggleLanguage = useCallback((langCode: string) => {
-    setSelectedLanguages(prev => {
+    setSelectedLanguages((prev) => {
       if (prev.includes(langCode)) {
         if (prev.length === 1) return prev;
-        return prev.filter(l => l !== langCode);
+        return prev.filter((l) => l !== langCode);
       }
       return [...prev, langCode];
     });
   }, []);
 
-  // Form validation
-  const isFormValid = country && (city || cityInput) && (place || placeInput) && selectedLanguages.length > 0;
+  const toggleValley = (valley: string) => {
+    setCoveredValleys((prev) => {
+      if (prev.includes(valley)) {
+        return prev.length === 1 ? prev : prev.filter((item) => item !== valley);
+      }
+      return [...prev, valley];
+    });
+  };
 
-  // === STEP 1: PLAN SECTIONS (before creation) ===
+  const isFormValid = Boolean(
+    country &&
+    finalCity &&
+    finalPlace &&
+    selectedLanguages.length > 0 &&
+    (!isBalloonMode || coveredValleys.length > 0)
+  );
+
+  const buildSharedPayload = () => ({
+    mode: guideType,
+    country,
+    city: finalCity,
+    place: finalPlace,
+    place_type: isBalloonMode ? 'balloon_flight_experience' : '',
+    category: category || (isBalloonMode ? 'Local Experience' : 'Historical'),
+    covered_valleys: isBalloonMode ? coveredValleys : [],
+    flight_theme: isBalloonMode ? flightTheme : null,
+    estimated_listening_minutes: isBalloonMode ? estimatedListeningMinutes : null,
+    include_intro_outro_notes: isBalloonMode ? includeIntroOutroNotes : false,
+  });
+
   const handlePlanSections = async () => {
-    const finalCity = city || cityInput;
-    const finalPlace = place || placeInput;
-    if (!country || !finalCity || !finalPlace) return;
+    if (!isFormValid) return;
 
     setCurrentStep('generating_scripts');
-    setProgress({ step: 1, totalSteps: 1, message: 'Researching location and planning sections...' });
+    setProgress({ step: 1, totalSteps: 1, message: isBalloonMode ? 'Designing a balloon narration flow...' : 'Researching location and planning sections...' });
 
     try {
       const { data: planData, error: planError } = await supabase.functions.invoke('plan-guide-sections', {
-        body: { country, city: finalCity, place: finalPlace, place_type: '', category: category || 'Historical' }
+        body: buildSharedPayload(),
       });
       if (planError || !planData?.sections) throw new Error('Failed to plan sections');
       setPlannedSections(planData.sections);
@@ -181,16 +254,10 @@ export function AutoCreateGuide() {
     }
   };
 
-  // === STEP 2: CREATE GUIDE (after plan approval) ===
-  // === STEP 2B: GENERATE SCRIPTS (after plan approval, before audio) ===
   const handleGenerateScripts = async () => {
-    const finalCity = city || cityInput;
-    const finalPlace = place || placeInput;
-    if (!country || !finalCity || !finalPlace) return;
+    if (!isFormValid) return;
 
     setCurrentStep('generating_scripts');
-    const primaryLang = selectedLanguages[0];
-    const primaryLangName = ELEVENLABS_LANGUAGES.find(l => l.code === primaryLang)?.name || 'English';
     const sections = plannedSections;
 
     try {
@@ -198,31 +265,30 @@ export function AutoCreateGuide() {
       const scriptStartTime = Date.now();
       for (let i = 0; i < sections.length; i++) {
         const elapsed = Math.floor((Date.now() - scriptStartTime) / 1000);
-        const perSection = i > 0 ? elapsed / i : 15;
+        const perSection = i > 0 ? elapsed / i : 20;
         const remaining = Math.ceil((sections.length - i) * perSection);
         setProgress({
-          step: 1, totalSteps: 1,
-          message: `Writing narration scripts...`,
-          detail: `Section ${i + 1}/${sections.length} · ~${remaining}s remaining`
+          step: i + 1,
+          totalSteps: sections.length,
+          message: isBalloonMode ? 'Writing long-form balloon narration...' : 'Writing narration scripts...',
+          detail: `Section ${i + 1}/${sections.length} · ~${remaining}s remaining`,
         });
 
         const prevScript = i > 0 ? scripts[i - 1] : null;
         const previousEnding = prevScript ? prevScript.slice(-500) : null;
         const previousOpening = prevScript ? prevScript.split('.')[0] + '.' : null;
-
-        // Collect ALL previous openings to prevent repetition
         const allPreviousOpenings = scripts.map((s, idx) => `Section ${idx + 1}: "${s.split('.')[0]}."`).join('\n');
 
         const { data: scriptData, error: scriptError } = await supabase.functions.invoke('generate-section-script', {
           body: {
-            country, city: finalCity, place: finalPlace,
+            ...buildSharedPayload(),
             section: sections[i],
             previous_ending: previousEnding,
             previous_opening: previousOpening,
             previous_openings_list: allPreviousOpenings || null,
             next_title: i < sections.length - 1 ? sections[i + 1].title : null,
-            language: primaryLangName
-          }
+            language: primaryLangName,
+          },
         });
         if (scriptError || !scriptData?.script) throw new Error(`Failed to generate script for section ${i + 1}`);
         scripts.push(scriptData.script);
@@ -236,14 +302,8 @@ export function AutoCreateGuide() {
     }
   };
 
-  // === REGENERATE SINGLE SCRIPT ===
   const handleRegenerateScript = async (index: number) => {
-    const finalCity = city || cityInput;
-    const finalPlace = place || placeInput;
-    const primaryLang = selectedLanguages[0];
-    const primaryLangName = ELEVENLABS_LANGUAGES.find(l => l.code === primaryLang)?.name || 'English';
     const sections = plannedSections;
-
     setRegeneratingScript(index);
     try {
       const prevScript = index > 0 ? generatedScripts[index - 1] : null;
@@ -251,17 +311,17 @@ export function AutoCreateGuide() {
 
       const { data, error } = await supabase.functions.invoke('generate-section-script', {
         body: {
-          country, city: finalCity, place: finalPlace,
+          ...buildSharedPayload(),
           section: sections[index],
           previous_ending: prevScript ? prevScript.slice(-500) : null,
           previous_opening: prevScript ? prevScript.split('.')[0] + '.' : null,
           previous_openings_list: allPreviousOpenings || null,
           next_title: index < sections.length - 1 ? sections[index + 1].title : null,
-          language: primaryLangName
-        }
+          language: primaryLangName,
+        },
       });
       if (error || !data?.script) throw new Error('Regeneration failed');
-      setGeneratedScripts(prev => prev.map((s, i) => i === index ? data.script : s));
+      setGeneratedScripts((prev) => prev.map((s, i) => i === index ? data.script : s));
       toast.success(`Section ${index + 1} script regenerated`);
     } catch (e: any) {
       toast.error(e.message);
@@ -270,16 +330,15 @@ export function AutoCreateGuide() {
     }
   };
 
-  // === REGENERATE SINGLE AUDIO ===
-  // === AUDIO UPLOAD HELPERS ===
-
   const handleCopyScript = async (index: number) => {
     try {
       await navigator.clipboard.writeText(generatedScripts[index]);
       setCopiedScript(index);
       toast.success('Script copied! Paste it in ElevenLabs');
       setTimeout(() => setCopiedScript(null), 3000);
-    } catch { toast.error('Failed to copy'); }
+    } catch {
+      toast.error('Failed to copy');
+    }
   };
 
   const handleAudioUpload = async (index: number, files: FileList | File[]) => {
@@ -287,93 +346,110 @@ export function AutoCreateGuide() {
     if (fileArray.length === 0) return;
     setUploadingSection(index);
     try {
-      // Merge multiple files or use single file directly
       const { blob, duration } = await mergeAudioFiles(fileArray);
       const path = `uploaded-${Date.now()}-${crypto.randomUUID()}.mp3`;
       const { error: uploadError } = await supabase.storage.from('guide-audio').upload(path, blob, { contentType: 'audio/mpeg' });
       if (uploadError) throw uploadError;
       const { data: urlData } = supabase.storage.from('guide-audio').getPublicUrl(path);
-      setGeneratedAudio(prev => {
+      setGeneratedAudio((prev) => {
         const next = [...prev];
         while (next.length <= index) next.push({ audio_url: '', duration_seconds: 0 });
         next[index] = { audio_url: urlData.publicUrl, duration_seconds: duration };
         return next;
       });
-      toast.success(fileArray.length > 1
-        ? `${fileArray.length} files merged & uploaded for section ${index + 1}`
-        : `Audio uploaded for section ${index + 1}`);
-    } catch (e: any) { toast.error(`Upload failed: ${e.message}`); }
+      toast.success(fileArray.length > 1 ? `${fileArray.length} files merged & uploaded for section ${index + 1}` : `Audio uploaded for section ${index + 1}`);
+    } catch (e: any) {
+      toast.error(`Upload failed: ${e.message}`);
+    }
     setUploadingSection(null);
   };
 
   const handleRemoveAudio = (index: number) => {
-    if (uploadAudioRef.current) { uploadAudioRef.current.pause(); uploadAudioRef.current = null; }
+    if (uploadAudioRef.current) {
+      uploadAudioRef.current.pause();
+      uploadAudioRef.current = null;
+    }
     setPlayingUploadAudio(null);
-    setGeneratedAudio(prev => prev.map((a, i) => i === index ? { audio_url: '', duration_seconds: 0 } : a));
+    setGeneratedAudio((prev) => prev.map((a, i) => i === index ? { audio_url: '', duration_seconds: 0 } : a));
   };
 
   const playUploadedAudio = (index: number) => {
-    if (uploadAudioRef.current) { uploadAudioRef.current.pause(); uploadAudioRef.current = null; }
-    if (playingUploadAudio === index) { setPlayingUploadAudio(null); return; }
+    if (uploadAudioRef.current) {
+      uploadAudioRef.current.pause();
+      uploadAudioRef.current = null;
+    }
+    if (playingUploadAudio === index) {
+      setPlayingUploadAudio(null);
+      return;
+    }
     const url = generatedAudio[index]?.audio_url;
     if (!url) return;
     const audio = new Audio(url);
-    audio.onended = () => { setPlayingUploadAudio(null); uploadAudioRef.current = null; };
+    audio.onended = () => {
+      setPlayingUploadAudio(null);
+      uploadAudioRef.current = null;
+    };
     audio.play();
     setPlayingUploadAudio(index);
     uploadAudioRef.current = audio;
   };
 
-  // === STEP 3: CREATE IMAGE + SAVE (after audio upload) ===
   const handleFinalize = async () => {
-    const finalCity = city || cityInput;
-    const finalPlace = place || placeInput;
-    if (!country || !finalCity || !finalPlace) return;
+    if (!isFormValid) return;
 
     setCurrentStep('creating_image');
-    const primaryLang = selectedLanguages[0];
-    const primaryLangName = ELEVENLABS_LANGUAGES.find(l => l.code === primaryLang)?.name || 'English';
     const sections = plannedSections;
     const scripts = generatedScripts;
 
     try {
       setProgress({ step: 1, totalSteps: 2, message: 'Generating cover image...' });
+      const imagePrompt = isBalloonMode
+        ? `Editorial travel photography of hot air balloons over ${finalPlace} in ${finalCity}, ${country}. Wide premium landscape, dawn atmosphere, layered valleys, volcanic rock formations, refined natural color grading, no cockpit view, no text, no watermark, no people in close-up, premium travel magazine cover quality.`
+        : `Award-winning travel photograph of ${finalPlace} in ${finalCity}, ${country}. Shot during golden hour with natural warm lighting. Composition: wide establishing shot showing the most iconic and recognizable view that tourists would see when approaching the site. Style: National Geographic cover quality, Canon EOS R5, 24-70mm f/2.8 lens. No people in the frame. No text, no watermarks, no logos, no overlays. Ultra sharp focus, rich natural colors, dramatic sky. Category: ${category || 'Historical'}.`;
+
       const { data: imgData } = await supabase.functions.invoke('generate-image', {
         body: {
-          title: finalPlace, city: finalCity, country,
-          category: category || 'Historical',
-          prompt: `Award-winning travel photograph of ${finalPlace} in ${finalCity}, ${country}. Shot during golden hour with natural warm lighting. Composition: wide establishing shot showing the most iconic and recognizable view that tourists would see when approaching the site. Style: National Geographic cover quality, Canon EOS R5, 24-70mm f/2.8 lens. No people in the frame. No text, no watermarks, no logos, no overlays. Ultra sharp focus, rich natural colors, dramatic sky. Category: ${category || 'Historical'}.`
-        }
+          title: finalPlace,
+          city: finalCity,
+          country,
+          category: category || (isBalloonMode ? 'Local Experience' : 'Historical'),
+          prompt: imagePrompt,
+        },
       });
-      setImageUrl(imgData?.image_url || null);
 
-      // Build sections from uploaded audio
       const primarySections = sections.map((section, idx) => ({
         title: section.title,
         description: scripts[idx],
         audio_url: generatedAudio[idx]?.audio_url || '',
         duration_seconds: generatedAudio[idx]?.duration_seconds || section.estimated_minutes * 60,
         language: primaryLangName,
-        language_code: primaryLang,
-        order_index: idx
+        language_code: primaryLangCode,
+        order_index: idx,
       }));
 
-      // Save to database
       setProgress({ step: 2, totalSteps: 2, message: 'Saving guide...' });
       const totalDuration = primarySections.reduce((sum, s) => sum + s.duration_seconds, 0);
-      const guideTitle = `${finalPlace} Audio Guide`;
-      const guideDescription = `Explore ${finalPlace} in ${finalCity}, ${country}. Professional audio tour guide with ${sections.length} stops covering history, culture, and hidden stories.`;
+      const guideTitle = isBalloonMode ? finalPlace : `${finalPlace} Audio Guide`;
+      const guideDescription = isBalloonMode
+        ? `Long-form balloon experience narration for ${finalPlace} in ${finalCity}, ${country}. Covers ${coveredValleys.join(', ')} with geology, culture, and hidden details in a single evergreen listen.`
+        : `Explore ${finalPlace} in ${finalCity}, ${country}. Professional audio tour guide with ${sections.length} stops covering history, culture, and hidden stories.`;
 
       const { data: guideData, error: guideError } = await supabase.functions.invoke('create-guide', {
         body: {
-          title: guideTitle, description: guideDescription,
-          location: `${finalCity}, ${country}`, category: category || 'Historical',
-          duration: Math.ceil(totalDuration / 60), difficulty: 'Easy',
-          languages: selectedLanguages.map(c => ELEVENLABS_LANGUAGES.find(l => l.code === c)?.name || c),
-          price_usd: parseInt(priceUsd) || 499,
-          image_content: null, image_urls: imgData?.image_url ? [imgData.image_url] : [],
-          sections: primarySections, is_published: false, is_featured: false
-        }
+          title: guideTitle,
+          description: guideDescription,
+          location: `${finalCity}, ${country}`,
+          category: category || (isBalloonMode ? 'Local Experience' : 'Historical'),
+          duration: Math.ceil(totalDuration / 60),
+          difficulty: 'Easy',
+          languages: selectedLanguages.map((c) => ELEVENLABS_LANGUAGES.find((l) => l.code === c)?.name || c),
+          price_usd: parseInt(priceUsd, 10) || 499,
+          image_content: null,
+          image_urls: imgData?.image_url ? [imgData.image_url] : [],
+          sections: primarySections,
+          is_published: false,
+          is_featured: false,
+        },
       });
 
       if (guideError || !guideData?.guide) throw new Error('Failed to create guide');
@@ -386,7 +462,6 @@ export function AutoCreateGuide() {
     }
   };
 
-  // === RENDER: FORM ===
   if (currentStep === 'form') {
     return (
       <div className="space-y-6 max-w-3xl">
@@ -398,105 +473,124 @@ export function AutoCreateGuide() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
-            {/* Country */}
+            <div className="space-y-2">
+              <Label>Guide Type</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleGuideTypeChange('standard')}
+                  className={`rounded-lg border p-4 text-left transition-colors ${!isBalloonMode ? 'border-primary bg-primary/10 text-foreground' : 'border-border hover:bg-muted/40 text-foreground'}`}
+                >
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <Landmark className="w-4 h-4 text-primary" />
+                    Standard Tour
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">Multi-section stops for museums, landmarks, and walking-style tours.</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleGuideTypeChange('balloon')}
+                  className={`rounded-lg border p-4 text-left transition-colors ${isBalloonMode ? 'border-primary bg-primary/10 text-foreground' : 'border-border hover:bg-muted/40 text-foreground'}`}
+                >
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <Wind className="w-4 h-4 text-primary" />
+                    Balloon Flight Experience
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">One long evergreen narration with valley, geology, culture, and hidden-gem coverage.</p>
+                </button>
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> Country</Label>
               <Select value={country} onValueChange={handleCountryChange}>
                 <SelectTrigger><SelectValue placeholder="Select a country..." /></SelectTrigger>
                 <SelectContent className="max-h-[300px]">
-                  {ALL_COUNTRIES.map(c => (
+                  {ALL_COUNTRIES.map((c) => (
                     <SelectItem key={c.code} value={c.name}>{c.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            {/* City */}
             {country && (
               <div className="space-y-2">
-                <Label className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> City</Label>
+                <Label className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> {isBalloonMode ? 'City / Region' : 'City'}</Label>
                 {loadingCities ? (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
-                    <Loader2 className="w-4 h-4 animate-spin" /> Loading cities...
+                    <Loader2 className="w-4 h-4 animate-spin" /> Loading suggestions...
                   </div>
                 ) : cities.length > 0 ? (
                   <div className="space-y-2">
                     <Select value={city} onValueChange={handleCitySelect}>
-                      <SelectTrigger><SelectValue placeholder="Select a city..." /></SelectTrigger>
+                      <SelectTrigger><SelectValue placeholder={isBalloonMode ? 'Select a city or region...' : 'Select a city...'} /></SelectTrigger>
                       <SelectContent className="max-h-[300px]">
-                        {cities.map(c => (
-                          <SelectItem key={c.name} value={c.name}>
-                            {c.name} — {c.description}
-                          </SelectItem>
+                        {cities.map((c) => (
+                          <SelectItem key={c.name} value={c.name}>{c.name} — {c.description}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                    <Input
-                      placeholder="Or type a city name..."
-                      value={cityInput}
-                      onChange={(e) => { setCityInput(e.target.value); setCity(''); }}
-                    />
+                    <Input placeholder={isBalloonMode ? 'Or type a region name...' : 'Or type a city name...'} value={cityInput} onChange={(e) => { setCityInput(e.target.value); setCity(''); }} />
                   </div>
                 ) : (
-                  <Input
-                    placeholder="Type city name..."
-                    value={cityInput}
-                    onChange={(e) => setCityInput(e.target.value)}
-                  />
+                  <Input placeholder={isBalloonMode ? 'Type city or region name...' : 'Type city name...'} value={cityInput} onChange={(e) => setCityInput(e.target.value)} />
                 )}
               </div>
             )}
 
-            {/* Attraction */}
             {(city || cityInput) && (
               <div className="space-y-2">
-                <Label className="flex items-center gap-1.5"><Landmark className="w-3.5 h-3.5" /> Place / Attraction</Label>
+                <Label className="flex items-center gap-1.5"><Landmark className="w-3.5 h-3.5" /> {isBalloonMode ? 'Experience / Destination Name' : 'Place / Attraction'}</Label>
                 {loadingAttractions ? (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
                     <Loader2 className="w-4 h-4 animate-spin" /> Loading attractions...
                   </div>
                 ) : attractions.length > 0 ? (
-                  <div className="space-y-2">
-                    <div className="grid grid-cols-1 gap-1.5 max-h-[200px] overflow-y-auto border rounded-lg p-2">
-                      {attractions.map(a => (
-                        <button
-                          key={a.name}
-                          onClick={() => handleAttractionSelect(a)}
-                          className={`text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                            place === a.name
-                              ? 'bg-primary/15 border border-primary text-primary'
-                              : 'hover:bg-muted border border-transparent'
-                          }`}
-                        >
-                          <span className="font-medium">{a.name}</span>
-                          <span className="text-muted-foreground ml-1.5">— {a.description}</span>
-                        </button>
+                  <div className="space-y-3">
+                    <div className="max-h-[320px] overflow-y-auto border rounded-lg p-2 space-y-3">
+                      {Object.entries(groupedAttractions).map(([group, items]) => (
+                        <div key={group} className="space-y-1.5">
+                          <div className="flex items-center gap-2 px-1">
+                            <Badge variant="secondary">{group}</Badge>
+                            <span className="text-xs text-muted-foreground">{items.length} ideas</span>
+                          </div>
+                          <div className="space-y-1.5">
+                            {items.map((a) => (
+                              <button
+                                key={a.name}
+                                type="button"
+                                onClick={() => handleAttractionSelect(a)}
+                                className={`w-full text-left px-3 py-2 rounded-lg border transition-colors ${place === a.name ? 'bg-primary/15 border-primary text-foreground' : 'border-transparent hover:bg-muted hover:border-border text-foreground'}`}
+                              >
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="min-w-0">
+                                    <p className="text-sm font-medium">{a.name}</p>
+                                    <p className="text-xs text-muted-foreground mt-0.5">{a.description}</p>
+                                  </div>
+                                  <Badge variant="outline" className="shrink-0">{a.type.replace(/_/g, ' ')}</Badge>
+                                </div>
+                                <p className="text-[11px] text-muted-foreground mt-1">{a.significance}</p>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       ))}
                     </div>
-                    <Input
-                      placeholder="Or type an attraction name..."
-                      value={placeInput}
-                      onChange={(e) => { setPlaceInput(e.target.value); setPlace(''); }}
-                    />
+                    <Input placeholder={isBalloonMode ? 'Or type an experience name...' : 'Or type an attraction name...'} value={placeInput} onChange={(e) => { setPlaceInput(e.target.value); setPlace(''); }} />
                   </div>
                 ) : (
-                  <Input
-                    placeholder="Type attraction name..."
-                    value={placeInput}
-                    onChange={(e) => setPlaceInput(e.target.value)}
-                  />
+                  <Input placeholder={isBalloonMode ? 'Type experience name...' : 'Type attraction name...'} value={placeInput} onChange={(e) => setPlaceInput(e.target.value)} />
                 )}
               </div>
             )}
 
-            {/* Category */}
             {(place || placeInput) && (
               <div className="space-y-2">
                 <Label>Category</Label>
                 <Select value={category} onValueChange={setCategory}>
                   <SelectTrigger><SelectValue placeholder="Auto-detected or select..." /></SelectTrigger>
                   <SelectContent>
-                    {GUIDE_CATEGORIES.map(c => (
+                    {GUIDE_CATEGORIES.map((c) => (
                       <SelectItem key={c} value={c}>{c}</SelectItem>
                     ))}
                   </SelectContent>
@@ -504,19 +598,76 @@ export function AutoCreateGuide() {
               </div>
             )}
 
-            {/* Languages (select first, then assign voices) */}
+            {isBalloonMode && (
+              <div className="space-y-5 rounded-lg border bg-muted/30 p-4">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <Sparkles className="w-4 h-4 text-primary" />
+                  Balloon experience settings
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Covered Valleys</Label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {BALLOON_VALLEYS.map((valley) => {
+                      const active = coveredValleys.includes(valley);
+                      return (
+                        <button
+                          key={valley}
+                          type="button"
+                          onClick={() => toggleValley(valley)}
+                          className={`rounded-lg border px-3 py-2 text-sm text-left transition-colors ${active ? 'border-primary bg-primary/10 text-foreground' : 'border-border hover:bg-muted text-foreground'}`}
+                        >
+                          {valley}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Flight Theme</Label>
+                    <Select value={flightTheme} onValueChange={setFlightTheme}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {FLIGHT_THEMES.map((theme) => (
+                          <SelectItem key={theme} value={theme}>{theme}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Estimated Listening Length</Label>
+                    <Select value={String(estimatedListeningMinutes)} onValueChange={(value) => setEstimatedListeningMinutes(Number(value))}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {LISTENING_LENGTHS.map((minutes) => (
+                          <SelectItem key={minutes} value={String(minutes)}>{minutes} minutes</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIncludeIntroOutroNotes((prev) => !prev)}
+                  className={`w-full rounded-lg border px-3 py-2 text-left text-sm transition-colors ${includeIntroOutroNotes ? 'border-primary bg-primary/10 text-foreground' : 'border-border hover:bg-muted text-foreground'}`}
+                >
+                  Include intro and closing notes
+                </button>
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label className="flex items-center gap-1.5"><Languages className="w-3.5 h-3.5" /> Languages ({selectedLanguages.length} selected)</Label>
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 max-h-[200px] overflow-y-auto border rounded-lg p-2">
-                {ELEVENLABS_LANGUAGES.map(lang => (
+                {ELEVENLABS_LANGUAGES.map((lang) => (
                   <button
                     key={lang.code}
+                    type="button"
                     onClick={() => toggleLanguage(lang.code)}
-                    className={`px-2 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-                      selectedLanguages.includes(lang.code)
-                        ? 'bg-primary/15 border-primary text-primary'
-                        : 'border-border hover:bg-muted text-muted-foreground'
-                    }`}
+                    className={`px-2 py-1.5 rounded-lg text-xs font-medium border transition-all ${selectedLanguages.includes(lang.code) ? 'bg-primary/15 border-primary text-primary' : 'border-border hover:bg-muted text-muted-foreground'}`}
                   >
                     {lang.flag} {lang.name}
                   </button>
@@ -524,27 +675,14 @@ export function AutoCreateGuide() {
               </div>
             </div>
 
-            {/* Note: Voice selection removed — audio files are uploaded manually from ElevenLabs */}
-
-            {/* Price */}
             <div className="space-y-2">
               <Label className="flex items-center gap-1.5"><DollarSign className="w-3.5 h-3.5" /> Price (USD cents)</Label>
-              <Input
-                type="number"
-                value={priceUsd}
-                onChange={(e) => setPriceUsd(e.target.value)}
-                placeholder="499 = $4.99"
-              />
-              <p className="text-xs text-muted-foreground">Price: ${(parseInt(priceUsd) / 100).toFixed(2)}</p>
+              <Input type="number" value={priceUsd} onChange={(e) => setPriceUsd(e.target.value)} placeholder="499 = $4.99" />
+              <p className="text-xs text-muted-foreground">Price: ${(parseInt(priceUsd || '0', 10) / 100).toFixed(2)}</p>
             </div>
 
-            {/* Plan Button */}
-            <Button
-              onClick={handlePlanSections}
-              disabled={!isFormValid}
-              className="w-full h-12 text-base"
-            >
-              Plan Sections
+            <Button onClick={handlePlanSections} disabled={!isFormValid} className="w-full h-12 text-base">
+              {isBalloonMode ? 'Plan Balloon Narration' : 'Plan Sections'}
             </Button>
           </CardContent>
         </Card>
@@ -552,18 +690,34 @@ export function AutoCreateGuide() {
     );
   }
 
-  // === RENDER: PLAN REVIEW ===
   if (currentStep === 'plan_review') {
     const totalMinutes = plannedSections.reduce((sum, s) => sum + s.estimated_minutes, 0);
     return (
       <div className="max-w-3xl">
         <Card>
           <CardHeader>
-            <CardTitle>Review Section Plan — {plannedSections.length} Sections ({totalMinutes} min)</CardTitle>
+            <CardTitle>
+              Review {isBalloonMode ? 'Balloon Plan' : 'Section Plan'} — {plannedSections.length} {plannedSections.length === 1 ? 'Section' : 'Sections'} ({totalMinutes} min)
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-sm text-muted-foreground">{place || placeInput} — {city || cityInput}, {country}</p>
-            <div className="max-h-[400px] overflow-y-auto space-y-2 border rounded-lg p-3">
+          <CardContent className="space-y-4">
+            <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+              <span>{finalPlace} — {finalCity}, {country}</span>
+              {isBalloonMode && <Badge variant="secondary">Balloon narrator</Badge>}
+              {isBalloonMode && <Badge variant="outline">{flightTheme}</Badge>}
+            </div>
+
+            {isBalloonMode && (
+              <div className="rounded-lg border bg-muted/30 p-3 space-y-2 text-sm">
+                <p className="font-medium text-foreground">Coverage</p>
+                <div className="flex flex-wrap gap-2">
+                  {coveredValleys.map((valley) => <Badge key={valley} variant="secondary">{valley}</Badge>)}
+                </div>
+                <p className="text-muted-foreground">One long evergreen narration with no directional or live-flight cues.</p>
+              </div>
+            )}
+
+            <div className="max-h-[420px] overflow-y-auto space-y-2 border rounded-lg p-3">
               {plannedSections.map((s, i) => (
                 <div key={i} className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/50">
                   <span className="text-xs font-bold text-primary bg-primary/10 rounded-full w-6 h-6 flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
@@ -571,13 +725,18 @@ export function AutoCreateGuide() {
                     <p className="text-sm font-medium">{s.title}</p>
                     <p className="text-xs text-muted-foreground">{s.subtitle} • {s.estimated_minutes} min • {s.mood}</p>
                     {s.fun_fact && <p className="text-xs text-primary/70 mt-0.5">💡 {s.fun_fact}</p>}
+                    {s.key_topics?.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {s.key_topics.slice(0, 6).map((topic) => <Badge key={topic} variant="outline">{topic}</Badge>)}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
             </div>
             <div className="flex gap-2 pt-2">
               <Button onClick={handleGenerateScripts} className="flex-1">
-                Approve & Generate Scripts ({plannedSections.length} sections)
+                Approve & Generate Scripts
               </Button>
               <Button variant="outline" onClick={() => { setCurrentStep('form'); setPlannedSections([]); }}>
                 Back to Form
@@ -589,8 +748,8 @@ export function AutoCreateGuide() {
     );
   }
 
-  // === RENDER: GENERATING SCRIPTS ===
   if (currentStep === 'generating_scripts') {
+    const percent = Math.max(5, Math.round((progress.step / Math.max(progress.totalSteps, 1)) * 100));
     return (
       <div className="max-w-xl mx-auto">
         <Card>
@@ -600,9 +759,9 @@ export function AutoCreateGuide() {
             </div>
             <div>
               <h2 className="text-xl font-bold mb-1">Generating Scripts</h2>
-              <p className="text-muted-foreground text-sm">{place || placeInput} — {city || cityInput}, {country}</p>
+              <p className="text-muted-foreground text-sm">{finalPlace} — {finalCity}, {country}</p>
             </div>
-            <Progress value={progress.detail ? (parseInt(progress.detail) / plannedSections.length) * 100 : 0} className="h-2" />
+            <Progress value={percent} className="h-2" />
             <p className="text-sm font-medium">{progress.message}</p>
             {progress.detail && <p className="text-xs text-muted-foreground">{progress.detail}</p>}
           </CardContent>
@@ -611,11 +770,13 @@ export function AutoCreateGuide() {
     );
   }
 
-  // === RENDER: SCRIPT REVIEW ===
   if (currentStep === 'script_review') {
-    const primaryLangName = ELEVENLABS_LANGUAGES.find(l => l.code === selectedLanguages[0])?.name || 'English';
-    const totalWords = generatedScripts.reduce((sum, s) => sum + s.split(/\s+/).length, 0);
+    const totalWords = generatedScripts.reduce((sum, s) => sum + s.trim().split(/\s+/).filter(Boolean).length, 0);
     const totalMinutes = Math.round(totalWords / 150);
+    const valleyCoverage = coveredValleys.map((valley) => ({
+      valley,
+      present: generatedScripts.join(' ').toLowerCase().includes(valley.toLowerCase().replace(' valley', '')),
+    }));
 
     return (
       <div className="max-w-3xl">
@@ -623,28 +784,43 @@ export function AutoCreateGuide() {
           <CardHeader>
             <CardTitle>Review Scripts — {generatedScripts.length} Sections ({totalMinutes} min, ~{totalWords} words)</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              {place || placeInput} — {city || cityInput}, {country} • {primaryLangName} • Edit scripts below, then approve
-            </p>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">{finalPlace} — {finalCity}, {country} • {primaryLangName}</p>
+
+            {isBalloonMode && (
+              <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="secondary">Evergreen balloon narration</Badge>
+                  <Badge variant="outline">Target {estimatedListeningMinutes} min</Badge>
+                  {totalMinutes < estimatedListeningMinutes && <Badge variant="destructive">Script may be too short</Badge>}
+                  {scriptWarnings.length > 0 && <Badge variant="destructive">Directional wording detected</Badge>}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {valleyCoverage.map((item) => (
+                    <Badge key={item.valley} variant={item.present ? 'secondary' : 'outline'}>
+                      {item.present ? '✓' : '○'} {item.valley}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="max-h-[600px] overflow-y-auto space-y-2 border rounded-lg p-3">
               {generatedScripts.map((script, i) => {
-                const words = script.split(/\s+/).length;
+                const words = script.trim().split(/\s+/).filter(Boolean).length;
                 const chars = script.length;
-                const isLong = chars > 4000;
+                const flagged = DIRECTIONAL_WARNING_PATTERN.test(script);
                 return (
                   <div key={i} className="border rounded-lg overflow-hidden">
                     <button
+                      type="button"
                       onClick={() => setExpandedScript(expandedScript === i ? null : i)}
                       className="w-full flex items-center gap-3 p-3 text-left hover:bg-muted/50 transition-colors"
                     >
                       <span className="text-xs font-bold text-primary bg-primary/10 rounded-full w-6 h-6 flex items-center justify-center shrink-0">{i + 1}</span>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{plannedSections[i]?.title}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {words} words · ~{Math.round(words / 150)} min
-                          {isLong && <span className="text-destructive ml-1">⚠ too long</span>}
-                        </p>
+                        <p className="text-xs text-muted-foreground">{words} words · ~{Math.round(words / 150)} min {flagged && <span className="text-destructive ml-1">⚠ review wording</span>}</p>
                       </div>
                       {regeneratingScript === i && <Loader2 className="w-4 h-4 animate-spin text-primary shrink-0" />}
                       <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${expandedScript === i ? 'rotate-180' : ''}`} />
@@ -653,16 +829,15 @@ export function AutoCreateGuide() {
                       <div className="px-3 pb-3 border-t space-y-2">
                         <textarea
                           value={script}
-                          onChange={(e) => setGeneratedScripts(prev => prev.map((s, idx) => idx === i ? e.target.value : s))}
-                          className="w-full min-h-[200px] max-h-[400px] rounded-md border border-input bg-background px-3 py-2 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-ring mt-2"
+                          onChange={(e) => setGeneratedScripts((prev) => prev.map((s, idx) => idx === i ? e.target.value : s))}
+                          className="w-full min-h-[220px] max-h-[420px] rounded-md border border-input bg-background px-3 py-2 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-ring mt-2"
                         />
+                        {flagged && (
+                          <p className="text-xs text-destructive">This script includes wording that sounds too directional or live. Please review before audio generation.</p>
+                        )}
                         <div className="flex items-center justify-between">
                           <span className="text-xs text-muted-foreground">{chars} chars · {words} words</span>
-                          <Button
-                            size="sm" variant="outline"
-                            disabled={regeneratingScript !== null}
-                            onClick={() => handleRegenerateScript(i)}
-                          >
+                          <Button size="sm" variant="outline" disabled={regeneratingScript !== null} onClick={() => handleRegenerateScript(i)}>
                             {regeneratingScript === i ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <Music className="w-3.5 h-3.5 mr-1" />}
                             Regenerate
                           </Button>
@@ -674,12 +849,8 @@ export function AutoCreateGuide() {
               })}
             </div>
             <div className="flex gap-2 pt-2">
-              <Button onClick={() => setCurrentStep('audio_upload')} className="flex-1">
-                Approve Scripts & Upload Audio
-              </Button>
-              <Button variant="outline" onClick={() => { setCurrentStep('plan_review'); setGeneratedScripts([]); }}>
-                Back
-              </Button>
+              <Button onClick={() => setCurrentStep('audio_upload')} className="flex-1">Approve Scripts & Upload Audio</Button>
+              <Button variant="outline" onClick={() => { setCurrentStep('plan_review'); setGeneratedScripts([]); }}>Back</Button>
             </div>
           </CardContent>
         </Card>
@@ -687,9 +858,8 @@ export function AutoCreateGuide() {
     );
   }
 
-  // === RENDER: AUDIO UPLOAD ===
   if (currentStep === 'audio_upload') {
-    const uploadedCount = generatedAudio.filter(a => a?.audio_url).length;
+    const uploadedCount = generatedAudio.filter((a) => a?.audio_url).length;
     const totalSections = plannedSections.length;
     const allUploaded = uploadedCount >= totalSections;
     const totalDur = generatedAudio.reduce((sum, a) => sum + (a?.duration_seconds || 0), 0);
@@ -712,41 +882,34 @@ export function AutoCreateGuide() {
               {plannedSections.map((section, i) => {
                 const hasAudio = generatedAudio[i]?.audio_url;
                 const dur = generatedAudio[i]?.duration_seconds || 0;
-                const words = (generatedScripts[i] || '').split(/\s+/).length;
+                const words = (generatedScripts[i] || '').trim().split(/\s+/).filter(Boolean).length;
 
                 return (
-                  <div key={i} className={`border rounded-lg p-3 space-y-2 ${hasAudio ? 'border-green-500/30 bg-green-500/5' : ''}`}>
+                  <div key={i} className={`border rounded-lg p-3 space-y-2 ${hasAudio ? 'border-primary/30 bg-primary/5' : ''}`}>
                     <div className="flex items-center gap-2">
-                      <span className={`text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shrink-0 ${hasAudio ? 'bg-green-500/20 text-green-600' : 'bg-primary/10 text-primary'}`}>
+                      <span className={`text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shrink-0 ${hasAudio ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
                         {hasAudio ? <CheckCircle className="w-3.5 h-3.5" /> : i + 1}
                       </span>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{section.title}</p>
                         <p className="text-xs text-muted-foreground">{words} words · ~{Math.round(words / 150)} min</p>
                       </div>
-                      <Button
-                        size="sm" variant="outline"
-                        className={`shrink-0 gap-1 text-xs ${copiedScript === i ? 'text-green-600 border-green-500' : ''}`}
-                        onClick={() => handleCopyScript(i)}
-                      >
+                      <Button size="sm" variant="outline" className={`shrink-0 gap-1 text-xs ${copiedScript === i ? 'text-primary border-primary' : ''}`} onClick={() => handleCopyScript(i)}>
                         {copiedScript === i ? <CheckCircle className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                         {copiedScript === i ? 'Copied!' : 'Copy Script'}
                       </Button>
                     </div>
 
-                    {/* Audio upload area */}
                     {hasAudio ? (
                       <div className="flex items-center gap-2 bg-background rounded-lg p-2 border">
                         <Button size="sm" variant="ghost" className="shrink-0" onClick={() => playUploadedAudio(i)}>
                           {playingUploadAudio === i ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                         </Button>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium text-green-600 truncate">Audio uploaded</p>
+                          <p className="text-xs font-medium text-primary truncate">Audio uploaded</p>
                           <p className="text-[10px] text-muted-foreground">{Math.floor(dur / 60)}:{String(Math.floor(dur % 60)).padStart(2, '0')}</p>
                         </div>
-                        <Button size="sm" variant="ghost" className="text-destructive text-xs shrink-0" onClick={() => handleRemoveAudio(i)}>
-                          Remove
-                        </Button>
+                        <Button size="sm" variant="ghost" className="text-destructive text-xs shrink-0" onClick={() => handleRemoveAudio(i)}>Remove</Button>
                       </div>
                     ) : (
                       <label className={`flex items-center justify-center gap-2 p-4 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${uploadingSection === i ? 'border-primary/50 bg-primary/5' : 'border-muted-foreground/20 hover:border-primary/30 hover:bg-muted/30'}`}>
@@ -774,12 +937,8 @@ export function AutoCreateGuide() {
               })}
             </div>
             <div className="flex gap-2 pt-2">
-              <Button onClick={handleFinalize} className="flex-1" disabled={!allUploaded}>
-                {allUploaded ? 'Finalize Guide' : `Upload ${totalSections - uploadedCount} more audio files`}
-              </Button>
-              <Button variant="outline" onClick={() => setCurrentStep('script_review')}>
-                Back to Scripts
-              </Button>
+              <Button onClick={handleFinalize} className="flex-1" disabled={!allUploaded}>{allUploaded ? 'Finalize Guide' : `Upload ${totalSections - uploadedCount} more audio files`}</Button>
+              <Button variant="outline" onClick={() => setCurrentStep('script_review')}>Back to Scripts</Button>
             </div>
           </CardContent>
         </Card>
@@ -787,7 +946,6 @@ export function AutoCreateGuide() {
     );
   }
 
-  // === RENDER: CREATING IMAGE ===
   if (currentStep === 'creating_image') {
     const pct = Math.round((progress.step / progress.totalSteps) * 100);
     return (
@@ -799,7 +957,7 @@ export function AutoCreateGuide() {
             </div>
             <div>
               <h2 className="text-xl font-bold mb-1">Finalizing Guide</h2>
-              <p className="text-muted-foreground text-sm">{place || placeInput} — {city || cityInput}, {country}</p>
+              <p className="text-muted-foreground text-sm">{finalPlace} — {finalCity}, {country}</p>
             </div>
             <Progress value={pct} className="h-2" />
             <p className="text-sm font-medium">{progress.message}</p>
@@ -810,48 +968,27 @@ export function AutoCreateGuide() {
     );
   }
 
-  // === RENDER: ERROR ===
   if (currentStep === 'error' && creationError) {
     return (
       <div className="max-w-xl mx-auto">
         <Card>
           <CardContent className="py-10 text-center space-y-6">
-            <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto">
-              <Globe className="w-8 h-8 text-red-600" />
+            <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
+              <Globe className="w-8 h-8 text-destructive" />
             </div>
             <div>
               <h2 className="text-xl font-bold mb-2">Creation Failed</h2>
-              <p className="text-muted-foreground text-sm mb-3">
-                An error occurred during the <strong>{creationError.step}</strong> step.
-              </p>
+              <p className="text-muted-foreground text-sm mb-3">An error occurred during the <strong>{creationError.step}</strong> step.</p>
               <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 text-left">
                 <p className="text-sm text-destructive font-mono break-all">{creationError.message}</p>
               </div>
             </div>
             <div className="flex gap-2 justify-center">
-              <Button variant="outline" onClick={() => { setCreationError(null); setCurrentStep('form'); }}>
-                Start Over
-              </Button>
-              {creationError.step === 'scripts' && generatedScripts.length > 0 && (
-                <Button onClick={() => { setCreationError(null); setCurrentStep('script_review'); }}>
-                  Back to Scripts
-                </Button>
-              )}
-              {creationError.step === 'audio' && generatedScripts.length > 0 && (
-                <Button onClick={() => { setCreationError(null); setCurrentStep('audio_upload'); }}>
-                  Back to Upload
-                </Button>
-              )}
-              {creationError.step === 'finalize' && generatedAudio.length > 0 && (
-                <Button onClick={() => { setCreationError(null); handleFinalize(); }}>
-                  Retry Finalize
-                </Button>
-              )}
-              {creationError.step === 'planning' && (
-                <Button onClick={() => { setCreationError(null); handlePlanSections(); }}>
-                  Retry Planning
-                </Button>
-              )}
+              <Button variant="outline" onClick={() => { setCreationError(null); setCurrentStep('form'); }}>Start Over</Button>
+              {creationError.step === 'scripts' && generatedScripts.length > 0 && <Button onClick={() => { setCreationError(null); setCurrentStep('script_review'); }}>Back to Scripts</Button>}
+              {creationError.step === 'audio' && generatedScripts.length > 0 && <Button onClick={() => { setCreationError(null); setCurrentStep('audio_upload'); }}>Back to Upload</Button>}
+              {creationError.step === 'finalize' && generatedAudio.length > 0 && <Button onClick={() => { setCreationError(null); handleFinalize(); }}>Retry Finalize</Button>}
+              {creationError.step === 'planning' && <Button onClick={() => { setCreationError(null); handlePlanSections(); }}>Retry Planning</Button>}
             </div>
           </CardContent>
         </Card>
@@ -859,14 +996,14 @@ export function AutoCreateGuide() {
     );
   }
 
-  // === RENDER: DONE REVIEW (before publishing) ===
   if (currentStep === 'done_review') {
     const handlePublish = async () => {
       if (!result) return;
-      const { error } = await supabase.from('audio_guides')
-        .update({ is_published: true, is_standalone: true })
-        .eq('id', result.guideId);
-      if (error) { toast.error('Failed to publish'); return; }
+      const { error } = await supabase.from('audio_guides').update({ is_published: true, is_standalone: true }).eq('id', result.guideId);
+      if (error) {
+        toast.error('Failed to publish');
+        return;
+      }
       toast.success('Guide published to site!');
       setCurrentStep('published');
     };
@@ -875,12 +1012,12 @@ export function AutoCreateGuide() {
       <div className="max-w-xl mx-auto">
         <Card>
           <CardContent className="py-10 text-center space-y-6">
-            <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto">
-              <CheckCircle className="w-8 h-8 text-amber-600" />
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+              <CheckCircle className="w-8 h-8 text-primary" />
             </div>
             <div>
               <h2 className="text-xl font-bold mb-1">Guide Ready for Review</h2>
-              <p className="text-muted-foreground text-sm">{place || placeInput} — {city || cityInput}, {country}</p>
+              <p className="text-muted-foreground text-sm">{finalPlace} — {finalCity}, {country}</p>
               <p className="text-xs text-muted-foreground mt-1">Preview the guide, then publish when ready.</p>
             </div>
             {result && (
@@ -895,12 +1032,8 @@ export function AutoCreateGuide() {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1" onClick={() => window.open(result.shareUrl, '_blank')}>
-                    Preview Guide
-                  </Button>
-                  <Button className="flex-1" onClick={handlePublish}>
-                    Publish to Site
-                  </Button>
+                  <Button variant="outline" className="flex-1" onClick={() => window.open(result.shareUrl, '_blank')}>Preview Guide</Button>
+                  <Button className="flex-1" onClick={handlePublish}>Publish to Site</Button>
                 </div>
               </div>
             )}
@@ -910,13 +1043,12 @@ export function AutoCreateGuide() {
     );
   }
 
-  // === RENDER: PUBLISHED ===
   return (
     <div className="max-w-xl mx-auto">
       <Card>
         <CardContent className="py-10 text-center space-y-6">
-          <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto">
-            <CheckCircle className="w-8 h-8 text-green-600" />
+          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+            <CheckCircle className="w-8 h-8 text-primary" />
           </div>
           <div>
             <h2 className="text-xl font-bold mb-1">Guide Published!</h2>
@@ -935,9 +1067,7 @@ export function AutoCreateGuide() {
                 <p className="text-xs font-medium text-muted-foreground mt-2">Access Code</p>
                 <Badge variant="secondary">{result.accessCode}</Badge>
               </div>
-              <Button variant="outline" className="w-full" onClick={() => { setCurrentStep('form'); setResult(null); setPlannedSections([]); }}>
-                Create Another Guide
-              </Button>
+              <Button variant="outline" className="w-full" onClick={() => { setCurrentStep('form'); setResult(null); setPlannedSections([]); setGeneratedScripts([]); setGeneratedAudio([]); }}>Create Another Guide</Button>
             </div>
           )}
         </CardContent>
