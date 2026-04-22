@@ -256,7 +256,7 @@ End by naturally leading the visitor toward the next stop.` : '\nThis is the fin
 
 Write a compelling, factually accurate narration in ${lang}, pure narration text only.`;
 
-    const balloonUserPrompt = `Write ONE CHUNK (${section.title}) of the multi-chunk balloon experience narration for ${place} in ${city}, ${country}.
+    const balloonUserPrompt = `Write ONE INTERNAL CHUNK (${section.title}) of the multi-chunk balloon experience narration for ${place} in ${city}, ${country}.
 
 CHUNK DETAILS:
 - Title: ${section.title}
@@ -298,11 +298,12 @@ This is the FINAL chunk. End with a reflective, memorable closing that honors th
 
 CHUNK WRITING REQUIREMENTS:
 1. Stay LASER-FOCUSED on this chunk's key topics — don't drift to other chunks' content
-2. Draw SPECIFIC facts from the flight area knowledge base provided in the system prompt
+2. Draw SPECIFIC facts only from the selected flight corridor knowledge base provided in the system prompt
 3. Use named places, dates, and numbers (Mount Erciyes 3,917 meters, nine million years, 3,000 churches, etc.)
 4. Include at least one hidden gem OR local legend relevant to this chunk's topic
 5. Every paragraph must advance knowledge — no filler
 6. Sensory description WITHOUT direction — evoke, don't direct
+7. Never refer to this piece as a chunk, part, or section inside the narration text
 
 FINAL OUTPUT CHECK (verify BEFORE returning the script):
 
