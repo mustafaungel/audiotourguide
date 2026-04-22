@@ -761,7 +761,7 @@ export function AutoCreateGuide() {
         <Card>
           <CardHeader>
             <CardTitle>
-              Review {isBalloonMode ? 'Balloon Plan' : 'Section Plan'} — {plannedSections.length} {plannedSections.length === 1 ? 'Section' : 'Sections'} ({totalMinutes} min)
+              Review {isBalloonMode ? 'Balloon Plan' : 'Section Plan'} — {isBalloonMode ? '1 Master Script' : `${plannedSections.length} ${plannedSections.length === 1 ? 'Section' : 'Sections'}`} ({totalMinutes} min)
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -775,9 +775,9 @@ export function AutoCreateGuide() {
               <div className="rounded-lg border bg-muted/30 p-3 space-y-2 text-sm">
                 <p className="font-medium text-foreground">Coverage</p>
                 <div className="flex flex-wrap gap-2">
-                  {coveredValleys.map((valley) => <Badge key={valley} variant="secondary">{valley}</Badge>)}
+                  {coveredValleys.map((valley) => <Badge key={valley} variant="secondary">{formatValleyName(valley)}</Badge>)}
                 </div>
-                <p className="text-muted-foreground">One long evergreen narration with no directional or live-flight cues.</p>
+                <p className="text-muted-foreground">Master title: {balloonMasterTitle}. İç bloklar üretilecek ama finalde tek section olarak kaydedilecek.</p>
               </div>
             )}
 
