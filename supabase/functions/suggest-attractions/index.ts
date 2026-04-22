@@ -17,10 +17,12 @@ serve(async (req) => {
       throw new Error('OPENAI_API_KEY is not configured');
     }
 
-    const { country, city } = await req.json();
+    const { country, city, mode } = await req.json();
     if (!country || !city) {
       throw new Error('Country and city are required');
     }
+
+    const isBalloonMode = mode === 'balloon';
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -33,36 +35,52 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are a tourism expert with deep, verified knowledge of tourist attractions worldwide. Return ONLY a valid JSON array, no other text. All information must be factually accurate.`
+            content: 'You are a tourism expert with deep, verified knowledge of attractions worldwide. Return ONLY a valid JSON array, no other text. All information must be factually accurate.',
           },
           {
             role: 'user',
-            content: `List ALL major tourist attractions in ${city}, ${country}. Be EXHAUSTIVE — include EVERY notable place a tourist might visit. Aim for 30-50 results.
+            content: isBalloonMode
+              ? `List the most relevant attractions, scenic zones, valleys, viewpoints, cultural sites, experiences, and hidden gems connected to ${city}, ${country} for creating a premium balloon or aerial-style audio guide. Be exhaustive and aim for 30-50 results.
 
-Include ALL of these categories:
-- Museums and open-air museums
-- Historical sites, castles, fortresses, ruins
-- Valleys, gorges, natural formations (list EACH valley separately)
-- Underground cities and cave systems
-- Churches, mosques, temples, religious sites
-- Viewpoints and panoramic spots
-- Cultural experiences (shows, performances, crafts)
-- Adventure activities (balloon tours, ATV, horse riding, camel rides)
-- Markets, bazaars, local districts
-- UNESCO World Heritage sites
-- Hidden gems and lesser-known spots
+Group the results conceptually using one of these values for group:
+- Major Highlights
+- Valleys and Scenic Areas
+- Historical Sites
+- Local Experiences
+- Hidden Gems
 
-For example, for Cappadocia you should include: Goreme Open Air Museum, Zelve Open Air Museum, Derinkuyu Underground City, Kaymakli Underground City, Pasabag/Monks Valley, Love Valley, Rose Valley, Red Valley, Pigeon Valley, Ihlara Valley, Devrent Valley, Uchisar Castle, Ortahisar Castle, Hot Air Balloon experience, ATV tours, Avanos pottery town, Whirling Dervish shows, and many more.
+For each result provide:
+- name: official English name
+- type: one of [museum, historical_site, valley, natural_wonder, castle, palace, temple, mosque, church, cathedral, monument, park, market, district, bridge, tower, archaeological_site, cave, waterfall, beach, island, garden, theater, gallery, fortress, ruins, viewpoint, square, experience, adventure]
+- description: one-line description, max 100 chars
+- suggested_category: one of [Cultural Heritage, Natural Wonder, Historical, Art & Culture, Architecture, Religious, Modern Attraction, Local Experience]
+- significance: why it matters, max 150 chars
+- group: one of the group values above
+
+Critical requirements:
+- Include all major valleys separately when relevant
+- Include scenic areas, viewpoints, rock formations, open-air museums, underground cities, districts, and cultural experiences
+- Include hidden gems that a premium guide creator should not miss
+- Return ONLY a valid JSON array`
+              : `List ALL major tourist attractions in ${city}, ${country}. Be exhaustive and include every notable place a tourist might visit. Aim for 30-50 results.
+
+Group the results conceptually using one of these values for group:
+- Major Highlights
+- Historical Sites
+- Scenic Areas
+- Local Experiences
+- Hidden Gems
 
 For each provide:
-- "name": Official name in English
-- "type": One of [museum, historical_site, valley, natural_wonder, castle, palace, temple, mosque, church, cathedral, monument, park, market, district, bridge, tower, archaeological_site, cave, waterfall, beach, island, garden, theater, gallery, fortress, ruins, viewpoint, square, experience, adventure]
-- "description": One-line description (max 100 chars)
-- "suggested_category": One of [Cultural Heritage, Natural Wonder, Historical, Art & Culture, Architecture, Religious, Modern Attraction, Local Experience]
-- "significance": Why this place is important (max 150 chars)
+- name: official name in English
+- type: one of [museum, historical_site, valley, natural_wonder, castle, palace, temple, mosque, church, cathedral, monument, park, market, district, bridge, tower, archaeological_site, cave, waterfall, beach, island, garden, theater, gallery, fortress, ruins, viewpoint, square, experience, adventure]
+- description: one-line description, max 100 chars
+- suggested_category: one of [Cultural Heritage, Natural Wonder, Historical, Art & Culture, Architecture, Religious, Modern Attraction, Local Experience]
+- significance: why this place is important, max 150 chars
+- group: one of the group values above
 
-Return ONLY a valid JSON array. Be comprehensive — missing a popular attraction is worse than including too many.`
-          }
+Return ONLY a valid JSON array.`,
+          },
         ],
         max_tokens: 6000,
         temperature: 0.3,
@@ -89,7 +107,6 @@ Return ONLY a valid JSON array. Be comprehensive — missing a popular attractio
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     });
-
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
