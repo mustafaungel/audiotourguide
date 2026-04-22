@@ -158,7 +158,15 @@ Requirements:
       throw new Error('Failed to parse section plan');
     }
 
-    if (!Array.isArray(sections) || sections.length === 0) {
+    if (!Array.isArray(sections)) {
+      if (sections && typeof sections === 'object') {
+        sections = [sections];
+      } else {
+        throw new Error('Planner returned no sections');
+      }
+    }
+
+    if (sections.length === 0) {
       throw new Error('Planner returned no sections');
     }
 
