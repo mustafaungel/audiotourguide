@@ -43,6 +43,7 @@ serve(async (req) => {
     const wordCount = estimatedMinutes * (isBalloonMode ? 145 : 150);
     const lang = language || 'English';
     const valleys = Array.isArray(covered_valleys) ? covered_valleys.filter(Boolean) : [];
+    const balloonViolationPattern = /\b(left|right|below|above|ahead|behind|currently|current altitude|now flying|step closer|turn around|next stop|float gently|float over|as you float|as you drift|suspended between earth and sky|at this moment|take in the vistas|we are|you are part of)\b/i;
 
     const standardSystemPrompt = `You are a LOCAL RESIDENT of ${city}, ${country} who works as a professional audio tour guide. You have lived here your entire life. You grew up in these streets, your grandparents told you stories about these landmarks, and you have spent years studying the history of your hometown out of genuine love and pride.
 
@@ -193,13 +194,49 @@ Write pure narration text only in ${lang}.`;
     }
 
     const data = await response.json();
-    const script = data.choices[0].message.content.trim()
+    let script = data.choices[0].message.content.trim()
       .replace(/["“”]/g, '')
       .replace(/[‘’]/g, "'")
       .replace(/[—]/g, ', ')
       .replace(/[–]/g, ', ')
       .replace(/[ \t]{2,}/g, ' ')
       .replace(/\n{3,}/g, '\n\n');
+
+    if (isBalloonMode && balloonViolationPattern.test(script)) {
+      const rewriteResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          messages: [
+            {
+              role: 'system',
+              content: `Rewrite balloon audio narration so it stays premium, factual, and fully evergreen. Remove all live-flight language, directional cues, real-time framing, and walking-tour phrasing. Keep the same facts and elegant tone. Return only the rewritten narration in ${lang}.`,
+            },
+            {
+              role: 'user',
+              content: `Rewrite this narration to remove anything that sounds like live flight guidance or immediate positioning. Do not use phrases such as as you float, below, above, left, right, currently, in this moment, or similar. Keep it natural and premium.\n\n${script}`,
+            },
+          ],
+          max_tokens: 4200,
+          temperature: 0.35,
+        }),
+      });
+
+      if (rewriteResponse.ok) {
+        const rewriteData = await rewriteResponse.json();
+        script = rewriteData.choices[0].message.content.trim()
+          .replace(/["“”]/g, '')
+          .replace(/[‘’]/g, "'")
+          .replace(/[—]/g, ', ')
+          .replace(/[–]/g, ', ')
+          .replace(/[ \t]{2,}/g, ' ')
+          .replace(/\n{3,}/g, '\n\n');
+      }
+    }
 
     return new Response(JSON.stringify({ script, section_title: section.title, language: lang }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
