@@ -13,7 +13,6 @@ import { ALL_COUNTRIES, ELEVENLABS_LANGUAGES, GUIDE_CATEGORIES } from '@/data/co
 import { toast } from 'sonner';
 import { StepIndicator } from '@/components/ui/step-indicator';
 import { LanguagePicker } from '@/components/ui/language-picker';
-import { Slider } from '@/components/ui/slider';
 
 interface SuggestedCity {
   name: string;
@@ -57,14 +56,8 @@ const BALLOON_VALLEYS = [
   'Cat Valley',
 ] as const;
 
-const FLIGHT_THEMES = [
-  'Geological story',
-  'Historical and cultural story',
-  'Balanced overview',
-  'Premium storytelling',
-] as const;
-
-const LISTENING_LENGTHS = [10, 15, 20, 25] as const;
+const BALLOON_DEFAULT_THEME = 'Premium storytelling';
+const BALLOON_DEFAULT_DURATION = 25;
 
 const DIRECTIONAL_WARNING_PATTERN = /\b(left|right|below|above|ahead|behind|currently|current altitude|now flying|to your|under you|over you|step closer|turn around|next stop)\b/i;
 
@@ -93,9 +86,6 @@ export function AutoCreateGuide() {
   const [priceUsd, setPriceUsd] = useState('499');
 
   const [coveredValleys, setCoveredValleys] = useState<string[]>(['Goreme Valley']);
-  const [flightTheme, setFlightTheme] = useState<string>('Balanced overview');
-  const [estimatedListeningMinutes, setEstimatedListeningMinutes] = useState<number>(15);
-  const [includeIntroOutroNotes, setIncludeIntroOutroNotes] = useState(true);
 
   const [cities, setCities] = useState<SuggestedCity[]>([]);
   const [attractions, setAttractions] = useState<SuggestedAttraction[]>([]);
@@ -145,9 +135,6 @@ export function AutoCreateGuide() {
     if (value === 'balloon') {
       setCategory('Local Experience');
       setCoveredValleys(['Goreme Valley']);
-      setFlightTheme('Balanced overview');
-      setEstimatedListeningMinutes(15);
-      setIncludeIntroOutroNotes(true);
     }
   };
 
@@ -235,9 +222,9 @@ export function AutoCreateGuide() {
     place_type: isBalloonMode ? 'balloon_flight_experience' : '',
     category: category || (isBalloonMode ? 'Local Experience' : 'Historical'),
     covered_valleys: isBalloonMode ? coveredValleys : [],
-    flight_theme: isBalloonMode ? flightTheme : null,
-    estimated_listening_minutes: isBalloonMode ? estimatedListeningMinutes : null,
-    include_intro_outro_notes: isBalloonMode ? includeIntroOutroNotes : false,
+    flight_theme: isBalloonMode ? BALLOON_DEFAULT_THEME : null,
+    estimated_listening_minutes: isBalloonMode ? BALLOON_DEFAULT_DURATION : null,
+    include_intro_outro_notes: isBalloonMode,
   });
 
   const handlePlanSections = async () => {
@@ -720,61 +707,19 @@ export function AutoCreateGuide() {
                     </div>
                   </div>
 
-                  {/* Flight theme as chips */}
-                  <div className="space-y-2">
-                    <Label className="text-xs">Flight Theme</Label>
-                    <div className="flex flex-wrap gap-2">
-                      {FLIGHT_THEMES.map((theme) => {
-                        const active = flightTheme === theme;
-                        return (
-                          <button
-                            key={theme}
-                            type="button"
-                            onClick={() => setFlightTheme(theme)}
-                            className={`rounded-full px-3 py-1.5 text-xs font-medium border-2 transition-all ${active ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:border-primary/50 hover:bg-muted'}`}
-                          >
-                            {theme}
-                          </button>
-                        );
-                      })}
+                  <div className="rounded-lg border border-border bg-background/70 p-4 space-y-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-sm font-medium">Narration profile</span>
+                      <Badge variant="secondary">{BALLOON_DEFAULT_THEME}</Badge>
                     </div>
-                  </div>
-
-                  {/* Duration slider */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs">Target Duration</Label>
-                      <span className="text-sm font-bold text-primary">{estimatedListeningMinutes} min</span>
-                    </div>
-                    <Slider
-                      value={[estimatedListeningMinutes]}
-                      min={10}
-                      max={25}
-                      step={5}
-                      onValueChange={(values) => setEstimatedListeningMinutes(values[0])}
-                    />
-                    <div className="flex justify-between text-[10px] text-muted-foreground">
-                      <span>10 min</span>
-                      <span>15 min</span>
-                      <span>20 min</span>
-                      <span>25 min</span>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-sm font-medium">Target duration</span>
+                      <Badge variant="outline">{BALLOON_DEFAULT_DURATION} min</Badge>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Will be generated in {Math.max(2, Math.ceil(estimatedListeningMinutes / 5))} chunks of ~5 minutes each.
+                      Balloon guides use a fixed premium narration setup and are generated in chunked admin sections for easier upload management.
                     </p>
                   </div>
-
-                  {/* Intro/outro toggle */}
-                  <button
-                    type="button"
-                    onClick={() => setIncludeIntroOutroNotes((prev) => !prev)}
-                    className={`w-full rounded-lg border-2 px-4 py-3 text-left text-sm transition-colors ${includeIntroOutroNotes ? 'border-primary bg-primary/10' : 'border-border hover:bg-muted'}`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium">Include intro and closing notes</span>
-                      {includeIntroOutroNotes && <CheckCircle className="w-4 h-4 text-primary" />}
-                    </div>
-                  </button>
                 </div>
               )}
 
@@ -808,7 +753,7 @@ export function AutoCreateGuide() {
             <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
               <span>{finalPlace} — {finalCity}, {country}</span>
               {isBalloonMode && <Badge variant="secondary">Balloon narrator</Badge>}
-              {isBalloonMode && <Badge variant="outline">{flightTheme}</Badge>}
+              {isBalloonMode && <Badge variant="outline">{BALLOON_DEFAULT_THEME}</Badge>}
             </div>
 
             {isBalloonMode && (
@@ -895,8 +840,8 @@ export function AutoCreateGuide() {
               <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="secondary">Evergreen balloon narration</Badge>
-                  <Badge variant="outline">Target {estimatedListeningMinutes} min</Badge>
-                  {totalMinutes < estimatedListeningMinutes && <Badge variant="destructive">Script may be too short</Badge>}
+                  <Badge variant="outline">Target {BALLOON_DEFAULT_DURATION} min</Badge>
+                  {totalMinutes < BALLOON_DEFAULT_DURATION && <Badge variant="destructive">Script may be too short</Badge>}
                   {scriptWarnings.length > 0 && <Badge variant="destructive">Directional wording detected</Badge>}
                 </div>
                 <div className="flex flex-wrap gap-2">
