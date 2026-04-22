@@ -80,7 +80,17 @@ Critical rules:
 - Write for spoken delivery
 - No markdown, no headers, no bullet points, no asterisks, no em-dashes, no en-dashes
 - NEVER use quotation marks in the script
-- NEVER use abbreviations like AD, BC, St., Mt.
+
+NO-ABBREVIATIONS RULE (applies to ALL languages — critical for TTS):
+- Write "before the common era" instead of BCE or BC
+- Write "common era" instead of CE or AD
+- Write "Saint" instead of St., "Mount" instead of Mt.
+- Write "meters", "kilometers", "years" instead of m, km, yrs
+- Write "for example" instead of e.g., "that is" instead of i.e.
+- Use "and" instead of &, "percent" instead of %, "degrees" instead of °
+- Spell out ALL initialisms — never use shortcuts in ANY language
+- If an organization has a standard spoken form (like UNESCO), it's acceptable — but write it as the word, not as initials
+
 - Structure the script in clear short paragraphs of 2-3 sentences each
 - Every historical fact must be accurate and verifiable for ${place} in ${city}, ${country}`;
 
@@ -100,6 +110,20 @@ ABSOLUTE BALLOON RULES:
 - DO NOT use walking-tour guidance: next stop, step closer, turn around, move on
 - DO NOT imply exact real-time positioning or a guaranteed view
 - DO NOT fabricate facts or overstate certainty
+
+ABSOLUTE NO-ABBREVIATIONS RULE (CRITICAL — applies to ALL languages):
+- NEVER use any abbreviations, initialisms, or acronyms in the narration
+- Write "before the common era" instead of BCE or BC
+- Write "common era" instead of CE or AD
+- Write "Saint" instead of St.
+- Write "Mount" instead of Mt.
+- Write "meters" instead of m, "kilometers" instead of km
+- Write "square kilometers" instead of km², "years" instead of yrs
+- Write "United Nations Educational, Scientific and Cultural Organization" or just use the name once then say "the organization" — avoid UNESCO as initials if possible (but you may say "UNESCO" since it's commonly spoken as one word)
+- Write "for example" instead of e.g., "that is" instead of i.e.
+- Write numbers as words when natural: "nine million years" not "9 million years" only for dramatic impact — but specific measurements like 3,917 meters should be written as digits+words not abbreviations
+- Never use symbols in place of words: "and" not &, "percent" not %, "degrees" not °
+- This applies to EVERY language — in Turkish, French, German, etc., ALL abbreviations are forbidden too
 
 ANTI-SHALLOW RULES (CRITICAL — SCRIPT WILL BE REJECTED IF VIOLATED):
 - EVERY paragraph must contain at least one SPECIFIC fact: a named place, a date, a measurement, a historical figure, or a cultural detail
@@ -205,10 +229,19 @@ This is the FINAL chunk. End with a reflective, memorable closing that honors th
 CHUNK WRITING REQUIREMENTS:
 1. Stay LASER-FOCUSED on this chunk's key topics — don't drift to other chunks' content
 2. Draw SPECIFIC facts from the flight area knowledge base provided in the system prompt
-3. Use named places, dates, and numbers (Mount Erciyes 3,917m, 9 million years, 3,000 churches, etc.)
+3. Use named places, dates, and numbers (Mount Erciyes 3,917 meters, nine million years, 3,000 churches, etc.)
 4. Include at least one hidden gem OR local legend relevant to this chunk's topic
 5. Every paragraph must advance knowledge — no filler
 6. Sensory description WITHOUT direction — evoke, don't direct
+
+FINAL OUTPUT CHECK — before returning, verify your script contains NONE of these abbreviations:
+- BCE, BC, CE, AD → write "before the common era" / "common era"
+- St., Mt. → write "Saint", "Mount"
+- m, km, km², yrs → write "meters", "kilometers", "square kilometers", "years"
+- e.g., i.e., etc. → write "for example", "that is", "and so on"
+- & → "and"
+- % → "percent"
+- Any other initialism or shortened form — spell it out fully
 
 Critical writing rules:
 - No directional cues

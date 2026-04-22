@@ -72,7 +72,12 @@ CULTURAL AND LINGUISTIC AUTHENTICITY for ${target_language}:
 AUDIO/TTS OPTIMIZATION — this text will be read aloud by a text-to-speech system:
 - Use short, punchy sentences for dramatic pauses where the original does the same
 - Write numbers as words (e.g., "fifteen hundred" not "1500", adapt for ${target_language})
-- Avoid abbreviations — write full forms (e.g., "Saint Basil" not "St. Basil")
+- Avoid ALL abbreviations in every language — write full forms
+  * "before the common era" not BCE or BC, "common era" not CE or AD
+  * "Saint" not St., "Mount" not Mt.
+  * "meters" not m, "kilometers" not km
+  * "for example" not e.g., "that is" not i.e.
+  * This applies equally in Turkish, French, German, Spanish, etc.
 - Use commas for natural breathing pauses
 - No quotation marks, em-dashes, or special punctuation that disrupts TTS flow
 

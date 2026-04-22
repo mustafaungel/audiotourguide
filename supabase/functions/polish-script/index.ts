@@ -38,7 +38,12 @@ RULES:
 - Ensure natural TTS-friendly text:
   * Use short, punchy sentences for dramatic pauses where appropriate
   * Write numbers as words (e.g., "fifteen hundred" not "1500")
-  * No abbreviations, write full forms (e.g., "Saint Basil" not "St. Basil")
+  * No abbreviations, write full forms in every language
+    - "before the common era" not BCE or BC, "common era" not CE or AD
+    - "Saint" not St., "Mount" not Mt.
+    - "meters" not m, "kilometers" not km, "percent" not %
+    - "for example" not e.g., "that is" not i.e.
+    - If you find ANY abbreviation in the original, expand it to the full word
   * Use commas for natural breathing pauses
   * No em-dashes or en-dashes, use commas instead
   * No quotation marks or special punctuation that disrupts TTS
