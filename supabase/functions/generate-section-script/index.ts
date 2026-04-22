@@ -39,7 +39,9 @@ serve(async (req) => {
     }
 
     const isBalloonMode = mode === 'balloon';
-    const estimatedMinutes = Math.max(isBalloonMode ? 10 : 3, Number(section.estimated_minutes || estimated_listening_minutes || 3));
+    // Use section.estimated_minutes (per-chunk for balloon mode) — no forced minimum of 10
+    // Each balloon chunk is ~5 min; standard sections are 2-5 min each
+    const estimatedMinutes = Math.max(2, Number(section.estimated_minutes || estimated_listening_minutes || 3));
     const wordCount = estimatedMinutes * (isBalloonMode ? 145 : 150);
     const lang = language || 'English';
     const valleys = Array.isArray(covered_valleys) ? covered_valleys.filter(Boolean) : [];
@@ -104,10 +106,11 @@ CONTENT PRIORITIES:
 - If ${include_intro_outro_notes ? 'intro and closing notes are requested' : 'intro and closing notes are not requested'}, adapt the flow accordingly
 
 DELIVERY RULES:
-- Target EXACTLY ${wordCount} words — this is critical for ${estimatedMinutes}-minute audio duration
+- This is ONE CHUNK of a larger continuous narration — focus only on this chunk's topic
+- Target EXACTLY ${wordCount} words — this chunk is ${estimatedMinutes} minutes of audio
 - The script MUST be at least ${Math.floor(wordCount * 0.9)} words and no more than ${Math.ceil(wordCount * 1.1)} words
 - Use short spoken paragraphs separated by blank lines
-- Each selected valley needs substantial coverage (at least ${Math.floor(wordCount / (valleys.length + 2))} words per valley)
+- Stay focused on THIS chunk's subject — don't cover topics that belong to other chunks
 - No markdown, no headers, no bullet points, no quotation marks, no em-dashes, no en-dashes
 - Write for TTS, with natural variation in rhythm and sentence length
 - Keep it immersive through ideas, not live directions`;
@@ -165,13 +168,13 @@ Critical writing rules:
 - No false immediacy
 - Every paragraph must still be accurate if the balloon route changes completely
 
-LENGTH REQUIREMENT (CRITICAL):
-- You MUST write a FULL ${wordCount}-word script (minimum ${Math.floor(wordCount * 0.9)} words)
-- This is for a ${estimatedMinutes}-minute audio narration — shorter scripts will not fill the duration
-- Expand each section with rich storytelling, historical depth, and sensory detail
-- Each valley deserves substantial coverage (aim for ${Math.floor(wordCount / (valleys.length + 2))}+ words per valley)
+CHUNK LENGTH REQUIREMENT:
+- This chunk must be EXACTLY ${wordCount} words (minimum ${Math.floor(wordCount * 0.9)})
+- It's ${estimatedMinutes} minutes of one continuous narration — this single chunk, not the full guide
+- Stay on topic — don't summarize everything, cover only what this chunk focuses on
+- Use rich storytelling, historical depth, and sensory detail within your chunk's scope
 
-Write pure narration text only in ${lang}. Target: ${wordCount} words.`;
+Write pure narration text only in ${lang}. Target for this chunk: ${wordCount} words.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -191,7 +194,8 @@ Write pure narration text only in ${lang}. Target: ${wordCount} words.`;
             content: isBalloonMode ? balloonUserPrompt : standardUserPrompt,
           },
         ],
-        max_tokens: isBalloonMode ? 8000 : 4000,
+        // Per-chunk: 5 min = 725 words ≈ 1100 tokens. 4000 is safe headroom for up to ~2500 words
+        max_tokens: 4000,
         temperature: isBalloonMode ? 0.55 : 0.7,
       }),
     });

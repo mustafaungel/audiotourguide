@@ -38,21 +38,28 @@ serve(async (req) => {
     const valleys = Array.isArray(covered_valleys) ? covered_valleys.filter(Boolean) : [];
     const requestedMinutes = Math.max(10, Math.min(30, Number(estimated_listening_minutes) || 15));
 
+    // Balloon mode: split long narrations into multiple chunks for reliable generation
+    // GPT-4o struggles to produce 2000+ words in a single call, so we chunk by duration
+    // Each chunk targets 5 minutes (~725 words) for reliable output
+    const balloonChunkCount = isBalloonMode ? Math.max(2, Math.min(6, Math.ceil(requestedMinutes / 5))) : 1;
+    const chunkMinutes = isBalloonMode ? Math.round(requestedMinutes / balloonChunkCount) : requestedMinutes;
+
     const systemPrompt = isBalloonMode
       ? `You are a world-class travel editor and premium audio guide planner specializing in aerial sightseeing experiences.
 
-Create a SINGLE long-form narration plan for a hot air balloon audio guide.
+Create a MULTI-CHUNK long-form narration plan for a hot air balloon audio guide. The narration will be split into ${balloonChunkCount} sequential chunks that together form one continuous premium narration.
 
 Critical balloon rules:
-1. Return EXACTLY 1 section in a JSON array.
-2. The narration must be evergreen and accurate even when the real flight path changes.
-3. Do NOT use directional guidance such as left, right, below, ahead, behind, or above you.
-4. Do NOT describe live conditions such as altitude, wind, exact route, current visibility, or current movement.
-5. Do NOT write walking-tour logic such as next stop, step closer, turn around, or move forward.
-6. Focus on general knowledge, geology, history, culture, landscape character, and hidden details.
-7. If valleys are provided, each one must clearly appear in the section key topics.
-8. Hidden gems and lesser-known details must be included.
-9. Return ONLY a valid JSON array.`
+1. Return EXACTLY ${balloonChunkCount} sections in a JSON array — each section is one chunk of the continuous narration.
+2. The chunks must flow as ONE continuous story — chunk 1 introduces, middle chunks expand, last chunk concludes.
+3. The narration must be evergreen and accurate even when the real flight path changes.
+4. Do NOT use directional guidance such as left, right, below, ahead, behind, or above you.
+5. Do NOT describe live conditions such as altitude, wind, exact route, current visibility, or current movement.
+6. Do NOT write walking-tour logic such as next stop, step closer, turn around, or move forward.
+7. Focus on general knowledge, geology, history, culture, landscape character, and hidden details.
+8. If valleys are provided, distribute them across chunks — don't repeat the same valley in multiple chunks.
+9. Each chunk should have a distinct focus (e.g., intro/geology, valley deep-dive, culture/history, hidden gems, reflection).
+10. Return ONLY a valid JSON array of ${balloonChunkCount} section objects.`
       : `You are a world-class audio tour guide planner and historian. Your expertise spans art history, architecture, archaeology, cultural anthropology, and local traditions. You create audio tour section plans that transform ordinary visits into unforgettable experiences.
 
 Your planning principles:
@@ -72,30 +79,53 @@ Section count: Create a comprehensive tour that covers ALL important and notable
 EVERY notable room, courtyard, artwork, architectural feature, and historical marker that a visitor would encounter deserves its own section. Do NOT group unrelated features together just to reduce the count. Return ONLY a valid JSON array.`;
 
     const userPrompt = isBalloonMode
-      ? `Create a section plan for a premium balloon flight audio guide about ${place} in ${city}, ${country}.
+      ? `Create a ${balloonChunkCount}-chunk narrative plan for a premium balloon flight audio guide about ${place} in ${city}, ${country}.
 Location type: ${place_type || 'balloon flight experience'}
 Category: ${category || 'Local Experience'}
 Covered valleys: ${valleys.length ? valleys.join(', ') : 'Not specified'}
 Theme: ${flight_theme || 'Balanced overview'}
-Target listening length: about ${requestedMinutes} minutes
+Target total listening length: ~${requestedMinutes} minutes (${chunkMinutes} minutes per chunk)
 Include intro and closing notes: ${include_intro_outro_notes ? 'yes' : 'no'}
 
-Return EXACTLY one object in this format:
+Return EXACTLY ${balloonChunkCount} section objects as a JSON array. Each section is one chunk of the continuous narration. Format for each section:
 {
-  "title": "A concise title for the long-form narration" (max 60 chars),
-  "subtitle": "What the listener will discover" (max 100 chars),
-  "key_topics": ["topic1", "topic2", "topic3", "topic4", "topic5", "topic6"],
-  "estimated_minutes": ${requestedMinutes},
+  "title": "Chunk N: [Concise chunk title]" (max 60 chars),
+  "subtitle": "What this chunk covers" (max 100 chars),
+  "key_topics": ["topic1", "topic2", "topic3", "topic4"],
+  "estimated_minutes": ${chunkMinutes},
   "mood": "one of: awe-inspiring, mysterious, playful, solemn, adventurous, romantic, dramatic, educational, contemplative",
-  "transition_hint": "How the narrative should flow toward its closing reflection",
-  "fun_fact": "One surprising but verifiable detail"
+  "transition_hint": "How this chunk connects to the next",
+  "fun_fact": "One surprising detail specific to this chunk"
 }
 
+Chunk structure guide for ${balloonChunkCount} chunks:
+${balloonChunkCount === 2 ? `- Chunk 1: Introduction + geological foundations (tuff rock, erosion, fairy chimneys)
+- Chunk 2: Valley highlights + cultural history + reflection` : ''}
+${balloonChunkCount === 3 ? `- Chunk 1: Introduction + geological foundations
+- Chunk 2: Valley-by-valley deep dive + cultural history
+- Chunk 3: Hidden gems + closing reflection` : ''}
+${balloonChunkCount === 4 ? `- Chunk 1: Introduction + welcome + why this landscape is unique
+- Chunk 2: Geology + tuff formation + fairy chimneys
+- Chunk 3: Valleys + rock-cut life + monastic history
+- Chunk 4: Hidden gems + local culture + closing reflection` : ''}
+${balloonChunkCount === 5 ? `- Chunk 1: Introduction + cinematic opening + sense of place
+- Chunk 2: Volcanic geology + tuff + erosion story
+- Chunk 3: Valleys deep-dive (distribute ${valleys.length || 'all selected'} valleys)
+- Chunk 4: Human history + rock-cut churches + pigeon houses + agriculture
+- Chunk 5: Hidden gems + cultural reflections + closing` : ''}
+${balloonChunkCount === 6 ? `- Chunk 1: Cinematic intro + welcome
+- Chunk 2: Volcanic origins + landscape formation
+- Chunk 3: First valley group + geological features
+- Chunk 4: Second valley group + rock-cut heritage
+- Chunk 5: Cultural layers + monastic history + daily life
+- Chunk 6: Hidden gems + reflection + closing` : ''}
+
 Requirements:
-- Exactly 1 section only
-- The single section must have a clear narrative arc: introduction, geological foundations, valley-by-valley overview, cultural history, hidden gems, reflection
-- Every selected valley must be represented in key_topics or subtitle
-- Emphasize volcanic history, tuff formations, erosion, rock-cut life, monastic history, pigeon houses, agriculture, and valley differences when relevant
+- Exactly ${balloonChunkCount} sections
+- Each chunk is ~${chunkMinutes} minutes (~${chunkMinutes * 145} words when generated)
+- Each chunk has a distinct focus — NO repetition of topics across chunks
+- If multiple valleys, distribute them across middle chunks (don't stack in one chunk)
+- Flow must feel continuous — transition_hint connects each chunk to the next
 - The plan must remain correct regardless of the balloon route on a given day
 - Do not mention live movement or directional cues`
       : `Create a comprehensive section plan for a professional audio tour of ${place} in ${city}, ${country}.
@@ -171,7 +201,8 @@ Requirements:
     }
 
     if (isBalloonMode) {
-      sections = [sections[0]];
+      // Keep only the requested number of chunks
+      sections = sections.slice(0, balloonChunkCount);
     }
 
     return new Response(JSON.stringify({ sections }), {

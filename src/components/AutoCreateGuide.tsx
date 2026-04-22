@@ -8,9 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Globe, MapPin, Landmark, Languages, DollarSign, Mic, Loader2, CheckCircle, Music, Image, Copy, ChevronDown, Play, Pause, Wind, Sparkles } from 'lucide-react';
+import { Globe, MapPin, Landmark, Languages, DollarSign, Mic, Loader2, CheckCircle, Music, Image, Copy, ChevronDown, Play, Pause, Wind, Sparkles, Settings, ArrowLeft, ArrowRight } from 'lucide-react';
 import { ALL_COUNTRIES, ELEVENLABS_LANGUAGES, GUIDE_CATEGORIES } from '@/data/countries-full';
 import { toast } from 'sonner';
+import { StepIndicator } from '@/components/ui/step-indicator';
+import { LanguagePicker } from '@/components/ui/language-picker';
+import { Slider } from '@/components/ui/slider';
 
 interface SuggestedCity {
   name: string;
@@ -75,6 +78,9 @@ const groupAttractions = (items: SuggestedAttraction[]) => {
 };
 
 export function AutoCreateGuide() {
+  // Form wizard sub-step (only used when currentStep === 'form')
+  // 0 = Guide Type, 1 = Location, 2 = Settings
+  const [formStep, setFormStep] = useState<number>(0);
   const [guideType, setGuideType] = useState<GuideType>('standard');
 
   const [country, setCountry] = useState('');
@@ -463,229 +469,327 @@ export function AutoCreateGuide() {
   };
 
   if (currentStep === 'form') {
+    // Validation per step
+    const step0Valid = !!guideType;
+    const step1Valid = !!(country && finalCity && finalPlace);
+    const step2Valid = selectedLanguages.length > 0 && (!isBalloonMode || coveredValleys.length > 0);
+
+    const canNext = formStep === 0 ? step0Valid : formStep === 1 ? step1Valid : step2Valid;
+    const priceDollars = (parseInt(priceUsd || '0', 10) / 100).toFixed(2);
+
     return (
-      <div className="space-y-6 max-w-3xl">
+      <div className="max-w-3xl space-y-5">
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg">
               <Globe className="w-5 h-5" />
               Auto Create Audio Guide
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-5">
-            <div className="space-y-2">
-              <Label>Guide Type</Label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <CardContent>
+            <StepIndicator
+              steps={[
+                { label: 'Type', icon: Landmark },
+                { label: 'Location', icon: MapPin },
+                { label: 'Settings', icon: Settings },
+              ]}
+              currentStep={formStep}
+            />
+          </CardContent>
+        </Card>
+
+        {/* STEP 0: Guide Type */}
+        {formStep === 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">What kind of guide are you creating?</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={() => handleGuideTypeChange('standard')}
-                  className={`rounded-lg border p-4 text-left transition-colors ${!isBalloonMode ? 'border-primary bg-primary/10 text-foreground' : 'border-border hover:bg-muted/40 text-foreground'}`}
+                  className={`rounded-xl border-2 p-5 text-left transition-all ${!isBalloonMode ? 'border-primary bg-primary/5 ring-2 ring-primary/20' : 'border-border hover:border-primary/50 hover:bg-muted/40'}`}
                 >
-                  <div className="flex items-center gap-2 text-sm font-medium">
-                    <Landmark className="w-4 h-4 text-primary" />
+                  <div className="flex items-center gap-2 text-base font-semibold">
+                    <Landmark className="w-5 h-5 text-primary" />
                     Standard Tour
                   </div>
-                  <p className="mt-1 text-xs text-muted-foreground">Multi-section stops for museums, landmarks, and walking-style tours.</p>
+                  <p className="mt-2 text-sm text-muted-foreground">Multi-section stops for museums, landmarks, and walking-style tours. 15-25 sections, 2-5 min each.</p>
                 </button>
                 <button
                   type="button"
                   onClick={() => handleGuideTypeChange('balloon')}
-                  className={`rounded-lg border p-4 text-left transition-colors ${isBalloonMode ? 'border-primary bg-primary/10 text-foreground' : 'border-border hover:bg-muted/40 text-foreground'}`}
+                  className={`rounded-xl border-2 p-5 text-left transition-all ${isBalloonMode ? 'border-primary bg-primary/5 ring-2 ring-primary/20' : 'border-border hover:border-primary/50 hover:bg-muted/40'}`}
                 >
-                  <div className="flex items-center gap-2 text-sm font-medium">
-                    <Wind className="w-4 h-4 text-primary" />
+                  <div className="flex items-center gap-2 text-base font-semibold">
+                    <Wind className="w-5 h-5 text-primary" />
                     Balloon Flight Experience
                   </div>
-                  <p className="mt-1 text-xs text-muted-foreground">One long evergreen narration with valley, geology, culture, and hidden-gem coverage.</p>
+                  <p className="mt-2 text-sm text-muted-foreground">Long evergreen narration with valleys, geology, culture. 10-25 min continuous audio in chunks.</p>
                 </button>
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> Country</Label>
-              <Select value={country} onValueChange={handleCountryChange}>
-                <SelectTrigger><SelectValue placeholder="Select a country..." /></SelectTrigger>
-                <SelectContent className="max-h-[300px]">
-                  {ALL_COUNTRIES.map((c) => (
-                    <SelectItem key={c.code} value={c.name}>{c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {country && (
-              <div className="space-y-2">
-                <Label className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> {isBalloonMode ? 'City / Region' : 'City'}</Label>
-                {loadingCities ? (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
-                    <Loader2 className="w-4 h-4 animate-spin" /> Loading suggestions...
-                  </div>
-                ) : cities.length > 0 ? (
-                  <div className="space-y-2">
-                    <Select value={city} onValueChange={handleCitySelect}>
-                      <SelectTrigger><SelectValue placeholder={isBalloonMode ? 'Select a city or region...' : 'Select a city...'} /></SelectTrigger>
-                      <SelectContent className="max-h-[300px]">
-                        {cities.map((c) => (
-                          <SelectItem key={c.name} value={c.name}>{c.name} — {c.description}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Input placeholder={isBalloonMode ? 'Or type a region name...' : 'Or type a city name...'} value={cityInput} onChange={(e) => { setCityInput(e.target.value); setCity(''); }} />
-                  </div>
-                ) : (
-                  <Input placeholder={isBalloonMode ? 'Type city or region name...' : 'Type city name...'} value={cityInput} onChange={(e) => setCityInput(e.target.value)} />
-                )}
+              <div className="flex justify-end pt-2">
+                <Button onClick={() => setFormStep(1)} disabled={!canNext}>
+                  Next <ArrowRight className="w-4 h-4 ml-1" />
+                </Button>
               </div>
-            )}
+            </CardContent>
+          </Card>
+        )}
 
-            {(city || cityInput) && (
+        {/* STEP 1: Location */}
+        {formStep === 1 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Where is the guide located?</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label className="flex items-center gap-1.5"><Landmark className="w-3.5 h-3.5" /> {isBalloonMode ? 'Experience / Destination Name' : 'Place / Attraction'}</Label>
-                {loadingAttractions ? (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
-                    <Loader2 className="w-4 h-4 animate-spin" /> Loading attractions...
-                  </div>
-                ) : attractions.length > 0 ? (
-                  <div className="space-y-3">
-                    <div className="max-h-[320px] overflow-y-auto border rounded-lg p-2 space-y-3">
-                      {Object.entries(groupedAttractions).map(([group, items]) => (
-                        <div key={group} className="space-y-1.5">
-                          <div className="flex items-center gap-2 px-1">
-                            <Badge variant="secondary">{group}</Badge>
-                            <span className="text-xs text-muted-foreground">{items.length} ideas</span>
-                          </div>
-                          <div className="space-y-1.5">
-                            {items.map((a) => (
-                              <button
-                                key={a.name}
-                                type="button"
-                                onClick={() => handleAttractionSelect(a)}
-                                className={`w-full text-left px-3 py-2 rounded-lg border transition-colors ${place === a.name ? 'bg-primary/15 border-primary text-foreground' : 'border-transparent hover:bg-muted hover:border-border text-foreground'}`}
-                              >
-                                <div className="flex items-start justify-between gap-3">
-                                  <div className="min-w-0">
-                                    <p className="text-sm font-medium">{a.name}</p>
-                                    <p className="text-xs text-muted-foreground mt-0.5">{a.description}</p>
-                                  </div>
-                                  <Badge variant="outline" className="shrink-0">{a.type.replace(/_/g, ' ')}</Badge>
-                                </div>
-                                <p className="text-[11px] text-muted-foreground mt-1">{a.significance}</p>
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <Input placeholder={isBalloonMode ? 'Or type an experience name...' : 'Or type an attraction name...'} value={placeInput} onChange={(e) => { setPlaceInput(e.target.value); setPlace(''); }} />
-                  </div>
-                ) : (
-                  <Input placeholder={isBalloonMode ? 'Type experience name...' : 'Type attraction name...'} value={placeInput} onChange={(e) => setPlaceInput(e.target.value)} />
-                )}
-              </div>
-            )}
-
-            {(place || placeInput) && (
-              <div className="space-y-2">
-                <Label>Category</Label>
-                <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger><SelectValue placeholder="Auto-detected or select..." /></SelectTrigger>
-                  <SelectContent>
-                    {GUIDE_CATEGORIES.map((c) => (
-                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                <Label className="flex items-center gap-1.5 text-xs"><span className="bg-primary/10 text-primary rounded-full w-5 h-5 inline-flex items-center justify-center font-bold text-[10px]">1</span> Country</Label>
+                <Select value={country} onValueChange={handleCountryChange}>
+                  <SelectTrigger><SelectValue placeholder="Select a country..." /></SelectTrigger>
+                  <SelectContent className="max-h-[300px]">
+                    {ALL_COUNTRIES.map((c) => (
+                      <SelectItem key={c.code} value={c.name}>{c.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-            )}
 
-            {isBalloonMode && (
-              <div className="space-y-5 rounded-lg border bg-muted/30 p-4">
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  <Sparkles className="w-4 h-4 text-primary" />
-                  Balloon experience settings
-                </div>
-
+              {country && (
                 <div className="space-y-2">
-                  <Label>Covered Valleys</Label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {BALLOON_VALLEYS.map((valley) => {
-                      const active = coveredValleys.includes(valley);
-                      return (
-                        <button
-                          key={valley}
-                          type="button"
-                          onClick={() => toggleValley(valley)}
-                          className={`rounded-lg border px-3 py-2 text-sm text-left transition-colors ${active ? 'border-primary bg-primary/10 text-foreground' : 'border-border hover:bg-muted text-foreground'}`}
-                        >
-                          {valley}
-                        </button>
-                      );
-                    })}
-                  </div>
+                  <Label className="flex items-center gap-1.5 text-xs"><span className="bg-primary/10 text-primary rounded-full w-5 h-5 inline-flex items-center justify-center font-bold text-[10px]">2</span> {isBalloonMode ? 'City / Region' : 'City'}</Label>
+                  {loadingCities ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+                      <Loader2 className="w-4 h-4 animate-spin" /> Loading suggestions...
+                    </div>
+                  ) : cities.length > 0 ? (
+                    <div className="space-y-2">
+                      <Select value={city} onValueChange={handleCitySelect}>
+                        <SelectTrigger><SelectValue placeholder={isBalloonMode ? 'Select a city or region...' : 'Select a city...'} /></SelectTrigger>
+                        <SelectContent className="max-h-[300px]">
+                          {cities.map((c) => (
+                            <SelectItem key={c.name} value={c.name}>{c.name} — {c.description}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Input placeholder={isBalloonMode ? 'Or type a region name...' : 'Or type a city name...'} value={cityInput} onChange={(e) => { setCityInput(e.target.value); setCity(''); }} />
+                    </div>
+                  ) : (
+                    <Input placeholder={isBalloonMode ? 'Type city or region name...' : 'Type city name...'} value={cityInput} onChange={(e) => setCityInput(e.target.value)} />
+                  )}
                 </div>
+              )}
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Flight Theme</Label>
-                    <Select value={flightTheme} onValueChange={setFlightTheme}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {FLIGHT_THEMES.map((theme) => (
-                          <SelectItem key={theme} value={theme}>{theme}</SelectItem>
+              {(city || cityInput) && (
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-1.5 text-xs"><span className="bg-primary/10 text-primary rounded-full w-5 h-5 inline-flex items-center justify-center font-bold text-[10px]">3</span> {isBalloonMode ? 'Experience / Destination' : 'Place / Attraction'}</Label>
+                  {loadingAttractions ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+                      <Loader2 className="w-4 h-4 animate-spin" /> Loading attractions...
+                    </div>
+                  ) : attractions.length > 0 ? (
+                    <div className="space-y-3">
+                      <div className="max-h-[320px] overflow-y-auto border rounded-lg p-2 space-y-3">
+                        {Object.entries(groupedAttractions).map(([group, items]) => (
+                          <div key={group} className="space-y-1.5">
+                            <div className="flex items-center gap-2 px-1">
+                              <Badge variant="secondary">{group}</Badge>
+                              <span className="text-xs text-muted-foreground">{items.length} ideas</span>
+                            </div>
+                            <div className="space-y-1.5">
+                              {items.map((a) => (
+                                <button
+                                  key={a.name}
+                                  type="button"
+                                  onClick={() => handleAttractionSelect(a)}
+                                  className={`w-full text-left px-3 py-2 rounded-lg border transition-colors ${place === a.name ? 'bg-primary/15 border-primary text-foreground' : 'border-transparent hover:bg-muted hover:border-border text-foreground'}`}
+                                >
+                                  <div className="flex items-start justify-between gap-3">
+                                    <div className="min-w-0">
+                                      <p className="text-sm font-medium">{a.name}</p>
+                                      <p className="text-xs text-muted-foreground mt-0.5">{a.description}</p>
+                                    </div>
+                                    <Badge variant="outline" className="shrink-0">{a.type.replace(/_/g, ' ')}</Badge>
+                                  </div>
+                                  <p className="text-[11px] text-muted-foreground mt-1">{a.significance}</p>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
                         ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Estimated Listening Length</Label>
-                    <Select value={String(estimatedListeningMinutes)} onValueChange={(value) => setEstimatedListeningMinutes(Number(value))}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {LISTENING_LENGTHS.map((minutes) => (
-                          <SelectItem key={minutes} value={String(minutes)}>{minutes} minutes</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                      </div>
+                      <Input placeholder={isBalloonMode ? 'Or type an experience name...' : 'Or type an attraction name...'} value={placeInput} onChange={(e) => { setPlaceInput(e.target.value); setPlace(''); }} />
+                    </div>
+                  ) : (
+                    <Input placeholder={isBalloonMode ? 'Type experience name...' : 'Type attraction name...'} value={placeInput} onChange={(e) => setPlaceInput(e.target.value)} />
+                  )}
                 </div>
+              )}
 
-                <button
-                  type="button"
-                  onClick={() => setIncludeIntroOutroNotes((prev) => !prev)}
-                  className={`w-full rounded-lg border px-3 py-2 text-left text-sm transition-colors ${includeIntroOutroNotes ? 'border-primary bg-primary/10 text-foreground' : 'border-border hover:bg-muted text-foreground'}`}
-                >
-                  Include intro and closing notes
-                </button>
+              {(place || placeInput) && (
+                <div className="space-y-2">
+                  <Label className="text-xs">Category</Label>
+                  <Select value={category} onValueChange={setCategory}>
+                    <SelectTrigger><SelectValue placeholder="Auto-detected or select..." /></SelectTrigger>
+                    <SelectContent>
+                      {GUIDE_CATEGORIES.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              <div className="flex justify-between pt-2">
+                <Button variant="outline" onClick={() => setFormStep(0)}>
+                  <ArrowLeft className="w-4 h-4 mr-1" /> Back
+                </Button>
+                <Button onClick={() => setFormStep(2)} disabled={!canNext}>
+                  Next <ArrowRight className="w-4 h-4 ml-1" />
+                </Button>
               </div>
-            )}
+            </CardContent>
+          </Card>
+        )}
 
-            <div className="space-y-2">
-              <Label className="flex items-center gap-1.5"><Languages className="w-3.5 h-3.5" /> Languages ({selectedLanguages.length} selected)</Label>
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 max-h-[200px] overflow-y-auto border rounded-lg p-2">
-                {ELEVENLABS_LANGUAGES.map((lang) => (
+        {/* STEP 2: Settings */}
+        {formStep === 2 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Final settings</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              {/* Languages — chip picker */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1.5 text-sm">
+                  <Languages className="w-3.5 h-3.5" /> Languages
+                  <span className="text-xs text-muted-foreground font-normal">({selectedLanguages.length} selected)</span>
+                </Label>
+                <LanguagePicker selected={selectedLanguages} onChange={setSelectedLanguages} />
+              </div>
+
+              {/* Price in dollars */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1.5 text-sm"><DollarSign className="w-3.5 h-3.5" /> Price (USD)</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={priceDollars}
+                    onChange={(e) => {
+                      const cents = Math.round(parseFloat(e.target.value || '0') * 100);
+                      setPriceUsd(String(isNaN(cents) ? 0 : cents));
+                    }}
+                    className="pl-7"
+                    placeholder="4.99"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">Stored as {priceUsd} cents</p>
+              </div>
+
+              {/* Balloon-specific settings */}
+              {isBalloonMode && (
+                <div className="space-y-5 rounded-xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/0 p-5">
+                  <div className="flex items-center gap-2 text-sm font-semibold">
+                    <Wind className="w-4 h-4 text-primary" />
+                    Balloon Experience Settings
+                  </div>
+
+                  {/* Valleys as chips */}
+                  <div className="space-y-2">
+                    <Label className="text-xs">Covered Valleys ({coveredValleys.length} selected)</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {BALLOON_VALLEYS.map((valley) => {
+                        const active = coveredValleys.includes(valley);
+                        return (
+                          <button
+                            key={valley}
+                            type="button"
+                            onClick={() => toggleValley(valley)}
+                            className={`rounded-full px-3 py-1.5 text-xs font-medium border-2 transition-all ${active ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:border-primary/50 hover:bg-muted'}`}
+                          >
+                            {active && <CheckCircle className="w-3 h-3 inline mr-1" />}
+                            {valley}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Flight theme as chips */}
+                  <div className="space-y-2">
+                    <Label className="text-xs">Flight Theme</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {FLIGHT_THEMES.map((theme) => {
+                        const active = flightTheme === theme;
+                        return (
+                          <button
+                            key={theme}
+                            type="button"
+                            onClick={() => setFlightTheme(theme)}
+                            className={`rounded-full px-3 py-1.5 text-xs font-medium border-2 transition-all ${active ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:border-primary/50 hover:bg-muted'}`}
+                          >
+                            {theme}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Duration slider */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs">Target Duration</Label>
+                      <span className="text-sm font-bold text-primary">{estimatedListeningMinutes} min</span>
+                    </div>
+                    <Slider
+                      value={[estimatedListeningMinutes]}
+                      min={10}
+                      max={25}
+                      step={5}
+                      onValueChange={(values) => setEstimatedListeningMinutes(values[0])}
+                    />
+                    <div className="flex justify-between text-[10px] text-muted-foreground">
+                      <span>10 min</span>
+                      <span>15 min</span>
+                      <span>20 min</span>
+                      <span>25 min</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Will be generated in {Math.max(2, Math.ceil(estimatedListeningMinutes / 5))} chunks of ~5 minutes each.
+                    </p>
+                  </div>
+
+                  {/* Intro/outro toggle */}
                   <button
-                    key={lang.code}
                     type="button"
-                    onClick={() => toggleLanguage(lang.code)}
-                    className={`px-2 py-1.5 rounded-lg text-xs font-medium border transition-all ${selectedLanguages.includes(lang.code) ? 'bg-primary/15 border-primary text-primary' : 'border-border hover:bg-muted text-muted-foreground'}`}
+                    onClick={() => setIncludeIntroOutroNotes((prev) => !prev)}
+                    className={`w-full rounded-lg border-2 px-4 py-3 text-left text-sm transition-colors ${includeIntroOutroNotes ? 'border-primary bg-primary/10' : 'border-border hover:bg-muted'}`}
                   >
-                    {lang.flag} {lang.name}
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">Include intro and closing notes</span>
+                      {includeIntroOutroNotes && <CheckCircle className="w-4 h-4 text-primary" />}
+                    </div>
                   </button>
-                ))}
+                </div>
+              )}
+
+              <div className="flex justify-between pt-2">
+                <Button variant="outline" onClick={() => setFormStep(1)}>
+                  <ArrowLeft className="w-4 h-4 mr-1" /> Back
+                </Button>
+                <Button onClick={handlePlanSections} disabled={!canNext} className="gap-1">
+                  <Sparkles className="w-4 h-4" />
+                  {isBalloonMode ? 'Plan Balloon Narration' : 'Plan Sections'}
+                </Button>
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="flex items-center gap-1.5"><DollarSign className="w-3.5 h-3.5" /> Price (USD cents)</Label>
-              <Input type="number" value={priceUsd} onChange={(e) => setPriceUsd(e.target.value)} placeholder="499 = $4.99" />
-              <p className="text-xs text-muted-foreground">Price: ${(parseInt(priceUsd || '0', 10) / 100).toFixed(2)}</p>
-            </div>
-
-            <Button onClick={handlePlanSections} disabled={!isFormValid} className="w-full h-12 text-base">
-              {isBalloonMode ? 'Plan Balloon Narration' : 'Plan Sections'}
-            </Button>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
     );
   }
