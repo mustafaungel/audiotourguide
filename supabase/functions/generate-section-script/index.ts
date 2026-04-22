@@ -172,7 +172,63 @@ GOOD: "Pigeon Valley earned its name from thousands of dovecotes carved into the
 BAD: "Pigeon Valley has many pigeons and locals use them."
 
 GOOD: "Kaymakli Underground City descends eight levels into the earth, connected to Derinkuyu by nine kilometers of tunnels, capable of sheltering up to twenty thousand people during Arab raids."
-BAD: "There are underground cities where people hid from enemies in the past."`;
+BAD: "There are underground cities where people hid from enemies in the past."
+
+BALLOON FLIGHT SENSORY REQUIREMENT (CRITICAL — scripts heard DURING actual dawn balloon flights):
+This script plays while the listener is floating in a hot air balloon over Cappadocia at sunrise. Include 1-2 brief sensory moments that honor the flight experience WITHOUT directional cues.
+
+ALLOWED sensory vocabulary (use 1-2 per chunk, never more):
+- silence / hush / stillness of the basket
+- dawn light, amber, rose, pale indigo
+- the horizon widens / unfolds / opens
+- mist clinging to valleys / rising vapor
+- the burner's breath / occasional warmth from above
+- other balloons appearing like painted lanterns across the pale sky
+- cool morning air carrying scent across great distance
+- suspension / the sense of being held by the sky
+
+FORBIDDEN flight language (script will be rejected):
+- "below you", "beneath", "above you", "to the left", "to the right"
+- "currently flying", "as we drift", "the wind carries us"
+- "look at", "you'll see", "you are now passing"
+- "from your balloon", "from this height"
+
+Evoke — do not direct. The listener's eyes find what they find; your job is to deepen what they're already experiencing.
+
+WORD VARIETY RULE:
+- Use "Cappadocia" at MOST twice in this chunk — preferably only once
+- NO paragraph may start with "Cappadocia" — it sounds robotic and encyclopedic
+- Alternatives: "this land", "this region", "the Göreme basin" (if accurate), "this terrain", "this high plateau", "this ancient earth"
+- Every paragraph should feel like spoken reflection, not Wikipedia prose
+
+BANNED LITERARY CLICHÉS (do not use ANY of these, in ANY language):
+- "whispers secrets of..." / "secrets of..."
+- "time has meticulously shaped..." / "time has sculpted..."
+- "a tapestry woven from..." / "a mosaic of..."
+- "stone sentinels" / "silent sentinels"
+- "testament to..."
+- "echoes of..." (unless literal acoustic echo)
+- "dance of light and shadow"
+- "chapter in the ongoing saga"
+- "every rock tells a story"
+- "time stands still"
+- "a journey through time"
+- "layers of history"
+- "resilience of the human spirit"
+- "painted by the hands of nature"
+- "narrates a tale"
+- "canvas of..."
+
+Instead: use plain, specific, earned language. Every sentence must carry information or sensation — not decoration.
+
+TOPIC OWNERSHIP ENFORCEMENT (STRICT — NO OVERLAP WITH OTHER CHUNKS):
+This chunk OWNS these topics EXCLUSIVELY — cover these and nothing else:
+${Array.isArray(section.owns) && section.owns.length > 0 ? section.owns.map((t: string) => `  - ${t}`).join('\n') : '  - (fall back to key_topics list)'}
+
+This chunk MUST NOT cover these topics (they belong to other chunks, covering them creates repetition):
+${Array.isArray(section.does_not_cover) && section.does_not_cover.length > 0 ? section.does_not_cover.map((t: string) => `  - ${t}`).join('\n') : '  - (avoid topics assigned to other chunks in the plan)'}
+
+If a tempting topic is on the "does not cover" list, leave it for its owner chunk. Stay in your lane.`;
 
     const standardUserPrompt = `Write the narration script for ${section.title} of the ${place} audio tour in ${city}, ${country}.
 
@@ -211,13 +267,27 @@ CHUNK DETAILS:
 - Mood: ${section.mood || 'awe-inspiring'}
 - Fun fact to include in this chunk: ${section.fun_fact || ''}
 - This chunk length: ${estimatedMinutes} minutes (~${wordCount} words)
-${previous_ending ? `
-CONTINUITY — The previous chunk ended with:
+- Assigned opening style: ${section.opening_style || (previous_ending ? 'causal_bridge' : 'cinematic_hook')}
+- Suggested flight moment (sensory phrase to weave in): ${section.flight_moment || 'dawn silence, other balloons across the pale sky'}
+
+OPENING RULE FOR THIS CHUNK (CRITICAL — apply strictly):
+${previous_ending ? `This is a CONTINUATION chunk. The previous chunk ended with:
 """${previous_ending}"""
 
-Open this chunk with a natural transition. Do NOT restart from scratch or re-introduce the topic. Continue the flow.
-` : `
-This is the OPENING chunk. Open with a cinematic, evocative hook that captures why this landscape is unique on Earth.
+Your FIRST sentence MUST be a natural thematic continuation of that ending. Observe these rules:
+- DO NOT start with "Cappadocia" — this is forbidden
+- DO NOT restart the topic or re-introduce the region
+- DO NOT use generic article-style openings like "The landscape..." or "This region is..."
+- DO use a linking phrase: "Those volcanoes..." / "What the land holds..." / "Within these carved walls..." / "As the light reaches..."
+- The reader should feel they are inside a continuous conversation, not reading a new encyclopedia entry
+- Match the assigned opening style: ${section.opening_style || 'causal_bridge'}
+` : `This is the OPENING chunk of the narration. Rules:
+- DO NOT start with "Cappadocia" — this is forbidden
+- DO NOT use generic openings like "Located in Turkey..." or "Cappadocia is a region..."
+- START with a cinematic sensory hook — dawn light, silence, rising, mist lifting
+- Invite the listener into a moment, not into a definition
+- Example patterns: "In the hush before the first wind stirs..." / "Dawn in central Anatolia begins..." / "There is a silence here older than memory..."
+- Match the assigned opening style: ${section.opening_style || 'cinematic_hook'}
 `}
 ${next_title ? `
 The next chunk will be: "${next_title}"
@@ -234,14 +304,28 @@ CHUNK WRITING REQUIREMENTS:
 5. Every paragraph must advance knowledge — no filler
 6. Sensory description WITHOUT direction — evoke, don't direct
 
-FINAL OUTPUT CHECK — before returning, verify your script contains NONE of these abbreviations:
-- BCE, BC, CE, AD → write "before the common era" / "common era"
-- St., Mt. → write "Saint", "Mount"
-- m, km, km², yrs → write "meters", "kilometers", "square kilometers", "years"
-- e.g., i.e., etc. → write "for example", "that is", "and so on"
-- & → "and"
-- % → "percent"
-- Any other initialism or shortened form — spell it out fully
+FINAL OUTPUT CHECK (verify BEFORE returning the script):
+
+1. ABBREVIATIONS — contains NONE of these:
+   - BCE, BC, CE, AD → write "before the common era" / "common era"
+   - St., Mt. → write "Saint", "Mount"
+   - m, km, km², yrs → write "meters", "kilometers", "square kilometers", "years"
+   - e.g., i.e., etc. → write "for example", "that is", "and so on"
+   - &, % → "and", "percent"
+
+2. OPENING — first sentence does NOT start with "Cappadocia". Matches assigned opening_style. No generic article-style intro.
+
+3. "CAPPADOCIA" FREQUENCY — appears at most TWICE in this chunk. No paragraph begins with "Cappadocia".
+
+4. CLICHÉ CHECK — contains NONE of: "whispers", "tapestry", "stone sentinels", "testament to", "echoes of" (unless literal), "dance of light", "chapter in the saga", "every rock tells a story", "time stands still", "journey through time", "layers of history", "resilience of the human spirit", "painted by nature", "narrates a tale", "canvas of".
+
+5. TOPIC OWNERSHIP — does NOT cover any topic from the "does_not_cover" list. Stays within the "owns" list.
+
+6. FLIGHT SENSORY — contains 1-2 sensory phrases evoking balloon experience (silence, dawn light, horizon widening, other balloons, mist, burner's breath) WITHOUT directional cues.
+
+7. DIRECTIONAL/LIVE FLIGHT — contains NONE of: "below you", "above", "to the right", "currently flying", "as we drift", "the wind carries us", "look at", "you'll see".
+
+If any check fails, revise before returning.
 
 Critical writing rules:
 - No directional cues

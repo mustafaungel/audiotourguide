@@ -107,8 +107,50 @@ Return EXACTLY ${balloonChunkCount} section objects as a JSON array. Each sectio
   "estimated_minutes": ${chunkMinutes},
   "mood": "one of: awe-inspiring, mysterious, playful, solemn, adventurous, romantic, dramatic, educational, contemplative",
   "transition_hint": "How this chunk connects to the next",
-  "fun_fact": "One specific, verifiable detail unique to this chunk"
+  "fun_fact": "One specific, verifiable detail unique to this chunk",
+  "owns": ["topic 1 EXCLUSIVE to this chunk", "topic 2 EXCLUSIVE to this chunk", "topic 3 EXCLUSIVE to this chunk"],
+  "does_not_cover": ["topic belonging to another chunk", "topic belonging to another chunk"],
+  "opening_style": "one of: cinematic_hook (chunk 1 only), causal_bridge, sensory_transition, reflective_pivot, legend_gathering, closing_reflection",
+  "flight_moment": "brief sensory phrase evoking the balloon experience, no direction (e.g., 'mist rising from valleys in the first light', 'the hush broken by the burner')"
 }
+
+STRICT TOPIC OWNERSHIP — NO OVERLAP BETWEEN CHUNKS:
+Each fact/legend/landmark is OWNED by EXACTLY ONE chunk. Other chunks must not repeat it.
+Apply this distribution (adjust proportionally for ${balloonChunkCount} chunks):
+
+For ${balloonChunkCount} chunks, assign ownership as follows:
+${balloonChunkCount === 2 ? `
+- Chunk 1 OWNS: Opening cinematic hook | Scale/UNESCO 1985/300 km² | Why globally unique | 3 volcanoes basics (Erciyes 3917m, Hasan 3253m, Göllü) | Tuff/basalt/erosion mechanics
+- Chunk 2 OWNS: Individual valleys (Love, Rose, Red, Pigeon, Meskendir, Sword, Zemi, Devrent, Pasabag) with distinct identity | All rock-cut churches/underground cities/Seljuk caravanserais/troglodyte life | All legends (Camel Rock, Saint Simeon, Love Valley lovers, Cavusin) | Closing reflection` : ''}
+${balloonChunkCount === 3 ? `
+- Chunk 1 OWNS: Opening cinematic hook | Scale/UNESCO 1985/300 km² | Why globally unique | Invitation to journey
+- Chunk 2 OWNS: 3 volcanoes (Erciyes 3917m, Hasan 3253m, Göllü) | Tuff/basalt/erosion mechanics | Fairy chimney formation physics | Erosion rates (1-2 cm/century)
+- Chunk 3 OWNS: Individual valleys with distinct features | All human heritage (churches, underground cities, Seljuk caravanserais, troglodyte life, pigeon agriculture) | All legends (Camel Rock, Saint Simeon, Love Valley lovers, Cavusin) | Closing reflection` : ''}
+${balloonChunkCount === 4 ? `
+- Chunk 1 OWNS: Opening cinematic hook | Scale/UNESCO 1985/300 km² | Why globally unique | Invitation to journey
+- Chunk 2 OWNS: 3 volcanoes (Erciyes 3917m, Hasan 3253m, Göllü) | Tuff/basalt/erosion mechanics | Fairy chimney formation physics | Erosion rates (1-2 cm/century)
+- Chunk 3 OWNS: Individual visible valleys from knowledge base with distinct character ONLY (no geology re-explanation, no churches, no legends)
+- Chunk 4 OWNS: All human heritage (3000 churches, Byzantine frescoes, underground cities Kaymakli/Derinkuyu 9km tunnels 20000 people, Seljuk caravanserais, troglodyte life until 1952, pigeon fertilizer, cave wineries) | All legends (Camel Rock, Saint Simeon, Love Valley lovers, Cavusin) | Closing reflection` : ''}
+${balloonChunkCount === 5 ? `
+- Chunk 1 OWNS: Opening cinematic hook | Scale/UNESCO 1985/300 km² | Why globally unique | Invitation to journey (DOES NOT cover volcanoes in detail, no valley names, no legends)
+- Chunk 2 OWNS: 3 volcanoes (Erciyes 3917m, Hasan 3253m, Göllü) | Tuff/basalt/erosion mechanics | Fairy chimney formation physics | Erosion rates (1-2 cm/century) | 9-5 million years timeline (DOES NOT cover valleys, churches, legends)
+- Chunk 3 OWNS: Individual visible valleys (Love, Rose, Red, Pigeon, Meskendir, Sword, Zemi, Devrent, Pasabag, Uçhisar Castle) with distinct character (DOES NOT explain geology, DOES NOT cover churches/underground/legends)
+- Chunk 4 OWNS: 3000 rock-cut churches | Byzantine frescoes by Constantinople artists | Underground cities Kaymakli/Derinkuyu (9km tunnels, 20000 people) | Seljuk caravanserais/Silk Road | Troglodyte life until 1952 | Pigeon droppings as fertilizer | Cave wineries in Avanos (DOES NOT re-explain valleys, DOES NOT cover legends)
+- Chunk 5 OWNS: Camel Rock legend (ONLY HERE) | Saint Simeon Stylites at Pasabag (ONLY HERE) | Love Valley two lovers legend (ONLY HERE) | Cavusin abandoned 1950s (ONLY HERE) | Nar Lake dragon legend if relevant | Closing reflection (DOES NOT restart topics from earlier chunks)` : ''}
+${balloonChunkCount === 6 ? `
+- Chunk 1 OWNS: Opening cinematic hook | Scale/UNESCO 1985/300 km² | Why globally unique
+- Chunk 2 OWNS: 3 volcanoes + tuff/basalt + fairy chimney formation + erosion rates
+- Chunk 3 OWNS: First valley group (3-4 valleys) with distinct features
+- Chunk 4 OWNS: Second valley group + major landmarks (Uçhisar Castle, Cavusin ruins visible)
+- Chunk 5 OWNS: Human heritage (churches, underground cities, caravanserais, troglodyte life, pigeon agriculture)
+- Chunk 6 OWNS: Legends (Camel Rock, Saint Simeon, Love Valley, Cavusin story) + closing reflection` : ''}
+
+OPENING STYLE ASSIGNMENTS:
+- Chunk 1: "cinematic_hook" (dawn, silence, rising, sense of place — NO "Cappadocia" in first sentence)
+- Chunk 2: "causal_bridge" (naturally continues from Chunk 1's ending — no restart)
+- Chunk 3: "sensory_transition" (evokes valleys emerging from light/mist — no restart)
+- Chunk 4: "reflective_pivot" (shifts from natural to human — no restart)
+- Chunk 5: "legend_gathering" or "closing_reflection" (draws together stories — no restart)
 
 CHUNK STRUCTURE (follow this exact distribution — no deviation):
 ${balloonChunkCount === 2 ? `- Chunk 1: Cinematic welcome + WHY this landscape is globally unique (scale, UNESCO, 3 volcanoes) + geological origins (Erciyes/Hasan/Göllü, 9 million years)
