@@ -947,7 +947,7 @@ export function AutoCreateGuide() {
 
   if (currentStep === 'audio_upload') {
     const uploadedCount = generatedAudio.filter((a) => a?.audio_url).length;
-    const totalSections = plannedSections.length;
+    const totalSections = isBalloonMode ? 1 : plannedSections.length;
     const allUploaded = uploadedCount >= totalSections;
     const totalDur = generatedAudio.reduce((sum, a) => sum + (a?.duration_seconds || 0), 0);
 
@@ -957,19 +957,19 @@ export function AutoCreateGuide() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Mic className="w-5 h-5" />
-              Upload Audio — {uploadedCount}/{totalSections} sections
+               Upload Audio — {uploadedCount}/{totalSections} sections
               {totalDur > 0 && <span className="text-sm font-normal text-muted-foreground ml-2">({Math.floor(totalDur / 60)} min total)</span>}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="bg-muted/50 border rounded-lg p-3 text-sm text-muted-foreground space-y-1">
-              <p><strong>Workflow:</strong> Copy each script below, paste it into <a href="https://elevenlabs.io/app/speech-synthesis" target="_blank" rel="noopener noreferrer" className="text-primary underline">ElevenLabs</a>, generate audio with your preferred voice settings, download the MP3, and upload it here.</p>
+               <p><strong>Workflow:</strong> {isBalloonMode ? 'Copy the master script, generate one continuous audio in ElevenLabs, then upload one MP3 here. If you export multiple MP3 files, the uploader will merge them automatically.' : <>Copy each script below, paste it into <a href="https://elevenlabs.io/app/speech-synthesis" target="_blank" rel="noopener noreferrer" className="text-primary underline">ElevenLabs</a>, generate audio with your preferred voice settings, download the MP3, and upload it here.</>}</p>
             </div>
             <div className="max-h-[500px] overflow-y-auto space-y-2 border rounded-lg p-3">
-              {plannedSections.map((section, i) => {
+               {(isBalloonMode ? [{ title: balloonMasterTitle, estimated_minutes: BALLOON_DEFAULT_DURATION }] : plannedSections).map((section, i) => {
                 const hasAudio = generatedAudio[i]?.audio_url;
                 const dur = generatedAudio[i]?.duration_seconds || 0;
-                const words = (generatedScripts[i] || '').trim().split(/\s+/).filter(Boolean).length;
+                 const words = (isBalloonMode ? combinedBalloonScript : (generatedScripts[i] || '')).trim().split(/\s+/).filter(Boolean).length;
 
                 return (
                   <div key={i} className={`border rounded-lg p-3 space-y-2 ${hasAudio ? 'border-primary/30 bg-primary/5' : ''}`}>
