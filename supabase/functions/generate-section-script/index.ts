@@ -104,8 +104,10 @@ CONTENT PRIORITIES:
 - If ${include_intro_outro_notes ? 'intro and closing notes are requested' : 'intro and closing notes are not requested'}, adapt the flow accordingly
 
 DELIVERY RULES:
-- Target approximately ${wordCount} words
+- Target EXACTLY ${wordCount} words — this is critical for ${estimatedMinutes}-minute audio duration
+- The script MUST be at least ${Math.floor(wordCount * 0.9)} words and no more than ${Math.ceil(wordCount * 1.1)} words
 - Use short spoken paragraphs separated by blank lines
+- Each selected valley needs substantial coverage (at least ${Math.floor(wordCount / (valleys.length + 2))} words per valley)
 - No markdown, no headers, no bullet points, no quotation marks, no em-dashes, no en-dashes
 - Write for TTS, with natural variation in rhythm and sentence length
 - Keep it immersive through ideas, not live directions`;
@@ -163,7 +165,13 @@ Critical writing rules:
 - No false immediacy
 - Every paragraph must still be accurate if the balloon route changes completely
 
-Write pure narration text only in ${lang}.`;
+LENGTH REQUIREMENT (CRITICAL):
+- You MUST write a FULL ${wordCount}-word script (minimum ${Math.floor(wordCount * 0.9)} words)
+- This is for a ${estimatedMinutes}-minute audio narration — shorter scripts will not fill the duration
+- Expand each section with rich storytelling, historical depth, and sensory detail
+- Each valley deserves substantial coverage (aim for ${Math.floor(wordCount / (valleys.length + 2))}+ words per valley)
+
+Write pure narration text only in ${lang}. Target: ${wordCount} words.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -183,7 +191,7 @@ Write pure narration text only in ${lang}.`;
             content: isBalloonMode ? balloonUserPrompt : standardUserPrompt,
           },
         ],
-        max_tokens: isBalloonMode ? 4200 : 2500,
+        max_tokens: isBalloonMode ? 8000 : 4000,
         temperature: isBalloonMode ? 0.55 : 0.7,
       }),
     });
