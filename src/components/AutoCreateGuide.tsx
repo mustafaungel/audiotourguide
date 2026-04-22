@@ -13,6 +13,17 @@ import { ALL_COUNTRIES, ELEVENLABS_LANGUAGES, GUIDE_CATEGORIES } from '@/data/co
 import { toast } from 'sonner';
 import { StepIndicator } from '@/components/ui/step-indicator';
 import { LanguagePicker } from '@/components/ui/language-picker';
+import {
+  BALLOON_DEFAULT_DURATION,
+  BALLOON_DEFAULT_THEME,
+  BALLOON_VALLEYS,
+  DIRECTIONAL_WARNING_PATTERN,
+  buildBalloonMasterTitle,
+  combineBalloonScripts,
+  detectCoveredValleys,
+  detectUnexpectedValleys,
+  formatValleyName,
+} from '@/lib/balloon-guide';
 
 interface SuggestedCity {
   name: string;
@@ -48,18 +59,6 @@ interface CreationProgress {
   message: string;
   detail?: string;
 }
-
-const BALLOON_VALLEYS = [
-  'Goreme Valley',
-  'Soganli Valley',
-  'Ihlara Valley',
-  'Cat Valley',
-] as const;
-
-const BALLOON_DEFAULT_THEME = 'Premium storytelling';
-const BALLOON_DEFAULT_DURATION = 25;
-
-const DIRECTIONAL_WARNING_PATTERN = /\b(left|right|below|above|ahead|behind|currently|current altitude|now flying|to your|under you|over you|step closer|turn around|next stop)\b/i;
 
 const groupAttractions = (items: SuggestedAttraction[]) => {
   return items.reduce<Record<string, SuggestedAttraction[]>>((acc, item) => {
