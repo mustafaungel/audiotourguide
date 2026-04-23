@@ -80,7 +80,7 @@ const FeaturedGuides = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="mobile-page-shell">
       <SEO
         title="Featured Audio Guides"
         description="Explore our handpicked collection of the best audio tour guides for UNESCO World Heritage sites and cultural attractions worldwide."
@@ -97,9 +97,9 @@ const FeaturedGuides = () => {
       <Navigation />
       
       {/* Header Section */}
-      <section className="py-8 bg-gradient-to-br from-primary/5 via-background to-accent/5">
-        <div className="container max-w-6xl mx-auto px-4">
-          <div className="text-center mb-8">
+      <section className="mobile-section">
+        <div className="mobile-container max-w-6xl">
+          <div className="discover-hero-panel text-center mb-8">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card/20 backdrop-blur-md border border-border/50 mb-4">
               <Star className="h-4 w-4 text-primary" />
               <span className="text-sm font-medium">Featured Collection</span>
@@ -126,8 +126,8 @@ const FeaturedGuides = () => {
       </section>
 
       {/* Results Section */}
-      <section className="py-8">
-        <div className="container max-w-6xl mx-auto px-4">
+      <section className="mobile-section pt-0">
+        <div className="mobile-container max-w-6xl">
           {searchTerm && (
             <div className="text-center mb-6">
               <p className="mobile-caption">
@@ -139,7 +139,7 @@ const FeaturedGuides = () => {
           {loading && <AudioGuideLoader variant="card" count={6} />}
 
           {!loading && (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
               {filteredGuides.map((guide) => (
                 <GuideCard
                   key={guide.id}
