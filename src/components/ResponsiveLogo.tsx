@@ -14,7 +14,7 @@ interface ResponsiveLogoProps {
 const sizeClasses = {
   sm: 'h-8 w-auto',
   md: 'h-12 sm:h-16 w-auto',
-  lg: 'h-12 sm:h-16 w-auto max-w-[160px] sm:max-w-[220px]',
+  lg: 'h-10 w-auto max-w-[132px] sm:h-12 sm:max-w-[168px] lg:h-14 lg:max-w-[190px] xl:max-w-[210px]',
 };
 
 const iconSizeClasses = {
@@ -58,7 +58,7 @@ export const ResponsiveLogo: React.FC<ResponsiveLogoProps> = ({
     <img
       src={logoUrl!}
       alt={`${branding.companyName} logo`}
-      className={cn("object-contain flex-shrink-0", sizeClasses[size])}
+      className={cn("max-w-full object-contain flex-shrink min-w-0", sizeClasses[size])}
       loading="eager"
     />
   ) : (
