@@ -33,6 +33,7 @@ export const MobileBottomNav = () => {
     <nav className="fixed inset-x-0 bottom-0 z-40 md:hidden pointer-events-none">
       <div className="mobile-container pb-safe pt-2.5">
         <div className="pointer-events-auto mobile-bottom-nav-shell">
+        <div className={cn("pointer-events-auto mobile-bottom-nav-shell", items.length === 4 && "mobile-bottom-nav-shell-guest")}>
           {items.map((item) => {
             const isActive = item.match(location.pathname);
             const Icon = item.icon;
