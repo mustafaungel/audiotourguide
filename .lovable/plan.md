@@ -1,283 +1,182 @@
 
-## Plan: Auto Create Audio Guide İçin “Balloon Flight Mode”u Yönsüz, Genel Bilgi Odaklı Hale Getirme
+Amaç: Admin ve Access sayfaları hariç, login dahil tüm kullanıcı sayfalarında mobil öncelikli, hızlı, kalıcı ve “audio guide” kimliğini güçlü biçimde hissettiren kapsamlı bir UI dönüşümü yapmak. Seçtiğin yön: Cinematic Audio Layers + Discover-first ana akış + tipografi ağırlığı + bottom navigation.
 
-### Hedef
-Auto Create akışına özel bir **Balloon Flight Mode** eklenecek, ancak bu mod:
-- yönlendirme yapmayacak
-- anlık konum / yükseklik / sağ-sol gibi ifadeler kullanmayacak
-- uçuşun herhangi bir anında dinlenebilecek **genel bilgi odaklı** bir audio guide üretecek
-- tek uzun section mantığında çalışacak
-- özellikle Cappadocia için vadiler, jeoloji, tarih, kültür ve deneyim bilgisini eksiksiz kapsayacak
+1. Tasarım yönünü tek bir mobil sistem haline getireceğim
+- Mevcut renk paletini koruyacağım; yeni bir marka rengi icat etmeyeceğim.
+- Görsel dil: katmanlı yüzeyler, kontrollü glow, yumuşak depth, premium ses ürünü hissi.
+- İçerik dili: büyük başlık, güçlü alt başlık, sade ama lüks kart düzeni.
+- “Basit” görünümü kırmak için yoğunluğu rastgele artırmak yerine ritim, hiyerarşi ve yüzey kalitesi artırılacak.
+- Performans için blur ve shadow kullanımı kontrollü olacak; sadece kritik alanlarda hafif ve optimize edilmiş şekilde uygulanacak.
 
-Bu yaklaşım, gerçek uçuş rotası değişse bile rehberi güvenli ve doğru tutar.
+2. Ortak mobil UI foundation kurulacak
+Aşağıdaki ortak yapı tüm kullanıcı sayfalarına yayılacak:
+- Yeni mobil shell yapısı
+  - üstte ince/sticky compact header
+  - altta safe-area uyumlu bottom navigation
+  - içerikte daha iyi spacing, section rhythm ve scroll akışı
+- Ortak mobil section header pattern
+  - küçük label
+  - güçlü başlık
+  - kısa açıklama
+  - opsiyonel aksiyon
+- Ortak kart sistemi
+  - tipografi odaklı kart başlıkları
+  - daha premium yüzey
+  - daha net bilgi gruplama
+  - daha iyi thumb zone CTA yerleşimi
+- Ortak boş durum / loading / CTA blokları
+  - daha markalı ve tutarlı görünüm
+- Ortak mobil spacing/token iyileştirmeleri
+  - alt navigation ile çakışmayan padding
+  - safe-area ve mini player uyumlu alt boşluklar
+  - tek tip radius / border / shadow dili
 
----
+3. Bottom navigation eklenecek
+Admin ve Access dışında mobil kullanıcı akışında alt navigation eklenecek.
+Önerilen sekmeler:
+- Discover
+- Guides
+- Destinations
+- Library
+- Account / Sign In
 
-## 1. Auto Create formuna yeni “Guide Type” alanı
-`src/components/AutoCreateGuide.tsx` içinde mevcut standart akış korunacak, yanına yeni bir mod eklenecek:
+Davranış:
+- aktif route net şekilde vurgulanacak
+- hızlı thumb navigation sağlanacak
+- mini player ve safe-area ile çakışmayacak
+- desktop’ta görünmeyecek, sadece mobil/tablet alt kırılımlarda çalışacak
 
-- **Standard Tour**
-  - mevcut çoklu section mantığı
-- **Balloon Flight Experience**
-  - tek uzun section
-  - genel bilgi odaklı anlatım
-  - rota bağımsız içerik
-  - yön tarif etmeyen narrasyon
+4. Sayfa bazlı dönüşüm planı
+Kapsam dahilindeki sayfalar:
+- /
+- /admin-login
+- /guides
+- /guide/:slug
+- /library
+- /country
+- /country/:countrySlug
+- /featured-guides
+- /payment-success
+- /payment-cancelled
+- 404 sayfası
 
-### Balloon mode için yeni alanlar
-- **Experience Name**
-- **Region / Destination**
-- **Covered Valleys** (çoklu seçim)
-  - Göreme Valley
-  - Soğanlı Valley
-  - Ihlara Valley
-  - Çat Valley
-- **Flight Theme**
-  - Geological story
-  - Historical and cultural story
-  - Balanced overview
-  - Premium storytelling
-- **Estimated Listening Length**
-  - 10 / 15 / 20 / 25 dk
-- **Include intro/outro notes**
-  - opsiyonel
+A) Home / Discover
+Seçimin doğrultusunda ana sayfa “discover-first” olacak.
+- Hero daha kompakt ama daha premium hale gelecek
+- ilk ekranda keşif duygusu güçlenecek
+- section’lar “listen now” değil “discover destinations / curated guides / featured experiences” mantığında akacak
+- filtre ve guide listesi daha editorial ve mobil dostu olacak
+- kart yoğunluğu yerine akış kalitesi artırılacak
 
-Not: “pilot voice” ifadesi yerine daha güvenli ve doğru bir tanım kullanılacak:
-- **Balloon experience narrator**
-- profesyonel, sakin, premium
-- ama uçuşu yöneten kişi gibi anlık komut veren bir ton olmayacak
+B) Login
+- mevcut sade auth kartı tamamen premium mobil auth deneyimine dönüştürülecek
+- daha güçlü başlık, daha iyi giriş hiyerarşisi, daha rafine tabs/form yüzeyleri
+- CTA ve input düzeni başparmak erişimine göre optimize edilecek
+- sayfa “admin login” değil markanın kullanıcı giriş kapısı gibi hissedecek
 
----
+C) Guides
+- üst arama alanı ve filtre aksiyonları sticky/mobile-friendly hale gelecek
+- category chips daha rafine hale getirilecek
+- guide kartları tipografi odaklı ve daha editorial görünecek
+- sonuç, filtre ve keşif akışı daha hızlı okunur olacak
 
-## 2. Section planner’da balloon mode için ayrı branch
-`supabase/functions/plan-guide-sections/index.ts` içinde yeni bir mod eklenecek.
+D) Guide Detail
+- mobil hero ve bilgi hiyerarşisi sadeleşecek ama daha premium görünecek
+- başlık, lokasyon, badge, dil, satın alma / dinleme aksiyonları yeniden dengelenecek
+- kartlar ve içerik blokları “audio-first luxury” çizgisine çekilecek
+- kritik CTA’lar thumb zone’a yakınlaştırılacak
 
-### Standard mode
-- aynen korunur
+E) Library
+- mevcut yapı masaüstü ağırlıklı his veriyor; mobil öncelikli yeniden kurgulanacak
+- continue listening, recent purchases, progress, saved guides gibi bloklar daha temiz sunulacak
+- gereksiz yoğun analytics görünümü mobilde sadeleştirilecek
+- dinleme odaklı kart/row yapısı kurulacak
 
-### Balloon mode
-- planner tam olarak **1 section** döndürür
-- bu section bir yürüyüş rotası gibi değil, tek parça uzun bir anlatı olur
-- plan alanları buna göre şekillenir:
-  - introduction
-  - geological foundations
-  - valley-by-valley overview
-  - historical and cultural context
-  - hidden details most guests miss
-  - closing reflection
+F) Countries / Country Detail / Featured Guides
+- arama, başlık alanı ve grid akışı ortak mobil sistemle hizalanacak
+- keşif, kategori ve destinasyon hissi güçlendirilecek
+- country kartları ve listing yapıları daha güçlü yüzey ve tipografi ile yenilenecek
 
-### Balloon mode için temel plan kuralları
-- sağınızda, solunuzda, altınızda, önünüzde gibi yönsel anlatım yasak
-- şu an yükseliyoruz, şu an şu kadar yüksekteyiz gibi anlık durum anlatımı yasak
-- next stop / move forward / step closer gibi yürüyüş dili yasak
-- içerik “uçuş sırasında herhangi bir anda dinlenebilir” yapıda olmalı
-- seçilen vadilerin hepsi anlamlı biçimde kapsanmalı
-- hidden gems ve daha az bilinen detaylar da mutlaka dahil edilmeli
+G) Payment Success / Cancelled / 404
+- bunlar şu an fonksiyonel ama görsel olarak zayıf
+- aynı premium mobil sistemle uyumlu sonuç ekranlarına dönüşecek
+- daha iyi ikon alanı, bilgi blokları, aksiyon grupları ve CTA hiyerarşisi eklenecek
 
----
+5. Performans kuralları
+Bu çalışma sadece UI değişikliği olarak kalacak; hız öncelikli olacak.
+- transform/opacity tabanlı animasyon
+- layout thrash oluşturan ağır animasyonlardan kaçınma
+- navbar ve bottom nav’da hafif efektler
+- kartlarda kontrollü shadow/depth
+- yeni veri yükü eklememe
+- mevcut query/data fetching yapısını bozmama
+- görsel kaliteyi CSS sistematiği ile artırma, ağır JS ile değil
 
-## 3. Script generation için yeni prompt branch
-`supabase/functions/generate-section-script/index.ts` içinde mevcut güçlü prompt korunacak, balloon mode için ayrı bir prompt branch eklenecek.
+6. Audio guide temasına özel görsel prensipler
+Seçtiğin “Cinematic Audio Layers” yönü şu şekilde uygulanacak:
+- ses dalgası, waveform, canlı dinleme, oynatma hissi dekoratif ama kontrollü kullanılacak
+- büyük ve güçlü tipografiyle “story + listening” kimliği verilecek
+- kartlarda sadece görsel değil, ses deneyimi hissi olacak
+- amber/warm primary tonlar korunacak
+- koyu/açık mod dengesi bozulmadan premium yüzeyler oluşturulacak
 
-### Yeni anlatım karakteri
-Balloon mode’da anlatıcı:
-- bilgili, rafine, premium bir Cappadocia anlatıcısı olur
-- sakin ve güven verici bir tonda konuşur
-- fakat anlık pilot yönlendirmesi yapmaz
-- rehberlik ederken “genel anlatı” kurar
+7. Uygulama sırası
+Faz 1 — Temel sistem
+- mobile shell
+- bottom navigation
+- ortak spacing/section/card tokenları
+- shared navigation/footer mobil revizyonu
 
-### Prompt kuralları
-Balloon mode prompt’una şu net kısıtlar eklenecek:
-- **No directional language**
-  - no left, right, below, ahead, behind, above you
-- **No live flight claims**
-  - no current altitude, current wind, current route, current visibility
-- **No walking guidance**
-  - no step closer, turn around, move to the next stop
-- **No false immediacy**
-  - içerik bulunduğu anı varsaymaz
-- **General information first**
-  - jeoloji, tarih, manastır yaşamı, kaya oyma kültürü, tarım, güvercinlikler, vadilerin karakter farkları
-- **Evergreen narration**
-  - rota değişse bile yanlış olmayacak cümleler
-- **Single-flow long-form script**
-  - tek section içinde paragraf bazlı ritim
-  - TTS için kısa bloklar ve nefes alan yapı
+Faz 2 — Ana keşif sayfaları
+- Index
+- Guides
+- Countries
+- FeaturedGuides
+- CountryDetail
 
-### Balloon mode için örnek anlatım yaklaşımı
-İçerik şu tipte olacak:
-- Kapadokya’nın volkanik oluşumu
-- tüf ve erozyonun peri bacalarını nasıl yarattığı
-- seçilen vadilerin ayrı karakterleri
-- insanların bu coğrafyaya nasıl uyumlandığı
-- kaya oyma kiliseler, güvercinlikler, tarım ve yaşam kültürü
-- balloon experience’i özel yapan atmosfer
-- popüler bilgi + hidden gems dengesi
+Faz 3 — Dönüşüm ve sahiplik sayfaları
+- Auth
+- GuideDetail
+- Library
+- PaymentSuccess
+- PaymentCancelled
+- NotFound
 
-Yani anlatım “şu anda şuradasınız” değil, “bu coğrafyanın neden eşsiz olduğu” üzerine kurulacak.
+Faz 4 — Son polish
+- mobil spacing audit
+- bottom nav + mini player çakışma kontrolü
+- sticky alanlar ve safe-area düzeltmeleri
+- dark/light görünüm tutarlılığı
 
----
+8. Teknik detaylar
+Muhtemel dokunulacak alanlar:
+- src/index.css
+- src/components/Navigation.tsx
+- yeni bir shared MobileBottomNav component
+- src/pages/Index.tsx
+- src/pages/Auth.tsx
+- src/pages/Guides.tsx
+- src/pages/GuideDetail.tsx
+- src/pages/Library.tsx
+- src/pages/Countries.tsx
+- src/pages/CountryDetail.tsx
+- src/pages/FeaturedGuides.tsx
+- src/pages/PaymentSuccess.tsx
+- src/pages/PaymentCancelled.tsx
+- src/pages/NotFound.tsx
+- gerektiğinde GuideCard / SearchAutocomplete / Footer / EnhancedLibrary gibi kullanıcıya görünen ortak bileşenler
 
-## 4. Cappadocia için özel bilgi çerçevesi
-Balloon mode’da Cappadocia seçildiğinde sistem daha zengin içerik üretmeli.
+9. Bu planda özellikle korunacak sınırlar
+- Admin sayfasına dokunulmayacak
+- Access sayfasına dokunulmayacak
+- backend mantığı değişmeyecek
+- veri modeli değişmeyecek
+- marka renk yönü korunacak
+- değişiklikler yalnızca UI/UX tarafında olacak
 
-### Zorunlu bilgi eksenleri
-- Hasan Dağı ve Erciyes gibi volkanik geçmiş
-- tüf kaya yapısı ve erozyon
-- peri bacalarının oluşumu
-- kaya oyma yaşam ve manastır kültürü
-- güvercinlikler ve tarımsal kullanım
-- vadiler arası farklar
-- turizmden önceki yerel yaşam
-- fotoğrafik ve kültürel ün
-- çok bilinen yerler + hidden gems
-
-### Vadi bazlı minimum kapsama
-Seçilen her vadi için sistem şu 4 şeyi üretmeli:
-- neden önemli
-- görsel / coğrafi karakteri
-- tarihsel / kültürel bağı
-- diğer vadilerden farkı
-
-Bu sayede sadece “liste gibi bilgi” değil, derin ve profesyonel bir anlatı çıkar.
-
----
-
-## 5. Suggestion sistemini güçlendirme
-Şu an `suggest-cities` ve `suggest-attractions` fazla yüzeysel. Balloon mode ile birlikte bunlar da iyileştirilecek.
-
-### `supabase/functions/suggest-cities/index.ts`
-Genişletilecek:
-- yalnızca şehir değil, **destination region** mantığı da desteklenecek
-- örnek: Cappadocia bir şehir değil, bölgesel destinasyon olarak da önerilebilmeli
-- top 30 yerine daha kapsamlı ve turizm odaklı sonuçlar
-- city / region / tourism hub ayrımı
-
-### `supabase/functions/suggest-attractions/index.ts`
-Daha zengin çıktı verecek:
-- Major Highlights
-- Experiences
-- Valleys / Scenic Areas
-- Historical Sites
-- Hidden Gems
-
-Mevcut `SuggestedAttraction` yapısı korunabilir, ama açıklamalar ve tipler daha kaliteli hale getirilecek. Gerekirse UI içinde kategori rozetleriyle gruplanacak.
-
-### UI geliştirmesi
-`AutoCreateGuide.tsx` içinde attraction listesi:
-- daha fazla sonuç göstermeli
-- sadece tek satır değil, daha açıklayıcı görünmeli
-- hidden gem / valley / experience gibi ayrımları belli etmeli
-
----
-
-## 6. Review ekranlarını balloon mode’a uyarlama
-`AutoCreateGuide.tsx` içindeki review adımları balloon mode için özelleştirilecek.
-
-### Plan review
-- “1 long section”
-- tahmini dakika
-- seçilen vadiler
-- content theme
-- hidden gems coverage notu
-
-### Script review
-- toplam kelime ve tahmini dakika
-- script çok kısa ise uyarı
-- seçilen vadiler kapsanmış mı kontrol listesi
-- directional/live-flight dil tespiti için basit uyarı mantığı
-  - örn. left, right, below, above, currently, now flying gibi kelimeler için warning
-
-### Audio upload
-- tek section olduğundan daha sade akış
-- uzun tek MP3 veya çoklu MP3 merge desteği korunur
-
----
-
-## 7. Görsel üretim mantığı
-`generate-image` çağrısı balloon mode’da farklı prompt kullanmalı:
-- editorial-grade Cappadocia balloon atmosphere
-- geniş manzara
-- premium travel hissi
-- aşırı literal cockpit/pilot görseli değil
-- genel deneyim hissi veren kapak
-
----
-
-## 8. Teknik değişiklikler
-### `src/components/AutoCreateGuide.tsx`
-Eklenecek state alanları:
-- `guideType`
-- `coveredValleys`
-- `flightTheme`
-- `estimatedListeningMinutes`
-- `includeIntroOutroNotes`
-
-Fonksiyon çağrıları genişletilecek:
-- `plan-guide-sections`
-- `generate-section-script`
-
-Yeni request yapısı:
-```text
-{
-  mode: "standard" | "balloon",
-  country,
-  city,
-  place,
-  category,
-  covered_valleys: string[],
-  flight_theme: string,
-  estimated_listening_minutes: number,
-  include_intro_outro_notes: boolean
-}
-```
-
-### `supabase/functions/plan-guide-sections/index.ts`
-- mode destekleyecek
-- standard ve balloon ayrılacak
-- balloon mode tam 1 section döndürecek
-
-### `supabase/functions/generate-section-script/index.ts`
-- mode destekleyecek
-- balloon için yeni prompt branch eklenecek
-- yönsel ve anlık ifadeleri açıkça yasaklayacak
-
-### `supabase/functions/suggest-cities/index.ts`
-- region/destination hub mantığı eklenecek
-- daha kapsamlı turizm önerileri üretilecek
-
-### `supabase/functions/suggest-attractions/index.ts`
-- hidden gems ve valleys kapsamı artırılacak
-- exhaustive mantık güçlendirilecek
-
----
-
-## 9. Etkilenmeyecek alanlar
-Aşağıdakiler bozulmadan kalacak:
-- mevcut Standard Tour auto create akışı
-- manuel guide creation
-- access page
-- player sistemi
-- mevcut yayınlanmış guide’lar
-- mevcut çoklu section rehber mantığı
-
----
-
-## 10. Doğrulama
-Uygulama sonrası şu kontroller yapılacak:
-1. Standard mode aynı şekilde çalışıyor
-2. Balloon mode 1 section plan üretiyor
-3. Script uzun ama yönsüz ve genel bilgi mantığında kalıyor
-4. left/right/now/current altitude gibi ifadeler çıkmıyor
-5. Cappadocia için seçilen vadilerin hepsi içerikte kapsanıyor
-6. Suggestion listesi daha kapsamlı ve hidden gems içeren sonuçlar veriyor
-7. Audio upload tek uzun section ile sorunsuz çalışıyor
-
-## Sonuç
-Bu revizyonla Balloon Flight Mode:
-- daha güvenilir
-- daha gerçekçi
-- rota bağımsız
-- operasyonel olarak daha doğru
-- misafire premium ama yanıltmayan bir bilgi deneyimi sunan
-bir yapıya dönüşecek.
+10. Beklenen sonuç
+- mobilde daha premium, daha hızlı algılanan, daha “app-like” bir ürün hissi
+- thumb-friendly ve tek elle kullanım için daha iyi akış
+- audio guide odaklı, kalıcı bir görsel temel
+- daha güçlü keşif deneyimi
+- gelecekte yeni ekranlar eklense bile aynı sistemle büyüyebilecek sağlam bir tasarım omurgası
