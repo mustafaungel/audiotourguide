@@ -1,182 +1,94 @@
 
-Amaç: Admin ve Access sayfaları hariç, login dahil tüm kullanıcı sayfalarında mobil öncelikli, hızlı, kalıcı ve “audio guide” kimliğini güçlü biçimde hissettiren kapsamlı bir UI dönüşümü yapmak. Seçtiğin yön: Cinematic Audio Layers + Discover-first ana akış + tipografi ağırlığı + bottom navigation.
+Amaç: Kullanıcının son geri bildirimine göre mobil premium hissi güçlendirmek ve masaüstü taşmaları kapatmak. Kapsam: ana sayfa hero metin katmanı, rehber kartlarının premium dengesi, mobil alt kontrol/navigation alanı ve özellikle logo çevresindeki desktop overflow sorunları.
 
-1. Tasarım yönünü tek bir mobil sistem haline getireceğim
-- Mevcut renk paletini koruyacağım; yeni bir marka rengi icat etmeyeceğim.
-- Görsel dil: katmanlı yüzeyler, kontrollü glow, yumuşak depth, premium ses ürünü hissi.
-- İçerik dili: büyük başlık, güçlü alt başlık, sade ama lüks kart düzeni.
-- “Basit” görünümü kırmak için yoğunluğu rastgele artırmak yerine ritim, hiyerarşi ve yüzey kalitesi artırılacak.
-- Performans için blur ve shadow kullanımı kontrollü olacak; sadece kritik alanlarda hafif ve optimize edilmiş şekilde uygulanacak.
+1. Ana sayfa hero alanını daha nefes alan ve daha şeffaf hale getireceğim
+- `src/components/HeroSection.tsx` içinde hero içerik bloğunu daha az “kutulu” hissettireceğim.
+- Mevcut `discover-hero-panel` yoğun opaklığını düşürüp arka plan görselinin daha fazla görünmesini sağlayacağım.
+- Başlık ve açıklama çevresindeki padding/margin ritmini açacağım; sıkışık hissi azaltacağım.
+- CTA butonlarını görsel hiyerarşiyi bozmayacak şekilde biraz daha kontrollü ayıracağım.
+- Mobilde kart hissi korunacak ama “solid panel” yerine daha hafif cam katman etkisi verilecek.
 
-2. Ortak mobil UI foundation kurulacak
-Aşağıdaki ortak yapı tüm kullanıcı sayfalarına yayılacak:
-- Yeni mobil shell yapısı
-  - üstte ince/sticky compact header
-  - altta safe-area uyumlu bottom navigation
-  - içerikte daha iyi spacing, section rhythm ve scroll akışı
-- Ortak mobil section header pattern
-  - küçük label
-  - güçlü başlık
-  - kısa açıklama
-  - opsiyonel aksiyon
-- Ortak kart sistemi
-  - tipografi odaklı kart başlıkları
-  - daha premium yüzey
-  - daha net bilgi gruplama
-  - daha iyi thumb zone CTA yerleşimi
-- Ortak boş durum / loading / CTA blokları
-  - daha markalı ve tutarlı görünüm
-- Ortak mobil spacing/token iyileştirmeleri
-  - alt navigation ile çakışmayan padding
-  - safe-area ve mini player uyumlu alt boşluklar
-  - tek tip radius / border / shadow dili
+2. Hero için ortak stil tokenlarını rafine edeceğim
+- `src/index.css` içinde:
+  - `.discover-hero-panel`
+  - gerekirse yeni bir daha hafif varyant (`hero-panel-soft` benzeri)
+  - hero overlay gradient yoğunluğu
+  düzenlenecek.
+- Hedef görünüm:
+  - daha düşük opaklık
+  - daha ince border
+  - daha yumuşak blur
+  - daha geniş iç boşluk
+  - metin okunurluğunu koruyup arka planı öldürmeyen katman dengesi
 
-3. Bottom navigation eklenecek
-Admin ve Access dışında mobil kullanıcı akışında alt navigation eklenecek.
-Önerilen sekmeler:
-- Discover
-- Guides
-- Destinations
-- Library
-- Account / Sign In
+3. Audio Guide kartlarını daha premium ve daha az “sıkışık liste” gibi hissettireceğim
+- `src/components/GuideCard.tsx` yeniden dengelenecek.
+- Kartların üst gradient başlığı, içerik alanı, thumbnail ve play aksiyonu arasındaki spacing artırılacak.
+- Kart yüksekliği ve iç yerleşimi daha premium editorial düzene çekilecek:
+  - görsel alan daha rafine
+  - metadata daha net satırlanmış
+  - location / duration / language / listening rozetleri daha seçici kullanılacak
+  - alt waveform dekoru daha kontrollü hale getirilecek
+- Özellikle mobilde kartların üst üste dizildiğinde “çok yoğun” görünmesini azaltacağım.
 
-Davranış:
-- aktif route net şekilde vurgulanacak
-- hızlı thumb navigation sağlanacak
-- mini player ve safe-area ile çakışmayacak
-- desktop’ta görünmeyecek, sadece mobil/tablet alt kırılımlarda çalışacak
+4. Guide card premium hissi için mikro detayları güçlendireceğim
+- Border ve shadow dengesini daha lüks ama hafif yapacağım; ağır görünümden kaçınacağım.
+- Featured ve normal kart ayrımı korunacak, ancak ikisi de aynı premium iskelete oturtulacak.
+- Play butonu, kartın geri kalanından kopuk görünmeyecek; daha bütünleşik bir aksiyon alanına dönüşecek.
+- Gerekirse kart içindeki bazı ikincil bilgiler küçültülüp sadeleştirilecek ki kart daha “expensive” görünsün.
 
-4. Sayfa bazlı dönüşüm planı
-Kapsam dahilindeki sayfalar:
-- /
-- /admin-login
-- /guides
-- /guide/:slug
-- /library
-- /country
-- /country/:countrySlug
-- /featured-guides
-- /payment-success
-- /payment-cancelled
-- 404 sayfası
+5. Mobil alt kontrol/navigation alanını premiumlaştıracağım
+- `src/components/MobileBottomNav.tsx` ve `src/index.css` içindeki:
+  - `.mobile-bottom-nav-shell`
+  - `.mobile-bottom-nav-item`
+  - `.mobile-bottom-nav-icon-wrap`
+  stilleri rafine edilecek.
+- Kullanıcının paylaştığı 3. görsele göre:
+  - dış kapsül daha premium ve daha dengeli olacak
+  - aktif sekme daha yumuşak ve daha sofistike vurgulanacak
+  - ikon/etiket boşlukları daha native-app hissi verecek
+  - alt alan safe-area ile daha temiz hizalanacak
+- “Basit bar” görünümü yerine premium mobil audio app hissi verilecek.
 
-A) Home / Discover
-Seçimin doğrultusunda ana sayfa “discover-first” olacak.
-- Hero daha kompakt ama daha premium hale gelecek
-- ilk ekranda keşif duygusu güçlenecek
-- section’lar “listen now” değil “discover destinations / curated guides / featured experiences” mantığında akacak
-- filtre ve guide listesi daha editorial ve mobil dostu olacak
-- kart yoğunluğu yerine akış kalitesi artırılacak
+6. Masaüstündeki logo ve header taşmalarını kapatacağım
+- `src/components/ResponsiveLogo.tsx` ve `src/components/Navigation.tsx` birlikte kontrol edilecek.
+- Desktop’ta özellikle:
+  - logo kapsayıcısı
+  - max-width sınırları
+  - shrink davranışı
+  - header içindeki gap/padding
+  - slogan metninin satır taşıma davranışı
+  iyileştirilecek.
+- Hedef:
+  - logo hiçbir breakpoint’te taşmayacak
+  - header dengesi korunacak
+  - marka alanı premium ama kontrollü kalacak
+  - navigation ile action alanı birbirini itmeyecek
 
-B) Login
-- mevcut sade auth kartı tamamen premium mobil auth deneyimine dönüştürülecek
-- daha güçlü başlık, daha iyi giriş hiyerarşisi, daha rafine tabs/form yüzeyleri
-- CTA ve input düzeni başparmak erişimine göre optimize edilecek
-- sayfa “admin login” değil markanın kullanıcı giriş kapısı gibi hissedecek
+7. Desktop header davranışını yeniden dengeleyeceğim
+- Masaüstünde logo kutusunun padding ve max-width değerleri optimize edilecek.
+- Gerekirse kompakt logo varyantı desktop için ayrı limitlerle kullanılacak.
+- Header’daki marka açıklaması (`Audio-first travel / Discover while you listen`) çok dar alanlarda daha güvenli davranacak:
+  - clamp / hide / max-width / truncate dengesi yeniden kurulacak.
+- Mobil görünüm korunacak; değişiklikler yalnızca taşma sorunu yaratan kırılımları hedefleyecek.
 
-C) Guides
-- üst arama alanı ve filtre aksiyonları sticky/mobile-friendly hale gelecek
-- category chips daha rafine hale getirilecek
-- guide kartları tipografi odaklı ve daha editorial görünecek
-- sonuç, filtre ve keşif akışı daha hızlı okunur olacak
+8. Premium tasarım yönünü mevcut marka ve performans kurallarıyla uyumlu tutacağım
+- Mevcut sıcak turuncu/amber marka yönü korunacak.
+- Ağır JS animasyonları eklenmeyecek.
+- Sadece CSS tabanlı, GPU dostu blur/shadow/transform ayarları kullanılacak.
+- Mevcut audio-guide kimliği ve “Cinematic Audio Layers” yönü korunacak; sadece daha rafine hale getirilecek.
 
-D) Guide Detail
-- mobil hero ve bilgi hiyerarşisi sadeleşecek ama daha premium görünecek
-- başlık, lokasyon, badge, dil, satın alma / dinleme aksiyonları yeniden dengelenecek
-- kartlar ve içerik blokları “audio-first luxury” çizgisine çekilecek
-- kritik CTA’lar thumb zone’a yakınlaştırılacak
-
-E) Library
-- mevcut yapı masaüstü ağırlıklı his veriyor; mobil öncelikli yeniden kurgulanacak
-- continue listening, recent purchases, progress, saved guides gibi bloklar daha temiz sunulacak
-- gereksiz yoğun analytics görünümü mobilde sadeleştirilecek
-- dinleme odaklı kart/row yapısı kurulacak
-
-F) Countries / Country Detail / Featured Guides
-- arama, başlık alanı ve grid akışı ortak mobil sistemle hizalanacak
-- keşif, kategori ve destinasyon hissi güçlendirilecek
-- country kartları ve listing yapıları daha güçlü yüzey ve tipografi ile yenilenecek
-
-G) Payment Success / Cancelled / 404
-- bunlar şu an fonksiyonel ama görsel olarak zayıf
-- aynı premium mobil sistemle uyumlu sonuç ekranlarına dönüşecek
-- daha iyi ikon alanı, bilgi blokları, aksiyon grupları ve CTA hiyerarşisi eklenecek
-
-5. Performans kuralları
-Bu çalışma sadece UI değişikliği olarak kalacak; hız öncelikli olacak.
-- transform/opacity tabanlı animasyon
-- layout thrash oluşturan ağır animasyonlardan kaçınma
-- navbar ve bottom nav’da hafif efektler
-- kartlarda kontrollü shadow/depth
-- yeni veri yükü eklememe
-- mevcut query/data fetching yapısını bozmama
-- görsel kaliteyi CSS sistematiği ile artırma, ağır JS ile değil
-
-6. Audio guide temasına özel görsel prensipler
-Seçtiğin “Cinematic Audio Layers” yönü şu şekilde uygulanacak:
-- ses dalgası, waveform, canlı dinleme, oynatma hissi dekoratif ama kontrollü kullanılacak
-- büyük ve güçlü tipografiyle “story + listening” kimliği verilecek
-- kartlarda sadece görsel değil, ses deneyimi hissi olacak
-- amber/warm primary tonlar korunacak
-- koyu/açık mod dengesi bozulmadan premium yüzeyler oluşturulacak
-
-7. Uygulama sırası
-Faz 1 — Temel sistem
-- mobile shell
-- bottom navigation
-- ortak spacing/section/card tokenları
-- shared navigation/footer mobil revizyonu
-
-Faz 2 — Ana keşif sayfaları
-- Index
-- Guides
-- Countries
-- FeaturedGuides
-- CountryDetail
-
-Faz 3 — Dönüşüm ve sahiplik sayfaları
-- Auth
-- GuideDetail
-- Library
-- PaymentSuccess
-- PaymentCancelled
-- NotFound
-
-Faz 4 — Son polish
-- mobil spacing audit
-- bottom nav + mini player çakışma kontrolü
-- sticky alanlar ve safe-area düzeltmeleri
-- dark/light görünüm tutarlılığı
-
-8. Teknik detaylar
-Muhtemel dokunulacak alanlar:
-- src/index.css
-- src/components/Navigation.tsx
-- yeni bir shared MobileBottomNav component
-- src/pages/Index.tsx
-- src/pages/Auth.tsx
-- src/pages/Guides.tsx
-- src/pages/GuideDetail.tsx
-- src/pages/Library.tsx
-- src/pages/Countries.tsx
-- src/pages/CountryDetail.tsx
-- src/pages/FeaturedGuides.tsx
-- src/pages/PaymentSuccess.tsx
-- src/pages/PaymentCancelled.tsx
-- src/pages/NotFound.tsx
-- gerektiğinde GuideCard / SearchAutocomplete / Footer / EnhancedLibrary gibi kullanıcıya görünen ortak bileşenler
-
-9. Bu planda özellikle korunacak sınırlar
-- Admin sayfasına dokunulmayacak
-- Access sayfasına dokunulmayacak
-- backend mantığı değişmeyecek
-- veri modeli değişmeyecek
-- marka renk yönü korunacak
-- değişiklikler yalnızca UI/UX tarafında olacak
+9. Dokunulacak dosyalar
+- `src/components/HeroSection.tsx`
+- `src/components/GuideCard.tsx`
+- `src/components/MobileBottomNav.tsx`
+- `src/components/Navigation.tsx`
+- `src/components/ResponsiveLogo.tsx`
+- `src/index.css`
 
 10. Beklenen sonuç
-- mobilde daha premium, daha hızlı algılanan, daha “app-like” bir ürün hissi
-- thumb-friendly ve tek elle kullanım için daha iyi akış
-- audio guide odaklı, kalıcı bir görsel temel
-- daha güçlü keşif deneyimi
-- gelecekte yeni ekranlar eklense bile aynı sistemle büyüyebilecek sağlam bir tasarım omurgası
+- Ana sayfa hero metni daha şeffaf, daha ferah ve daha premium görünecek.
+- Audio Guide kartları mobilde daha lüks, daha okunaklı ve daha az sıkışık hissedilecek.
+- Alt navigation/kontrol alanı daha premium bir native uygulama kalitesine yaklaşacak.
+- Masaüstünde özellikle logo çevresindeki taşma problemi kapanacak.
+- Tüm bu iyileştirmeler sadece UI tarafında kalacak; hız ve mevcut iş mantığı korunacak.
