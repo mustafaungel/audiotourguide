@@ -14,7 +14,7 @@ interface ResponsiveLogoProps {
 const sizeClasses = {
   sm: 'h-8 w-auto',
   md: 'h-12 sm:h-16 w-auto',
-  lg: 'h-16 sm:h-24 w-auto',
+  lg: 'h-12 sm:h-16 w-auto max-w-[160px] sm:max-w-[220px]',
 };
 
 const iconSizeClasses = {
