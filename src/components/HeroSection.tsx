@@ -19,7 +19,7 @@ if (typeof document !== 'undefined' && !document.querySelector('link[data-hero-p
 export const HeroSection: React.FC = () => {
   const navigate = useNavigate();
   return (
-    <section className="relative min-h-[50vh] md:min-h-[60vh] flex items-center justify-center overflow-hidden hero-depth-container">
+    <section className="relative flex min-h-[62vh] items-end justify-center overflow-hidden px-mobile-padding pt-4 md:min-h-[68vh] hero-depth-container">
       {/* Background — deepest layer */}
       <div className="absolute inset-0 hero-depth-bg">
         <img
@@ -33,7 +33,7 @@ export const HeroSection: React.FC = () => {
           fetchpriority="high"
           decoding="async"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-background/40 to-background/60" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-background/40 to-background/85" />
       </div>
 
       {/* Headphone silhouette background decoration — mid layer */}
@@ -47,29 +47,53 @@ export const HeroSection: React.FC = () => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 text-center max-w-4xl mx-auto mobile-container hero-depth-front">
-        <div className="mobile-spacing">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full audio-premium-badge">
-            <Headphones className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium">Discover World Heritage & Culture</span>
+      <div className="relative z-10 mx-auto w-full max-w-5xl pb-6 hero-depth-front">
+        <div className="discover-hero-panel mobile-spacing">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="inline-flex items-center gap-2 rounded-full audio-premium-badge px-4 py-2">
+              <Headphones className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium">Discover-first listening</span>
+            </div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-border/40 bg-background/65 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+              Fast mobile flow
+            </div>
           </div>
 
-          {/* Main Headline */}
-          <div className="space-y-4 md:space-y-6">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent leading-tight">
-              Explore the World's Hidden Stories
+          <div className="max-w-3xl space-y-4">
+            <h1 className="text-3xl font-extrabold leading-[0.98] text-foreground sm:text-4xl md:text-5xl lg:text-6xl">
+              Discover places through a richer audio travel experience
             </h1>
-            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Discover UNESCO World Heritage sites, cultural traditions, and iconic destinations with high quality audio guides that bring history to life.
+            <p className="max-w-2xl text-sm leading-relaxed text-foreground/78 sm:text-base md:text-lg">
+              Explore UNESCO landmarks, cultural routes and iconic destinations with premium storytelling, fast mobile discovery and a listening flow designed to feel effortless.
             </p>
           </div>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col gap-mobile-padding sm:gap-4 justify-center items-center w-full max-w-sm mx-auto sm:max-w-none sm:flex-row">
-            <Button variant="hero" size="default" className="w-full sm:w-auto px-6 py-3 btn-raised" onClick={() => navigate('/country')}>
-              <Headphones className="h-4 w-4 mr-2" />
+          <div className="editorial-stat-row">
+            <div className="editorial-stat-card">
+              <p className="mobile-kicker">Discover</p>
+              <p className="mt-1 text-base font-semibold text-foreground">Curated destinations</p>
+            </div>
+            <div className="editorial-stat-card">
+              <p className="mobile-kicker">Listen</p>
+              <p className="mt-1 text-base font-semibold text-foreground">Premium narration</p>
+            </div>
+            <div className="editorial-stat-card">
+              <p className="mobile-kicker">Move</p>
+              <p className="mt-1 text-base font-semibold text-foreground">Thumb-friendly mobile UI</p>
+            </div>
+            <div className="editorial-stat-card">
+              <p className="mobile-kicker">Return</p>
+              <p className="mt-1 text-base font-semibold text-foreground">Fast repeat journeys</p>
+            </div>
+          </div>
+
+          <div className="flex w-full flex-col gap-3 sm:max-w-none sm:flex-row sm:items-center">
+            <Button variant="hero" size="lg" className="w-full sm:w-auto px-6" onClick={() => navigate('/country')}>
+              <Headphones className="h-4 w-4" />
               Explore Destinations
+            </Button>
+            <Button variant="outline" size="lg" className="w-full sm:w-auto px-6" onClick={() => navigate('/guides')}>
+              Browse Audio Guides
             </Button>
           </div>
         </div>
