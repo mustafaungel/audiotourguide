@@ -49,16 +49,6 @@ export const HeroSection: React.FC = () => {
       {/* Content */}
       <div className="relative z-10 mx-auto w-full max-w-5xl pb-6 hero-depth-front">
         <div className="discover-hero-panel mobile-spacing">
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex items-center gap-2 rounded-full audio-premium-badge px-4 py-2">
-              <Headphones className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium">Discover-first listening</span>
-            </div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-border/40 bg-background/65 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-              Fast mobile flow
-            </div>
-          </div>
-
           <div className="max-w-3xl space-y-4">
             <h1 className="text-3xl font-extrabold leading-[0.98] text-foreground sm:text-4xl md:text-5xl lg:text-6xl">
               Discover places through a richer audio travel experience
@@ -66,25 +56,6 @@ export const HeroSection: React.FC = () => {
             <p className="max-w-2xl text-sm leading-relaxed text-foreground/78 sm:text-base md:text-lg">
               Explore UNESCO landmarks, cultural routes and iconic destinations with premium storytelling, fast mobile discovery and a listening flow designed to feel effortless.
             </p>
-          </div>
-
-          <div className="editorial-stat-row">
-            <div className="editorial-stat-card">
-              <p className="mobile-kicker">Discover</p>
-              <p className="mt-1 text-base font-semibold text-foreground">Curated destinations</p>
-            </div>
-            <div className="editorial-stat-card">
-              <p className="mobile-kicker">Listen</p>
-              <p className="mt-1 text-base font-semibold text-foreground">Premium narration</p>
-            </div>
-            <div className="editorial-stat-card">
-              <p className="mobile-kicker">Move</p>
-              <p className="mt-1 text-base font-semibold text-foreground">Thumb-friendly mobile UI</p>
-            </div>
-            <div className="editorial-stat-card">
-              <p className="mobile-kicker">Return</p>
-              <p className="mt-1 text-base font-semibold text-foreground">Fast repeat journeys</p>
-            </div>
           </div>
 
           <div className="flex w-full flex-col gap-3 sm:max-w-none sm:flex-row sm:items-center">
