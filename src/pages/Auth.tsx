@@ -112,13 +112,13 @@ const Auth = () => {
               </CardHeader>
               <CardContent className="pt-0">
                 <Tabs defaultValue="signin" className="w-full space-y-5">
-                <TabsList className="grid h-12 w-full grid-cols-2 rounded-2xl bg-muted/70 p-1">
-                  <TabsTrigger value="signin">Sign In</TabsTrigger>
-                  <TabsTrigger value="signup">Sign Up</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="signin" className="mt-0">
-                  <form onSubmit={handleSignIn} className="space-y-4">
+                  <TabsList className="grid h-12 w-full grid-cols-2 rounded-2xl bg-muted/70 p-1">
+                    <TabsTrigger value="signin">Sign In</TabsTrigger>
+                    <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="signin" className="mt-0">
+                    <form onSubmit={handleSignIn} className="space-y-4">
                     <div className="space-y-2.5">
                       <Label htmlFor="signin-email">Email</Label>
                       <Input
@@ -146,11 +146,11 @@ const Auth = () => {
                     <Button type="submit" variant="hero" size="lg" className="w-full" disabled={isLoading}>
                       {isLoading ? 'Signing in...' : 'Sign In'}
                     </Button>
-                  </form>
-                </TabsContent>
-                
-                <TabsContent value="signup" className="mt-0">
-                  <form onSubmit={handleSignUp} className="space-y-4">
+                    </form>
+                  </TabsContent>
+                  
+                  <TabsContent value="signup" className="mt-0">
+                    <form onSubmit={handleSignUp} className="space-y-4">
                     <div className="space-y-2.5">
                       <Label htmlFor="signup-name">Full Name</Label>
                       <Input
@@ -191,11 +191,12 @@ const Auth = () => {
                     <Button type="submit" variant="hero" size="lg" className="w-full" disabled={isLoading}>
                       {isLoading ? 'Creating account...' : 'Create Account'}
                     </Button>
-                  </form>
-                </TabsContent>
-              </Tabs>
+                    </form>
+                  </TabsContent>
+                </Tabs>
             </CardContent>
           </Card>
+          </section>
         </div>
       </main>
     </div>
