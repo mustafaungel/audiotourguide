@@ -15,7 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Star, MapPin, Clock, Users, Play, Download, Share2, Bookmark, ChevronLeft, Lock, Copy, Check, Link, ShoppingCart, Headphones, Globe } from "lucide-react";
+import { Star, MapPin, Clock, Users, Play, Download, Share2, Bookmark, ChevronLeft, Lock, Copy, Check, Link, Headphones, Globe } from "lucide-react";
 import { getLanguageFlag, getLanguageName } from "@/lib/language-utils";
 import { OptimizedImage } from "@/components/OptimizedImage";
 import { getMapEmbedUrl, parseCoordinates } from "@/lib/maps-utils";
@@ -771,7 +771,9 @@ const GuideDetail = () => {
                 </div>
               </div>
             </div>
-            <LiveListenersBadge guideId={guide.id} />
+            <div className="overflow-hidden rounded-[20px]">
+              <LiveListenersBadge guideId={guide.id} size="compact" />
+            </div>
 
             {/* Map link */}
             {guide.maps_url && (
@@ -790,35 +792,6 @@ const GuideDetail = () => {
                 </div>
                 <ChevronLeft className="w-4 h-4 text-muted-foreground rotate-180 shrink-0" />
               </a>
-            )}
-
-            {/* What's Included — value proposition */}
-            {!isPurchased && !hasAccessCode && (
-              <div className="section-band space-y-3 p-4">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/12 text-primary">
-                    <ShoppingCart className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">Full audio access</p>
-                    <p className="text-xs text-muted-foreground">Unlock the complete route, all chapters and repeat listening.</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                  <div className="editorial-stat-card p-3">
-                    <p className="mobile-kicker">Stops</p>
-                    <p className="mt-1 text-sm font-semibold text-foreground">{currentChapters.length} narrated points</p>
-                  </div>
-                  <div className="editorial-stat-card p-3">
-                    <p className="mobile-kicker">Duration</p>
-                    <p className="mt-1 text-sm font-semibold text-foreground">{displayDuration} minutes</p>
-                  </div>
-                  <div className="editorial-stat-card p-3">
-                    <p className="mobile-kicker">Access</p>
-                    <p className="mt-1 text-sm font-semibold text-foreground">Lifetime replay</p>
-                  </div>
-                </div>
-              </div>
             )}
 
             {/* Already Purchased Banner */}
