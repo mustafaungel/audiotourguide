@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { AudioGuideLoader } from '@/components/AudioGuideLoader';
-import { useNavigate } from 'react-router-dom';
 import { SEO } from '@/components/SEO';
 import { HeroSection } from '@/components/HeroSection';
 import StatsSection from '@/components/StatsSection';
@@ -9,16 +8,13 @@ import { GuideCard } from '@/components/GuideCard';
 import { Navigation } from '@/components/Navigation';
 import { lazy, Suspense } from 'react';
 const Footer = lazy(() => import('@/components/Footer').then(m => ({ default: m.Footer })));
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Headphones, MapPin, Sparkles } from 'lucide-react';
-import * as CarouselComponents from '@/components/ui/carousel';
+import { Headphones, MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
 const Index = () => {
-  const navigate = useNavigate();
   const [selectedGuide, setSelectedGuide] = useState<any>(null);
   
   const [processingPayment, setProcessingPayment] = useState<string | null>(null);
@@ -335,25 +331,6 @@ const Index = () => {
           </div>
         </section>}
 
-
-      {/* CTA Section */}
-      <section className="mobile-section relative overflow-hidden audio-wave-decoration">
-        <div className="mobile-container max-w-4xl text-center">
-          <div className="discover-hero-panel">
-          <h2 className="mobile-heading sm:text-3xl lg:text-4xl text-foreground mb-4">
-            Ready to Discover the World?
-          </h2>
-          <p className="mobile-text sm:text-lg lg:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Join thousands of travelers exploring UNESCO World Heritage sites and cultural treasures with AI-powered storytelling
-          </p>
-          <div className="mobile-stack sm:flex-row gap-4 justify-center">
-            <Button variant="hero" size="lg" className="mobile-button px-8 py-4 touch-target" onClick={() => navigate('/country')}>
-              Start Exploring
-            </Button>
-          </div>
-          </div>
-        </div>
-       </section>
        <Suspense fallback={null}><Footer /></Suspense>
     </div>;
 };
