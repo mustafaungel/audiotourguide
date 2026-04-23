@@ -195,20 +195,6 @@ const Index = () => {
       {/* Country/City Filter + Guides Section */}
       <section className="mobile-section">
         <div className="mobile-container">
-          <div className="mobile-section-header">
-            <p className="mobile-kicker">Discover</p>
-            <div className="flex items-end justify-between gap-3">
-              <div className="space-y-2">
-                <h2 className="mobile-title">Explore destinations worth listening to</h2>
-                <p className="mobile-body max-w-2xl">Filter by country and city, then move straight into a richer audio guide flow designed for fast mobile browsing.</p>
-              </div>
-              <div className="hidden sm:flex items-center gap-2 rounded-full border border-border/40 bg-card/70 px-3 py-2 text-xs font-semibold text-muted-foreground shadow-[var(--shadow-card)]">
-                <Sparkles className="h-3.5 w-3.5 text-primary" />
-                Curated discovery
-              </div>
-            </div>
-          </div>
-
           {/* Destination Filter Chips */}
           {!loading && guides.length > 0 && countries.length > 0 && (
             <div className="section-band mb-5 space-y-4 p-4 sm:p-5">
