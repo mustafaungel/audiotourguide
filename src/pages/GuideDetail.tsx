@@ -711,16 +711,16 @@ const GuideDetail = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-4 pb-24">
+      <div className="mobile-container py-4 pb-24">
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-4">
             {/* Compact Header — image + info side by side */}
-            <div className="space-y-3">
+            <div className="mobile-surface-strong space-y-4 rounded-[28px] p-4 sm:p-5">
               {/* Image + Language flags side by side */}
-              <div className="flex gap-4">
-                <div className="relative w-32 h-32 sm:w-36 sm:h-36 shrink-0 rounded-xl overflow-hidden shadow-lg">
+              <div className="flex flex-col gap-4 sm:flex-row">
+                <div className="relative h-40 w-full shrink-0 overflow-hidden rounded-[24px] shadow-[var(--shadow-elevated)] sm:h-36 sm:w-36">
                   <OptimizedImage
                     src={guide.image_urls?.[0] || guide.image_url}
                     alt={`${guide.title} - Audio Guide`}
@@ -730,17 +730,37 @@ const GuideDetail = () => {
                     loading="eager"
                     className="w-full h-full object-cover object-center"
                   />
-                  <Badge className={`absolute top-1.5 left-1.5 border-0 text-[9px] px-1.5 py-0 capitalize backdrop-blur-sm ${isFeaturedGuide ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-50' : 'bg-primary/80 text-primary-foreground'}`}>
+                  <Badge className={`absolute left-2 top-2 border-0 px-2 py-1 text-[10px] capitalize backdrop-blur-sm ${isFeaturedGuide ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-50' : 'bg-primary/85 text-primary-foreground'}`}>
                     {guide.category}
                   </Badge>
-                  <span className="absolute top-1.5 right-1.5 w-5 h-5 flex items-center justify-center bg-primary rounded-full shadow-md">
+                  <span className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-background/80 shadow-[var(--shadow-card)] backdrop-blur-md">
                     <MapPin className="w-3 h-3 text-primary-foreground" fill="currentColor" />
                   </span>
-                  <span className="absolute bottom-1.5 left-1.5 right-1.5 flex flex-wrap items-center gap-1 bg-black/60 backdrop-blur-sm text-white text-[9px] font-medium rounded-md px-1.5 py-0.5">
+                  <span className="absolute bottom-2 left-2 right-2 flex flex-wrap items-center gap-1 rounded-xl bg-black/55 px-2.5 py-1.5 text-[11px] font-medium text-white backdrop-blur-md">
                     <span className="break-words">{guide.location}</span>
                   </span>
                 </div>
                 <div className="flex-1 min-w-0 space-y-2">
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      <p className="mobile-kicker">Audio guide</p>
+                      <h1 className="text-2xl font-extrabold leading-tight text-foreground sm:text-3xl">{guide.title}</h1>
+                      <p className="text-sm leading-relaxed text-muted-foreground sm:text-[15px]">{guide.description}</p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 text-xs">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1.5 font-medium text-primary">
+                        <Headphones className="h-3.5 w-3.5" /> {currentChapters.length} audio stops
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 font-medium text-secondary-foreground">
+                        <Clock className="h-3.5 w-3.5" /> {displayDuration} min
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 font-medium text-secondary-foreground">
+                        <Globe className="h-3.5 w-3.5" /> {guide.languages?.length || 1} languages
+                      </span>
+                    </div>
+                  </div>
+
                   {guide?.id && (
                     <GuideLanguageSelector
                       guideId={guide.id}
@@ -753,18 +773,13 @@ const GuideDetail = () => {
             </div>
             <LiveListenersBadge guideId={guide.id} />
 
-            {/* Description — compact */}
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {guide.description}
-            </p>
-
             {/* Map link */}
             {guide.maps_url && (
               <a
                 href={guide.maps_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 p-3 rounded-xl border border-border/50 bg-muted/30 hover:bg-muted/50 transition-colors group"
+                className="mobile-surface flex items-center gap-3 rounded-[22px] p-3.5 transition-colors group hover:bg-muted/50"
               >
                 <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
                   <MapPin className="w-5 h-5 text-primary" />
@@ -779,16 +794,30 @@ const GuideDetail = () => {
 
             {/* What's Included — value proposition */}
             {!isPurchased && !hasAccessCode && (
-              <div className="flex flex-wrap gap-2 text-xs">
-                <span className="flex items-center gap-1 bg-primary/10 text-primary rounded-full px-2.5 py-1">
-                  <Headphones className="w-3 h-3" /> {currentChapters.length} audio stops
-                </span>
-                <span className="flex items-center gap-1 bg-primary/10 text-primary rounded-full px-2.5 py-1">
-                  <Clock className="w-3 h-3" /> {displayDuration} min
-                </span>
-                <span className="flex items-center gap-1 bg-primary/10 text-primary rounded-full px-2.5 py-1">
-                  <Headphones className="w-3 h-3" /> Lifetime access
-                </span>
+              <div className="section-band space-y-3 p-4">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/12 text-primary">
+                    <ShoppingCart className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Full audio access</p>
+                    <p className="text-xs text-muted-foreground">Unlock the complete route, all chapters and repeat listening.</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                  <div className="editorial-stat-card p-3">
+                    <p className="mobile-kicker">Stops</p>
+                    <p className="mt-1 text-sm font-semibold text-foreground">{currentChapters.length} narrated points</p>
+                  </div>
+                  <div className="editorial-stat-card p-3">
+                    <p className="mobile-kicker">Duration</p>
+                    <p className="mt-1 text-sm font-semibold text-foreground">{displayDuration} minutes</p>
+                  </div>
+                  <div className="editorial-stat-card p-3">
+                    <p className="mobile-kicker">Access</p>
+                    <p className="mt-1 text-sm font-semibold text-foreground">Lifetime replay</p>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -845,7 +874,7 @@ const GuideDetail = () => {
                 {isPurchased || hasAccessCode ? (
                   <div className="space-y-2 md:space-y-3">
                     {currentChapters.map((chapter, index) => (
-                      <Card key={index} className="p-3 md:p-4 hover:bg-muted/50 cursor-pointer transition-all audio-card-glow border-border/30">
+                      <Card key={index} className="audio-card-glow rounded-[24px] border-border/30 bg-card/80 p-3 md:p-4 hover:bg-muted/50 cursor-pointer transition-all">
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
                             <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-xs md:text-sm font-bold text-primary shrink-0">
@@ -883,7 +912,7 @@ const GuideDetail = () => {
                 ) : (
                   <div className="space-y-2">
                     {/* Preview header — gradient card */}
-                    <div className="bg-gradient-to-r from-primary/15 to-primary/5 rounded-xl p-3 border border-primary/20">
+                     <div className="rounded-[22px] border border-primary/20 bg-gradient-to-r from-primary/15 to-primary/5 p-4">
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
                           <Headphones className="w-4 h-4 text-primary" />
@@ -897,7 +926,7 @@ const GuideDetail = () => {
 
                     {/* Chapter list — full names */}
                     {currentChapters.slice(0, 3).map((chapter, index) => (
-                      <div key={index} className="flex items-center gap-2 p-2.5 bg-muted/30 rounded-lg border border-border/30">
+                      <div key={index} className="flex items-center gap-2 rounded-[20px] border border-border/30 bg-card/70 p-3 shadow-[var(--shadow-card)]">
                         <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
                           {index + 1}
                         </div>
@@ -972,12 +1001,26 @@ const GuideDetail = () => {
           {/* Sidebar */}
           <div className="space-y-4">
             {/* Purchase — headphone themed */}
-            <div className="rounded-2xl border overflow-hidden border-amber-500/30 bg-amber-500/5">
+            <div className="mobile-surface-strong overflow-hidden rounded-[28px] border-amber-500/30 bg-amber-500/5">
               <div className="px-4 py-2 flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500">
                 <Headphones className="w-4 h-4 text-amber-50" />
                 <span className="text-xs font-bold tracking-wide uppercase text-amber-50">Get Full Access</span>
               </div>
-              <div className="p-4">
+              <div className="space-y-4 p-4">
+                <div className="space-y-2 rounded-[22px] border border-border/30 bg-background/70 p-4">
+                  <div className="flex items-end justify-between gap-3">
+                    <div>
+                      <p className="mobile-kicker text-amber-600 dark:text-amber-400">Premium access</p>
+                      <p className="mt-1 text-2xl font-extrabold text-foreground">${((guide.price_usd || 0) / 100).toFixed(2)}</p>
+                    </div>
+                    <Badge variant="secondary" className="rounded-full px-3 py-1 text-[11px]">One-time purchase</Badge>
+                  </div>
+                  <div className="grid gap-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-2"><Check className="h-3.5 w-3.5 text-primary" />Full chapter access</div>
+                    <div className="flex items-center gap-2"><Check className="h-3.5 w-3.5 text-primary" />Mobile listening ready</div>
+                    <div className="flex items-center gap-2"><Check className="h-3.5 w-3.5 text-primary" />Return anytime from Library</div>
+                  </div>
+                </div>
                 {isPurchased ? (
                   <div className="flex items-center justify-center gap-2 py-3 text-amber-600">
                     <Check className="w-5 h-5" />
@@ -1001,7 +1044,7 @@ const GuideDetail = () => {
 
             {/* Linked Guides */}
             {linkedGuides.length > 0 && (
-              <div className="rounded-2xl border border-border/40 overflow-hidden">
+              <div className="mobile-surface overflow-hidden rounded-[24px]">
                 <div className="px-4 py-3 border-b border-border/30">
                   <h3 className="text-sm font-bold flex items-center gap-2">
                     <Headphones className="w-4 h-4 text-primary" />
@@ -1031,7 +1074,7 @@ const GuideDetail = () => {
 
             {/* Related Guides */}
             {relatedGuides.length > 0 && (
-              <div className="rounded-2xl border border-border/40 overflow-hidden">
+              <div className="mobile-surface overflow-hidden rounded-[24px]">
                 <div className="px-4 py-3 border-b border-border/30">
                   <h3 className="text-sm font-bold flex items-center gap-2">
                     <Headphones className="w-4 h-4 text-primary" />
