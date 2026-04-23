@@ -165,7 +165,7 @@ const CountryDetail = () => {
   };
 
   return (
-    <div className="mobile-viewport bg-background">
+    <div className="mobile-page-shell">
       <SEO 
         title={`${country} Audio Tour Guides | ${guides.length} UNESCO Sites & Cultural Heritage Tours`}
         description={`Explore ${guides.length} professional audio guides in ${country}. Discover UNESCO World Heritage sites, iconic landmarks, museums, and cultural treasures with expert-narrated immersive audio tours in multiple languages.`}
@@ -175,12 +175,13 @@ const CountryDetail = () => {
       <Navigation />
       
       {/* Header Section */}
-      <section className="mobile-padding mobile-spacing bg-gradient-hero">
+      <section className="mobile-section">
         <div className="mobile-container max-w-4xl">
+          <div className="discover-hero-panel">
           {/* Back Button */}
           <Button
             variant="ghost"
-            className="mb-4 -ml-2"
+            className="mb-4 -ml-2 w-fit"
             onClick={() => navigate('/country')}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -208,11 +209,12 @@ const CountryDetail = () => {
               </span>
             </div>
           </div>
+          </div>
         </div>
       </section>
 
       {/* Guides Section */}
-      <section className="mobile-padding mobile-spacing">
+      <section className="mobile-section">
         <div className="mobile-container">
           {/* Loading State */}
           {loading && (
@@ -221,7 +223,7 @@ const CountryDetail = () => {
 
           {/* Guides Grid */}
           {!loading && guides.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
               {guides.map(guide => {
                 const isPurchased = userPurchases.includes(guide.id);
                 return (
@@ -297,8 +299,9 @@ const CountryDetail = () => {
       )}
 
       {/* CTA Section */}
-      <section className="mobile-padding mobile-spacing bg-gradient-hero">
+      <section className="mobile-section">
         <div className="mobile-container max-w-4xl text-center">
+          <div className="discover-hero-panel">
           <h2 className="mobile-heading sm:text-3xl text-foreground mb-4">
             Explore More Destinations
           </h2>
@@ -322,6 +325,7 @@ const CountryDetail = () => {
             >
               Featured Guides
             </Button>
+          </div>
           </div>
         </div>
       </section>
