@@ -733,6 +733,9 @@ const GuideDetail = () => {
                   <Badge className={`absolute left-2 top-2 border-0 px-2 py-1 text-[10px] capitalize backdrop-blur-sm ${isFeaturedGuide ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-50' : 'bg-primary/85 text-primary-foreground'}`}>
                     {guide.category}
                   </Badge>
+                  <div className="absolute left-2 top-11 max-w-[calc(100%-4rem)] sm:max-w-[calc(100%-1rem)]">
+                    <LiveListenersBadge guideId={guide.id} size="compact" />
+                  </div>
                   <span className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-background/80 shadow-[var(--shadow-card)] backdrop-blur-md">
                     <MapPin className="w-3 h-3 text-primary-foreground" fill="currentColor" />
                   </span>
@@ -771,10 +774,6 @@ const GuideDetail = () => {
                 </div>
               </div>
             </div>
-            <div className="overflow-hidden rounded-[20px]">
-              <LiveListenersBadge guideId={guide.id} size="compact" />
-            </div>
-
             {/* Map link */}
             {guide.maps_url && (
               <a

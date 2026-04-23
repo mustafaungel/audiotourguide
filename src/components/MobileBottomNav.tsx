@@ -3,11 +3,10 @@ import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 
-const navItems = [
+const baseNavItems = [
   { to: "/", label: "Discover", icon: Home, match: (pathname: string) => pathname === "/" },
   { to: "/guides", label: "Guides", icon: Headphones, match: (pathname: string) => pathname.startsWith("/guides") || pathname.startsWith("/guide/") },
   { to: "/country", label: "Places", icon: MapPinned, match: (pathname: string) => pathname.startsWith("/country") || pathname.startsWith("/featured-guides") },
-  { to: "/library", label: "Library", icon: LibraryBig, match: (pathname: string) => pathname.startsWith("/library") || pathname.startsWith("/payment-") },
 ];
 
 const hiddenRoutes = ["/admin", "/access/"];
@@ -19,6 +18,10 @@ export const MobileBottomNav = () => {
   if (hiddenRoutes.some((route) => location.pathname.startsWith(route))) {
     return null;
   }
+
+  const navItems = user
+    ? [...baseNavItems, { to: "/library", label: "Library", icon: LibraryBig, match: (pathname: string) => pathname.startsWith("/library") || pathname.startsWith("/payment-") }]
+    : baseNavItems;
 
   const accountItem = user
     ? { to: "/library", label: "Account", icon: LogIn, match: (pathname: string) => pathname.startsWith("/library") }
