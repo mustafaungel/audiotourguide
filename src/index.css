@@ -460,6 +460,122 @@ All colors MUST be HSL.
   .mobile-card {
     @apply rounded-lg bg-card border border-border p-mobile-padding shadow-sm;
   }
+
+  .mobile-page-shell {
+    @apply relative min-h-screen overflow-x-hidden bg-background;
+    padding-bottom: calc(7rem + env(safe-area-inset-bottom));
+  }
+
+  .mobile-page-shell::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at top center, hsl(var(--primary) / 0.08), transparent 32%),
+      linear-gradient(180deg, hsl(var(--background)), hsl(var(--background)) 48%, hsl(var(--card) / 0.45));
+    z-index: -1;
+  }
+
+  .mobile-surface {
+    @apply border border-border/40 bg-card/70 shadow-[var(--shadow-card)];
+    backdrop-filter: blur(18px) saturate(130%);
+    -webkit-backdrop-filter: blur(18px) saturate(130%);
+  }
+
+  .mobile-surface-strong {
+    @apply border border-border/50 bg-card/80 shadow-[var(--shadow-elevated)];
+    backdrop-filter: blur(22px) saturate(140%);
+    -webkit-backdrop-filter: blur(22px) saturate(140%);
+  }
+
+  .mobile-section {
+    @apply px-mobile-padding py-6 sm:px-6 sm:py-8;
+  }
+
+  .mobile-section-header {
+    @apply mb-5 space-y-2;
+  }
+
+  .mobile-kicker {
+    @apply text-[11px] font-semibold uppercase tracking-[0.18em] text-primary/80;
+  }
+
+  .mobile-title {
+    @apply text-[1.75rem] font-extrabold leading-[1.05] text-foreground;
+  }
+
+  .mobile-body {
+    @apply text-sm leading-relaxed text-muted-foreground;
+  }
+
+  .mobile-chip-row {
+    @apply flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide;
+  }
+
+  .mobile-filter-chip {
+    @apply inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border/50 bg-card/80 px-4 py-2 text-sm font-medium text-foreground transition-all active:scale-95;
+  }
+
+  .mobile-filter-chip-active {
+    @apply border-primary/40 bg-primary text-primary-foreground shadow-[var(--shadow-interactive)];
+  }
+
+  .mobile-bottom-nav-shell {
+    @apply grid grid-cols-5 gap-1 rounded-[26px] border border-border/50 bg-card/85 px-2 py-2 shadow-[var(--shadow-elevated)];
+    backdrop-filter: blur(22px) saturate(150%);
+    -webkit-backdrop-filter: blur(22px) saturate(150%);
+  }
+
+  .mobile-bottom-nav-item {
+    @apply flex min-h-[60px] flex-col items-center justify-center gap-1 rounded-[20px] px-2 py-2 text-[11px] font-semibold text-muted-foreground transition-all duration-200;
+  }
+
+  .mobile-bottom-nav-item-active {
+    @apply bg-primary/12 text-foreground;
+    box-shadow: inset 0 1px 0 hsl(var(--background) / 0.55), 0 8px 24px hsl(var(--primary) / 0.16);
+  }
+
+  .mobile-bottom-nav-icon-wrap {
+    @apply flex h-8 w-8 items-center justify-center rounded-full border border-transparent bg-transparent transition-all duration-200;
+  }
+
+  .mobile-bottom-nav-icon-wrap-active {
+    @apply border-primary/20 bg-primary text-primary-foreground;
+  }
+
+  .mobile-bottom-nav-label {
+    @apply leading-none;
+  }
+
+  .discover-hero-panel {
+    @apply relative overflow-hidden rounded-[28px] border border-border/40 px-5 py-6 shadow-[var(--shadow-elevated)];
+    background: linear-gradient(180deg, hsl(var(--card) / 0.84), hsl(var(--card) / 0.68));
+    backdrop-filter: blur(18px) saturate(130%);
+    -webkit-backdrop-filter: blur(18px) saturate(130%);
+  }
+
+  .discover-hero-panel::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.2), transparent);
+  }
+
+  .section-band {
+    @apply rounded-[28px] border border-border/40 bg-card/65 shadow-[var(--shadow-card)];
+    backdrop-filter: blur(14px) saturate(120%);
+    -webkit-backdrop-filter: blur(14px) saturate(120%);
+  }
+
+  .editorial-stat-row {
+    @apply grid grid-cols-2 gap-3 sm:grid-cols-4;
+  }
+
+  .editorial-stat-card {
+    @apply rounded-2xl border border-border/40 bg-card/80 p-4 shadow-[var(--shadow-card)];
+  }
   
   .mobile-button {
     @apply touch-target rounded-lg px-6 py-3 font-medium transition-all;
@@ -665,6 +781,22 @@ All colors MUST be HSL.
     -webkit-backdrop-filter: blur(12px) saturate(150%);
     border: 1px solid hsl(var(--border) / 0.3);
     box-shadow: 0 2px 8px hsl(0 0% 0% / 0.08);
+  }
+
+  @media (max-width: 767px) {
+    .mobile-heading {
+      font-size: 1.75rem;
+      line-height: 1.08;
+    }
+
+    .mobile-subheading {
+      font-size: 1.125rem;
+      line-height: 1.25;
+    }
+
+    .mobile-card {
+      border-radius: 1.25rem;
+    }
   }
 
   /* Headphone silhouette for hero */
