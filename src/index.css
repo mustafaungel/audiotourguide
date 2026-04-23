@@ -522,37 +522,41 @@ All colors MUST be HSL.
   }
 
   .mobile-bottom-nav-shell {
-    @apply grid grid-cols-5 gap-1 rounded-[26px] border border-border/50 bg-card/85 px-2 py-2 shadow-[var(--shadow-elevated)];
-    backdrop-filter: blur(22px) saturate(150%);
-    -webkit-backdrop-filter: blur(22px) saturate(150%);
+    @apply grid grid-cols-5 gap-1.5 rounded-[30px] border border-border/45 px-2.5 py-2.5 shadow-[var(--shadow-elevated)];
+    background: linear-gradient(180deg, hsl(var(--card) / 0.9), hsl(var(--card) / 0.78));
+    backdrop-filter: blur(24px) saturate(155%);
+    -webkit-backdrop-filter: blur(24px) saturate(155%);
+    box-shadow: inset 0 1px 0 hsl(var(--background) / 0.65), 0 18px 40px hsl(var(--foreground) / 0.08), 0 8px 22px hsl(var(--primary) / 0.08);
   }
 
   .mobile-bottom-nav-item {
-    @apply flex min-h-[60px] flex-col items-center justify-center gap-1 rounded-[20px] px-2 py-2 text-[11px] font-semibold text-muted-foreground transition-all duration-200;
+    @apply flex min-h-[62px] flex-col items-center justify-center gap-1.5 rounded-[22px] px-2 py-2 text-[11px] font-semibold text-muted-foreground transition-all duration-300;
   }
 
   .mobile-bottom-nav-item-active {
-    @apply bg-primary/10 text-foreground;
-    box-shadow: inset 0 1px 0 hsl(var(--background) / 0.55), 0 8px 24px hsl(var(--primary) / 0.16);
+    color: hsl(var(--foreground));
+    background: linear-gradient(180deg, hsl(var(--primary) / 0.16), hsl(var(--primary) / 0.08));
+    box-shadow: inset 0 1px 0 hsl(var(--background) / 0.7), 0 10px 24px hsl(var(--primary) / 0.16);
   }
 
   .mobile-bottom-nav-icon-wrap {
-    @apply flex h-8 w-8 items-center justify-center rounded-full border border-transparent bg-transparent transition-all duration-200;
+    @apply flex h-9 w-9 items-center justify-center rounded-full border border-transparent bg-transparent transition-all duration-300;
   }
 
   .mobile-bottom-nav-icon-wrap-active {
-    @apply border-primary/20 bg-primary text-primary-foreground;
+    @apply border-primary/15 bg-primary text-primary-foreground;
+    box-shadow: 0 10px 22px hsl(var(--primary) / 0.22), inset 0 1px 0 hsl(var(--background) / 0.28);
   }
 
   .mobile-bottom-nav-label {
-    @apply leading-none;
+    @apply leading-none tracking-normal;
   }
 
   .discover-hero-panel {
-    @apply relative overflow-hidden rounded-[28px] border border-border/40 px-5 py-6 shadow-[var(--shadow-elevated)];
-    background: linear-gradient(180deg, hsl(var(--card) / 0.84), hsl(var(--card) / 0.68));
-    backdrop-filter: blur(18px) saturate(130%);
-    -webkit-backdrop-filter: blur(18px) saturate(130%);
+    @apply relative overflow-hidden rounded-[28px] border border-border/35 px-5 py-6 shadow-[var(--shadow-elevated)];
+    background: linear-gradient(180deg, hsl(var(--card) / 0.76), hsl(var(--card) / 0.58));
+    backdrop-filter: blur(16px) saturate(125%);
+    -webkit-backdrop-filter: blur(16px) saturate(125%);
   }
 
   .discover-hero-panel::after {
@@ -561,6 +565,22 @@ All colors MUST be HSL.
     inset: auto 0 0 0;
     height: 1px;
     background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.2), transparent);
+  }
+
+  .hero-copy-panel {
+    @apply relative max-w-4xl overflow-hidden rounded-[30px] border border-border/25 px-5 py-6 shadow-[var(--shadow-elevated)] sm:px-7 sm:py-7 md:px-8 md:py-8;
+    background: linear-gradient(180deg, hsl(var(--card) / 0.44), hsl(var(--card) / 0.2));
+    backdrop-filter: blur(10px) saturate(115%);
+    -webkit-backdrop-filter: blur(10px) saturate(115%);
+    box-shadow: inset 0 1px 0 hsl(var(--background) / 0.45), 0 12px 32px hsl(var(--foreground) / 0.06), 0 24px 60px hsl(var(--foreground) / 0.04);
+  }
+
+  .hero-copy-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, hsl(var(--background) / 0.22), transparent 55%);
+    pointer-events: none;
   }
 
   .section-band {
