@@ -11,7 +11,7 @@ import { lazy, Suspense } from 'react';
 const Footer = lazy(() => import('@/components/Footer').then(m => ({ default: m.Footer })));
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Headphones, MapPin, Sparkles, Compass, LibraryBig } from 'lucide-react';
+import { Headphones, MapPin, Sparkles } from 'lucide-react';
 import * as CarouselComponents from '@/components/ui/carousel';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -189,30 +189,6 @@ const Index = () => {
       />
       <Navigation />
       <HeroSection />
-
-      <section className="mobile-section pt-2">
-        <div className="mobile-container">
-          <div className="section-band p-4 sm:p-5">
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="editorial-stat-card">
-                <Compass className="h-4 w-4 text-primary" />
-                <p className="mt-3 text-sm font-semibold text-foreground">Discover-first flow</p>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">Browse places and guides without friction.</p>
-              </div>
-              <div className="editorial-stat-card">
-                <Headphones className="h-4 w-4 text-primary" />
-                <p className="mt-3 text-sm font-semibold text-foreground">Audio-led design</p>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">Built to feel like a premium listening product.</p>
-              </div>
-              <div className="editorial-stat-card">
-                <LibraryBig className="h-4 w-4 text-primary" />
-                <p className="mt-3 text-sm font-semibold text-foreground">Fast return path</p>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">Continue discovering and revisit saved guides quickly.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <StatsSection />
       
