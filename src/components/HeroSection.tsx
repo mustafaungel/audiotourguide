@@ -19,7 +19,7 @@ if (typeof document !== 'undefined' && !document.querySelector('link[data-hero-p
 export const HeroSection: React.FC = () => {
   const navigate = useNavigate();
   return (
-    <section className="relative flex min-h-[62vh] items-end justify-center overflow-hidden px-mobile-padding pt-4 md:min-h-[68vh] hero-depth-container">
+    <section className="hero-depth-container relative flex min-h-[62vh] items-end justify-center overflow-hidden px-mobile-padding pt-4 md:min-h-[68vh] md:pt-5">
       {/* Background — deepest layer */}
       <div className="absolute inset-0 hero-depth-bg">
         <img
@@ -27,13 +27,13 @@ export const HeroSection: React.FC = () => {
           alt="World Travel and Cultural Heritage Sites"
           width={1200}
           height={675}
-          className="w-full h-full object-cover opacity-60"
+          className="h-full w-full object-cover opacity-72"
           loading="eager"
           // @ts-ignore - fetchpriority is valid HTML
           fetchpriority="high"
           decoding="async"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-background/40 to-background/85" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/5 via-background/24 to-background/76" />
       </div>
 
       {/* Headphone silhouette background decoration — mid layer */}
@@ -47,23 +47,23 @@ export const HeroSection: React.FC = () => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 mx-auto w-full max-w-5xl pb-6 hero-depth-front">
-        <div className="discover-hero-panel mobile-spacing">
-          <div className="max-w-3xl space-y-4">
-            <h1 className="text-3xl font-extrabold leading-[0.98] text-foreground sm:text-4xl md:text-5xl lg:text-6xl">
+      <div className="hero-depth-front relative z-10 mx-auto w-full max-w-5xl pb-6 md:pb-8">
+        <div className="hero-copy-panel mobile-spacing">
+          <div className="max-w-3xl space-y-5">
+            <h1 className="text-3xl font-extrabold leading-[0.98] text-foreground sm:max-w-[12ch] sm:text-4xl md:text-5xl lg:text-6xl">
               Discover places through a richer audio travel experience
             </h1>
-            <p className="max-w-2xl text-sm leading-relaxed text-foreground/78 sm:text-base md:text-lg">
+            <p className="max-w-[34rem] text-sm leading-relaxed text-foreground/72 sm:text-base md:text-lg">
               Explore UNESCO landmarks, cultural routes and iconic destinations with premium storytelling, fast mobile discovery and a listening flow designed to feel effortless.
             </p>
           </div>
 
-          <div className="flex w-full flex-col gap-3 sm:max-w-none sm:flex-row sm:items-center">
-            <Button variant="hero" size="lg" className="w-full sm:w-auto px-6" onClick={() => navigate('/country')}>
+          <div className="flex w-full flex-col gap-3.5 pt-1 sm:max-w-none sm:flex-row sm:items-center">
+            <Button variant="hero" size="lg" className="w-full sm:w-auto px-6 shadow-[var(--shadow-interactive)]" onClick={() => navigate('/country')}>
               <Headphones className="h-4 w-4" />
               Explore Destinations
             </Button>
-            <Button variant="outline" size="lg" className="w-full sm:w-auto px-6" onClick={() => navigate('/guides')}>
+            <Button variant="outline" size="lg" className="w-full border-border/60 bg-card/35 px-6 backdrop-blur-md sm:w-auto" onClick={() => navigate('/guides')}>
               Browse Audio Guides
             </Button>
           </div>
