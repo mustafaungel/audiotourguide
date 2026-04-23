@@ -15,7 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Star, MapPin, Clock, Users, Play, Download, Share2, Bookmark, ChevronLeft, Lock, Copy, Check, Link, ShoppingCart, Headphones, Globe } from "lucide-react";
+import { Star, MapPin, Clock, Users, Play, Download, Share2, Bookmark, ChevronLeft, Lock, Copy, Check, Link, Headphones, Globe } from "lucide-react";
 import { getLanguageFlag, getLanguageName } from "@/lib/language-utils";
 import { OptimizedImage } from "@/components/OptimizedImage";
 import { getMapEmbedUrl, parseCoordinates } from "@/lib/maps-utils";
