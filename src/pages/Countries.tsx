@@ -82,9 +82,10 @@ const Countries = () => {
       <Navigation />
       
       {/* Header Section */}
-      <section className="mobile-padding mobile-spacing bg-gradient-hero">
+      <section className="mobile-section">
         <div className="mobile-container max-w-4xl text-center">
-          <div className="inline-flex items-center gap-2 mobile-padding rounded-full bg-card/20 backdrop-blur-md border border-border/50 mb-4">
+          <div className="discover-hero-panel">
+          <div className="inline-flex items-center gap-2 rounded-full bg-card/20 backdrop-blur-md border border-border/50 px-4 py-2 mb-4">
             <MapPin className="h-4 w-4 text-primary" />
             <span className="text-sm font-medium">Explore by Country</span>
           </div>
@@ -108,11 +109,12 @@ const Countries = () => {
               }}
             />
           </div>
+          </div>
         </div>
       </section>
 
       {/* Countries Grid */}
-      <section className="mobile-padding mobile-spacing">
+      <section className="mobile-section">
         <div className="mobile-container">
           {/* Results count */}
           <div className="text-center mb-6">
@@ -127,11 +129,11 @@ const Countries = () => {
           {loading && <AudioGuideLoader variant="grid" count={12} />}
 
           {!loading && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
               {filteredCountries.map(({ country, flag, count }) => (
                 <Card 
                   key={country}
-                  className="mobile-card border-border/30 audio-card-glow hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer group"
+                  className="mobile-surface rounded-[24px] border-border/30 audio-card-glow transition-all duration-300 hover:scale-[1.02] cursor-pointer group"
                   onClick={() => handleCountryClick(country)}
                 >
                   <CardContent className="p-4 text-center">

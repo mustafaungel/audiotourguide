@@ -156,7 +156,7 @@ const Guides = () => {
   if (itemListSchema) schemas.push(itemListSchema);
 
   return (
-    <div className="mobile-viewport bg-background">
+    <div className="mobile-page-shell">
       <SEO 
         title="Browse Audio Guides | Museums, Cities & Heritage Sites"
         description="Browse expert-narrated audio guides for UNESCO sites, museums, and cultural landmarks worldwide. Multi-language support."
@@ -166,10 +166,11 @@ const Guides = () => {
       <Navigation />
       
       {/* Page Header */}
-      <section className="mobile-padding mobile-spacing bg-gradient-subtle relative overflow-hidden">
+      <section className="mobile-section relative overflow-hidden">
         <div className="audio-hero-silhouette" />
-        <div className="mobile-container text-center relative z-10">
-          <div className="inline-flex items-center gap-2 mobile-padding rounded-full audio-premium-badge mb-4">
+        <div className="mobile-container relative z-10">
+          <div className="discover-hero-panel text-center">
+          <div className="inline-flex items-center gap-2 rounded-full audio-premium-badge px-4 py-2 mb-4">
             <Headphones className="h-4 w-4 text-primary" />
             <span className="mobile-caption font-medium">Audio Guides</span>
           </div>
@@ -179,14 +180,15 @@ const Guides = () => {
           <h2 className="mobile-text text-muted-foreground max-w-2xl mx-auto">
             Explore the world through immersive audio experiences. Search by destination, category, or guide name.
           </h2>
+          </div>
         </div>
       </section>
 
       {/* Search and Guides Section */}
-      <section className="mobile-padding mobile-spacing">
+      <section className="mobile-section">
         <div className="mobile-container">
           {/* Search + Filter row */}
-          <div className="flex gap-2 max-w-2xl mx-auto mb-4">
+          <div className="mobile-surface mb-4 flex gap-2 rounded-[24px] p-3 max-w-2xl mx-auto">
             <SearchAutocomplete
               value={searchTerm}
               onChange={setSearchTerm}
@@ -196,7 +198,7 @@ const Guides = () => {
             />
             <Button 
               variant="outline" 
-              className="touch-target flex-shrink-0 relative h-12 px-3"
+              className="touch-target relative h-12 flex-shrink-0 rounded-2xl px-3"
               onClick={() => setFilterSheetOpen(true)}
             >
               <Filter className="h-4 w-4" />
@@ -212,14 +214,14 @@ const Guides = () => {
           {/* Category Chips — horizontal scroll */}
           {categories.length > 0 && (
             <div className="max-w-2xl mx-auto mb-6 -mx-4 px-4">
-              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+              <div className="mobile-chip-row">
                 <button
                   onClick={() => setSelectedCategory(null)}
                   className={cn(
-                    "flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors touch-target",
+                    "mobile-filter-chip",
                     !selectedCategory 
-                      ? "bg-primary text-primary-foreground" 
-                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                      ? "mobile-filter-chip-active" 
+                      : "text-muted-foreground hover:bg-muted/80"
                   )}
                 >
                   All
@@ -229,10 +231,10 @@ const Guides = () => {
                     key={cat}
                     onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
                     className={cn(
-                      "flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap touch-target",
+                      "mobile-filter-chip whitespace-nowrap",
                       selectedCategory === cat 
-                        ? "bg-primary text-primary-foreground" 
-                        : "bg-muted text-muted-foreground hover:bg-muted/80"
+                        ? "mobile-filter-chip-active" 
+                        : "text-muted-foreground hover:bg-muted/80"
                     )}
                   >
                     {cat}
@@ -256,7 +258,7 @@ const Guides = () => {
 
           {/* Guides Grid */}
           {!loading && (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
               {visibleGuides.map(guide => {
                 const isPurchased = userPurchases.includes(guide.id);
                 return (

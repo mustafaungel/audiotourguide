@@ -11,7 +11,7 @@ import { lazy, Suspense } from 'react';
 const Footer = lazy(() => import('@/components/Footer').then(m => ({ default: m.Footer })));
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Headphones, MapPin } from 'lucide-react';
+import { Headphones, MapPin, Sparkles, Compass, LibraryBig } from 'lucide-react';
 import * as CarouselComponents from '@/components/ui/carousel';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -180,7 +180,7 @@ const Index = () => {
     }
   };
 
-  return <div className="mobile-viewport bg-background">
+  return <div className="mobile-page-shell">
       <SEO 
         title="Audio Tour Guides | World Heritage & Cultural Sites"
         description="Discover professional audio tour guides for UNESCO sites, museums, and iconic destinations. Multi-language storytelling with expert narration."
@@ -189,22 +189,61 @@ const Index = () => {
       />
       <Navigation />
       <HeroSection />
+
+      <section className="mobile-section pt-2">
+        <div className="mobile-container">
+          <div className="section-band p-4 sm:p-5">
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="editorial-stat-card">
+                <Compass className="h-4 w-4 text-primary" />
+                <p className="mt-3 text-sm font-semibold text-foreground">Discover-first flow</p>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">Browse places and guides without friction.</p>
+              </div>
+              <div className="editorial-stat-card">
+                <Headphones className="h-4 w-4 text-primary" />
+                <p className="mt-3 text-sm font-semibold text-foreground">Audio-led design</p>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">Built to feel like a premium listening product.</p>
+              </div>
+              <div className="editorial-stat-card">
+                <LibraryBig className="h-4 w-4 text-primary" />
+                <p className="mt-3 text-sm font-semibold text-foreground">Fast return path</p>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">Continue discovering and revisit saved guides quickly.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <StatsSection />
       
       {/* Country/City Filter + Guides Section */}
-      <section className="mobile-padding mobile-spacing">
+      <section className="mobile-section">
         <div className="mobile-container">
+          <div className="mobile-section-header">
+            <p className="mobile-kicker">Discover</p>
+            <div className="flex items-end justify-between gap-3">
+              <div className="space-y-2">
+                <h2 className="mobile-title">Explore destinations worth listening to</h2>
+                <p className="mobile-body max-w-2xl">Filter by country and city, then move straight into a richer audio guide flow designed for fast mobile browsing.</p>
+              </div>
+              <div className="hidden sm:flex items-center gap-2 rounded-full border border-border/40 bg-card/70 px-3 py-2 text-xs font-semibold text-muted-foreground shadow-[var(--shadow-card)]">
+                <Sparkles className="h-3.5 w-3.5 text-primary" />
+                Curated discovery
+              </div>
+            </div>
+          </div>
+
           {/* Destination Filter Chips */}
           {!loading && guides.length > 0 && countries.length > 0 && (
-            <div className="mb-5 space-y-3">
+            <div className="section-band mb-5 space-y-4 p-4 sm:p-5">
               {/* Country chips */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+              <div className="mobile-chip-row">
                 <button
                   onClick={() => { setSelectedCountry(''); setSelectedCity(''); }}
-                  className={`shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium border transition-all active:scale-95 ${
+                  className={`mobile-filter-chip ${
                     !selectedCountry
-                      ? 'bg-primary text-primary-foreground border-primary shadow-md'
-                      : 'bg-card border-border text-muted-foreground hover:bg-muted'
+                      ? 'mobile-filter-chip-active'
+                      : 'text-muted-foreground hover:bg-muted/70'
                   }`}
                 >
                   <Headphones className="w-3.5 h-3.5" /> All
@@ -215,10 +254,10 @@ const Index = () => {
                     <button
                       key={c}
                       onClick={() => { setSelectedCountry(c); setSelectedCity(''); }}
-                      className={`shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium border transition-all active:scale-95 ${
+                      className={`mobile-filter-chip ${
                         selectedCountry === c
-                          ? 'bg-primary text-primary-foreground border-primary shadow-md'
-                          : 'bg-card border-border text-foreground hover:bg-muted hover:shadow-sm'
+                          ? 'mobile-filter-chip-active'
+                          : 'hover:bg-muted/70'
                       }`}
                     >
                       <MapPin className="w-3.5 h-3.5" /> {c}
@@ -229,13 +268,13 @@ const Index = () => {
               </div>
               {/* City chips (shown when country selected) */}
               {selectedCountry && cities.length > 1 && (
-                <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                <div className="mobile-chip-row">
                   <button
                     onClick={() => setSelectedCity('')}
-                    className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all active:scale-95 ${
+                    className={`mobile-filter-chip text-xs ${
                       !selectedCity
-                        ? 'bg-primary/15 text-primary border-primary/30'
-                        : 'bg-card border-border text-muted-foreground hover:bg-muted'
+                        ? 'border-primary/30 bg-primary/10 text-primary'
+                        : 'text-muted-foreground hover:bg-muted/70'
                     }`}
                   >
                     All Cities
@@ -246,10 +285,10 @@ const Index = () => {
                       <button
                         key={c}
                         onClick={() => setSelectedCity(c)}
-                        className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all active:scale-95 ${
+                        className={`mobile-filter-chip text-xs ${
                           selectedCity === c
-                            ? 'bg-primary/15 text-primary border-primary/30'
-                            : 'bg-card border-border text-muted-foreground hover:bg-muted'
+                            ? 'border-primary/30 bg-primary/10 text-primary'
+                            : 'text-muted-foreground hover:bg-muted/70'
                         }`}
                       >
                         {c} ({count})
@@ -266,7 +305,7 @@ const Index = () => {
 
           {/* Guides List */}
           {!loading && filteredGuides.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
               {visibleGuides.map((guide, idx) => (
                 <GuideCard
                   key={guide.id}
@@ -297,17 +336,17 @@ const Index = () => {
             <div className="flex justify-center mt-8">
               <button
                 onClick={() => setVisibleCount(prev => prev + 6)}
-                className="group relative flex items-center gap-3 px-8 py-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10 transition-all duration-300 active:scale-95 touch-target w-full sm:w-auto justify-center"
+                className="group relative flex w-full items-center justify-center gap-3 rounded-[22px] border border-primary/20 bg-card/80 px-8 py-4 shadow-[var(--shadow-card)] transition-all duration-300 active:scale-95 touch-target sm:w-auto"
               >
-                <Headphones className="w-5 h-5 text-amber-500 group-hover:scale-110 transition-transform" />
+                <Headphones className="w-5 h-5 text-primary group-hover:scale-110 transition-transform" />
                 <span className="text-sm font-medium text-foreground">Discover More Audio Guides</span>
-                <Badge variant="secondary" className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/20 text-xs">
+                <Badge variant="secondary" className="border-primary/20 bg-primary/10 text-primary text-xs">
                   {remainingCount}
                 </Badge>
                 <div className="flex items-end gap-[3px] h-4 ml-1">
-                  <span className="w-[2px] bg-amber-500/40 rounded-full" style={{ height: '4px', animation: 'equalizer-bar 2.2s ease-in-out infinite', animationDelay: '0ms' }} />
-                  <span className="w-[2px] bg-amber-500/40 rounded-full" style={{ height: '4px', animation: 'equalizer-bar 2.2s ease-in-out infinite', animationDelay: '150ms' }} />
-                  <span className="w-[2px] bg-amber-500/40 rounded-full" style={{ height: '4px', animation: 'equalizer-bar 2.2s ease-in-out infinite', animationDelay: '300ms' }} />
+                  <span className="w-[2px] rounded-full bg-primary/40" style={{ height: '4px', animation: 'equalizer-bar 2.2s ease-in-out infinite', animationDelay: '0ms' }} />
+                  <span className="w-[2px] rounded-full bg-primary/40" style={{ height: '4px', animation: 'equalizer-bar 2.2s ease-in-out infinite', animationDelay: '150ms' }} />
+                  <span className="w-[2px] rounded-full bg-primary/40" style={{ height: '4px', animation: 'equalizer-bar 2.2s ease-in-out infinite', animationDelay: '300ms' }} />
                 </div>
               </button>
             </div>
@@ -336,8 +375,9 @@ const Index = () => {
 
 
       {/* CTA Section */}
-      <section className="mobile-padding mobile-spacing bg-gradient-hero relative overflow-hidden audio-wave-decoration">
+      <section className="mobile-section relative overflow-hidden audio-wave-decoration">
         <div className="mobile-container max-w-4xl text-center">
+          <div className="discover-hero-panel">
           <h2 className="mobile-heading sm:text-3xl lg:text-4xl text-foreground mb-4">
             Ready to Discover the World?
           </h2>
@@ -348,6 +388,7 @@ const Index = () => {
             <Button variant="hero" size="lg" className="mobile-button px-8 py-4 touch-target" onClick={() => navigate('/country')}>
               Start Exploring
             </Button>
+          </div>
           </div>
         </div>
        </section>
