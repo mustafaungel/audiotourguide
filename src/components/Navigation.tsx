@@ -40,20 +40,20 @@ export const Navigation = ({ sticky = true }: NavigationProps) => {
     <>
       <header className={`${sticky ? 'sticky top-0' : 'relative'} z-50 w-full border-b border-border/30 bg-background/95 supports-[backdrop-filter]:bg-background/75 backdrop-blur-xl`}>
         <div className="mobile-container">
-          <div className="flex h-16 items-center justify-between gap-3 py-2">
+          <div className="flex h-16 items-center justify-between gap-2 py-2 lg:gap-4">
           {/* Logo and Brand */}
-          <Link to="/" className="flex items-center gap-3 min-w-0">
-            <div className="rounded-2xl border border-border/40 bg-card/70 px-3 py-2 shadow-[var(--shadow-card)]">
+          <Link to="/" className="flex min-w-0 max-w-[46%] items-center gap-2.5 lg:max-w-[420px]">
+            <div className="shrink-0 rounded-2xl border border-border/40 bg-card/70 px-2.5 py-1.5 shadow-[var(--shadow-card)] lg:px-3 lg:py-2">
               <ResponsiveLogo variant="compact" size="lg" showCompanyName={false} />
             </div>
-            <div className="hidden min-w-0 sm:block">
+            <div className="hidden min-w-0 lg:block lg:max-w-[180px] xl:max-w-[220px]">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Audio-first travel</p>
               <p className="text-sm font-semibold text-foreground line-clamp-1">Discover while you listen</p>
             </div>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-2 rounded-full border border-border/40 bg-card/70 p-1.5 shadow-[var(--shadow-card)]">
+          <nav className="hidden md:flex flex-1 items-center justify-center gap-2 rounded-full border border-border/40 bg-card/70 p-1.5 shadow-[var(--shadow-card)] mx-3 min-w-0">
             {desktopLinks.map(({ to, label, icon: Icon }) => {
               const isActive = to === '/'
                 ? location.pathname === '/'
@@ -63,17 +63,17 @@ export const Navigation = ({ sticky = true }: NavigationProps) => {
                 <Link
                   key={to}
                   to={to}
-                  className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all ${isActive ? 'bg-primary text-primary-foreground shadow-[var(--shadow-interactive)]' : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground'}`}
+                  className={`inline-flex min-w-0 items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-all lg:px-4 ${isActive ? 'bg-primary text-primary-foreground shadow-[var(--shadow-interactive)]' : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground'}`}
                 >
                   <Icon className="h-4 w-4" />
-                  {label}
+                  <span className="truncate">{label}</span>
                 </Link>
               );
             })}
           </nav>
 
           {/* Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
             <ThemeToggle />
 
             {!user && (
