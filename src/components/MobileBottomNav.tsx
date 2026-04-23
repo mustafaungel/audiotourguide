@@ -28,7 +28,7 @@ export const MobileBottomNav = () => {
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 md:hidden pointer-events-none">
-      <div className="mobile-container pb-safe pt-2">
+      <div className="mobile-container pb-safe pt-2.5">
         <div className="pointer-events-auto mobile-bottom-nav-shell">
           {items.map((item) => {
             const isActive = item.match(location.pathname);
