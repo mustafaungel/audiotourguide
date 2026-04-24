@@ -14,6 +14,7 @@ const hiddenRoutes = ["/admin", "/access/"];
 
 export const MobileBottomNav = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   if (hiddenRoutes.some((route) => location.pathname.startsWith(route))) {
