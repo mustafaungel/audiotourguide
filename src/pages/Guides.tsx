@@ -17,6 +17,9 @@ import { SearchAutocomplete } from '@/components/SearchAutocomplete';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { saveScrollPosition, readScrollPosition, smoothScrollTo } from '@/lib/scroll-memory';
+
+const SCROLL_KEY = 'guides-list';
 
 const Guides = () => {
   const navigate = useNavigate();
