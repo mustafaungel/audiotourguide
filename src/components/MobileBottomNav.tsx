@@ -1,5 +1,5 @@
 import { Headphones, Home, LogIn, MapPinned, LibraryBig } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { smoothScrollTo } from "@/lib/scroll-memory";
 import { useAuth } from "@/contexts/AuthContext";
