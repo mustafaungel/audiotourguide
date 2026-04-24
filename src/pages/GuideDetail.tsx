@@ -1140,30 +1140,36 @@ const GuideDetail = () => {
               </div>
             )}
 
-            {/* Related Guides */}
+            {/* Related Guides — studio rack */}
             {relatedGuides.length > 0 && (
-              <div className="mobile-surface overflow-hidden rounded-[24px]">
-                <div className="px-4 py-3 border-b border-border/30">
-                  <h3 className="text-sm font-bold flex items-center gap-2">
-                    <Headphones className="w-4 h-4 text-primary" />
-                    You Might Also Like
-                  </h3>
+              <div className="relative overflow-hidden rounded-[24px] border border-border/40 bg-gradient-to-b from-card to-muted/20 shadow-[var(--shadow-card)]">
+                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-muted-foreground/30 via-muted-foreground/50 to-muted-foreground/30" />
+                <div className="px-4 pt-4 pb-2.5 flex items-center gap-2">
+                  <Headphones className="w-4 h-4 text-muted-foreground" />
+                  <div className="flex-1">
+                    <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Discover</p>
+                    <h3 className="text-sm font-bold leading-tight">You Might Also Like</h3>
+                  </div>
                 </div>
-                <div className="p-3 space-y-2">
+                <div className="p-3 pt-1 space-y-2">
                   {relatedGuides.map((relatedGuide) => (
                     <div
                       key={relatedGuide.id}
-                      className="flex gap-3 p-2 rounded-xl hover:bg-muted/50 cursor-pointer transition-colors border border-border/20"
+                      className="relative flex gap-3 p-2 rounded-[16px] hover:bg-muted/40 cursor-pointer transition-colors border border-border/20"
                       onClick={() => navigate(`/guide/${relatedGuide.slug || relatedGuide.id}`)}
                     >
+                      <span className="absolute left-0 top-3 bottom-3 w-[2px] rounded-full bg-muted-foreground/30" />
                       <img
                         src={relatedGuide.image}
                         alt={relatedGuide.title}
-                        className="w-14 h-14 rounded-lg object-cover shrink-0"
+                        className="w-14 h-14 rounded-xl object-cover shrink-0 ml-1.5 ring-1 ring-border/30"
                       />
                       <div className="flex-1 min-w-0 flex flex-col justify-center">
-                        <h5 className="font-medium text-xs leading-snug">{relatedGuide.title}</h5>
-                        <span className="text-[10px] text-muted-foreground mt-0.5">{relatedGuide.location}</span>
+                        <h5 className="font-semibold text-xs leading-snug">{relatedGuide.title}</h5>
+                        <div className="flex items-center gap-1 mt-0.5 text-[10px] text-muted-foreground">
+                          <MapPin className="w-2.5 h-2.5" />
+                          <span className="truncate">{relatedGuide.location}</span>
+                        </div>
                       </div>
                     </div>
                   ))}
