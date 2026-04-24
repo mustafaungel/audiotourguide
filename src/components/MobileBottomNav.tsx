@@ -1,5 +1,5 @@
 import { Headphones, Home, LogIn, MapPinned, LibraryBig } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { smoothScrollTo } from "@/lib/scroll-memory";
 import { useAuth } from "@/contexts/AuthContext";
@@ -14,6 +14,7 @@ const hiddenRoutes = ["/admin", "/access/"];
 
 export const MobileBottomNav = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   if (hiddenRoutes.some((route) => location.pathname.startsWith(route))) {
@@ -43,6 +44,20 @@ export const MobileBottomNav = () => {
                 key={`${item.to}-${item.label}`}
                 to={item.to}
                 onClick={(e) => {
+                  // Special case: if user is on a /guide/:slug detail page and taps "Guides",
+                  // act like the back button (return to the previous list view).
+                  if (
+                    item.to === "/guides" &&
+                    location.pathname.startsWith("/guide/")
+                  ) {
+                    e.preventDefault();
+                    if (window.history.length > 1) {
+                      navigate(-1);
+                    } else {
+                      navigate("/guides");
+                    }
+                    return;
+                  }
                   // If already on the same route, smooth-scroll to top instead of re-navigating.
                   if (location.pathname === item.to) {
                     e.preventDefault();
