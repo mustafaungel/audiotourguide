@@ -916,88 +916,106 @@ const GuideDetail = () => {
                 </TabsList>
               </div>
               
-              <TabsContent value="chapters" className="space-y-3 md:space-y-4">
+              <TabsContent value="chapters" className="space-y-3 md:space-y-4 mt-3">
                 {isPurchased || hasAccessCode ? (
-                  <div className="space-y-2 md:space-y-3">
-                    {currentChapters.map((chapter, index) => (
-                      <Card key={index} className="audio-card-glow rounded-[24px] border-border/30 bg-card/80 p-3 md:p-4 hover:bg-muted/50 cursor-pointer transition-all">
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
-                            <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-xs md:text-sm font-bold text-primary shrink-0">
-                              {index + 1}
+                  <div className="space-y-2 md:space-y-2.5">
+                    {currentChapters.map((chapter, index) => {
+                      const dur = chapter.duration_seconds
+                        ? `${Math.floor(chapter.duration_seconds / 60)}:${(chapter.duration_seconds % 60).toString().padStart(2, '0')}`
+                        : chapter.duration
+                          ? `${Math.floor(chapter.duration / 60)}:${((chapter.duration * 60) % 60).toString().padStart(2, '0')}`
+                          : '—';
+                      return (
+                        <div
+                          key={index}
+                          className={`group relative overflow-hidden rounded-[20px] border ${isFeaturedGuide ? 'border-amber-500/20' : 'border-primary/15'} bg-gradient-to-r from-card to-muted/20 p-3 md:p-3.5 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elevated)] transition-all`}
+                        >
+                          {/* Channel strip - left vertical accent */}
+                          <span className={`absolute left-0 top-3 bottom-3 w-[3px] rounded-full ${isFeaturedGuide ? 'bg-gradient-to-b from-amber-500 to-yellow-400' : 'bg-gradient-to-b from-primary to-primary/60'}`} />
+                          <div className="flex items-center justify-between gap-3 pl-2">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              {/* Track number monospace */}
+                              <div className={`shrink-0 w-9 h-9 rounded-xl flex items-center justify-center font-mono text-xs font-bold tabular-nums ${isFeaturedGuide ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300' : 'bg-primary/10 text-primary'}`}>
+                                {String(index + 1).padStart(2, '0')}
+                              </div>
+                              {/* Mini static waveform */}
+                              <div className="hidden xs:flex items-end gap-[2px] h-6 shrink-0 opacity-50 group-hover:opacity-100 transition-opacity">
+                                {[5, 9, 4, 11, 6, 8, 5, 10, 4].map((h, i) => (
+                                  <span key={i} className={`w-[2px] rounded-full ${isFeaturedGuide ? 'bg-amber-500' : 'bg-primary'}`} style={{ height: `${h}px` }} />
+                                ))}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-semibold text-sm md:text-[15px] truncate text-foreground">{chapter.title}</h4>
+                                <div className="flex items-center gap-1.5 mt-0.5 text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
+                                  <Clock className="w-3 h-3" />
+                                  <span className="tabular-nums">{dur}</span>
+                                </div>
+                              </div>
                             </div>
-                            {/* Mini waveform decoration */}
-                            <div className="flex items-center gap-[2px] shrink-0 opacity-30">
-                              {[0, 1, 2].map((i) => (
-                                <div key={i} className="w-[2px] rounded-full bg-primary" style={{ height: `${8 + i * 4}px` }} />
-                              ))}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-medium text-sm md:text-base truncate">{chapter.title}</h4>
-                              <p className="text-xs md:text-sm text-muted-foreground">
-                                {chapter.duration_seconds 
-                                  ? `${Math.floor(chapter.duration_seconds / 60)}:${(chapter.duration_seconds % 60).toString().padStart(2, '0')}`
-                                  : chapter.duration 
-                                    ? `${Math.floor(chapter.duration / 60)}:${((chapter.duration * 60) % 60).toString().padStart(2, '0')}`
-                                    : 'N/A'
-                                }
-                              </p>
-                            </div>
+                            <ChapterPreviewButton
+                              chapter={chapter}
+                              index={index}
+                              guide={guide}
+                              isPurchased={isPurchased}
+                              selectedLanguage={selectedLanguage}
+                            />
                           </div>
-                          <ChapterPreviewButton 
-                            chapter={chapter}
-                            index={index}
-                            guide={guide}
-                            isPurchased={isPurchased}
-                            selectedLanguage={selectedLanguage}
-                          />
                         </div>
-                      </Card>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
-                  <div className="space-y-2">
-                    {/* Preview header — gradient card */}
-                     <div className="rounded-[22px] border border-primary/20 bg-gradient-to-r from-primary/15 to-primary/5 p-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                          <Headphones className="w-4 h-4 text-primary" />
+                  <div className="space-y-2 mt-3">
+                    {/* Preview header — studio console */}
+                    <div className={`relative overflow-hidden rounded-[20px] border ${isFeaturedGuide ? 'border-amber-500/25' : 'border-primary/20'} bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-3.5`}>
+                      <div className={`absolute top-0 left-0 right-0 h-[2px] ${isFeaturedGuide ? 'bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500' : 'bg-gradient-to-r from-primary via-primary/70 to-primary'}`} />
+                      <div className="flex items-center gap-2.5">
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isFeaturedGuide ? 'bg-amber-500/15' : 'bg-primary/15'}`}>
+                          <Headphones className={`w-4 h-4 ${isFeaturedGuide ? 'text-amber-600 dark:text-amber-400' : 'text-primary'}`} />
                         </div>
-                        <div>
-                          <h3 className="text-sm font-bold">Try Before You Buy</h3>
-                          <p className="text-[10px] text-muted-foreground">Listen to 30-second previews for free</p>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-[9px] font-bold uppercase tracking-[0.2em] ${isFeaturedGuide ? 'text-amber-600 dark:text-amber-400' : 'text-primary'}`}>Free Preview</p>
+                          <h3 className="text-sm font-bold leading-tight">Try Before You Buy</h3>
                         </div>
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground bg-muted/60 px-2 py-1 rounded-md">30s</span>
                       </div>
                     </div>
 
-                    {/* Chapter list — full names */}
-                    {currentChapters.slice(0, 3).map((chapter, index) => (
-                      <div key={index} className="flex items-center gap-2 rounded-[20px] border border-border/30 bg-card/70 p-3 shadow-[var(--shadow-card)]">
-                        <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
-                          {index + 1}
+                    {/* Channel strips — preview */}
+                    {currentChapters.slice(0, 3).map((chapter, index) => {
+                      const dur = chapter.duration_seconds
+                        ? `${Math.floor(chapter.duration_seconds / 60)}:${(chapter.duration_seconds % 60).toString().padStart(2, '0')}`
+                        : '—';
+                      return (
+                        <div key={index} className={`relative overflow-hidden rounded-[18px] border ${isFeaturedGuide ? 'border-amber-500/15' : 'border-primary/10'} bg-card/70 p-3 shadow-[var(--shadow-card)]`}>
+                          <span className={`absolute left-0 top-3 bottom-3 w-[3px] rounded-full ${isFeaturedGuide ? 'bg-amber-500/60' : 'bg-primary/50'}`} />
+                          <div className="flex items-center gap-2.5 pl-2">
+                            <div className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-mono text-[11px] font-bold tabular-nums ${isFeaturedGuide ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300' : 'bg-primary/10 text-primary'}`}>
+                              {String(index + 1).padStart(2, '0')}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-semibold text-xs leading-snug truncate">{chapter.title}</h4>
+                              <div className="flex items-center gap-1 mt-0.5 text-[9px] uppercase tracking-wider text-muted-foreground font-medium">
+                                <Clock className="w-2.5 h-2.5" />
+                                <span className="tabular-nums">{dur}</span>
+                              </div>
+                            </div>
+                            <ChapterPreviewButton
+                              chapter={chapter}
+                              index={index}
+                              guide={guide}
+                              isPurchased={isPurchased}
+                              selectedLanguage={selectedLanguage}
+                            />
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-xs leading-snug">{chapter.title}</h4>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">
-                            {chapter.duration_seconds
-                              ? `${Math.floor(chapter.duration_seconds / 60)}:${(chapter.duration_seconds % 60).toString().padStart(2, '0')}`
-                              : 'N/A'
-                            }
-                          </p>
-                        </div>
-                        <ChapterPreviewButton
-                          chapter={chapter}
-                          index={index}
-                          guide={guide}
-                          isPurchased={isPurchased}
-                          selectedLanguage={selectedLanguage}
-                        />
-                      </div>
-                    ))}
+                      );
+                    })}
                     {currentChapters.length > 3 && (
-                      <p className="text-[11px] text-muted-foreground text-center py-1.5">
-                        +{currentChapters.length - 3} more stops with full access
-                      </p>
+                      <div className={`flex items-center justify-center gap-2 rounded-[14px] border border-dashed ${isFeaturedGuide ? 'border-amber-500/30' : 'border-primary/25'} py-2.5`}>
+                        <Lock className="w-3 h-3 text-muted-foreground" />
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">+{currentChapters.length - 3} stops locked</span>
+                      </div>
                     )}
                   </div>
                 )}
