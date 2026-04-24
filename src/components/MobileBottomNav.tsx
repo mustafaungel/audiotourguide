@@ -44,6 +44,20 @@ export const MobileBottomNav = () => {
                 key={`${item.to}-${item.label}`}
                 to={item.to}
                 onClick={(e) => {
+                  // Special case: if user is on a /guide/:slug detail page and taps "Guides",
+                  // act like the back button (return to the previous list view).
+                  if (
+                    item.to === "/guides" &&
+                    location.pathname.startsWith("/guide/")
+                  ) {
+                    e.preventDefault();
+                    if (window.history.length > 1) {
+                      navigate(-1);
+                    } else {
+                      navigate("/guides");
+                    }
+                    return;
+                  }
                   // If already on the same route, smooth-scroll to top instead of re-navigating.
                   if (location.pathname === item.to) {
                     e.preventDefault();
