@@ -31,11 +31,30 @@ const CountryDetail = React.lazy(() => import("./pages/CountryDetail"));
 const FeaturedGuides = React.lazy(() => import("./pages/FeaturedGuides"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
-// Preload GuideDetail chunk after initial render
+// Preload all lazy chunks during browser idle time so subsequent navigations
+// are instant — no "loading from scratch" flash between pages.
 if (typeof window !== 'undefined') {
-  window.addEventListener('load', () => {
-    setTimeout(() => { guideDetailImport(); }, 1000);
-  });
+  const preloadAll = () => {
+    guideDetailImport();
+    import("./pages/Guides");
+    import("./pages/Library");
+    import("./pages/Auth");
+    import("./pages/Countries");
+    import("./pages/CountryDetail");
+    import("./pages/FeaturedGuides");
+    import("./pages/AudioAccess");
+    import("./pages/PaymentSuccess");
+    import("./pages/PaymentCancelled");
+  };
+  const schedule = (cb: () => void) => {
+    const w = window as unknown as { requestIdleCallback?: (cb: () => void) => void };
+    if (typeof w.requestIdleCallback === 'function') {
+      w.requestIdleCallback(cb);
+    } else {
+      setTimeout(cb, 1200);
+    }
+  };
+  window.addEventListener('load', () => schedule(preloadAll));
 }
 
 const queryClient = new QueryClient({
@@ -49,17 +68,15 @@ const queryClient = new QueryClient({
 
 const AudioGuideLoaderLazy = React.lazy(() => import("@/components/AudioGuideLoader").then(m => ({ default: m.AudioGuideLoader })));
 
+// Lightweight, transparent loader used when a brand-new lazy chunk needs to load.
+// Most navigations show no loader at all because the outgoing page stays visible
+// during the page transition (see PageTransition).
 const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center">
-    <div className="text-center space-y-4">
-      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto audio-icon-pulse">
-        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-      <div className="flex items-center justify-center gap-[3px]">
-        {[0, 1, 2, 3, 4].map((i) => (
-          <span key={i} className="w-1 rounded-full bg-primary audio-wave-bar" style={{ animationDelay: `${i * 0.12}s` }} />
-        ))}
-      </div>
+  <div className="min-h-[60vh] flex items-center justify-center">
+    <div className="flex items-center justify-center gap-[3px]">
+      {[0, 1, 2, 3, 4].map((i) => (
+        <span key={i} className="w-1 rounded-full bg-primary audio-wave-bar" style={{ animationDelay: `${i * 0.12}s` }} />
+      ))}
     </div>
   </div>
 );
@@ -79,8 +96,7 @@ const App = () => {
                 <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                   <ScrollToTop />
                   <main id="main-content">
-                  <Suspense fallback={<PageLoader />}>
-                    <PageTransition>
+                    <PageTransition fallback={<PageLoader />}>
                       <Routes>
                         <Route path="/" element={<Index />} />
                         <Route path="/admin-login" element={<Auth />} />
@@ -99,8 +115,7 @@ const App = () => {
                         <Route path="*" element={<NotFound />} />
                       </Routes>
                     </PageTransition>
-                  </Suspense>
-                </main>
+                  </main>
                 </BrowserRouter>
               </TooltipProvider>
             </AuthProvider>
