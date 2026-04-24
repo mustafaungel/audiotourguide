@@ -153,11 +153,8 @@ export function GuideCard({
               )}
             </div>
 
-            {/* Bottom row: live listeners + play button */}
-            <div className="mt-2 flex items-center justify-between gap-2">
-              <div className="min-w-0 flex-1">
-                <LiveListenersBadge guideId={id} size="compact" />
-              </div>
+            {/* Bottom row: play button (listeners moved to image overlay) */}
+            <div className="mt-2 flex items-center justify-end gap-2">
               <Button
                 variant="default"
                 size="icon"
