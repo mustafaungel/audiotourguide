@@ -716,64 +716,124 @@ const GuideDetail = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-4">
-            {/* Compact Header — image + info side by side */}
-            <div className="mobile-surface-strong space-y-4 rounded-[28px] p-4 sm:p-5">
-              {/* Image + Language flags side by side */}
-              <div className="flex flex-col gap-4 sm:flex-row">
-                <div className="relative h-40 w-full shrink-0 overflow-hidden rounded-[24px] shadow-[var(--shadow-elevated)] sm:h-36 sm:w-36">
-                  <OptimizedImage
-                    src={guide.image_urls?.[0] || guide.image_url}
-                    alt={`${guide.title} - Audio Guide`}
-                    width={144}
-                    height={144}
-                    quality={80}
-                    loading="eager"
-                    className="w-full h-full object-cover object-center"
-                  />
-                  <Badge className={`absolute left-2 top-2 border-0 px-2 py-1 text-[10px] capitalize backdrop-blur-sm ${isFeaturedGuide ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-50' : 'bg-primary/85 text-primary-foreground'}`}>
-                    {guide.category}
-                  </Badge>
-                  <div className="absolute left-2 top-11 max-w-[calc(100%-4rem)] sm:max-w-[calc(100%-1rem)]">
+            {/* ==================== AUDIO STUDIO CONSOLE HERO ==================== */}
+            <div className={`relative overflow-hidden rounded-[28px] border ${isFeaturedGuide ? 'border-amber-500/30' : 'border-primary/20'} bg-gradient-to-b from-card via-card to-muted/40 shadow-[var(--shadow-elevated)]`}>
+              {/* Top accent line — VU meter style */}
+              <div className={`h-[3px] w-full ${isFeaturedGuide ? 'bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500' : 'bg-gradient-to-r from-primary via-primary/70 to-primary'}`} />
+
+              {/* Hero: Cover + Title side by side */}
+              <div className="flex flex-col gap-4 p-4 sm:flex-row sm:gap-5 sm:p-5">
+                {/* Album cover with subtle glow ring */}
+                <div className="relative shrink-0 self-center sm:self-start">
+                  <div className={`absolute inset-0 -m-1 rounded-[26px] blur-md opacity-40 ${isFeaturedGuide ? 'bg-amber-500' : 'bg-primary'}`} />
+                  <div className="relative h-40 w-40 overflow-hidden rounded-[22px] shadow-[var(--shadow-elevated)] ring-1 ring-foreground/5 sm:h-44 sm:w-44">
+                    <OptimizedImage
+                      src={guide.image_urls?.[0] || guide.image_url}
+                      alt={`${guide.title} - Audio Guide`}
+                      width={200}
+                      height={200}
+                      quality={85}
+                      loading="eager"
+                      className="h-full w-full object-cover object-center"
+                    />
+                    {/* Featured tag — only badge on cover */}
+                    {isFeaturedGuide && (
+                      <div className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-md bg-gradient-to-r from-amber-500 to-yellow-500 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white shadow-lg">
+                        ★ Featured
+                      </div>
+                    )}
+                    {/* "MASTERED" quality badge — bottom right (audio pro tag) */}
+                    <div className="absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-md bg-foreground/80 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-background backdrop-blur-sm">
+                      <span className="h-1 w-1 rounded-full bg-emerald-400" /> HQ
+                    </div>
+                  </div>
+                </div>
+
+                {/* Title block */}
+                <div className="flex min-w-0 flex-1 flex-col justify-between gap-3">
+                  <div className="space-y-1.5">
+                    {/* Studio kicker */}
+                    <div className="flex items-center gap-1.5">
+                      <span className={`text-[10px] font-bold uppercase tracking-[0.18em] ${isFeaturedGuide ? 'text-amber-600 dark:text-amber-400' : 'text-primary'}`}>
+                        Audio Tour
+                      </span>
+                      <span className="text-border">•</span>
+                      <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground capitalize">{guide.category}</span>
+                    </div>
+
+                    {/* Big title */}
+                    <h1 className="font-heading text-2xl font-extrabold leading-tight tracking-tight text-foreground sm:text-3xl">
+                      {guide.title}
+                    </h1>
+
+                    {/* Location */}
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <MapPin className="h-3.5 w-3.5 shrink-0" />
+                      <span className="line-clamp-1">{guide.location}</span>
+                    </div>
+                  </div>
+
+                  {/* Live listeners chip */}
+                  <div>
                     <LiveListenersBadge guideId={guide.id} size="compact" />
                   </div>
-                  <span className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-background/80 shadow-[var(--shadow-card)] backdrop-blur-md">
-                    <MapPin className="w-3 h-3 text-primary-foreground" fill="currentColor" />
-                  </span>
-                  <span className="absolute bottom-2 left-2 right-2 flex flex-wrap items-center gap-1 rounded-xl bg-black/55 px-2.5 py-1.5 text-[11px] font-medium text-white backdrop-blur-md">
-                    <span className="break-words">{guide.location}</span>
-                  </span>
-                </div>
-                <div className="flex-1 min-w-0 space-y-2">
-                  <div className="space-y-3">
-                    <div className="space-y-2">
-                      <p className="mobile-kicker">Audio guide</p>
-                      <h1 className="text-2xl font-extrabold leading-tight text-foreground sm:text-3xl">{guide.title}</h1>
-                      <p className="text-sm leading-relaxed text-muted-foreground sm:text-[15px]">{guide.description}</p>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2 text-xs">
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1.5 font-medium text-primary">
-                        <Headphones className="h-3.5 w-3.5" /> {currentChapters.length} audio stops
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 font-medium text-secondary-foreground">
-                        <Clock className="h-3.5 w-3.5" /> {displayDuration} min
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 font-medium text-secondary-foreground">
-                        <Globe className="h-3.5 w-3.5" /> {guide.languages?.length || 1} languages
-                      </span>
-                    </div>
-                  </div>
-
-                  {guide?.id && (
-                    <GuideLanguageSelector
-                      guideId={guide.id}
-                      selectedLanguage={selectedLanguage}
-                      onLanguageChange={handleLanguageChange}
-                    />
-                  )}
                 </div>
               </div>
+
+              {/* Description — readable, slightly muted */}
+              <div className="px-4 pb-4 sm:px-5">
+                <p className="text-sm leading-relaxed text-foreground/80 line-clamp-3 sm:text-[15px]">
+                  {guide.description}
+                </p>
+              </div>
+
+              {/* ==================== STUDIO METRICS STRIP ==================== */}
+              <div className="grid grid-cols-3 divide-x divide-border/40 border-t border-border/40 bg-muted/30">
+                <div className="flex flex-col items-center justify-center gap-0.5 py-3">
+                  <div className="flex items-center gap-1 text-muted-foreground">
+                    <Headphones className="h-3 w-3" />
+                    <span className="text-[9px] font-bold uppercase tracking-wider">Stops</span>
+                  </div>
+                  <span className="font-heading text-lg font-extrabold tabular-nums text-foreground">{currentChapters.length}</span>
+                </div>
+                <div className="flex flex-col items-center justify-center gap-0.5 py-3">
+                  <div className="flex items-center gap-1 text-muted-foreground">
+                    <Clock className="h-3 w-3" />
+                    <span className="text-[9px] font-bold uppercase tracking-wider">Duration</span>
+                  </div>
+                  <span className="font-heading text-lg font-extrabold tabular-nums text-foreground">{displayDuration}<span className="ml-0.5 text-[10px] font-medium text-muted-foreground">min</span></span>
+                </div>
+                <div className="flex flex-col items-center justify-center gap-0.5 py-3">
+                  <div className="flex items-center gap-1 text-muted-foreground">
+                    <Globe className="h-3 w-3" />
+                    <span className="text-[9px] font-bold uppercase tracking-wider">Langs</span>
+                  </div>
+                  <span className="font-heading text-lg font-extrabold tabular-nums text-foreground">{guide.languages?.length || 1}</span>
+                </div>
+              </div>
+
+              {/* Static waveform decoration — bottom of console */}
+              <div className="flex h-4 items-end justify-center gap-[2px] border-t border-border/40 bg-foreground/[0.02] px-4 py-1.5 opacity-50">
+                {[3, 5, 8, 4, 9, 6, 11, 5, 7, 4, 10, 6, 8, 5, 9, 4, 7, 5, 8, 3, 6, 9, 5, 7, 4, 8, 5, 6].map((h, i) => (
+                  <span
+                    key={i}
+                    className={`inline-block w-[2px] rounded-full ${isFeaturedGuide ? 'bg-amber-500/60' : 'bg-primary/60'}`}
+                    style={{ height: `${h}px` }}
+                  />
+                ))}
+              </div>
             </div>
+
+            {/* Language Selector — separated card */}
+            {guide?.id && (
+              <div className="mobile-surface rounded-[22px] p-3 sm:p-4">
+                <GuideLanguageSelector
+                  guideId={guide.id}
+                  selectedLanguage={selectedLanguage}
+                  onLanguageChange={handleLanguageChange}
+                />
+              </div>
+            )}
             {/* Map link */}
             {guide.maps_url && (
               <a
