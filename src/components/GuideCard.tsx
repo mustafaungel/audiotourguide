@@ -98,10 +98,13 @@ export function GuideCard({
               loading={imageLoading}
               className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
             />
-            {/* Duration badge — Spotify/podcast style, top-left on image */}
-            <div className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-md bg-foreground/75 px-1.5 py-0.5 text-[10px] font-semibold text-background backdrop-blur-sm">
-              <Headphones className="h-2.5 w-2.5" />
-              <span>{Math.floor(duration / 60)}m</span>
+            {/* Top-left badges stack: Duration + Live listeners */}
+            <div className="absolute left-2 top-2 flex flex-col items-start gap-1">
+              <div className="inline-flex items-center gap-1 rounded-md bg-foreground/75 px-1.5 py-0.5 text-[10px] font-semibold text-background backdrop-blur-sm">
+                <Headphones className="h-2.5 w-2.5" />
+                <span>{Math.floor(duration / 60)}m</span>
+              </div>
+              <LiveListenersBadge guideId={id} size="compact" />
             </div>
           </div>
 
