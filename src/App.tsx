@@ -10,6 +10,7 @@ import { FaviconUpdater } from "@/components/FaviconUpdater";
 import PreloadBrandingAssets from "@/components/PreloadBrandingAssets";
 import ScrollToTop from "@/components/ScrollToTop";
 import { PerformanceMonitor } from "@/components/PerformanceMonitor";
+import PageTransition from "@/components/PageTransition";
 
 // Eager load Index for fast initial render
 import Index from "./pages/Index";
@@ -79,23 +80,25 @@ const App = () => {
                   <ScrollToTop />
                   <main id="main-content">
                   <Suspense fallback={<PageLoader />}>
-                    <Routes>
-                      <Route path="/" element={<Index />} />
-                      <Route path="/admin-login" element={<Auth />} />
-                      <Route path="/admin" element={<AdminPanel />} />
-                      <Route path="/library" element={<Library />} />
-                      <Route path="/guides" element={<Guides />} />
-                      <Route path="/country" element={<Countries />} />
-                      <Route path="/country/:countrySlug" element={<CountryDetail />} />
-                      <Route path="/featured-guides" element={<FeaturedGuides />} />
-                      <Route path="/guide/:slug" element={<GuideDetail />} />
-                      <Route path="/access/:guideId" element={<AudioAccess />} />
-                      
-                      <Route path="/payment-success" element={<PaymentSuccess />} />
-                      <Route path="/payment-cancelled" element={<PaymentCancelled />} />
-                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
+                    <PageTransition>
+                      <Routes>
+                        <Route path="/" element={<Index />} />
+                        <Route path="/admin-login" element={<Auth />} />
+                        <Route path="/admin" element={<AdminPanel />} />
+                        <Route path="/library" element={<Library />} />
+                        <Route path="/guides" element={<Guides />} />
+                        <Route path="/country" element={<Countries />} />
+                        <Route path="/country/:countrySlug" element={<CountryDetail />} />
+                        <Route path="/featured-guides" element={<FeaturedGuides />} />
+                        <Route path="/guide/:slug" element={<GuideDetail />} />
+                        <Route path="/access/:guideId" element={<AudioAccess />} />
+                        
+                        <Route path="/payment-success" element={<PaymentSuccess />} />
+                        <Route path="/payment-cancelled" element={<PaymentCancelled />} />
+                        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </PageTransition>
                   </Suspense>
                 </main>
                 </BrowserRouter>
