@@ -899,19 +899,22 @@ const GuideDetail = () => {
               </Card>
             )}
 
-            {/* Tabs Content - Responsive sizing */}
+            {/* Tabs Content - Studio segmented */}
             <Tabs defaultValue="chapters" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 h-11 md:h-12 p-1 bg-muted/50">
-                <TabsTrigger value="chapters" className="text-xs md:text-sm data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:font-bold data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-lg transition-all"><Headphones className="w-3.5 h-3.5 mr-1.5" />Chapters</TabsTrigger>
-                <TabsTrigger value="reviews" className="text-xs md:text-sm data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:font-bold data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-lg transition-all">
-                  <Star className="w-3.5 h-3.5 mr-1.5 fill-amber-400 text-amber-400" />
-                  {approvedReviews.length > 0 ? (
-                    <span>{(approvedReviews.reduce((s: number, r: any) => s + r.rating, 0) / approvedReviews.length).toFixed(1)} Reviews ({approvedReviews.length})</span>
-                  ) : (
-                    <span>Reviews</span>
-                  )}
-                </TabsTrigger>
-              </TabsList>
+              <div className={`relative overflow-hidden rounded-[20px] border ${isFeaturedGuide ? 'border-amber-500/25' : 'border-primary/20'} bg-gradient-to-b from-card to-muted/30 p-1`}>
+                <div className={`absolute top-0 left-0 right-0 h-[2px] ${isFeaturedGuide ? 'bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500' : 'bg-gradient-to-r from-primary via-primary/70 to-primary'}`} />
+                <TabsList className="grid w-full grid-cols-2 h-11 md:h-12 p-0 bg-transparent gap-1">
+                  <TabsTrigger value="chapters" className="text-xs md:text-sm font-bold uppercase tracking-wider data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-[var(--shadow-card)] rounded-[14px] transition-all"><Headphones className="w-3.5 h-3.5 mr-1.5" />Chapters</TabsTrigger>
+                  <TabsTrigger value="reviews" className="text-xs md:text-sm font-bold uppercase tracking-wider data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-[var(--shadow-card)] rounded-[14px] transition-all">
+                    <Star className="w-3.5 h-3.5 mr-1.5 fill-amber-400 text-amber-400" />
+                    {approvedReviews.length > 0 ? (
+                      <span>{(approvedReviews.reduce((s: number, r: any) => s + r.rating, 0) / approvedReviews.length).toFixed(1)} · {approvedReviews.length}</span>
+                    ) : (
+                      <span>Reviews</span>
+                    )}
+                  </TabsTrigger>
+                </TabsList>
+              </div>
               
               <TabsContent value="chapters" className="space-y-3 md:space-y-4">
                 {isPurchased || hasAccessCode ? (
