@@ -1,6 +1,7 @@
 import { Headphones, Home, LogIn, MapPinned, LibraryBig } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { smoothScrollTo } from "@/lib/scroll-memory";
 import { useAuth } from "@/contexts/AuthContext";
 
 const baseNavItems = [
@@ -41,6 +42,13 @@ export const MobileBottomNav = () => {
               <Link
                 key={`${item.to}-${item.label}`}
                 to={item.to}
+                onClick={(e) => {
+                  // If already on the same route, smooth-scroll to top instead of re-navigating.
+                  if (location.pathname === item.to) {
+                    e.preventDefault();
+                    smoothScrollTo(0);
+                  }
+                }}
                 className={cn(
                   "mobile-bottom-nav-item",
                   isActive && "mobile-bottom-nav-item-active",

@@ -17,6 +17,9 @@ import { SearchAutocomplete } from '@/components/SearchAutocomplete';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { saveScrollPosition, readScrollPosition, smoothScrollTo } from '@/lib/scroll-memory';
+
+const SCROLL_KEY = 'guides-list';
 
 const Guides = () => {
   const navigate = useNavigate();
@@ -50,6 +53,33 @@ const Guides = () => {
   useEffect(() => {
     if (user) fetchUserPurchases();
   }, [user]);
+
+  // Continuously save scroll position so we can restore it when returning from detail.
+  useEffect(() => {
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        saveScrollPosition(SCROLL_KEY, window.scrollY);
+        ticking = false;
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Restore scroll position when the list finishes loading.
+  useEffect(() => {
+    if (loading) return;
+    const y = readScrollPosition(SCROLL_KEY);
+    if (y == null || y <= 0) return;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        smoothScrollTo(y);
+      });
+    });
+  }, [loading]);
 
   const fetchUserPurchases = async () => {
     if (!user) return;
