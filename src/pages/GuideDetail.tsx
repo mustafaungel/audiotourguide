@@ -700,13 +700,24 @@ const GuideDetail = () => {
       )}
       <Navigation sticky={false} />
       
-      {/* Sticky header — below navigation bar */}
-      <div className={`sticky top-0 z-40 backdrop-blur-xl border-b px-3 py-2.5 ${isFeaturedGuide ? 'bg-amber-500/15 dark:bg-amber-900/40 border-amber-500/30' : 'bg-primary/5 dark:bg-primary/10 border-primary/25'}`}>
-        <div className="flex items-center gap-2.5">
+      {/* Sticky header — studio console strip */}
+      <div className={`sticky top-0 z-40 backdrop-blur-xl border-b ${isFeaturedGuide ? 'bg-amber-500/15 dark:bg-amber-900/40 border-amber-500/30' : 'bg-primary/5 dark:bg-primary/10 border-primary/25'}`}>
+        {/* VU accent line */}
+        <div className={`h-[2px] w-full ${isFeaturedGuide ? 'bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500' : 'bg-gradient-to-r from-primary via-primary/70 to-primary'}`} />
+        <div className="flex items-center gap-2.5 px-3 py-2.5">
           <button onClick={() => navigate(-1)} className={`w-11 h-11 shrink-0 rounded-full flex items-center justify-center transition-colors active:scale-90 ${isFeaturedGuide ? 'bg-amber-500/15 hover:bg-amber-500/25' : 'bg-primary/15 hover:bg-primary/25'}`}>
             <ChevronLeft className={`w-[22px] h-[22px] ${isFeaturedGuide ? 'text-amber-600 dark:text-amber-400' : 'text-primary'}`} />
           </button>
-          <span className="text-sm font-bold font-heading min-w-0 line-clamp-2 leading-tight">{guide.title}</span>
+          <div className="flex-1 min-w-0">
+            <span className={`block text-[9px] font-bold uppercase tracking-[0.2em] ${isFeaturedGuide ? 'text-amber-600 dark:text-amber-400' : 'text-primary'}`}>On Air</span>
+            <span className="block text-sm font-bold font-heading min-w-0 line-clamp-1 leading-tight">{guide.title}</span>
+          </div>
+          {/* mini live waveform */}
+          <div className="flex items-end gap-[2px] h-4 shrink-0 opacity-70">
+            {[6, 10, 4, 12, 7, 9, 5].map((h, i) => (
+              <span key={i} className={`w-[2px] rounded-full card-waveform-bar ${isFeaturedGuide ? 'bg-amber-500' : 'bg-primary'}`} style={{ height: `${h}px`, animationDelay: `${i * 0.12}s` }} />
+            ))}
+          </div>
           <span className="text-base ml-0.5 shrink-0">{getLanguageFlag(selectedLanguage)}</span>
         </div>
       </div>
