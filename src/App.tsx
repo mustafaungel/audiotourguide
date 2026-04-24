@@ -49,17 +49,15 @@ const queryClient = new QueryClient({
 
 const AudioGuideLoaderLazy = React.lazy(() => import("@/components/AudioGuideLoader").then(m => ({ default: m.AudioGuideLoader })));
 
+// Lightweight, transparent loader used when a brand-new lazy chunk needs to load.
+// Most navigations show no loader at all because the outgoing page stays visible
+// during the page transition (see PageTransition).
 const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center">
-    <div className="text-center space-y-4">
-      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto audio-icon-pulse">
-        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-      <div className="flex items-center justify-center gap-[3px]">
-        {[0, 1, 2, 3, 4].map((i) => (
-          <span key={i} className="w-1 rounded-full bg-primary audio-wave-bar" style={{ animationDelay: `${i * 0.12}s` }} />
-        ))}
-      </div>
+  <div className="min-h-[60vh] flex items-center justify-center">
+    <div className="flex items-center justify-center gap-[3px]">
+      {[0, 1, 2, 3, 4].map((i) => (
+        <span key={i} className="w-1 rounded-full bg-primary audio-wave-bar" style={{ animationDelay: `${i * 0.12}s` }} />
+      ))}
     </div>
   </div>
 );
@@ -79,8 +77,7 @@ const App = () => {
                 <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                   <ScrollToTop />
                   <main id="main-content">
-                  <Suspense fallback={<PageLoader />}>
-                    <PageTransition>
+                    <PageTransition fallback={<PageLoader />}>
                       <Routes>
                         <Route path="/" element={<Index />} />
                         <Route path="/admin-login" element={<Auth />} />
@@ -99,8 +96,7 @@ const App = () => {
                         <Route path="*" element={<NotFound />} />
                       </Routes>
                     </PageTransition>
-                  </Suspense>
-                </main>
+                  </main>
                 </BrowserRouter>
               </TooltipProvider>
             </AuthProvider>
