@@ -1,6 +1,5 @@
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, MapPin, Play } from "lucide-react";
+import { Clock, MapPin, Play, Headphones } from "lucide-react";
 import { ButtonLoader } from "@/components/AudioGuideLoader";
 import { useViralTracking } from "@/hooks/useViralTracking";
 import { LiveListenersBadge } from "@/components/LiveListenersBadge";
@@ -58,115 +57,133 @@ export function GuideCard({
     });
   };
 
-  // Featured and normal cards share the same horizontal layout
-  // Featured gets amber accents, normal gets primary
   const isFeaturedCard = isFeatured;
-  const accentBorder = isFeaturedCard ? 'border-amber-500/50' : 'border-primary/30';
-  const bandGradient = isFeaturedCard
-    ? 'bg-gradient-to-r from-amber-500 via-amber-500/85 to-yellow-500/70'
-    : 'bg-gradient-to-r from-primary via-primary/85 to-primary/70';
-  const waveColor = isFeaturedCard ? 'bg-amber-500/55' : 'bg-primary/80';
+  // Thin accent line color (replaces the thick gradient band)
+  const accentLineClass = isFeaturedCard
+    ? 'bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500'
+    : 'bg-gradient-to-r from-primary via-primary/70 to-primary';
+  // Subtle card tint
+  const cardTintClass = isFeaturedCard
+    ? 'bg-amber-50/40 dark:bg-amber-500/5'
+    : 'bg-card';
+  const borderClass = isFeaturedCard
+    ? 'border-amber-500/25 hover:border-amber-500/50'
+    : 'border-border/60 hover:border-primary/30';
   const playBtnClass = isFeaturedCard
-    ? 'bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600'
-    : 'bg-gradient-tourism hover:shadow-tourism';
-  const hoverShadow = isFeaturedCard ? 'hover:shadow-amber-500/10' : 'hover:shadow-primary/5';
-  const metaChipClass = isFeaturedCard
-    ? 'border-amber-500/20 bg-amber-500/10 text-foreground/80'
-    : 'border-primary/15 bg-primary/5 text-foreground/80';
+    ? 'bg-gradient-to-br from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white'
+    : 'bg-gradient-tourism hover:shadow-tourism text-primary-foreground';
+  // Static (non-animated) waveform color
+  const waveColor = isFeaturedCard ? 'bg-amber-500/40' : 'bg-primary/40';
+  const featuredBadgeClass = isFeaturedCard
+    ? 'bg-foreground text-background'
+    : 'bg-primary text-primary-foreground';
 
   return (
     <div className="card-3d" onClick={handleView}>
       <div
-        className={`card-3d-inner group audio-card-glow overflow-hidden rounded-[26px] border ${accentBorder} bg-card/82 backdrop-blur-md shadow-[var(--shadow-card)] hover:shadow-elevated ${hoverShadow} ${isFeaturedCard ? 'hover:border-amber-500/60' : 'hover:border-primary/30'} cursor-pointer transition-all duration-300 active:scale-[0.98]`}
+        className={`card-3d-inner group relative overflow-hidden rounded-2xl border ${borderClass} ${cardTintClass} shadow-[0_2px_8px_hsl(var(--foreground)/0.04)] hover:shadow-[0_8px_24px_hsl(var(--foreground)/0.08)] cursor-pointer transition-all duration-300 active:scale-[0.99]`}
       >
-      {/* Top band */}
-      <div className={`flex items-start px-4 py-3 ${bandGradient}`}>
-        <span className="min-w-0 flex-1 text-[12px] font-extrabold font-heading leading-tight tracking-normal text-primary-foreground drop-shadow-sm line-clamp-2 break-words">
-          {title}
-        </span>
-      </div>
+        {/* Thin accent line at top */}
+        <div className={`h-[3px] w-full ${accentLineClass}`} />
 
-      {/* Main content — horizontal layout */}
-      <div className="flex gap-3.5 p-3.5">
-        {/* Image thumbnail */}
-        <div className="relative h-[132px] w-[112px] shrink-0 overflow-hidden rounded-[18px] shadow-[var(--shadow-raised)] sm:h-[144px] sm:w-[120px]">
-          <OptimizedImage
-            src={imageUrl}
-            alt={`${title} - Audio Guide`}
-            width={400}
-            height={225}
-
-            loading={imageLoading}
-            className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-foreground/35 via-transparent to-transparent" />
-          <Badge className="glass-badge absolute left-2 top-2 border-0 px-2 py-0.5 text-[10px] font-semibold capitalize text-foreground">
-            {category}
-          </Badge>
-        </div>
-
-        {/* Content */}
-        <div className="flex min-w-0 flex-1 flex-col justify-between overflow-hidden py-0.5">
-          <div className="space-y-3">
-            <div className="flex items-start gap-1.5 text-sm font-semibold text-foreground/80 card-text-primary">
-              <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary/70" />
-              <span className="line-clamp-2 leading-snug">{location}</span>
+        {/* Main content — GYG-style horizontal */}
+        <div className="flex gap-3 p-3">
+          {/* Square-ish image */}
+          <div className="relative aspect-square h-[140px] w-[140px] shrink-0 overflow-hidden rounded-xl shadow-[var(--shadow-raised)] sm:h-[150px] sm:w-[150px]">
+            <OptimizedImage
+              src={imageUrl}
+              alt={`${title} - Audio Guide`}
+              width={400}
+              height={400}
+              loading={imageLoading}
+              className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+            />
+            {/* Duration badge — Spotify/podcast style, top-left on image */}
+            <div className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-md bg-foreground/75 px-1.5 py-0.5 text-[10px] font-semibold text-background backdrop-blur-sm">
+              <Headphones className="h-2.5 w-2.5" />
+              <span>{Math.floor(duration / 60)}m</span>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <div className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${metaChipClass}`}>
-                <Clock className="h-3 w-3 shrink-0 text-primary/70" />
-                <span>{Math.floor(duration / 60)} min</span>
+          </div>
+
+          {/* Right content */}
+          <div className="flex min-w-0 flex-1 flex-col justify-between py-0.5">
+            <div className="space-y-1.5">
+              {/* Small location label (GYG: small gray above title) */}
+              <div className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                <MapPin className="h-3 w-3 shrink-0" />
+                <span className="line-clamp-1">{location}</span>
               </div>
+
+              {/* Big bold title */}
+              <h3 className="font-heading text-[15px] font-bold leading-tight text-foreground line-clamp-2 break-words">
+                {title}
+              </h3>
+
+              {/* Meta row: category + duration */}
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
+                <span className="capitalize">{category}</span>
+                <span className="text-border">•</span>
+                <span className="inline-flex items-center gap-0.5">
+                  <Clock className="h-2.5 w-2.5" />
+                  {Math.floor(duration / 60)} min
+                </span>
+              </div>
+
+              {/* Featured badge — GYG "Top pick" style */}
+              {isFeaturedCard && (
+                <div className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${featuredBadgeClass}`}>
+                  Featured
+                </div>
+              )}
+
+              {/* Languages flags — minimal inline */}
               {languages && languages.length > 0 && (
-                <div className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${metaChipClass}`}>
-                  <span className="flex items-center gap-0.5">
-                    {languages.slice(0, 4).map((lang, i) => {
-                      const match = ELEVENLABS_LANGUAGES.find(l => l.name === lang || l.code === lang);
-                      return match ? <span key={i} title={match.name}>{match.flag}</span> : null;
-                    })}
-                  </span>
-                  {languages.length > 4 && <span>+{languages.length - 4}</span>}
+                <div className="flex items-center gap-0.5 text-sm">
+                  {languages.slice(0, 3).map((lang, i) => {
+                    const match = ELEVENLABS_LANGUAGES.find(l => l.name === lang || l.code === lang);
+                    return match ? <span key={i} title={match.name}>{match.flag}</span> : null;
+                  })}
+                  {languages.length > 3 && (
+                    <span className="ml-0.5 text-[10px] font-semibold text-muted-foreground">+{languages.length - 3}</span>
+                  )}
                 </div>
               )}
             </div>
-          </div>
 
-          <div className="mt-3 flex items-center justify-between gap-3 border-t border-border/20 pt-3">
-            <div className="min-w-0 flex-1">
-              <LiveListenersBadge guideId={id} size="compact" />
+            {/* Bottom row: live listeners + play button */}
+            <div className="mt-2 flex items-center justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <LiveListenersBadge guideId={id} size="compact" />
+              </div>
+              <Button
+                variant="default"
+                size="icon"
+                className={`h-10 w-10 rounded-full ${playBtnClass} shrink-0 shadow-[var(--shadow-interactive)]`}
+                disabled={isProcessingPayment}
+                onClick={(e) => { e.stopPropagation(); handleView(); }}
+                aria-label={`Play ${title}`}
+              >
+                {isProcessingPayment ? (
+                  <ButtonLoader text="" />
+                ) : (
+                  <Play className="ml-0.5 h-4 w-4" fill="currentColor" />
+                )}
+              </Button>
             </div>
-            <Button
-              variant="default"
-              size="icon"
-              className={`h-11 w-11 rounded-full ${playBtnClass} shrink-0 shadow-[var(--shadow-interactive)]`}
-              disabled={isProcessingPayment}
-              onClick={(e) => { e.stopPropagation(); handleView(); }}
-            >
-              {isProcessingPayment ? (
-                <ButtonLoader text="" />
-              ) : (
-                <Play className="ml-0.5 h-4.5 w-4.5" fill="currentColor" />
-              )}
-            </Button>
           </div>
         </div>
-      </div>
 
-      {/* Bottom waveform decoration */}
-      <div className="flex h-3 items-end justify-center gap-[2px] px-4 pb-2 opacity-30">
-        {[0, 120, 240, 80, 200, 40, 160, 280, 100, 220, 60, 180, 300, 140, 260].map((delay, i) => (
-          <span
-            key={i}
-            className={`inline-block w-[3px] ${waveColor} rounded-full`}
-            style={{
-              height: `${4 + Math.sin(delay * 0.02) * 6}px`,
-              animation: 'equalizer-bar 2.2s ease-in-out infinite',
-              animationDelay: `-${2200 - delay}ms`,
-            }}
-          />
-        ))}
+        {/* Static waveform decoration — audio identity, no animation */}
+        <div className="flex h-2.5 items-end justify-center gap-[2px] px-4 pb-2 opacity-50">
+          {[3, 6, 4, 8, 5, 9, 4, 7, 5, 8, 3, 6, 4, 7, 5, 8, 4, 6, 3, 5].map((h, i) => (
+            <span
+              key={i}
+              className={`inline-block w-[2px] ${waveColor} rounded-full`}
+              style={{ height: `${h}px` }}
+            />
+          ))}
+        </div>
       </div>
-    </div>
     </div>
   );
 }
