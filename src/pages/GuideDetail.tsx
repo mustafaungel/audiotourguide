@@ -1106,28 +1106,32 @@ const GuideDetail = () => {
               </div>
             </div>
 
-            {/* Linked Guides */}
+            {/* Linked Guides — studio rack */}
             {linkedGuides.length > 0 && (
-              <div className="mobile-surface overflow-hidden rounded-[24px]">
-                <div className="px-4 py-3 border-b border-border/30">
-                  <h3 className="text-sm font-bold flex items-center gap-2">
-                    <Headphones className="w-4 h-4 text-primary" />
-                    Also in This Collection
-                  </h3>
+              <div className="relative overflow-hidden rounded-[24px] border border-primary/20 bg-gradient-to-b from-card to-muted/20 shadow-[var(--shadow-card)]">
+                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-primary via-primary/70 to-primary" />
+                <div className="px-4 pt-4 pb-2.5 flex items-center gap-2">
+                  <Headphones className="w-4 h-4 text-primary" />
+                  <div className="flex-1">
+                    <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-primary">Collection</p>
+                    <h3 className="text-sm font-bold leading-tight">Also in This Set</h3>
+                  </div>
                 </div>
-                <div className="p-3 space-y-2">
+                <div className="p-3 pt-1 space-y-2">
                   {linkedGuides.map((linkedGuide) => (
-                    <div key={linkedGuide.guide_id} className="flex gap-3 p-2 rounded-xl hover:bg-muted/50 transition-colors cursor-pointer border border-border/20"
+                    <div key={linkedGuide.guide_id}
+                      className="relative flex gap-3 p-2 rounded-[16px] hover:bg-primary/5 transition-colors cursor-pointer border border-border/20"
                       onClick={() => isPurchased && linkedGuide.master_access_code && navigate(`/access/${linkedGuide.guide_id}?access_code=${linkedGuide.master_access_code}`)}
                     >
+                      <span className="absolute left-0 top-3 bottom-3 w-[2px] rounded-full bg-primary/40" />
                       {linkedGuide.image_url && (
                         <img src={linkedGuide.image_url} alt={linkedGuide.custom_title || linkedGuide.title}
-                          className="w-14 h-14 object-cover rounded-lg shrink-0" />
+                          className="w-14 h-14 object-cover rounded-xl shrink-0 ml-1.5 ring-1 ring-primary/10" />
                       )}
                       <div className="flex-1 min-w-0 flex flex-col justify-center">
-                        <h4 className="font-medium text-xs leading-snug">{linkedGuide.custom_title || linkedGuide.title}</h4>
+                        <h4 className="font-semibold text-xs leading-snug">{linkedGuide.custom_title || linkedGuide.title}</h4>
                         {isPurchased && linkedGuide.master_access_code && (
-                          <span className="text-[10px] text-primary font-medium mt-0.5">Listen →</span>
+                          <span className="text-[10px] text-primary font-bold uppercase tracking-wider mt-1">Play →</span>
                         )}
                       </div>
                     </div>
