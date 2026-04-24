@@ -30,10 +30,10 @@ export function LiveListenersBadge({ guideId, size = 'default', realCount }: Liv
   const iconSize = isCompact ? 'w-2.5 h-2.5' : 'w-3 h-3';
 
   return (
-    <div className={`inline-flex w-fit max-w-full self-start rounded-full overflow-hidden glass-badge ${outerPadding} shadow-[0_2px_12px_hsl(var(--primary)/0.12)]`}>
-      <div className={`inline-flex w-fit max-w-full items-center gap-1.5 ${innerPadding} rounded-full ${fontSize} text-primary`}>
-        <Headphones className={`${iconSize} shrink-0`} style={{ animation: 'pulse 2.2s ease-in-out infinite', animationDelay: '-2200ms' }} />
-        <span className="min-w-0 truncate whitespace-nowrap"><span className="font-semibold">{count}</span> Listening</span>
+    <div className={`inline-flex w-fit max-w-full self-start rounded-full overflow-hidden ${outerPadding} bg-background/85 dark:bg-background/70 backdrop-blur-md ring-1 ring-foreground/10 dark:ring-foreground/20 shadow-[0_2px_10px_hsl(var(--foreground)/0.15)]`}>
+      <div className={`inline-flex w-fit max-w-full items-center gap-1.5 ${innerPadding} rounded-full ${fontSize} text-primary dark:text-primary-foreground`}>
+        <Headphones className={`${iconSize} shrink-0 text-primary`} style={{ animation: 'pulse 2.2s ease-in-out infinite', animationDelay: '-2200ms' }} />
+        <span className="min-w-0 truncate whitespace-nowrap text-foreground"><span className="font-bold text-primary">{count}</span> Listening</span>
       </div>
     </div>
   );
