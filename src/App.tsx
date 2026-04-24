@@ -31,11 +31,30 @@ const CountryDetail = React.lazy(() => import("./pages/CountryDetail"));
 const FeaturedGuides = React.lazy(() => import("./pages/FeaturedGuides"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
-// Preload GuideDetail chunk after initial render
+// Preload all lazy chunks during browser idle time so subsequent navigations
+// are instant — no "loading from scratch" flash between pages.
 if (typeof window !== 'undefined') {
-  window.addEventListener('load', () => {
-    setTimeout(() => { guideDetailImport(); }, 1000);
-  });
+  const preloadAll = () => {
+    guideDetailImport();
+    import("./pages/Guides");
+    import("./pages/Library");
+    import("./pages/Auth");
+    import("./pages/Countries");
+    import("./pages/CountryDetail");
+    import("./pages/FeaturedGuides");
+    import("./pages/AudioAccess");
+    import("./pages/PaymentSuccess");
+    import("./pages/PaymentCancelled");
+  };
+  const schedule = (cb: () => void) => {
+    const w = window as unknown as { requestIdleCallback?: (cb: () => void) => void };
+    if (typeof w.requestIdleCallback === 'function') {
+      w.requestIdleCallback(cb);
+    } else {
+      setTimeout(cb, 1200);
+    }
+  };
+  window.addEventListener('load', () => schedule(preloadAll));
 }
 
 const queryClient = new QueryClient({
