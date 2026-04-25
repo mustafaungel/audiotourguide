@@ -979,57 +979,66 @@ All colors MUST be HSL.
   position: relative;
   min-height: 100vh;
   isolation: isolate;
+  overflow-x: clip;
 }
 
 /* The outgoing page is layered above briefly so the new page can slide in cleanly. */
 .page-transition-leave-push,
-.page-transition-leave-pop {
+.page-transition-leave-pop,
+.page-transition-enter-push,
+.page-transition-enter-pop {
   position: absolute;
   inset: 0;
   width: 100%;
-  pointer-events: none;
-  z-index: 2;
   will-change: transform, opacity;
   transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
+  contain: layout paint style;
+}
+
+.page-transition-enter-push,
+.page-transition-enter-pop {
+  z-index: 1;
+}
+
+.page-transition-leave-push,
+.page-transition-leave-pop {
+  pointer-events: none;
+  z-index: 2;
 }
 
 /* PUSH: new page enters from right, old page eases back slightly + fades. */
 .page-transition-enter-push {
-  animation: page-enter-push 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  will-change: transform, opacity;
-  backface-visibility: hidden;
+  animation: page-enter-push 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 .page-transition-leave-push {
-  animation: page-leave-push 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: page-leave-push 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* POP (back): incoming previous page eases in from a slight left offset,
    outgoing page slides out to the right. */
 .page-transition-enter-pop {
-  animation: page-enter-pop 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  will-change: transform, opacity;
-  backface-visibility: hidden;
+  animation: page-enter-pop 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 .page-transition-leave-pop {
-  animation: page-leave-pop 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: page-leave-pop 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes page-enter-push {
-  from { transform: translate3d(40px, 0, 0); opacity: 0; }
+  from { transform: translate3d(72px, 0, 0); opacity: 0.74; }
   to   { transform: translate3d(0, 0, 0);    opacity: 1; }
 }
 @keyframes page-leave-push {
   from { transform: translate3d(0, 0, 0);    opacity: 1; }
-  to   { transform: translate3d(-20px, 0, 0); opacity: 0; }
+  to   { transform: translate3d(-18px, 0, 0) scale(0.992); opacity: 0.92; }
 }
 @keyframes page-enter-pop {
-  from { transform: translate3d(-20px, 0, 0); opacity: 0; }
+  from { transform: translate3d(-14px, 0, 0) scale(0.994); opacity: 0.86; }
   to   { transform: translate3d(0, 0, 0);     opacity: 1; }
 }
 @keyframes page-leave-pop {
   from { transform: translate3d(0, 0, 0);    opacity: 1; }
-  to   { transform: translate3d(40px, 0, 0); opacity: 0; }
+  to   { transform: translate3d(88px, 0, 0); opacity: 0.82; }
 }
 
 @media (prefers-reduced-motion: reduce) {

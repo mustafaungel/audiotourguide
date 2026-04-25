@@ -1,5 +1,5 @@
 import React, { Suspense, useEffect, useRef, useState } from "react";
-import { useLocation, useNavigationType } from "react-router-dom";
+import { useLocation, useNavigationType, type Location } from "react-router-dom";
 
 const TRANSITION_MS = 420;
 
@@ -20,10 +20,18 @@ export const PageTransition: React.FC<{ children: React.ReactNode; fallback: Rea
   const location = useLocation();
   const navType = useNavigationType(); // 'PUSH' | 'POP' | 'REPLACE'
 
-  const [displayed, setDisplayed] = useState({ children, key: location.key });
-  const [outgoing, setOutgoing] = useState<{ children: React.ReactNode; key: string; direction: "push" | "pop" } | null>(null);
+  const [displayed, setDisplayed] = useState({ location, key: location.key });
+  const [outgoing, setOutgoing] = useState<{ location: Location; key: string; direction: "push" | "pop" } | null>(null);
   const lastKeyRef = useRef(location.key);
   const prefersReducedMotion = useRef<boolean>(false);
+
+  const renderAtLocation = (targetLocation: Location) => {
+    if (!React.isValidElement(children)) return children;
+
+    return React.cloneElement(children as React.ReactElement<{ location?: Location }>, {
+      location: targetLocation,
+    });
+  };
 
   useEffect(() => {
     prefersReducedMotion.current = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
@@ -31,18 +39,18 @@ export const PageTransition: React.FC<{ children: React.ReactNode; fallback: Rea
 
   useEffect(() => {
     if (location.key === lastKeyRef.current) {
-      setDisplayed({ children, key: location.key });
+      setDisplayed({ location, key: location.key });
       return;
     }
 
     if (navType === "REPLACE" || prefersReducedMotion.current) {
-      setDisplayed({ children, key: location.key });
+      setDisplayed({ location, key: location.key });
       lastKeyRef.current = location.key;
       return;
     }
 
-    setOutgoing({ children: displayed.children, key: displayed.key, direction: navType === "POP" ? "pop" : "push" });
-    setDisplayed({ children, key: location.key });
+    setOutgoing({ location: displayed.location, key: displayed.key, direction: navType === "POP" ? "pop" : "push" });
+    setDisplayed({ location, key: location.key });
     lastKeyRef.current = location.key;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.key, children]);
@@ -61,7 +69,7 @@ export const PageTransition: React.FC<{ children: React.ReactNode; fallback: Rea
           className={outgoing.direction === "pop" ? "page-transition-leave-pop" : "page-transition-leave-push"}
           aria-hidden
         >
-          {outgoing.children}
+          {renderAtLocation(outgoing.location)}
         </div>
       )}
       <div
@@ -75,7 +83,7 @@ export const PageTransition: React.FC<{ children: React.ReactNode; fallback: Rea
         }
       >
         {/* Suspense INSIDE so the outgoing page stays visible while the new chunk loads */}
-        <Suspense fallback={fallback}>{displayed.children}</Suspense>
+        <Suspense fallback={fallback}>{renderAtLocation(displayed.location)}</Suspense>
       </div>
     </div>
   );
