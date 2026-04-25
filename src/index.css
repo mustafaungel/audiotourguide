@@ -972,20 +972,6 @@ All colors MUST be HSL.
 }
 
 /* ============================================
-   Native app feel — subtle fade-in on route mount.
-   No layout/transform animations on the page level.
+   No global route fade — relies on KeepAlive for instant tab switches.
+   Removed forced repaint on every navigation to eliminate jank.
    ============================================ */
-#main-content > * {
-  animation: route-fade-in 180ms ease-out both;
-}
-
-@keyframes route-fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  #main-content > * {
-    animation: none !important;
-  }
-}
