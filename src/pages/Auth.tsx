@@ -68,19 +68,6 @@ const Auth = () => {
     })();
   }, [turnstileSiteKey]);
 
-  // Server-side captcha verification (extra layer beyond Supabase native check)
-  const verifyCaptchaServerSide = async (token: string): Promise<boolean> => {
-    try {
-      const { data, error } = await supabase.functions.invoke('verify-turnstile', {
-        body: { token, action: activeTab },
-      });
-      if (error || !data?.success) return false;
-      return true;
-    } catch {
-      return false;
-    }
-  };
-
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const limit = checkRateLimit('signin');
@@ -100,15 +87,6 @@ const Auth = () => {
     const parsed = signInSchema.safeParse(payload);
     if (!parsed.success) {
       toast.error(parsed.error.errors[0].message);
-      setIsLoading(false);
-      return;
-    }
-
-    // Server-side captcha verification
-    const captchaOk = await verifyCaptchaServerSide(parsed.data.captchaToken);
-    if (!captchaOk) {
-      toast.error('Security check failed. Please try again.');
-      setSignInCaptcha('');
       setIsLoading(false);
       return;
     }
@@ -145,14 +123,6 @@ const Auth = () => {
     const parsed = signUpSchema.safeParse(payload);
     if (!parsed.success) {
       toast.error(parsed.error.errors[0].message);
-      setIsLoading(false);
-      return;
-    }
-
-    const captchaOk = await verifyCaptchaServerSide(parsed.data.captchaToken);
-    if (!captchaOk) {
-      toast.error('Security check failed. Please try again.');
-      setSignUpCaptcha('');
       setIsLoading(false);
       return;
     }
