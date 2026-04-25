@@ -197,21 +197,24 @@ const Guides = () => {
       <Navigation />
       <ExploreSegmentedNav active="guides" />
 
-      {/* Page Header */}
-      <section className="mobile-section relative overflow-hidden">
+      {/* Compact header — desktop shows full hero, mobile keeps it minimal
+          so the search + content appear above the fold. H1 remains in DOM
+          for SEO/accessibility on every breakpoint. */}
+      <h1 className="sr-only">Discover Audio Guides</h1>
+      <section className="hidden md:block mobile-section relative overflow-hidden">
         <div className="audio-hero-silhouette" />
         <div className="mobile-container relative z-10">
           <div className="discover-hero-panel text-center">
-          <div className="inline-flex items-center gap-2 rounded-full audio-premium-badge px-4 py-2 mb-4">
-            <Headphones className="h-4 w-4 text-primary" />
-            <span className="mobile-caption font-medium">Audio Guides</span>
-          </div>
-          <h1 className="mobile-heading sm:text-3xl lg:text-4xl text-foreground mb-4">
-            Discover Amazing Audio Guides
-          </h1>
-          <h2 className="mobile-text text-muted-foreground max-w-2xl mx-auto">
-            Explore the world through immersive audio experiences. Search by destination, category, or guide name.
-          </h2>
+            <div className="inline-flex items-center gap-2 rounded-full audio-premium-badge px-4 py-2 mb-4">
+              <Headphones className="h-4 w-4 text-primary" />
+              <span className="mobile-caption font-medium">Audio Guides</span>
+            </div>
+            <h2 className="mobile-heading sm:text-3xl lg:text-4xl text-foreground mb-4">
+              Discover Amazing Audio Guides
+            </h2>
+            <p className="mobile-text text-muted-foreground max-w-2xl mx-auto">
+              Explore the world through immersive audio experiences. Search by destination, category, or guide name.
+            </p>
           </div>
         </div>
       </section>

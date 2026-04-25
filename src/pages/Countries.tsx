@@ -83,24 +83,43 @@ const Countries = () => {
       <Navigation />
       <ExploreSegmentedNav active="places" />
 
-      {/* Header Section */}
-      <section className="mobile-section">
+      {/* Compact header — full hero on desktop only; mobile shows just the
+          search bar so countries appear above the fold. */}
+      <h1 className="sr-only">Audio Guides by Country</h1>
+      <section className="hidden md:block mobile-section">
         <div className="mobile-container max-w-4xl text-center">
           <div className="discover-hero-panel">
-          <div className="inline-flex items-center gap-2 rounded-full bg-card/20 backdrop-blur-md border border-border/50 px-4 py-2 mb-4">
-            <MapPin className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium">Explore by Country</span>
-          </div>
-          
-          <h1 className="mobile-heading sm:text-3xl lg:text-4xl text-foreground mb-4">
-            Discover Audio Guides by Country
-          </h1>
-          <h2 className="mobile-text sm:text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Choose a destination and explore UNESCO World Heritage sites, cultural landmarks, and hidden gems with immersive audio experiences.
-          </h2>
+            <div className="inline-flex items-center gap-2 rounded-full bg-card/20 backdrop-blur-md border border-border/50 px-4 py-2 mb-4">
+              <MapPin className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium">Explore by Country</span>
+            </div>
 
-          {/* Search with autocomplete */}
-          <div className="max-w-md mx-auto">
+            <h2 className="mobile-heading sm:text-3xl lg:text-4xl text-foreground mb-4">
+              Discover Audio Guides by Country
+            </h2>
+            <p className="mobile-text sm:text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+              Choose a destination and explore UNESCO World Heritage sites, cultural landmarks, and hidden gems with immersive audio experiences.
+            </p>
+
+            <div className="max-w-md mx-auto">
+              <SearchAutocomplete
+                value={searchTerm}
+                onChange={setSearchTerm}
+                suggestions={suggestions}
+                placeholder="Search countries..."
+                onNavigate={(s) => {
+                  if (s.slug) navigate(`/country/${s.slug}`);
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Mobile-only compact search */}
+      <section className="md:hidden pt-2 pb-1">
+        <div className="mobile-container max-w-2xl">
+          <div className="mobile-surface rounded-[24px] p-3">
             <SearchAutocomplete
               value={searchTerm}
               onChange={setSearchTerm}
@@ -110,7 +129,6 @@ const Countries = () => {
                 if (s.slug) navigate(`/country/${s.slug}`);
               }}
             />
-          </div>
           </div>
         </div>
       </section>
