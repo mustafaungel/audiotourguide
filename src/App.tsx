@@ -30,8 +30,9 @@ const CountryDetail = React.lazy(() => import("./pages/CountryDetail"));
 const FeaturedGuides = React.lazy(() => import("./pages/FeaturedGuides"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
-// Preload all lazy chunks during browser idle time so subsequent navigations
-// are instant — no "loading from scratch" flash between pages.
+// Preload all lazy chunks IMMEDIATELY so navigations are instant — no
+// "loading from scratch" flash between pages. We fire these in the next tick
+// so they don't block initial paint, but we don't wait for idle time.
 if (typeof window !== 'undefined') {
   const preloadAll = () => {
     guideDetailImport();
@@ -45,30 +46,8 @@ if (typeof window !== 'undefined') {
     import("./pages/PaymentSuccess");
     import("./pages/PaymentCancelled");
   };
-  let hasScheduledPreload = false;
-  const runPreload = () => {
-    if (hasScheduledPreload) return;
-    hasScheduledPreload = true;
-    preloadAll();
-  };
-  const schedule = (cb: () => void) => {
-    const w = window as unknown as { requestIdleCallback?: (cb: () => void) => void };
-    if (typeof w.requestIdleCallback === 'function') {
-      w.requestIdleCallback(cb);
-    } else {
-      setTimeout(cb, 1200);
-    }
-  };
-  const schedulePreload = () => schedule(runPreload);
-
-  if (document.readyState === 'complete') {
-    schedulePreload();
-  } else {
-    window.addEventListener('load', schedulePreload, { once: true });
-  }
-
-  window.setTimeout(schedulePreload, 500);
-  window.addEventListener('pointerdown', schedulePreload, { once: true, passive: true });
+  // Kick off after first paint but without waiting for idle.
+  setTimeout(preloadAll, 0);
 }
 
 const queryClient = new QueryClient({
