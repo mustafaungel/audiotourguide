@@ -150,8 +150,9 @@ serve(async (req) => {
       new URL(cancelUrl);
       logStep("URL validation passed");
     } catch (urlError) {
-      logStep("URL validation failed", { error: urlError.message, origin });
-      throw new Error(`Invalid URL construction: ${urlError.message}`);
+      const message = urlError instanceof Error ? urlError.message : String(urlError);
+      logStep("URL validation failed", { error: message, origin });
+      throw new Error(`Invalid URL construction: ${message}`);
     }
 
     // Fix image URL - convert relative paths to absolute or remove invalid ones
@@ -171,16 +172,17 @@ serve(async (req) => {
           logStep("Image URL processed", { original: guide.image_url, processed: processedImageUrl });
         }
       } catch (imageError) {
+        const message = imageError instanceof Error ? imageError.message : String(imageError);
         logStep("Invalid image URL, excluding from Stripe", { 
           imageUrl: guide.image_url, 
-          error: imageError.message 
+          error: message 
         });
         processedImageUrl = null;
       }
     }
 
     // Create checkout session with detailed validation
-    const productData = { 
+    const productData: { name: string; description: string; images?: string[] } = { 
       name: guide.title,
       description: guide.description,
     };

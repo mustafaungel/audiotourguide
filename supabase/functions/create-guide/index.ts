@@ -240,18 +240,19 @@ serve(async (req) => {
     });
 
   } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error));
     console.error('Error in create-guide function:', error);
-    console.error('Error stack:', error.stack);
+    console.error('Error stack:', err.stack);
     console.error('Error details:', {
-      name: error.name,
-      message: error.message,
-      cause: error.cause
+      name: err.name,
+      message: err.message,
+      cause: err.cause
     });
     
     return new Response(JSON.stringify({ 
-      error: `Failed to create guide: ${error.message}`,
+      error: `Failed to create guide: ${err.message}`,
       success: false,
-      details: error.stack
+      details: err.stack
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -94,10 +94,11 @@ serve(async (req) => {
     });
 
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     console.error('Error in track-viral-engagement function:', error);
     return new Response(JSON.stringify({ 
       error: 'Failed to track engagement',
-      details: error.message 
+      details: errorMessage 
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -135,9 +135,8 @@ serve(async (req) => {
       accessCode: purchase.access_code 
     });
 
-    // Background tasks - these will run after the response is sent
-    EdgeRuntime.waitUntil(
-      (async () => {
+    // Background tasks - do not block payment verification if email/QR fails
+    (async () => {
         try {
           console.log('[VERIFY-PAYMENT] Starting background email task for:', { guide_id, user_id: userId, guest_email: guestEmail });
           
@@ -198,16 +197,16 @@ serve(async (req) => {
             }
           }
         } catch (backgroundError) {
+          const backgroundErrorMessage = backgroundError instanceof Error ? backgroundError.message : String(backgroundError);
           console.error('[VERIFY-PAYMENT] Background task error:', backgroundError);
           
           // Log the error in the database for admin review
           await supabaseService.from('user_purchases').update({
             email_sent: false,
-            email_error: backgroundError.message
+            email_error: backgroundErrorMessage
           }).eq('access_code', purchase.access_code);
         }
-      })()
-    );
+      })();
 
     return new Response(JSON.stringify({ 
       success: true, 
