@@ -11,6 +11,15 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // GET → return public site key for the frontend widget
+  if (req.method === 'GET') {
+    const siteKey = Deno.env.get('TURNSTILE_SITE_KEY') || '';
+    return new Response(
+      JSON.stringify({ siteKey }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
   try {
     const { token, action } = await req.json();
 
