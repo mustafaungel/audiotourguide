@@ -65,6 +65,7 @@ export function OptimizedImage({
           className={`${loaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300 ${className || ''}`}
           loading={loading}
           decoding="async"
+          {...({ fetchpriority: fetchPriority } as any)}
           onLoad={() => setLoaded(true)}
           onError={handleError}
         />
