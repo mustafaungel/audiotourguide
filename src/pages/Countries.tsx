@@ -116,22 +116,6 @@ const Countries = () => {
         </div>
       </section>
 
-      {/* Mobile-only compact search */}
-      <section className="md:hidden pt-2 pb-1">
-        <div className="mobile-container max-w-2xl">
-          <div className="mobile-surface rounded-[24px] p-3">
-            <SearchAutocomplete
-              value={searchTerm}
-              onChange={setSearchTerm}
-              suggestions={suggestions}
-              placeholder="Search countries..."
-              onNavigate={(s) => {
-                if (s.slug) navigate(`/country/${s.slug}`);
-              }}
-            />
-          </div>
-        </div>
-      </section>
 
       {/* Countries Grid */}
       <section className="mobile-section">
