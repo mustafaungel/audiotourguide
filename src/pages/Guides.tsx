@@ -222,8 +222,8 @@ const Guides = () => {
       {/* Search and Guides Section */}
       <section className="mobile-section">
         <div className="mobile-container">
-          {/* Search + Filter row */}
-          <div className="mobile-surface mb-4 flex gap-2 rounded-[24px] p-3 max-w-2xl mx-auto">
+          {/* Search + Filter row — desktop only */}
+          <div className="hidden md:flex mobile-surface mb-4 gap-2 rounded-[24px] p-3 max-w-2xl mx-auto">
             <SearchAutocomplete
               value={searchTerm}
               onChange={setSearchTerm}
@@ -246,9 +246,9 @@ const Guides = () => {
             </Button>
           </div>
 
-          {/* Category Chips — horizontal scroll */}
+          {/* Category Chips — desktop only */}
           {categories.length > 0 && (
-            <div className="max-w-2xl mx-auto mb-6 -mx-4 px-4">
+            <div className="hidden md:block max-w-2xl mx-auto mb-6 -mx-4 px-4">
               <div className="mobile-chip-row">
                 <button
                   onClick={() => setSelectedCategory(null)}

@@ -44,7 +44,7 @@ export function SegmentedControl({ items, value, onValueChange, className }: Seg
     <div
       ref={containerRef}
       className={cn(
-        'relative inline-flex items-center rounded-xl bg-muted p-1 gap-0.5',
+        'relative flex items-center rounded-xl bg-muted p-1 gap-0.5',
         className
       )}
     >
@@ -63,7 +63,7 @@ export function SegmentedControl({ items, value, onValueChange, className }: Seg
             data-segment
             onClick={() => handleSelect(item.value)}
             className={cn(
-              'relative z-10 flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors duration-200 min-h-[44px] touch-manipulation select-none',
+              'relative z-10 flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors duration-200 min-h-[44px] touch-manipulation select-none',
               isActive
                 ? 'text-foreground'
                 : 'text-muted-foreground hover:text-foreground/80'

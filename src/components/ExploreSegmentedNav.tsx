@@ -28,7 +28,7 @@ export const ExploreSegmentedNav = ({ active, className }: ExploreSegmentedNavPr
           if (val === active) return;
           navigate(val === "guides" ? "/guides" : "/country");
         }}
-        className="w-full max-w-xs"
+        className="w-full max-w-xs mx-auto"
       />
     </div>
   );
