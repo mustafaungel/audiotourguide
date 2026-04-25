@@ -37,6 +37,7 @@ const Auth = () => {
   const [turnstileSiteKey, setTurnstileSiteKey] = useState<string>(
     (import.meta.env.VITE_TURNSTILE_SITE_KEY as string) || ''
   );
+  const [captchaUnavailable, setCaptchaUnavailable] = useState(false);
 
   // Live password value for strength meter
   const [signUpPassword, setSignUpPassword] = useState('');
@@ -68,6 +69,15 @@ const Auth = () => {
     })();
   }, [turnstileSiteKey]);
 
+  const isCaptchaRequired = Boolean(turnstileSiteKey) && !captchaUnavailable;
+
+  const handleCaptchaError = () => {
+    setCaptchaUnavailable(true);
+    setSignInCaptcha('');
+    setSignUpCaptcha('');
+    console.warn('[Auth] Turnstile unavailable for hostname:', window.location.hostname);
+  };
+
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const limit = checkRateLimit('signin');
@@ -81,7 +91,7 @@ const Auth = () => {
     const payload = {
       email: formData.get('email') as string,
       password: formData.get('password') as string,
-      captchaToken: signInCaptcha,
+      captchaToken: isCaptchaRequired ? signInCaptcha : 'captcha-unavailable',
     };
 
     const parsed = signInSchema.safeParse(payload);
@@ -91,7 +101,11 @@ const Auth = () => {
       return;
     }
 
-    const { error } = await signIn(parsed.data.email, parsed.data.password, parsed.data.captchaToken);
+    const { error } = await signIn(
+      parsed.data.email,
+      parsed.data.password,
+      isCaptchaRequired ? parsed.data.captchaToken : undefined
+    );
     if (error) {
       recordFailedAttempt('signin');
       setSignInCaptcha('');
@@ -117,7 +131,7 @@ const Auth = () => {
       email: formData.get('email') as string,
       password: formData.get('password') as string,
       website: (formData.get('website') as string) || '', // honeypot
-      captchaToken: signUpCaptcha,
+      captchaToken: isCaptchaRequired ? signUpCaptcha : 'captcha-unavailable',
     };
 
     const parsed = signUpSchema.safeParse(payload);
@@ -131,7 +145,7 @@ const Auth = () => {
       parsed.data.email,
       parsed.data.password,
       parsed.data.fullName,
-      parsed.data.captchaToken
+      isCaptchaRequired ? parsed.data.captchaToken : undefined
     );
     if (error) {
       recordFailedAttempt('signup');
