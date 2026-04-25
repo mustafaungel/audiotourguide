@@ -1,13 +1,25 @@
-import { Headphones, Home, LogIn, MapPinned, LibraryBig } from "lucide-react";
+import { Compass, Home, LogIn, User, LibraryBig } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { smoothScrollTo } from "@/lib/scroll-memory";
 import { useAuth } from "@/contexts/AuthContext";
 
+// "Explore" is a single tab that covers BOTH /guides and /country.
+// The page itself shows a segmented control (Guides | Places) at the top
+// to switch between the two views — this keeps the bottom bar uncluttered
+// while preserving both routes for SEO and direct linking.
 const baseNavItems = [
   { to: "/", label: "Discover", icon: Home, match: (pathname: string) => pathname === "/" },
-  { to: "/guides", label: "Guides", icon: Headphones, match: (pathname: string) => pathname.startsWith("/guides") || pathname.startsWith("/guide/") },
-  { to: "/country", label: "Places", icon: MapPinned, match: (pathname: string) => pathname.startsWith("/country") || pathname.startsWith("/featured-guides") },
+  {
+    to: "/guides",
+    label: "Explore",
+    icon: Compass,
+    match: (pathname: string) =>
+      pathname.startsWith("/guides") ||
+      pathname.startsWith("/guide/") ||
+      pathname.startsWith("/country") ||
+      pathname.startsWith("/featured-guides"),
+  },
 ];
 
 // Hide bottom nav on these routes. Use exact-match-aware predicates so that
@@ -27,12 +39,21 @@ export const MobileBottomNav = () => {
     return null;
   }
 
-  const navItems = user
-    ? [...baseNavItems, { to: "/library", label: "Library", icon: LibraryBig, match: (pathname: string) => pathname.startsWith("/library") || pathname.startsWith("/payment-") }]
-    : baseNavItems;
+  // Library is shown to everyone — guests see an empty state with a CTA,
+  // which doubles as a soft prompt to sign in / purchase.
+  const navItems = [
+    ...baseNavItems,
+    {
+      to: "/library",
+      label: "Library",
+      icon: LibraryBig,
+      match: (pathname: string) =>
+        pathname.startsWith("/library") || pathname.startsWith("/payment-"),
+    },
+  ];
 
   const accountItem = user
-    ? { to: "/library", label: "Account", icon: LogIn, match: (pathname: string) => pathname.startsWith("/library") }
+    ? { to: "/library", label: "Account", icon: User, match: (_p: string) => false }
     : { to: "/admin-login", label: "Sign In", icon: LogIn, match: (pathname: string) => pathname.startsWith("/admin-login") };
 
   const items = [...navItems, accountItem];
@@ -50,10 +71,10 @@ export const MobileBottomNav = () => {
                 key={`${item.to}-${item.label}`}
                 to={item.to}
                 onClick={(e) => {
-                  // Special case: if user is on a /guide/:slug detail page and taps "Guides",
+                  // Special case: if user is on a /guide/:slug detail page and taps "Explore",
                   // act like the back button (return to the previous list view).
                   if (
-                    item.to === "/guides" &&
+                    item.label === "Explore" &&
                     location.pathname.startsWith("/guide/")
                   ) {
                     e.preventDefault();
