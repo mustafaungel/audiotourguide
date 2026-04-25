@@ -46,6 +46,12 @@ if (typeof window !== 'undefined') {
     import("./pages/PaymentSuccess");
     import("./pages/PaymentCancelled");
   };
+  let hasScheduledPreload = false;
+  const runPreload = () => {
+    if (hasScheduledPreload) return;
+    hasScheduledPreload = true;
+    preloadAll();
+  };
   const schedule = (cb: () => void) => {
     const w = window as unknown as { requestIdleCallback?: (cb: () => void) => void };
     if (typeof w.requestIdleCallback === 'function') {
@@ -54,7 +60,16 @@ if (typeof window !== 'undefined') {
       setTimeout(cb, 1200);
     }
   };
-  window.addEventListener('load', () => schedule(preloadAll));
+  const schedulePreload = () => schedule(runPreload);
+
+  if (document.readyState === 'complete') {
+    schedulePreload();
+  } else {
+    window.addEventListener('load', schedulePreload, { once: true });
+  }
+
+  window.setTimeout(schedulePreload, 500);
+  window.addEventListener('pointerdown', schedulePreload, { once: true, passive: true });
 }
 
 const queryClient = new QueryClient({
