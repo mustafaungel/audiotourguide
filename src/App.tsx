@@ -10,7 +10,6 @@ import { FaviconUpdater } from "@/components/FaviconUpdater";
 import PreloadBrandingAssets from "@/components/PreloadBrandingAssets";
 import ScrollToTop from "@/components/ScrollToTop";
 import { PerformanceMonitor } from "@/components/PerformanceMonitor";
-import PageTransition from "@/components/PageTransition";
 
 // Eager load Index for fast initial render
 import Index from "./pages/Index";
@@ -31,8 +30,9 @@ const CountryDetail = React.lazy(() => import("./pages/CountryDetail"));
 const FeaturedGuides = React.lazy(() => import("./pages/FeaturedGuides"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
-// Preload all lazy chunks during browser idle time so subsequent navigations
-// are instant — no "loading from scratch" flash between pages.
+// Preload all lazy chunks IMMEDIATELY so navigations are instant — no
+// "loading from scratch" flash between pages. We fire these in the next tick
+// so they don't block initial paint, but we don't wait for idle time.
 if (typeof window !== 'undefined') {
   const preloadAll = () => {
     guideDetailImport();
@@ -46,30 +46,8 @@ if (typeof window !== 'undefined') {
     import("./pages/PaymentSuccess");
     import("./pages/PaymentCancelled");
   };
-  let hasScheduledPreload = false;
-  const runPreload = () => {
-    if (hasScheduledPreload) return;
-    hasScheduledPreload = true;
-    preloadAll();
-  };
-  const schedule = (cb: () => void) => {
-    const w = window as unknown as { requestIdleCallback?: (cb: () => void) => void };
-    if (typeof w.requestIdleCallback === 'function') {
-      w.requestIdleCallback(cb);
-    } else {
-      setTimeout(cb, 1200);
-    }
-  };
-  const schedulePreload = () => schedule(runPreload);
-
-  if (document.readyState === 'complete') {
-    schedulePreload();
-  } else {
-    window.addEventListener('load', schedulePreload, { once: true });
-  }
-
-  window.setTimeout(schedulePreload, 500);
-  window.addEventListener('pointerdown', schedulePreload, { once: true, passive: true });
+  // Kick off after first paint but without waiting for idle.
+  setTimeout(preloadAll, 0);
 }
 
 const queryClient = new QueryClient({
@@ -81,20 +59,9 @@ const queryClient = new QueryClient({
   },
 });
 
-const AudioGuideLoaderLazy = React.lazy(() => import("@/components/AudioGuideLoader").then(m => ({ default: m.AudioGuideLoader })));
-
-// Lightweight, transparent loader used when a brand-new lazy chunk needs to load.
-// Most navigations show no loader at all because the outgoing page stays visible
-// during the page transition (see PageTransition).
-const PageLoader = () => (
-  <div className="min-h-[60vh] flex items-center justify-center">
-    <div className="flex items-center justify-center gap-[3px]">
-      {[0, 1, 2, 3, 4].map((i) => (
-        <span key={i} className="w-1 rounded-full bg-primary audio-wave-bar" style={{ animationDelay: `${i * 0.12}s` }} />
-      ))}
-    </div>
-  </div>
-);
+// Invisible fallback. Routes are preloaded at boot, so this is rarely shown.
+// Keeping it transparent prevents jarring "white flash" if a chunk is still in-flight.
+const PageLoader = () => <div aria-hidden className="min-h-[40vh]" />;
 
 const App = () => {
   try {
@@ -111,7 +78,7 @@ const App = () => {
                 <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                   <ScrollToTop />
                   <main id="main-content">
-                    <PageTransition fallback={<PageLoader />}>
+                    <Suspense fallback={<PageLoader />}>
                       <Routes>
                         <Route path="/" element={<Index />} />
                         <Route path="/admin-login" element={<Auth />} />
@@ -129,7 +96,7 @@ const App = () => {
                         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                         <Route path="*" element={<NotFound />} />
                       </Routes>
-                    </PageTransition>
+                    </Suspense>
                   </main>
                 </BrowserRouter>
               </TooltipProvider>
