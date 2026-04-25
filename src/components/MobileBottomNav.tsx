@@ -10,14 +10,20 @@ const baseNavItems = [
   { to: "/country", label: "Places", icon: MapPinned, match: (pathname: string) => pathname.startsWith("/country") || pathname.startsWith("/featured-guides") },
 ];
 
-const hiddenRoutes = ["/admin", "/access/"];
+// Hide bottom nav on these routes. Use exact-match-aware predicates so that
+// `/admin-login` is NOT swallowed by the `/admin` rule.
+const isHiddenRoute = (pathname: string): boolean => {
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) return true;
+  if (pathname.startsWith("/access/")) return true;
+  return false;
+};
 
 export const MobileBottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  if (hiddenRoutes.some((route) => location.pathname.startsWith(route))) {
+  if (isHiddenRoute(location.pathname)) {
     return null;
   }
 
