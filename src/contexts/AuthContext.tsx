@@ -8,8 +8,8 @@ interface AuthContextType {
   session: Session | null;
   userProfile: any | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string) => Promise<any>;
-  signIn: (email: string, password: string) => Promise<any>;
+  signUp: (email: string, password: string, fullName: string, captchaToken?: string) => Promise<any>;
+  signIn: (email: string, password: string, captchaToken?: string) => Promise<any>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -101,14 +101,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string) => {
+  const signUp = async (email: string, password: string, fullName: string, captchaToken?: string) => {
     const redirectUrl = `${window.location.origin}/`;
-    
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: redirectUrl,
+        captchaToken,
         data: {
           full_name: fullName,
         },
@@ -116,7 +117,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     if (error) {
-      toast.error("Sign up failed: " + error.message);
+      // Generic error message to prevent user enumeration
+      const msg = error.message.toLowerCase().includes('already')
+        ? 'Unable to create account. Please try a different email or sign in.'
+        : error.message;
+      toast.error(msg);
     } else if (data.user && !data.session) {
       toast.success("Check your email for a verification link.");
     }
@@ -124,14 +129,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { data, error };
   };
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, captchaToken?: string) => {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
+      options: { captchaToken },
     });
 
     if (error) {
-      toast.error("Sign in failed: " + error.message);
+      // Generic error to prevent user enumeration
+      toast.error("Invalid email or password.");
     } else {
       toast.success("Welcome back! You have successfully signed in.");
     }
