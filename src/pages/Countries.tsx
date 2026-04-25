@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { getUniqueCountries, createCountrySlug } from '@/lib/country-utils';
 import { SearchAutocomplete } from '@/components/SearchAutocomplete';
+import { ExploreSegmentedNav } from '@/components/ExploreSegmentedNav';
 
 const Countries = () => {
   const navigate = useNavigate();
@@ -80,7 +81,8 @@ const Countries = () => {
         structuredData={breadcrumbSchema}
       />
       <Navigation />
-      
+      <ExploreSegmentedNav active="places" />
+
       {/* Header Section */}
       <section className="mobile-section">
         <div className="mobile-container max-w-4xl text-center">

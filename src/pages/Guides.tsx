@@ -14,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { SearchAutocomplete } from '@/components/SearchAutocomplete';
+import { ExploreSegmentedNav } from '@/components/ExploreSegmentedNav';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -194,7 +195,8 @@ const Guides = () => {
         structuredData={schemas}
       />
       <Navigation />
-      
+      <ExploreSegmentedNav active="guides" />
+
       {/* Page Header */}
       <section className="mobile-section relative overflow-hidden">
         <div className="audio-hero-silhouette" />
