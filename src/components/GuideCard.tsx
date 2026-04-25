@@ -96,6 +96,7 @@ export function GuideCard({
               width={400}
               height={400}
               loading={imageLoading}
+              fetchPriority={imageLoading === 'eager' ? 'high' : 'auto'}
               className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
             />
             {/* Top-left: Live listeners badge (replaces duration on image) */}
