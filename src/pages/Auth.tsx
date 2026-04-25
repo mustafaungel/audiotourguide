@@ -220,19 +220,21 @@ const Auth = () => {
                     </div>
                   </div>
 
-                  <Turnstile
-                    siteKey={turnstileSiteKey}
-                    onVerify={setSignInCaptcha}
-                    onExpire={() => setSignInCaptcha('')}
-                    onError={() => setSignInCaptcha('')}
-                  />
+                  {isCaptchaRequired && (
+                    <Turnstile
+                      siteKey={turnstileSiteKey}
+                      onVerify={setSignInCaptcha}
+                      onExpire={() => setSignInCaptcha('')}
+                      onError={handleCaptchaError}
+                    />
+                  )}
 
                   <Button
                     type="submit"
                     variant="hero"
                     size="lg"
                     className="w-full mt-1"
-                    disabled={isLoading || !signInCaptcha}
+                    disabled={isLoading || (isCaptchaRequired && !signInCaptcha)}
                   >
                     {isLoading ? 'Signing in…' : 'Sign In'}
                   </Button>
@@ -309,19 +311,21 @@ const Auth = () => {
                     <PasswordStrengthMeter password={signUpPassword} className="pt-1" />
                   </div>
 
-                  <Turnstile
-                    siteKey={turnstileSiteKey}
-                    onVerify={setSignUpCaptcha}
-                    onExpire={() => setSignUpCaptcha('')}
-                    onError={() => setSignUpCaptcha('')}
-                  />
+                  {isCaptchaRequired && (
+                    <Turnstile
+                      siteKey={turnstileSiteKey}
+                      onVerify={setSignUpCaptcha}
+                      onExpire={() => setSignUpCaptcha('')}
+                      onError={handleCaptchaError}
+                    />
+                  )}
 
                   <Button
                     type="submit"
                     variant="hero"
                     size="lg"
                     className="w-full mt-1"
-                    disabled={isLoading || !signUpCaptcha}
+                    disabled={isLoading || (isCaptchaRequired && !signUpCaptcha)}
                   >
                     {isLoading ? 'Creating account…' : 'Create Account'}
                   </Button>
