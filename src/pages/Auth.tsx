@@ -20,11 +20,8 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-// Cloudflare Turnstile site key (public — safe to expose).
-// Replace with your own site key from https://dash.cloudflare.com/?to=/:account/turnstile
-// Use the test key below during development; swap for production key before deploy.
-const TURNSTILE_SITE_KEY =
-  (import.meta.env.VITE_TURNSTILE_SITE_KEY as string) || '1x00000000000000000000AA';
+// Cloudflare Turnstile site key fetched from edge function (single source of truth)
+const FALLBACK_TEST_KEY = '1x00000000000000000000AA';
 
 const Auth = () => {
   const { user, signIn, signUp } = useAuth();
@@ -36,6 +33,11 @@ const Auth = () => {
   const [signInCaptcha, setSignInCaptcha] = useState('');
   const [signUpCaptcha, setSignUpCaptcha] = useState('');
 
+  // Site key loaded from server (so we don't depend on VITE_ build-time env)
+  const [turnstileSiteKey, setTurnstileSiteKey] = useState<string>(
+    (import.meta.env.VITE_TURNSTILE_SITE_KEY as string) || ''
+  );
+
   // Live password value for strength meter
   const [signUpPassword, setSignUpPassword] = useState('');
 
@@ -46,6 +48,25 @@ const Auth = () => {
   useEffect(() => {
     if (user) navigate('/');
   }, [user, navigate]);
+
+  // Fetch site key from server on mount
+  useEffect(() => {
+    if (turnstileSiteKey) return;
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('verify-turnstile', {
+          method: 'GET' as any,
+        });
+        if (!error && data?.siteKey) {
+          setTurnstileSiteKey(data.siteKey);
+        } else {
+          setTurnstileSiteKey(FALLBACK_TEST_KEY);
+        }
+      } catch {
+        setTurnstileSiteKey(FALLBACK_TEST_KEY);
+      }
+    })();
+  }, [turnstileSiteKey]);
 
   // Server-side captcha verification (extra layer beyond Supabase native check)
   const verifyCaptchaServerSide = async (token: string): Promise<boolean> => {
