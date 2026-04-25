@@ -9,6 +9,7 @@ interface OptimizedImageProps {
   height?: number;
   quality?: number;
   loading?: 'lazy' | 'eager';
+  fetchPriority?: 'high' | 'low' | 'auto';
 }
 
 export function OptimizedImage({
@@ -17,7 +18,8 @@ export function OptimizedImage({
   className,
   width,
   height,
-  loading = 'lazy'
+  loading = 'lazy',
+  fetchPriority = 'auto',
 }: OptimizedImageProps) {
   const cdnUrl = getDirectImageUrl(src);
   const fallbackUrl = src || '/placeholder.svg';
@@ -63,6 +65,7 @@ export function OptimizedImage({
           className={`${loaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300 ${className || ''}`}
           loading={loading}
           decoding="async"
+          {...({ fetchpriority: fetchPriority } as any)}
           onLoad={() => setLoaded(true)}
           onError={handleError}
         />

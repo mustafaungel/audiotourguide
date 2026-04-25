@@ -2,7 +2,7 @@ import React, { Suspense } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { BrandingProvider } from "@/contexts/BrandingContext";
@@ -30,9 +30,7 @@ const CountryDetail = React.lazy(() => import("./pages/CountryDetail"));
 const FeaturedGuides = React.lazy(() => import("./pages/FeaturedGuides"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
-// Preload all lazy chunks IMMEDIATELY so navigations are instant — no
-// "loading from scratch" flash between pages. We fire these in the next tick
-// so they don't block initial paint, but we don't wait for idle time.
+// Preload all lazy chunks IMMEDIATELY so KeepAlive tabs can mount fast.
 if (typeof window !== 'undefined') {
   const preloadAll = () => {
     guideDetailImport();
@@ -46,7 +44,6 @@ if (typeof window !== 'undefined') {
     import("./pages/PaymentSuccess");
     import("./pages/PaymentCancelled");
   };
-  // Kick off after first paint but without waiting for idle.
   setTimeout(preloadAll, 0);
 }
 
@@ -59,9 +56,72 @@ const queryClient = new QueryClient({
   },
 });
 
-// Invisible fallback. Routes are preloaded at boot, so this is rarely shown.
-// Keeping it transparent prevents jarring "white flash" if a chunk is still in-flight.
 const PageLoader = () => <div aria-hidden className="min-h-[40vh]" />;
+
+/**
+ * KeepAlive shell:
+ * - Main tab pages (/, /guides, /library, /country) are mounted ONCE and
+ *   kept in the DOM. Switching between them only toggles `display`, so
+ *   scroll position, query cache and component state are preserved and
+ *   navigation feels instant (0ms) — like a native app.
+ * - All other routes (detail pages, admin, auth, payment, etc.) use
+ *   the regular <Routes> tree below and mount/unmount normally.
+ * - A tab is lazily mounted on first visit, then kept alive forever.
+ */
+const TAB_ROUTES: Array<{ path: string; match: (p: string) => boolean; render: () => React.ReactNode }> = [
+  { path: '/', match: (p) => p === '/', render: () => <Index /> },
+  { path: '/guides', match: (p) => p === '/guides', render: () => <Guides /> },
+  { path: '/library', match: (p) => p === '/library', render: () => <Library /> },
+  { path: '/country', match: (p) => p === '/country', render: () => <Countries /> },
+];
+
+const KeepAliveTabs = () => {
+  const location = useLocation();
+  const pathname = location.pathname;
+  const activeTab = TAB_ROUTES.find((t) => t.match(pathname));
+  const isOnTab = !!activeTab;
+
+  // Track which tabs have ever been visited so we mount them lazily
+  // on first visit, then keep them mounted.
+  const mountedRef = React.useRef<Set<string>>(new Set());
+  if (activeTab) mountedRef.current.add(activeTab.path);
+
+  return (
+    <>
+      {TAB_ROUTES.map((tab) => {
+        if (!mountedRef.current.has(tab.path)) return null;
+        const isActive = activeTab?.path === tab.path;
+        return (
+          <div
+            key={tab.path}
+            style={{ display: isActive ? 'block' : 'none' }}
+            aria-hidden={!isActive}
+          >
+            <Suspense fallback={<PageLoader />}>{tab.render()}</Suspense>
+          </div>
+        );
+      })}
+
+      {/* Non-tab routes mount/unmount normally and are hidden when on a tab */}
+      {!isOnTab && (
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/admin-login" element={<Auth />} />
+            <Route path="/admin" element={<AdminPanel />} />
+            <Route path="/country/:countrySlug" element={<CountryDetail />} />
+            <Route path="/featured-guides" element={<FeaturedGuides />} />
+            <Route path="/guide/:slug" element={<GuideDetail />} />
+            <Route path="/access/:guideId" element={<AudioAccess />} />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
+            <Route path="/payment-cancelled" element={<PaymentCancelled />} />
+            {/* Catch-all */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      )}
+    </>
+  );
+};
 
 const App = () => {
   try {
@@ -78,25 +138,7 @@ const App = () => {
                 <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                   <ScrollToTop />
                   <main id="main-content">
-                    <Suspense fallback={<PageLoader />}>
-                      <Routes>
-                        <Route path="/" element={<Index />} />
-                        <Route path="/admin-login" element={<Auth />} />
-                        <Route path="/admin" element={<AdminPanel />} />
-                        <Route path="/library" element={<Library />} />
-                        <Route path="/guides" element={<Guides />} />
-                        <Route path="/country" element={<Countries />} />
-                        <Route path="/country/:countrySlug" element={<CountryDetail />} />
-                        <Route path="/featured-guides" element={<FeaturedGuides />} />
-                        <Route path="/guide/:slug" element={<GuideDetail />} />
-                        <Route path="/access/:guideId" element={<AudioAccess />} />
-                        
-                        <Route path="/payment-success" element={<PaymentSuccess />} />
-                        <Route path="/payment-cancelled" element={<PaymentCancelled />} />
-                        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
-                    </Suspense>
+                    <KeepAliveTabs />
                   </main>
                 </BrowserRouter>
               </TooltipProvider>
