@@ -68,19 +68,6 @@ const Auth = () => {
     })();
   }, [turnstileSiteKey]);
 
-  // Server-side captcha verification (extra layer beyond Supabase native check)
-  const verifyCaptchaServerSide = async (token: string): Promise<boolean> => {
-    try {
-      const { data, error } = await supabase.functions.invoke('verify-turnstile', {
-        body: { token, action: activeTab },
-      });
-      if (error || !data?.success) return false;
-      return true;
-    } catch {
-      return false;
-    }
-  };
-
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const limit = checkRateLimit('signin');
