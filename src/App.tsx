@@ -10,7 +10,6 @@ import { FaviconUpdater } from "@/components/FaviconUpdater";
 import PreloadBrandingAssets from "@/components/PreloadBrandingAssets";
 import ScrollToTop from "@/components/ScrollToTop";
 import { PerformanceMonitor } from "@/components/PerformanceMonitor";
-import PageTransition from "@/components/PageTransition";
 
 // Eager load Index for fast initial render
 import Index from "./pages/Index";
