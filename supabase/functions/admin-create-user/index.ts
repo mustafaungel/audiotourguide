@@ -73,9 +73,9 @@ serve(async (req) => {
       user_metadata: { full_name: validatedData.fullName }
     });
 
-    if (authError) {
+    if (authError || !user) {
       console.error('[ADMIN-CREATE-USER] Auth creation error:', authError);
-      throw authError;
+      throw authError ?? new Error('User creation returned no user');
     }
 
     console.log('[ADMIN-CREATE-USER] Auth user created:', user.id);
