@@ -39,18 +39,21 @@ export const MobileBottomNav = () => {
     return null;
   }
 
-  // Library is shown to everyone — guests see an empty state with a CTA,
-  // which doubles as a soft prompt to sign in / purchase.
-  const navItems = [
-    ...baseNavItems,
-    {
-      to: "/library",
-      label: "Library",
-      icon: LibraryBig,
-      match: (pathname: string) =>
-        pathname.startsWith("/library") || pathname.startsWith("/payment-"),
-    },
-  ];
+  // Library is only meaningful for signed-in users (it lists their purchased
+  // guides). Guests get a Sign In tab instead — no point in showing them an
+  // empty Library that just redirects to login.
+  const navItems = user
+    ? [
+        ...baseNavItems,
+        {
+          to: "/library",
+          label: "Library",
+          icon: LibraryBig,
+          match: (pathname: string) =>
+            pathname.startsWith("/library") || pathname.startsWith("/payment-"),
+        },
+      ]
+    : baseNavItems;
 
   const accountItem = user
     ? { to: "/library", label: "Account", icon: User, match: (_p: string) => false }
