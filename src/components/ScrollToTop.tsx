@@ -27,11 +27,21 @@ const ScrollToTop = () => {
     }
     prevPathRef.current = pathname;
 
-    // Restore scroll for KeepAlive tabs (instant, like a native app).
+    // Restore scroll for KeepAlive tabs.
+    // If we're already at (or very near) the saved position, do nothing — avoids snap.
+    // Otherwise, smooth-scroll to it so the transition feels natural instead of jumping.
     if (KEEP_ALIVE_TABS.has(pathname)) {
       const saved = tabScrollCache.get(pathname) ?? 0;
+      const current = window.scrollY;
+      const delta = Math.abs(current - saved);
+
+      if (delta < 4) return; // already there, no work needed
+
+      // For very small offsets (under ~80px) just snap — smooth would feel laggy.
+      // For larger offsets, smooth scroll so the user sees where they're going.
+      const behavior: ScrollBehavior = delta < 80 ? "instant" as ScrollBehavior : "smooth";
       requestAnimationFrame(() => {
-        window.scrollTo({ top: saved, left: 0, behavior: "instant" as ScrollBehavior });
+        window.scrollTo({ top: saved, left: 0, behavior });
       });
       return;
     }
