@@ -35,7 +35,7 @@ const Auth = () => {
 
   // Site key loaded from server (so we don't depend on VITE_ build-time env)
   const [turnstileSiteKey, setTurnstileSiteKey] = useState<string>(
-    (import.meta.env.VITE_turnstileSiteKey as string) || ''
+    (import.meta.env.VITE_TURNSTILE_SITE_KEY as string) || ''
   );
 
   // Live password value for strength meter
