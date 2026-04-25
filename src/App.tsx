@@ -59,20 +59,9 @@ const queryClient = new QueryClient({
   },
 });
 
-const AudioGuideLoaderLazy = React.lazy(() => import("@/components/AudioGuideLoader").then(m => ({ default: m.AudioGuideLoader })));
-
-// Lightweight, transparent loader used when a brand-new lazy chunk needs to load.
-// Most navigations show no loader at all because the outgoing page stays visible
-// during the page transition (see PageTransition).
-const PageLoader = () => (
-  <div className="min-h-[60vh] flex items-center justify-center">
-    <div className="flex items-center justify-center gap-[3px]">
-      {[0, 1, 2, 3, 4].map((i) => (
-        <span key={i} className="w-1 rounded-full bg-primary audio-wave-bar" style={{ animationDelay: `${i * 0.12}s` }} />
-      ))}
-    </div>
-  </div>
-);
+// Invisible fallback. Routes are preloaded at boot, so this is rarely shown.
+// Keeping it transparent prevents jarring "white flash" if a chunk is still in-flight.
+const PageLoader = () => <div aria-hidden className="min-h-[40vh]" />;
 
 const App = () => {
   try {
