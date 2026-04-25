@@ -127,14 +127,6 @@ const Auth = () => {
       return;
     }
 
-    const captchaOk = await verifyCaptchaServerSide(parsed.data.captchaToken);
-    if (!captchaOk) {
-      toast.error('Security check failed. Please try again.');
-      setSignUpCaptcha('');
-      setIsLoading(false);
-      return;
-    }
-
     const { error } = await signUp(
       parsed.data.email,
       parsed.data.password,
