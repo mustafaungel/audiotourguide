@@ -78,7 +78,7 @@ const App = () => {
                 <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                   <ScrollToTop />
                   <main id="main-content">
-                    <PageTransition fallback={<PageLoader />}>
+                    <Suspense fallback={<PageLoader />}>
                       <Routes>
                         <Route path="/" element={<Index />} />
                         <Route path="/admin-login" element={<Auth />} />
@@ -96,7 +96,7 @@ const App = () => {
                         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                         <Route path="*" element={<NotFound />} />
                       </Routes>
-                    </PageTransition>
+                    </Suspense>
                   </main>
                 </BrowserRouter>
               </TooltipProvider>
