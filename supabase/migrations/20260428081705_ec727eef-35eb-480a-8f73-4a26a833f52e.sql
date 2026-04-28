@@ -1,0 +1,1 @@
+ALTER VIEW public.public_guest_reviews SET (security_invoker = on);
