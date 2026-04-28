@@ -67,38 +67,62 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    let isMounted = true;
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          // Defer profile fetch to avoid blocking auth state change
-          setTimeout(() => {
-            fetchUserProfile(session.user.id);
-          }, 0);
+      (event, newSession) => {
+        if (!isMounted) return;
+
+        const newUserId = newSession?.user?.id ?? null;
+
+        // Only update session/user state when the identity actually changes.
+        // TOKEN_REFRESHED fires periodically (~1h) and on cross-tab storage
+        // events; updating state every time causes the whole tree to re-render
+        // and feels like the page is refreshing itself.
+        setSession((prev) => {
+          if (prev?.access_token === newSession?.access_token) return prev;
+          return newSession;
+        });
+
+        setUser((prev) => {
+          if (prev?.id === newUserId) return prev;
+          return newSession?.user ?? null;
+        });
+
+        if (newSession?.user) {
+          if (lastProfileUserRef.current !== newSession.user.id) {
+            // Defer profile fetch to avoid blocking auth state change
+            setTimeout(() => {
+              fetchUserProfile(newSession.user.id);
+            }, 0);
+          }
         } else {
+          lastProfileUserRef.current = null;
           setUserProfile(null);
         }
-        
+
         setLoading(false);
       }
     );
 
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        fetchUserProfile(session.user.id);
+    // Check for existing session (initial load only)
+    supabase.auth.getSession().then(({ data: { session: existingSession } }) => {
+      if (!isMounted) return;
+      setSession(existingSession);
+      setUser(existingSession?.user ?? null);
+
+      if (existingSession?.user) {
+        fetchUserProfile(existingSession.user.id);
       }
-      
+
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signUp = async (email: string, password: string, fullName: string, captchaToken?: string) => {
