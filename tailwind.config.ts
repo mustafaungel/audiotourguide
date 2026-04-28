@@ -155,6 +155,7 @@ export default {
         smooth: "var(--transition-smooth)",
         bounce: "var(--transition-bounce)",
         spring: "var(--transition-spring)",
+        "spring-soft": "cubic-bezier(0.34, 1.56, 0.64, 1)",
       },
       borderRadius: {
         lg: "var(--radius)",

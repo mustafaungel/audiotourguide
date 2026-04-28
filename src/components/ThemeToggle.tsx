@@ -65,7 +65,7 @@ export const ThemeToggle = () => {
         className={cn(
           "relative z-10 flex h-[20px] w-[20px] sm:h-[26px] sm:w-[26px] items-center justify-center rounded-full bg-white",
           "shadow-[0_2px_6px_rgba(0,0,0,0.25),0_1px_2px_rgba(0,0,0,0.15)]",
-          "transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] will-change-transform transform-gpu",
+          "transition-transform duration-300 ease-spring-soft will-change-transform transform-gpu",
           isDark ? "translate-x-[25px] sm:translate-x-[31px]" : "translate-x-[3px]"
         )}
       >
