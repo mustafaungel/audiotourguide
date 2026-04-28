@@ -20,4 +20,7 @@ Disallow: /library
 Disallow: /payment-success
 Disallow: /payment-cancelled
 
+# Primary sitemap (always fresh, generated from DB)
+Sitemap: https://dsaqlgxajdnwoqvtsrqd.supabase.co/functions/v1/generate-sitemap
+# Static fallback
 Sitemap: https://audiotourguide.app/sitemap.xml

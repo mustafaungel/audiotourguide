@@ -31,7 +31,36 @@
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@audiotourguides" />
+    <meta name="twitter:title" content="Audio Tour Guides - Professional Audio Guides for World Heritage Sites" />
+    <meta name="twitter:description" content="Professional audio tour guides for UNESCO sites, museums, and cultural landmarks. Multi-language narration." />
     <meta name="twitter:image" content="https://audiotourguide.app/logo-audio-tour-guides.png" />
+    <link rel="canonical" href="https://audiotourguide.app/" />
+
+    <!-- Organization JSON-LD for Knowledge Graph -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Audio Tour Guides",
+      "url": "https://audiotourguide.app",
+      "logo": "https://audiotourguide.app/logo-audio-tour-guides.png",
+      "description": "Professional audio tour guides for UNESCO World Heritage sites, museums, and cultural landmarks worldwide.",
+      "sameAs": []
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Audio Tour Guides",
+      "url": "https://audiotourguide.app",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://audiotourguide.app/guides?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
     
     <!-- Security: Content Security Policy -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co https://*.stripe.com; media-src 'self' blob: https://*.supabase.co https://storage.googleapis.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://api.openai.com https://api.elevenlabs.io https://storage.googleapis.com; frame-src 'self' https://js.stripe.com https://hooks.stripe.com;">
