@@ -485,6 +485,33 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     />
   ) : null;
 
+  // Desktop persistent player bar (Spotify-style) — portaled to body so it stays fixed
+  const desktopPlayerElement = !isMobile && isActive ? createPortal(
+    <DesktopPlayerBar
+      title={currentSection?.title || guideTitle}
+      subtitle={guideTitle !== currentSection?.title ? guideTitle : `Chapter ${currentSectionIndex + 1} / ${displaySections.length}`}
+      imageUrl={guideImageUrl}
+      currentTime={currentTime}
+      duration={duration}
+      isPlaying={isPlaying}
+      loading={loading}
+      volume={volume}
+      isMuted={isMuted}
+      playbackSpeed={playbackSpeed}
+      canGoNext={currentSectionIndex < displaySections.length - 1}
+      canGoPrevious={currentSectionIndex > 0}
+      onTogglePlay={togglePlayPause}
+      onSeek={handleSeek}
+      onSkip={skip}
+      onPrevious={previousSection}
+      onNext={nextSection}
+      onVolumeChange={handleVolumeChange}
+      onToggleMute={toggleMute}
+      onSpeedChange={handleSpeedChange}
+    />,
+    document.body
+  ) : null;
+
   return (
     <div className="space-y-6">
       <ChapterList
