@@ -326,6 +326,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
           if (myToken !== playTokenRef.current) return;
           // AbortError happens when src changes mid-play — not a real error
           if (error?.name === 'AbortError') return;
+          console.error('[NEW-SECTION-PLAYER] play() rejected:', { name: error?.name, message: error?.message, url: audioUrl });
           setLoading(false);
           setIsPlaying(false);
           if (error?.name === 'NotAllowedError') {
