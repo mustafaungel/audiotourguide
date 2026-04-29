@@ -276,6 +276,7 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     setCurrentSectionIndex(sectionIndex);
 
     // Lazy-create audio element (must happen synchronously for iOS gesture)
+    const isFreshAudio = !audioRef.current;
     if (!audioRef.current) {
       audioRef.current = new Audio();
       audioRef.current.preload = 'auto';
@@ -287,10 +288,11 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     const audio = audioRef.current;
     const myToken = ++playTokenRef.current;
 
-    // Properly tear down previous playback to avoid AbortError race:
-    // pause -> remove src -> load() forces the element to release the previous resource
-    try { audio.pause(); } catch {}
-    try { audio.removeAttribute('src'); audio.load(); } catch {}
+    // Only tear down if there was a previous src (avoids spurious errors on first play)
+    if (!isFreshAudio && audio.src) {
+      try { audio.pause(); } catch {}
+      try { audio.removeAttribute('src'); audio.load(); } catch {}
+    }
 
     // STREAM-FIRST: Use cached blob if available, otherwise stream raw URL synchronously
     const cachedBlob = blobUrlCache.current[sectionIndex];
