@@ -539,10 +539,11 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
         onSpeedChange={handleSpeedChange}
         onAutoAdvanceChange={setAutoAdvance}
         lang={lang}
-        hideMobileControls={isActive && isMobile}
+        hideMobileControls={isActive}
       />
       {miniPlayerElement}
       {expandedPlayerElement}
+      {desktopPlayerElement}
     </div>
   );
 };
