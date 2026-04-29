@@ -257,6 +257,9 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     }
   };
 
+  // Token to ignore stale play() promise rejections after rapid section switches
+  const playTokenRef = useRef(0);
+
   const playSection = (sectionIndex: number) => {
     if (sectionIndex < 0 || sectionIndex >= displaySections.length) return;
 
@@ -271,35 +274,39 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
     setLoading(true);
     setCurrentSectionIndex(sectionIndex);
 
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
-
+    // Lazy-create audio element (must happen synchronously for iOS gesture)
     if (!audioRef.current) {
       audioRef.current = new Audio();
       audioRef.current.preload = 'auto';
       audioRef.current.setAttribute('playsinline', '');
       audioRef.current.setAttribute('controlsList', 'nodownload');
-
       setupAudioElement(audioRef.current);
     }
 
+    const audio = audioRef.current;
+    const myToken = ++playTokenRef.current;
+
+    // Properly tear down previous playback to avoid AbortError race:
+    // pause -> remove src -> load() forces the element to release the previous resource
+    try { audio.pause(); } catch {}
+    try { audio.removeAttribute('src'); audio.load(); } catch {}
+
     // STREAM-FIRST: Use cached blob if available, otherwise stream raw URL synchronously
-    // This keeps the user gesture context intact for iOS Safari
     const cachedBlob = blobUrlCache.current[sectionIndex];
     const section = displaySections[sectionIndex];
     const audioUrl = cachedBlob || resolvedUrlsRef.current[sectionIndex] || resolveRawUrl(section?.audio_url);
 
-    audioRef.current.src = audioUrl;
-    audioRef.current.volume = volume;
-    audioRef.current.playbackRate = playbackSpeed;
+    audio.src = audioUrl;
+    audio.volume = volume;
+    audio.playbackRate = playbackSpeed;
 
-    const playPromise = audioRef.current.play();
+    const playPromise = audio.play();
 
     if (playPromise !== undefined) {
       playPromise
         .then(() => {
+          // Ignore if a newer playSection call superseded this one
+          if (myToken !== playTokenRef.current) return;
           setIsPlaying(true);
           onPlayStart?.();
           toast({
@@ -307,18 +314,18 @@ export const NewSectionAudioPlayer: React.FC<NewSectionAudioPlayerProps> = ({
             description: displaySections[sectionIndex]?.title || guideTitle,
           });
 
-          // BACKGROUND CACHE: Fire-and-forget blob cache for offline playback
-          // Only if not already cached and using raw URL (not blob)
           if (!cachedBlob) {
-            resolveBlobUrl(sectionIndex).catch(() => {
-              // Silent fail — playback continues from raw URL
-            });
+            resolveBlobUrl(sectionIndex).catch(() => {});
           }
         })
         .catch((error: any) => {
+          // Stale rejection from a superseded play() — ignore silently
+          if (myToken !== playTokenRef.current) return;
+          // AbortError happens when src changes mid-play — not a real error
+          if (error?.name === 'AbortError') return;
           setLoading(false);
           setIsPlaying(false);
-          if (error.name === 'NotAllowedError') {
+          if (error?.name === 'NotAllowedError') {
             toast({ title: t('audioLocked', lang), description: t('tapToPlay', lang) });
           } else {
             toast({ title: t('playbackError', lang), description: t('playbackErrorDesc', lang), variant: 'destructive' });
