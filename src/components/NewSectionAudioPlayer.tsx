@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { ChapterList } from '@/components/ChapterList';
 import { MiniPlayer } from '@/components/MiniPlayer';
 import { ExpandedPlayer } from '@/components/ExpandedPlayer';
+import { DesktopPlayerBar } from '@/components/DesktopPlayerBar';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAudioProgress } from '@/hooks/useAudioProgress';
